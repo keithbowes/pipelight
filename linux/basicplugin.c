@@ -184,6 +184,24 @@ void handle_NPN_GetURLNotify(Stack &stack){
 	returnCommand();
 }
 
+void handle_NPN_PostURLNotify(Stack &stack){
+
+	NPP instance 					= readHandleInstance(stack);
+	std::shared_ptr<char> url 		= readStringAsMemory(stack);
+	std::shared_ptr<char> target 	= readStringAsMemory(stack);
+
+	size_t len;
+	std::shared_ptr<char> buffer	= readMemory(stack, len);
+	bool file 						= (bool)readInt32(stack);
+	void* notifyData 				= readHandleNotify(stack);
+
+	NPError result = sBrowserFuncs->posturlnotify(instance, url.get(), target.get(), len, buffer.get(), file, notifyData);
+
+	writeInt32(result);
+	returnCommand();
+
+}
+
 // Verified, everything okay
 void handle_NPN_Status(Stack &stack){
 
@@ -236,6 +254,39 @@ void handle_NPN_IntFromIdentifier(Stack &stack){
 
 }
 
+
+void handle_NPN_Write(Stack &stack){
+
+	size_t len;
+
+	NPP instance 					= readHandleInstance(stack);
+	NPStream *stream 				= readHandleStream(stack);
+	std::shared_ptr<char> buffer	= readMemory(stack, len);	
+
+	int32_t result = sBrowserFuncs->write(instance, stream, len, buffer.get());
+	
+	writeInt32(result);
+	returnCommand();
+
+}
+
+void handle_NPN_DestroyStream(Stack &stack){
+
+	NPP instance 		= readHandleInstance(stack);
+	NPStream *stream 	= readHandleStream(stack);
+	NPReason reason 	= (NPReason) readInt32(stack);
+
+	NPError result = sBrowserFuncs->destroystream(instance, stream, reason);
+	
+	// Let the handlemanager remove this one
+	// TODO: Is this necessary?
+	//handlemanager.removeHandleByReal((uint64_t)stream, TYPE_NPStream);
+
+	writeInt32(result);
+	returnCommand();
+}
+
+
 void dispatcher(int functionid, Stack &stack){
 
 	NPP instance;
@@ -255,15 +306,23 @@ void dispatcher(int functionid, Stack &stack){
 	int64_t id;
 	int32_t type;
 
+	bool killObject;
+
 	//output << "dispatching function " << functionid << std::endl;
 
 
 	switch(functionid){
 		
 		case FUNCTION_NPN_CREATE_OBJECT: // Verified, everything okay
+			output << "FUNCTION_NPN_CREATE_OBJECT" << std::endl;
+
 			obj = sBrowserFuncs->createobject(readHandleInstance(stack), &myClass);
+
+			output << "FUNCTION_NPN_CREATE_OBJECT ready with obj " << (void*)obj << std::endl;
+
 			writeHandle(obj); // refcounter is hopefully 1
 			returnCommand();
+
 			break;
 
 		case FUNCTION_NPN_GET_WINDOWNPOBJECT: // Verified, everything okay
@@ -318,10 +377,20 @@ void dispatcher(int functionid, Stack &stack){
 			break;
 
 		case FUNCTION_NPN_RELEASEOBJECT: // Verified, everything okay
-			obj = readHandleObj(stack);
+			obj 		= readHandleObj(stack);
+			killObject 	= readInt32(stack);
 
 			output << "RELEASE " << obj << std::endl;
 			output << obj->referenceCount << std::endl;
+
+			if(killObject){
+
+				output << "Killed " << (void*) obj << std::endl;
+			
+				// Remove it in the handle manager
+				handlemanager.removeHandleByReal((uint64_t)obj, TYPE_NPObject);
+
+			}
 
 			sBrowserFuncs->releaseobject(obj);
 
@@ -394,10 +463,23 @@ void dispatcher(int functionid, Stack &stack){
 			handle_NPN_GetURLNotify(stack);
 			break;
 
+		case FUNCTION_NPN_POST_URL_NOTIFY:
+			handle_NPN_PostURLNotify(stack);
+			break;
 
 		case FUNCTION_NPN_STATUS:
 			handle_NPN_Status(stack);
 			break;
+
+
+		case FUNCTION_NPN_WRITE:
+			handle_NPN_Write(stack);
+			break;		
+
+		case FUNCTION_NPN_DESTROY_STREAM:
+			handle_NPN_DestroyStream(stack);
+			break;		
+
 
 		case FUNCTION_NPN_UTF8_FROM_IDENTIFIER:
 			handle_NPN_UTF8FromIdentifier(stack);
@@ -427,7 +509,7 @@ void dispatcher(int functionid, Stack &stack){
 			returnCommand();
 			break;
 
-		case OBJECT_KILL: // Verified, everything okay
+		/*case OBJECT_KILL: // Verified, everything okay
 			obj = readHandleObj(stack);
 
 			output << "Killed " << (void*) obj << std::endl;
@@ -436,7 +518,7 @@ void dispatcher(int functionid, Stack &stack){
 			handlemanager.removeHandleByReal((uint64_t)obj, TYPE_NPObject);
 
 			returnCommand();
-			break;
+			break;*/
 
 		default:
 			throw std::runtime_error("WTF? Which Function?");

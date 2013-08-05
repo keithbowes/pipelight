@@ -419,6 +419,45 @@ char* readMemoryMalloc(Stack &stack){
 	return readMemoryMalloc(stack, resultLength);
 }
 
+#ifndef __WIN32__
+
+// YOU ARE RESPONSIBLE FOR FREEING THIS PTR!
+char* readMemoryBrowserAlloc(Stack &stack, size_t &resultLength){
+
+	// get last element in stack
+	std::vector<ParameterInfo>::reverse_iterator rit = stack.rbegin();
+	if(rit == stack.rend())	throw std::runtime_error("No return value found");
+
+	// check for correct type
+	if( rit->command != BLOCKCMD_PUSH_MEMORY ){
+		throw std::runtime_error("Wrong return value, expected memory");
+	}
+
+	char *data 		= rit->data.get();
+	char *result 	= NULL;
+	resultLength = 0;
+
+	if(rit->length > 0 && data){
+		result = (char*)sBrowserFuncs->memalloc(rit->length);
+		if(result){
+			memcpy(result, data, rit->length);
+			resultLength = rit->length;
+		}
+	}
+
+	stack.pop_back();
+
+	return result;	
+}
+
+// YOU ARE RESPONSIBLE FOR FREEING THIS PTR!
+char* readMemoryBrowserAlloc(Stack &stack){
+	size_t resultLength;
+	return readMemoryBrowserAlloc(stack, resultLength);
+}
+
+#endif
+
 
 void readCommands(Stack &stack, bool allowReturn){
 	//output << ">>>>>> READCOMMANDS" << std::endl;

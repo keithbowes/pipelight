@@ -21,11 +21,13 @@ enum FunctionIDs{
 	FUNCTION_GET_DESCRIPTION,
 
 	FUNCTION_NPP_NEW,
+	FUNCTION_NPP_DESTROY,
 
 	FUNCTION_NP_INVOKE,
 	FUNCTION_NP_HAS_PROPERTY_FUNCTION,
 	FUNCTION_NP_HAS_METHOD_FUNCTION,
 	FUNCTION_NP_GET_PROPERTY_FUNCTION,
+	FUNCTION_NP_SET_PROPERTY_FUNCTION,
 
 	FUNCTION_NPP_GETVALUE_BOOL,
 	FUNCTION_NPP_GETVALUE_OBJECT,
@@ -36,6 +38,7 @@ enum FunctionIDs{
 	FUNCTION_NPP_WRITE_READY,
 	FUNCTION_NPP_WRITE,
 	FUNCTION_NPP_URL_NOTIFY,
+	FUNCTION_NP_INVALIDATE_FUNCTION,
 
 	FUNCTION_NPN_USERAGENT,
 
@@ -54,6 +57,9 @@ enum FunctionIDs{
 	FUNCTION_NPN_INVOKE,
 
 	FUNCTION_NPN_GET_URL_NOTIFY,
+	FUNCTION_NPN_POST_URL_NOTIFY,
+	FUNCTION_NPN_WRITE,
+	FUNCTION_NPN_DESTROY_STREAM,
 
 	FUNCTION_NPN_STATUS,
 
@@ -120,6 +126,10 @@ std::shared_ptr<char> readMemory(Stack &stack, size_t &resultLength);
 std::shared_ptr<char> readMemory(Stack &stack);
 char* readMemoryMalloc(Stack &stack, size_t &resultLength);
 char* readMemoryMalloc(Stack &stack);
+#ifndef __WIN32__
+char* readMemoryBrowserAlloc(Stack &stack, size_t &resultLength);
+char* readMemoryBrowserAlloc(Stack &stack);
+#endif
 
 void readCommands(Stack &stack, bool allowReturn = true);
 

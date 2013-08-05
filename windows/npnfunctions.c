@@ -34,13 +34,48 @@ NPError NP_LOADDS NPN_NewStream(NPP instance, NPMIMEType type, const char* windo
 }
 
 int32_t NP_LOADDS NPN_Write(NPP instance, NPStream* stream, int32_t len, void* buffer){
-	output << ">>>>> STUB: NPN_Write" << std::endl;
-	return 0;		
+
+	output << "NPN_Write" << std::endl;
+
+	writeMemory((char*)buffer, len);
+	writeHandle(stream);
+	writeHandle(instance);
+	callFunction(FUNCTION_NPN_WRITE);
+
+	NPError result = readResultInt32();
+
+	output << "-- Returning: " << result << std::endl;
+
+	return result;
+
 }
 
 NPError NP_LOADDS NPN_DestroyStream(NPP instance, NPStream* stream, NPReason reason){
-	output << ">>>>> STUB: NPN_Write" << std::endl;
-	return NPERR_NO_ERROR;	
+
+	output << "NPN_DestroyStream" << std::endl;
+
+	writeInt32(reason);
+	writeHandle(stream);
+	writeHandle(instance);
+	callFunction(FUNCTION_NPN_DESTROY_STREAM);
+
+	NPError result = readResultInt32();
+
+	// Free Data
+	// TODO: Is this required?
+	/*if(stream){
+		if(stream->url) free((char*)stream->url);
+		if(stream->headers) free((char*)stream->headers);
+		free(stream);
+	}
+
+	handlemanager.removeHandleByReal((uint64_t)stream, TYPE_NPStream);
+	*/
+
+	output << "-- Returning: " << result << std::endl;
+
+	return result;	
+
 }
 
 // Verified, everything okay
@@ -119,8 +154,28 @@ NPError NPN_GetURLNotify(NPP instance, const  char* url, const char* target, voi
 }
 
 NPError NPN_PostURLNotify(NPP instance, const char* url, const char* target, uint32_t len, const char* buf, NPBool file, void* notifyData){
-	output << ">>>>> STUB: NPN_PostURLNotify" << std::endl;
-	return NPERR_NO_ERROR;	
+
+	output << "NPN_PostURLNotify: " << url << std::endl;
+
+	if(file){
+		output << "UPLOADING FILES NOT YET SUPPORTED!" << std::endl;
+		return NPERR_FILE_NOT_FOUND;
+	}
+
+	writeHandleNotify(notifyData);
+	writeInt32(file);
+	writeMemory(buf, len);
+	writeString(target);
+	writeString(url);
+	writeHandle(instance);
+	callFunction(FUNCTION_NPN_POST_URL_NOTIFY);
+
+	NPError result = readResultInt32();
+
+	output << "-- Returning: " << result << std::endl;
+
+	return result;
+
 }
 
 // Verified, everything okay
@@ -304,7 +359,8 @@ NPObject* NP_LOADDS NPN_RetainObject(NPObject *obj){
 
 		//if(obj->referenceCount != 0xDEADBEEF) throw std::runtime_error("REFERENCE COUNT HAS BEEN MODIFIED BY PLUGIN!");
 
-		obj->referenceCount++;
+		if(obj->referenceCount != 0xffffffff)
+			obj->referenceCount++;
 
 		writeHandle(obj, true);
 		callFunction(FUNCTION_NPN_RETAINOBJECT);
@@ -325,17 +381,23 @@ void NP_LOADDS NPN_ReleaseObject(NPObject *obj){
 	if (obj){
 		//if(obj->referenceCount != 0xDEADBEEF) throw std::runtime_error("REFERENCE COUNT HAS BEEN MODIFIED BY PLUGIN!");
 
+		if(obj->referenceCount != 0xffffffff)
+			obj->referenceCount--;
+
+		writeInt32( (obj->referenceCount == 0) );
 		writeHandle(obj, true);
 		callFunction(FUNCTION_NPN_RELEASEOBJECT);
 		waitReturn();
 
-		obj->referenceCount--;
-
+		// Can never occur for user-created objects
+		// For such objects the other side calls KILL_OBJECT
 		if(obj->referenceCount == 0){
 
+			/*
 			writeHandle(obj, true);
 			callFunction(OBJECT_KILL);
 			waitReturn();
+			*/
 
 			// Remove the object locally
 			if(obj->_class->deallocate){

@@ -41,13 +41,22 @@ NPObject* createNPObject(uint64_t id, NPClass *aclass = NULL, NPP instance = 0){
 
 
 	obj->_class 		= aclass; //(NPClass*)0xdeadbeef;
-	obj->referenceCount	= 0; //0xDEADBEEF; // TODO: Is this useful?
+	obj->referenceCount	= 1; //0xDEADBEEF; // TODO: Is this useful?
+
+
+	if(aclass != &myClass || instance ) obj->referenceCount = 0xffffffff;
 
 	//if(aclass == &myClass) obj->_class = (NPClass*)0xDEADBEEF;
 
 	if(aclass != &myClass) output << "Version number: " << aclass->structVersion << " (my version:" <<  NP_CLASS_STRUCT_VERSION << ")" << std::endl;
 
 	output << "Handle manager added object " << (void*)obj << std::endl;
+
+
+	output << "-- class: " << obj->_class << " (myclass: " << &myClass << ")" << std::endl;
+	output << "-- referenceCount: " << (void*)obj->referenceCount << std::endl;
+	output << "-- version: " << obj->_class->structVersion << std::endl;
+
 
 	return obj;
 }
@@ -102,7 +111,12 @@ uint64_t HandleManager::translateFrom(uint64_t id, HandleType type, NPP instance
 	if(it != handlesID.end()){
 
 		// Ensure that aClass or instance is given
-		if(instance || aclass) throw std::runtime_error("Expected a new handle, but I already got this one");
+		if(instance || aclass){
+
+			output << "I ALREADY GOT THIS ONE: " << (void*)it->second.real << std::endl;
+
+			throw std::runtime_error("Expected a new handle, but I already got this one");
+		}
 
 		return it->second.real;
 	}
@@ -215,6 +229,14 @@ void HandleManager::removeHandleByReal(uint64_t real, HandleType type){
 	output << "Removed from handle manager: REAL=" << (void*)real << std::endl;
 }
 
+bool HandleManager::existsHandleByReal(uint64_t real, HandleType type){
+	std::map<std::pair<HandleType, uint64_t>, Handle>::iterator it;
+
+	it = handlesReal.find(std::pair<HandleType, uint64_t>(type, real));
+	if(it == handlesReal.end()) return false;
+
+	return true;
+}
 
 void writeHandle(uint64_t real, HandleType type, bool shouldExist){
 	writeInt64(handlemanager.translateTo(real, type, shouldExist));
@@ -254,9 +276,10 @@ NPObject * readHandleObj(Stack &stack, NPP instance, NPClass *aclass, bool shoul
 		throw std::runtime_error("Wrong handle type, expected object");
 
 	// Check if this is required everywhere
-	//#ifdef __WIN32__
-	//	obj->referenceCount++;
-	//#endif
+	/*#ifdef __WIN32__
+		if(obj->referenceCount != -1)
+			obj->referenceCount++;
+	#endif*/
 
 	return obj;
 }
@@ -303,7 +326,19 @@ void* readHandleNotify(Stack &stack, bool shouldExist){
 
 
 void writeVariantRelease(NPVariant &variant){
-	writeVariantConst(variant);
+	bool deleteFromHandleManager = false;
+
+	#ifdef __WIN32__
+	if(variant.type == NPVariantType_Object){
+		NPObject* obj = variant.value.objectValue;
+
+		if(obj->referenceCount == 1){
+			deleteFromHandleManager = true;
+		}
+	}
+	#endif
+
+	writeVariantConst(variant, deleteFromHandleManager);
 
 	#ifdef __WIN32__
 
@@ -312,12 +347,61 @@ void writeVariantRelease(NPVariant &variant){
 		if( variant.type == NPVariantType_String){
 			if (variant.value.stringValue.UTF8Characters)
 				free((char*)variant.value.stringValue.UTF8Characters);
-		}
 
-		variant.type = NPVariantType_Null;
+		}else if(variant.type == NPVariantType_Object){
+
+			NPObject* obj = variant.value.objectValue;
+
+			// If refCount is -1, then the other side (browser) is responsible for this object
+			// if it is <> -1 then it is just a virtual object, which doesnt really exist
+			if(obj->referenceCount != 0xffffffff)
+				obj->referenceCount--;
+
+			// Can never occur for user-created objects
+			// For such objects the other side calls KILL_OBJECT
+			if(obj->referenceCount == 0){
+
+				/*
+				writeHandle(obj, true);
+				callFunction(OBJECT_KILL);
+				waitReturn();
+				*/
+
+				// Remove the object locally
+				if(obj->_class->deallocate){
+					output << "call deallocate function " << (void*)obj->_class->deallocate << std::endl;
+
+					obj->_class->deallocate(obj);
+				}else{
+					output << "call default dealloc function " << std::endl;
+
+					free((char*)obj);
+				}
+
+				output << "removeHandleByReal: " << (uint64_t)obj << " or " << (void*)obj << std::endl;
+
+				// Remove it in the handle manager
+				handlemanager.removeHandleByReal((uint64_t)obj, TYPE_NPObject);
+
+			}
+		}
 
 		/*
 		if(variant.type == NPVariantType_Object){
+			NPN_RetainObject(variant.value.objectValue);
+
+			// We dont own the reference anymore!
+			NPObject* obj = variant.value.objectValue;
+			obj->referenceCount--;
+		}
+
+		NPN_ReleaseVariantValue(&variant);
+		*/
+		
+		variant.type = NPVariantType_Null;
+
+		/*
+		
 			NPN_RetainObject(variant.value.objectValue);			
 		}
 
@@ -338,7 +422,7 @@ void writeVariantArrayRelease(NPVariant *variant, int count){
 	}
 }
 
-void writeVariantConst(const NPVariant &variant){
+void writeVariantConst(const NPVariant &variant, bool deleteFromHandleManager){
 	switch(variant.type){
 		
 		case NPVariantType_Null:
@@ -366,13 +450,26 @@ void writeVariantConst(const NPVariant &variant){
 
 		case NPVariantType_String:
 			writeString((char*)variant.value.stringValue.UTF8Characters, variant.value.stringValue.UTF8Length);
-			output << "WriteVariant: String('" << variant.value.stringValue.UTF8Characters << "')" << std::endl;
+			output << "WriteVariant: String(len=" << variant.value.stringValue.UTF8Length << ", '" << std::string(variant.value.stringValue.UTF8Characters, variant.value.stringValue.UTF8Length) << "')" << std::endl;
 			break;
 
 		case NPVariantType_Object:
+			writeInt32(deleteFromHandleManager);
 			writeHandle(variant.value.objectValue);
 			output << "WriteVariant: Object(" <<  (void*)variant.value.objectValue << ")" << std::endl;
-			break;
+
+			NPObject* obj;
+			obj = (NPObject*)variant.value.objectValue;	
+			output << "-- class: " << obj->_class << " (myclass: " << &myClass << ")" << std::endl;
+			output << "-- referenceCount: " << (void*)obj->referenceCount << std::endl;
+			output << "-- version: " << obj->_class->structVersion << std::endl;
+
+			// Now also delete from handle-manager
+			//if(deleteFromHandleManager){
+			//	handlemanager.removeHandleByReal((uint64_t)variant.value.objectValue, TYPE_NPObject);
+			//}
+
+		break;
 
 		default:
 			throw std::runtime_error("Unsupported variant type");
@@ -393,6 +490,7 @@ void readVariant(Stack &stack, NPVariant &variant){
 	variant.type = (NPVariantType)type;
 
 	size_t stringLength;
+	bool deleteFromHandleManager;
 
 	switch(variant.type){
 		
@@ -432,7 +530,20 @@ void readVariant(Stack &stack, NPVariant &variant){
 
 		case NPVariantType_Object:
 			variant.value.objectValue 	= readHandleObj(stack);
+			deleteFromHandleManager     = (bool)readInt32(stack);
+
 			output << "ReadVariant: Object(" <<  (void*)variant.value.objectValue << ")" << std::endl;
+
+			NPObject* obj;
+			obj = (NPObject*)variant.value.objectValue;
+			output << "-- class: " << obj->_class << " (myclass: " << &myClass << ")" << std::endl;
+			output << "-- referenceCount: " << (void*)obj->referenceCount << std::endl;
+			output << "-- version: " << obj->_class->structVersion << std::endl;
+
+			if(deleteFromHandleManager){
+				handlemanager.removeHandleByReal((uint64_t)variant.value.objectValue, TYPE_NPObject);
+			}
+
 			break;
 
 		default:
@@ -464,7 +575,8 @@ NPObject * readHandleObjIncRef(Stack &stack, NPP instance, NPClass *aclass, bool
 		throw std::runtime_error("Wrong handle type, expected object");
 
 	// Check if this is required everywhere
-	obj->referenceCount++;
+	if(obj->referenceCount != 0xffffffff)
+		obj->referenceCount++;
 
 	return obj;
 }
@@ -474,6 +586,7 @@ void readVariantIncRef(Stack &stack, NPVariant &variant){
 	variant.type = (NPVariantType)type;
 
 	size_t stringLength;
+	bool deleteFromHandleManager;
 
 	switch(variant.type){
 		
@@ -513,7 +626,13 @@ void readVariantIncRef(Stack &stack, NPVariant &variant){
 
 		case NPVariantType_Object:
 			variant.value.objectValue 	= readHandleObjIncRef(stack);
+			deleteFromHandleManager     = (bool)readInt32(stack);
 			output << "ReadVariant: Object(" <<  (void*)variant.value.objectValue << ")" << std::endl;
+
+			if(deleteFromHandleManager){
+				handlemanager.removeHandleByReal((uint64_t)variant.value.objectValue, TYPE_NPObject);
+			}
+
 			break;
 
 		default:

@@ -159,8 +159,41 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 
 NPError
 NPP_Destroy(NPP instance, NPSavedData** save) {
-	output << ">>>>> STUB: NPP_Destroy" << std::endl;
-	return NPERR_NO_ERROR;
+	output << "NPP_Destroy" << std::endl;
+
+	writeHandle(instance);
+	callFunction(FUNCTION_NPP_DESTROY);
+
+	Stack stack;
+	readCommands(stack);	
+
+	NPError result 	= readInt32(stack);
+
+	// We write a nullpointer in case we dont want to return anything
+	*save = NULL;
+
+	if(result == NPERR_NO_ERROR){
+		size_t save_length;
+		char* save_data = readMemoryBrowserAlloc(stack, save_length);
+
+		if(save_data){
+			*save = (NPSavedData*) sBrowserFuncs->memalloc(sizeof(NPSavedData));
+			if(*save){
+
+				(*save)->buf = save_data;
+				(*save)->len = save_length;
+
+			}else{
+				sBrowserFuncs->memfree(save_data);
+			}
+		}
+
+	}
+
+	handlemanager.removeHandleByReal((uint64_t)instance, TYPE_NPPInstance);
+
+	return result;
+
 }
 
 // Verified, everything okay
@@ -169,6 +202,9 @@ NPP_SetWindow(NPP instance, NPWindow* window) {
 
 	// TODO: translate to Screen coordinates
 	// TODO: Use all parameters
+
+	output << "NPP_SetWindow" << std::endl;
+	output << "X11 Window: " << (uint64_t)window->window << std::endl;
 
 	writeInt32(window->height);
 	writeInt32(window->width);

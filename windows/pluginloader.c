@@ -24,10 +24,12 @@ LRESULT CALLBACK WndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	{
 
 		case WM_DESTROY:
-			PostQuitMessage(WM_QUIT);
-			break;
+			//PostQuitMessage(WM_QUIT);
+			return 0;
+
 		default:
 			return DefWindowProc(hWnd, Msg, wParam, lParam);
+
 	}
 	
 	return 0;
@@ -444,15 +446,16 @@ void callNPP_DestroyStream(Stack &stack){
 
 	NPError result = pluginFuncs.destroystream(instance, stream, reason);
 
-	// Let the handlemanager remove this one
-	handlemanager.removeHandleByReal((uint64_t)stream, TYPE_NPStream);
-
 	// Free Data
 	if(stream){
 		if(stream->url) 	free((char*)stream->url);
 		if(stream->headers) free((char*)stream->headers);
 		free(stream);
 	}
+
+	// Let the handlemanager remove this one
+	handlemanager.removeHandleByReal((uint64_t)stream, TYPE_NPStream);
+
 
 	writeInt32(result);
 	returnCommand();
@@ -553,6 +556,65 @@ void callNP_GetPropertyFunction(Stack &stack){
 	returnCommand();	
 }
 
+void callNPP_Destroy(Stack &stack){
+
+	output << "Destroying plugin" << std::endl;
+
+	NPSavedData* saved = NULL;
+
+	NPP instance = readHandleInstance(stack);
+
+	NPError result = pluginFuncs.destroy(instance, &saved);
+
+	// Destroy the window
+	HWND hwnd = (HWND)instance->ndata;
+	if(hwnd){
+		DestroyWindow(hwnd);
+	}
+
+	handlemanager.removeHandleByReal((uint64_t)instance, TYPE_NPPInstance);
+	free(instance);
+
+	if(result == NPERR_NO_ERROR){
+		if(saved){
+			writeMemory((char*)saved->buf, saved->len);
+
+			if(saved->buf) free((char*)saved->buf);
+			free(saved);
+
+		}else{
+			writeMemory(NULL, 0);
+		}
+	}
+
+	writeInt32(result);
+	returnCommand();
+}
+
+void callNP_SetPropertyFunction(Stack &stack){
+
+	NPObject 		*obj 		= readHandleObj(stack);
+	NPIdentifier 	name 		= readHandleIdentifier(stack);	
+	NPVariant 		variant;
+
+	readVariant(stack, variant);
+
+	bool result = obj->_class->setProperty(obj, name, &variant);
+
+	freeVariant(variant);
+
+	writeInt32(result);
+	returnCommand();	
+}
+
+void callNP_NPInvalidateFunction(Stack &stack){
+	NPObject *obj = readHandleObj(stack);
+
+	obj->_class->invalidate(obj);
+
+	returnCommand();	
+}
+
 
 void dispatcher(int functionid, Stack &stack){
 
@@ -589,16 +651,23 @@ void dispatcher(int functionid, Stack &stack){
 			callNPP_New(stack);
 			break;
 
+		case FUNCTION_NPP_DESTROY:
+			callNPP_Destroy(stack);
+			break;
+
 		case FUNCTION_NP_INVOKE:
 			callNP_Invoke(stack);
 			break;
 
-		/*case OBJECT_KILL: // Verified, everything okay
-			obj = readHandleObj(stack);
+		// Note: Only called for custom-created objects! Not for objects transmitted by pipe from the browser!
+		case OBJECT_KILL: // Verified, everything okay
+			obj = readHandleObj(stack, NULL, 0, true);
 
 			output << "Killed " << (void*) obj << std::endl;
 			
 			// Reset refcount to detect further access
+			if(obj->referenceCount != 0xffffffff) throw std::runtime_error("Object_kill for unexpected object");
+
 			obj->referenceCount = 0xDEADBEEF;
 
 			// Remove the object locally
@@ -618,7 +687,7 @@ void dispatcher(int functionid, Stack &stack){
 			handlemanager.removeHandleByReal((uint64_t)obj, TYPE_NPObject);
 
 			returnCommand();
-			break;*/
+			break;
 
 		case FUNCTION_NPP_GETVALUE_BOOL:
 			callNPP_GetValue_Bool(stack);
@@ -664,6 +733,13 @@ void dispatcher(int functionid, Stack &stack){
 			callNP_GetPropertyFunction(stack);
 			break;
 
+		case FUNCTION_NP_SET_PROPERTY_FUNCTION:
+			callNP_SetPropertyFunction(stack);
+			break;
+
+		case FUNCTION_NP_INVALIDATE_FUNCTION:
+			callNP_NPInvalidateFunction(stack);
+			break;
 
 		case PROCESS_WINDOW_EVENTS:
 			// Process window events

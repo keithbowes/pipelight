@@ -1,7 +1,14 @@
 #include "basicplugin.h"
 
 void NPInvalidateFunction(NPObject *npobj){
-	output << ">>>>> STUB: NPInvalidateFunction" << std::endl;
+	//output << ">>>>> STUB: NPInvalidateFunction" << std::endl;
+
+	output << "NPInvalidateFunction" << std::endl;
+
+	writeHandle(npobj);
+	callFunction(FUNCTION_NP_INVALIDATE_FUNCTION);
+	waitReturn();
+
 }
 
 // Verified, everything okay
@@ -86,8 +93,16 @@ bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result
 }
 
 bool NPSetPropertyFunction(NPObject *npobj, NPIdentifier name, const NPVariant *value){
-	output << ">>>>> STUB: NPSetPropertyFunction" << std::endl;
-	return false;
+
+	output << "NPSetPropertyFunction" << std::endl;
+
+	writeVariantConst(*value);
+	writeHandle(name);
+	writeHandle(npobj);
+	callFunction(FUNCTION_NP_SET_PROPERTY_FUNCTION);
+
+	return (bool)readResultInt32();
+
 }
 
 bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name){
@@ -123,17 +138,28 @@ void NPDeallocateFunction(NPObject *npobj){
 	output << "Browser called Deallocate Object " << (void*)npobj << std::endl;
 
 	if(npobj){
+		bool exists = handlemanager.existsHandleByReal((uint64_t)npobj, TYPE_NPObject);
 
-		// Kill the object on the other side
-		/*writeHandle(npobj);
-		callFunction(OBJECT_KILL);
-		waitReturn();*/
+
+		if( exists ){
+
+			// This has to be a user-created object which has to be freed via a KILL_OBJECT message
+
+			// Kill the object on the other side
+			writeHandle(npobj);
+			callFunction(OBJECT_KILL);
+			waitReturn();
+
+		}
 
 		// Remove the object locally
 		free(npobj);
 
 		// Remove it in the handle manager
-		//handlemanager.removeHandleByReal((uint64_t)npobj, TYPE_NPObject);
+		if( exists ){
+			handlemanager.removeHandleByReal((uint64_t)npobj, TYPE_NPObject);
+		}
+
 	}
 }
 

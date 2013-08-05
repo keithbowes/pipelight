@@ -38,6 +38,9 @@ class HandleManager{
 		void removeHandleByID(uint64_t id);
 		void removeHandleByReal(uint64_t real, HandleType type);
 
+		// Checks if the given handletype exists
+		bool existsHandleByReal(uint64_t real, HandleType type);
+
 		//uint64_t manuallyAddHandle(uint64_t real, HandleType type);
 };
 
@@ -60,7 +63,7 @@ void* 			readHandleNotify(Stack &stack, bool shouldExist = false);
 void writeVariantRelease(NPVariant &variant);
 void writeVariantArrayRelease(NPVariant *variant, int count);
 
-void writeVariantConst(const NPVariant &variant);
+void writeVariantConst(const NPVariant &variant, bool deleteFromHandleManager = false);
 void writeVariantArrayConst(const NPVariant *variant, int count);
 
 void readVariant(Stack &stack, NPVariant &variant);
