@@ -4,7 +4,7 @@ void NPInvalidateFunction(NPObject *npobj){
 	debugEnterFunction("NPInvalidateFunction");
 
 	writeHandleObj(npobj);
-	callFunction(FUNCTION_NP_INVALIDATE_FUNCTION);
+	callFunction(FUNCTION_NP_INVALIDATE);
 	waitReturn();
 }
 
@@ -14,7 +14,7 @@ bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name){
 
 	writeHandleIdentifier(name);
 	writeHandleObj(npobj);
-	callFunction(FUNCTION_NP_HAS_METHOD_FUNCTION);
+	callFunction(FUNCTION_NP_HAS_METHOD);
 
 	return (bool)readResultInt32();
 
@@ -47,9 +47,28 @@ bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args,
 	return resultBool;
 }
 
-bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result){
-	debugNotImplemented("NPInvokeDefaultFunction");
-	return false;
+bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result){ // UNTESTED!
+	debugEnterFunction("NPInvokeDefaultFunction");
+
+	writeVariantArrayConst(args, argCount);
+	writeInt32(argCount);
+	writeHandleObj(npobj);
+	callFunction(FUNCTION_NP_INVOKE_DEFAULT);
+
+	std::vector<ParameterInfo> stack;
+	readCommands(stack);
+
+	bool resultBool = (bool)readInt32(stack);
+
+	if(resultBool){
+		readVariant(stack, *result); // Dont increment refcount, this has already been done by invoke()
+	}else{
+		result->type = NPVariantType_Null;
+	}	
+
+	// The caller has to call NPN_ReleaseVariant if this should be freed
+
+	return resultBool;
 }
 
 // Verified, everything okay
@@ -58,7 +77,7 @@ bool NPHasPropertyFunction(NPObject *npobj, NPIdentifier name){
 
 	writeHandleIdentifier(name);
 	writeHandleObj(npobj);
-	callFunction(FUNCTION_NP_HAS_PROPERTY_FUNCTION);
+	callFunction(FUNCTION_NP_HAS_PROPERTY);
 
 	return (bool)readResultInt32();
 	
@@ -70,7 +89,7 @@ bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result
 
 	writeHandleIdentifier(name);
 	writeHandleObj(npobj);
-	callFunction(FUNCTION_NP_GET_PROPERTY_FUNCTION);
+	callFunction(FUNCTION_NP_GET_PROPERTY);
 
 	std::vector<ParameterInfo> stack;
 	readCommands(stack);
@@ -92,22 +111,54 @@ bool NPSetPropertyFunction(NPObject *npobj, NPIdentifier name, const NPVariant *
 	writeVariantConst(*value);
 	writeHandleIdentifier(name);
 	writeHandleObj(npobj);
-	callFunction(FUNCTION_NP_SET_PROPERTY_FUNCTION);
+	callFunction(FUNCTION_NP_SET_PROPERTY);
 
 	return (bool)readResultInt32();
 
 }
 
-bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name){
-	debugNotImplemented("NPRemovePropertyFunction");
-	return false;
+bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name){ // UNTESTED!
+	debugEnterFunction("NPRemovePropertyFunction");
+
+	writeHandleIdentifier(name);
+	writeHandleObj(npobj);
+	callFunction(FUNCTION_NP_REMOVE_PROPERTY);
+
+	return (bool)readResultInt32();
 }
 
-bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *count){
-	debugNotImplemented("NPEnumerationFunction");
-	return false;
+bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *count){ // UNTESTED!
+	debugEnterFunction("NPEnumerationFunction");
+
+	writeHandleObj(npobj);
+	callFunction(FUNCTION_NP_ENUMERATE);
+
+	std::vector<ParameterInfo> stack;
+	readCommands(stack);
+
+	bool 	 result                         = (bool)readInt32(stack);
+
+	if(!result){
+		return false;
+	}
+
+	uint32_t identifierCount 				= readInt32(stack);
+	std::vector<NPIdentifier> identifiers 	= readIdentifierArray(stack, identifierCount);
+
+	NPIdentifier* identifierTable = (NPIdentifier*)sBrowserFuncs->memalloc(identifierCount * sizeof(NPIdentifier));
+	if(!identifierTable){
+		return false;
+	}
+
+	memcpy(identifierTable, identifiers.data(), sizeof(NPIdentifier) * identifierCount);
+
+	*value = identifierTable;
+	*count = identifierCount;
+	return true;
 }
 
+// Not implemented yet as this is not yet included in the official docs and its very unlikely that
+// an old plugin requires this function
 bool NPConstructFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result){
 	debugNotImplemented("NPConstructFunction");
 	return false;

@@ -147,9 +147,9 @@ bool InitDLL(){
 					output << "Language:" << np_Language << std::endl;
 					*/
 
-					NP_GetEntryPointsFunc 	NP_GetEntryPoints 	= (NP_GetEntryPointsFunc) GetProcAddress(dll, "NP_GetEntryPoints");
-					NP_InitializeFunc 		NP_Initialize 		= (NP_InitializeFunc) GetProcAddress(dll, "NP_Initialize");
-					
+					NP_GetEntryPointsFunc 	NP_GetEntryPoints 	= (NP_GetEntryPointsFunc) 	GetProcAddress(dll, "NP_GetEntryPoints");
+					NP_InitializeFunc 		NP_Initialize 		= (NP_InitializeFunc) 		GetProcAddress(dll, "NP_Initialize");
+
 					if(NP_GetEntryPoints && NP_Initialize){
 
 						if (NP_Initialize(&browserFuncs) == NPERR_NO_ERROR){
@@ -331,7 +331,33 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		case FUNCTION_NP_HAS_PROPERTY_FUNCTION:
+		case FUNCTION_NP_INVOKE_DEFAULT: // UNTESTED!
+			{
+				NPObject 	*npobj 			= readHandleObjIncRef(stack);
+				uint32_t argCount 			= readInt32(stack);
+				std::vector<NPVariant> args = readVariantArrayIncRef(stack, argCount);
+
+				NPVariant resultVariant;
+				resultVariant.type = NPVariantType_Null;
+
+				bool result = npobj->_class->invokeDefault(npobj, args.data(), argCount, &resultVariant);
+
+				// The objects refcount has been incremented by invoke
+				// Return the variant without modifying the objects refcount
+				if(result){
+					writeVariantReleaseDecRef(resultVariant);
+				}
+
+				// This frees ONLY all the strings!
+				freeVariantArrayDecRef(args);
+				objectDecRef(npobj);
+
+				writeInt32(result);
+				returnCommand();
+			}
+			break;
+
+		case FUNCTION_NP_HAS_PROPERTY:
 			{
 				NPObject *obj 		= readHandleObjIncRef(stack);
 				NPIdentifier name 	= readHandleIdentifier(stack);	
@@ -345,7 +371,7 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;		
 
-		case FUNCTION_NP_HAS_METHOD_FUNCTION:
+		case FUNCTION_NP_HAS_METHOD:
 			{
 				NPObject *obj 		= readHandleObjIncRef(stack);
 				NPIdentifier name 	= readHandleIdentifier(stack);	
@@ -359,7 +385,7 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;		
 
-		case FUNCTION_NP_GET_PROPERTY_FUNCTION:
+		case FUNCTION_NP_GET_PROPERTY:
 			{
 				NPObject *obj 		= readHandleObjIncRef(stack);
 				NPIdentifier name 	= readHandleIdentifier(stack);	
@@ -380,7 +406,7 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		case FUNCTION_NP_SET_PROPERTY_FUNCTION:
+		case FUNCTION_NP_SET_PROPERTY:
 			{
 				NPObject 		*obj 		= readHandleObjIncRef(stack);
 				NPIdentifier 	name 		= readHandleIdentifier(stack);	
@@ -398,7 +424,45 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		case FUNCTION_NP_INVALIDATE_FUNCTION:
+		case FUNCTION_NP_REMOVE_PROPERTY: // UNTESTED!
+			{
+				NPObject 		*obj 		= readHandleObjIncRef(stack);
+				NPIdentifier 	name 		= readHandleIdentifier(stack);	
+
+				bool result = obj->_class->removeProperty(obj, name);
+
+				objectDecRef(obj);
+
+				writeInt32(result);
+				returnCommand();	
+			}
+			break;
+
+		case FUNCTION_NP_ENUMERATE: // UNTESTED!
+			{
+				NPObject 		*obj 		= readHandleObjIncRef(stack);
+
+				NPIdentifier*   identifierTable  = NULL;
+				uint32_t 		identifierCount  = 0;
+
+				bool result = obj->_class->enumerate(obj, &identifierTable, &identifierCount);
+
+				if(result){
+					writeIdentifierArray(identifierTable, identifierCount);
+
+					// Free the memory for the table
+					if(identifierTable)
+						free(identifierTable);
+				}
+
+				objectDecRef(obj);
+
+				writeInt32(result);
+				returnCommand();
+			}
+			break;
+
+		case FUNCTION_NP_INVALIDATE:
 			{
 				NPObject *obj = readHandleObjIncRef(stack);
 
@@ -658,6 +722,13 @@ void dispatcher(int functionid, Stack &stack){
 
 				pluginFuncs.urlnotify(instance, URL.get(), reason, notifyData);
 
+				returnCommand();
+			}
+			break;
+
+		case NP_SHUTDOWN:
+			{
+				// TODO: Implement deinitialization! We dont call Shutdown, as otherwise we would have to call Initialize again!
 				returnCommand();
 			}
 			break;

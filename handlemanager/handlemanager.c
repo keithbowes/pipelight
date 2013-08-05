@@ -776,6 +776,26 @@ void freeStringArray(std::vector<char*> str){
 }
 
 
+void writeIdentifierArray(NPIdentifier* identifiers, int count){
+	for(int i = count - 1; i >= 0; i--){
+		writeHandleIdentifier(identifiers[i]);
+	}
+}
+
+
+std::vector<NPIdentifier> readIdentifierArray(Stack &stack, int count){
+	std::vector<NPIdentifier> result;
+
+	for(int i = 0; i < count; i++){
+		result.push_back( readHandleIdentifier(stack) );
+	}
+
+	return result;
+}
+
+
+
+
 void writeNPBool(NPBool value){
 	writeInt32(value);
 }

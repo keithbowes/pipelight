@@ -14,22 +14,76 @@ void pokeString(std::string str, char *dest, unsigned int maxLength){
 }
 
 NPError NP_LOADDS NPN_GetURL(NPP instance, const char* url, const char* window){
-	debugNotImplemented("NPN_GetURL");
-	return NPERR_NO_ERROR;
+	debugEnterFunction("NPN_GetURL");
+
+	writeString(window);
+	writeString(url);
+	writeHandleInstance(instance);
+	callFunction(FUNCTION_NPN_GET_URL);
+
+	NPError result = readResultInt32();
+	return result;
 }
 
 NPError NP_LOADDS NPN_PostURL(NPP instance, const char* url, const char* window, uint32_t len, const char* buf, NPBool file){
-	debugNotImplemented("NPN_PostURL");
-	return NPERR_NO_ERROR;	
+	debugEnterFunction("NPN_PostURL");
+
+	// File upload would require to convert the wine path to a linux path - too complicated as this function isnt used in many plugins
+	if(file){
+		debugNotImplemented("NPN_PostURLNotify - file upload not supported yet");
+		return NPERR_FILE_NOT_FOUND;
+	}
+
+	writeInt32(file);
+	writeMemory(buf, len);
+	writeString(window);
+	writeString(url);
+	writeHandleInstance(instance);
+	callFunction(FUNCTION_NPN_POST_URL);
+
+	NPError result = readResultInt32();
+	return result;
 }
 
 NPError NP_LOADDS NPN_RequestRead(NPStream* stream, NPByteRange* rangeList){
-	debugNotImplemented("NPN_RequestRead");
-	return NPERR_NO_ERROR;	
+	debugEnterFunction("NPN_RequestRead");
+
+	// Count the number of elements in the linked list
+	uint32_t rangeCount = 0;
+
+	while(rangeList){
+		rangeCount++;
+
+		writeInt32(rangeList->length);
+		writeInt32(rangeList->offset);
+
+		rangeList = rangeList->next;
+	}
+
+	writeInt32(rangeCount);
+	writeHandleStream(stream);
+	callFunction(FUNCTION_NPN_REQUEST_READ);
+
+	NPError result = readResultInt32();
+	return result;
 }
 
 NPError NP_LOADDS NPN_NewStream(NPP instance, NPMIMEType type, const char* window, NPStream** stream){
-	debugNotImplemented("NPN_NewStream");
+	debugEnterFunction("NPN_NewStream");
+
+	writeString(window);
+	writeString(type);
+	writeHandleInstance(instance);
+	callFunction(FUNCTION_NPN_NEW_STREAM);
+
+	std::vector<ParameterInfo> stack;
+	readCommands(stack);
+
+	NPError result = readInt32(stack);
+
+	if(result == NPERR_NO_ERROR)
+		*stream 	= readHandleStream(stack);
+
 	return NPERR_NO_ERROR;		
 }
 
@@ -54,18 +108,6 @@ NPError NP_LOADDS NPN_DestroyStream(NPP instance, NPStream* stream, NPReason rea
 	callFunction(FUNCTION_NPN_DESTROY_STREAM);
 
 	NPError result = readResultInt32();
-
-	// Free Data
-	// TODO: Is this required?
-	/*if(stream){
-		if(stream->url) free((char*)stream->url);
-		if(stream->headers) free((char*)stream->headers);
-		free(stream);
-	}
-
-	handlemanager.removeHandleByReal((uint64_t)stream, TYPE_NPStream);
-	*/
-
 	return result;	
 }
 
@@ -105,20 +147,24 @@ void NP_LOADDS NPN_MemFree(void* ptr){
 	}
 }
 
+// MacOS only, returns number of freed bytes
 uint32_t NP_LOADDS NPN_MemFlush(uint32_t size){
 	debugNotImplemented("NPN_MemFlush");
 	return 0;
 }
 
+// Would allow to force the browser to reload plugins, not really necessary
 void NP_LOADDS NPN_ReloadPlugins(NPBool reloadPages){
 	debugNotImplemented("NPN_ReloadPlugins");
 }
 
+// Java is disabled of course!
 void* NP_LOADDS NPN_GetJavaEnv(void){
 	debugNotImplemented("NPN_GetJavaEnv");
 	return NULL;		
 }
 
+// Java is disabled of course!
 void* NP_LOADDS NPN_GetJavaPeer(NPP instance){
 	debugNotImplemented("NPN_GetJavaPeer");
 	return NULL;		
@@ -207,6 +253,7 @@ NPError NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 	return result;		
 }
 
+// So far we dont allow overwriting these values
 NPError NPN_SetValue(NPP instance, NPPVariable variable, void *value){
 	debugNotImplemented("NPN_SetValue");
 	return NPERR_NO_ERROR;		
@@ -217,16 +264,32 @@ void NP_LOADDS NPN_InvalidateRect(NPP instance, NPRect *rect){
 
 	HWND hwnd = (HWND)instance->ndata;
 	if(hwnd){
-		InvalidateRect(hwnd, NULL, true);
+		RECT r;
+		r.left 		= rect->left;
+		r.top 		= rect->top;
+		r.right 	= rect->right;
+		r.bottom 	= rect->bottom;
+
+		InvalidateRect(hwnd, &r, false);
 	}
 }
 
 void NP_LOADDS NPN_InvalidateRegion(NPP instance, NPRegion region){
-	debugNotImplemented("NPN_InvalidateRegion");
+	debugEnterFunction("NPN_InvalidateRegion");
+
+	HWND hwnd = (HWND)instance->ndata;
+	if(hwnd){
+		InvalidateRgn(hwnd, region, false);
+	}
 }
 
 void NP_LOADDS NPN_ForceRedraw(NPP instance){
-	debugNotImplemented("NPN_ForceRedraw");
+	debugEnterFunction("NPN_ForceRedraw");
+
+	HWND hwnd = (HWND)instance->ndata;
+	if(hwnd){
+		UpdateWindow(hwnd);
+	}
 }
 
 // Verified, everything okay
@@ -234,7 +297,7 @@ NPIdentifier NP_LOADDS NPN_GetStringIdentifier(const NPUTF8* name){
 	debugEnterFunction("NPN_GetStringIdentifier");
 
 	writeString(name);
-	callFunction(FUNCTION_NPP_GET_STRINGIDENTIFIER);
+	callFunction(FUNCTION_NPN_GET_STRINGIDENTIFIER);
 
 	std::vector<ParameterInfo> stack;
 	readCommands(stack);
@@ -243,12 +306,25 @@ NPIdentifier NP_LOADDS NPN_GetStringIdentifier(const NPUTF8* name){
 }
 
 void NP_LOADDS NPN_GetStringIdentifiers(const NPUTF8** names, int32_t nameCount, NPIdentifier* identifiers){
-	debugNotImplemented("NPN_GetStringIdentifiers");
+	debugEnterFunction("NPN_GetStringIdentifiers");
+
+	// Lazy implementation ;-)
+	for(int i = 0; i < nameCount; i++){
+		identifiers[i] = NPN_GetStringIdentifier(names[i]);
+	}
+
 }
 
 NPIdentifier NP_LOADDS NPN_GetIntIdentifier(int32_t intid){
-	debugNotImplemented("NPN_GetIntIdentifier");
-	return 0;
+	debugEnterFunction("NPN_GetIntIdentifier");
+
+	writeInt32(intid);
+	callFunction(FUNCTION_NPN_GET_INTIDENTIFIER);
+
+	std::vector<ParameterInfo> stack;
+	readCommands(stack);
+
+	return readHandleIdentifier(stack);
 }
 
 // Verified, everything okay
@@ -359,9 +435,27 @@ bool NP_LOADDS NPN_Invoke(NPP npp, NPObject* obj, NPIdentifier methodName, const
 	return resultBool;
 }
 
-bool NP_LOADDS NPN_InvokeDefault(NPP npp, NPObject* obj, const NPVariant *args, uint32_t argCount, NPVariant *result){
-	debugNotImplemented("NPN_InvokeDefault");
-	return false;
+bool NP_LOADDS NPN_InvokeDefault(NPP npp, NPObject* obj, const NPVariant *args, uint32_t argCount, NPVariant *result){ // UNTESTED!
+	debugEnterFunction("NPN_InvokeDefault");
+
+	writeVariantArrayConst(args, argCount);
+	writeInt32(argCount);
+	writeHandleObj(obj);
+	writeHandleInstance(npp);
+	callFunction(FUNCTION_NPN_INVOKE_DEFAULT);
+
+	std::vector<ParameterInfo> stack;
+	readCommands(stack);
+
+	bool resultBool = readInt32(stack);
+
+	if(resultBool){
+		readVariantIncRef(stack, *result); // no incref, as linux is responsible for refcounting!
+	}else{
+		result->type = NPVariantType_Null;
+	}	
+
+	return resultBool;
 }
 
 // Verified, everything okay
@@ -412,23 +506,52 @@ bool NP_LOADDS NPN_GetProperty(NPP npp, NPObject *obj, NPIdentifier propertyName
 }
 
 bool NP_LOADDS NPN_SetProperty(NPP npp, NPObject *obj, NPIdentifier propertyName, const NPVariant *value){
-	debugNotImplemented("NPN_SetProperty");
-	return false;
+	debugEnterFunction("NPN_SetProperty");
+
+	writeVariantConst(*value);
+	writeHandleIdentifier(propertyName);
+	writeHandleObj(obj);
+	writeHandleInstance(npp);
+	callFunction(FUNCTION_NPN_SET_PROPERTY);
+
+	bool result = (bool)readResultInt32();
+	return result;
 }
 
 bool NP_LOADDS NPN_RemoveProperty(NPP npp, NPObject *obj, NPIdentifier propertyName){
-	debugNotImplemented("NPN_RemoveProperty");
-	return false;
+	debugEnterFunction("NPN_RemoveProperty");
+
+	writeHandleIdentifier(propertyName);
+	writeHandleObj(obj);
+	writeHandleInstance(npp);
+	callFunction(FUNCTION_NPN_REMOVE_PROPERTY);
+
+	bool result = (bool)readResultInt32();
+	return result;
 }
 
 bool NP_LOADDS NPN_HasProperty(NPP npp, NPObject *obj, NPIdentifier propertyName){
-	debugNotImplemented("NPN_HasProperty");
-	return false;
+	debugEnterFunction("NPN_HasProperty");
+
+	writeHandleIdentifier(propertyName);
+	writeHandleObj(obj);
+	writeHandleInstance(npp);
+	callFunction(FUNCTION_NPN_HAS_PROPERTY);
+
+	bool result = (bool)readResultInt32();
+	return result;
 }
 
 bool NP_LOADDS NPN_HasMethod(NPP npp, NPObject *obj, NPIdentifier propertyName){
-	debugNotImplemented("NPN_HasMethod");
-	return false;
+	debugEnterFunction("NPN_HasMethod");
+
+	writeHandleIdentifier(propertyName);
+	writeHandleObj(obj);
+	writeHandleInstance(npp);
+	callFunction(FUNCTION_NPN_HAS_METHOD);
+
+	bool result = (bool)readResultInt32();
+	return result;
 }
 
 // Verified, everything okay
@@ -455,27 +578,62 @@ void NP_LOADDS NPN_ReleaseVariantValue(NPVariant *variant){
 }
 
 void NP_LOADDS NPN_SetException(NPObject *obj, const NPUTF8 *message){
-	debugNotImplemented("NPN_SetException");
+	debugEnterFunction("NPN_SetException");
+
+	writeString(message);
+	writeHandleObj(obj);
+	callFunction(FUNCTION_NPN_SET_EXCEPTION);
+	waitReturn();
+
 }
 
+// Not documented, doesnt seem to be important
 void NP_LOADDS NPN_PushPopupsEnabledState(NPP npp, NPBool enabled){
 	debugNotImplemented("NPN_PushPopupsEnabledState");	
 }
 
+// Not documented, doesnt seem to be important
 void NP_LOADDS NPN_PopPopupsEnabledState(NPP npp){
 	debugNotImplemented("NPN_PopPopupsEnabledState");
 }
 
 bool NP_LOADDS NPN_Enumerate(NPP npp, NPObject *obj, NPIdentifier **identifier, uint32_t *count){
-	debugNotImplemented("NPN_Enumerate");
-	*count = 0;
-	return false;
+	debugEnterFunction("NPN_Enumerate");
+
+	writeHandleObj(obj);
+	writeHandleInstance(npp);
+	callFunction(FUNCTION_NPN_ENUMERATE);
+
+	std::vector<ParameterInfo> stack;
+	readCommands(stack);
+
+	bool 	 result                         = (bool)readInt32(stack);
+
+	if(!result){
+		return false;
+	}
+
+	uint32_t identifierCount 				= readInt32(stack);
+	std::vector<NPIdentifier> identifiers 	= readIdentifierArray(stack, identifierCount);
+
+	NPIdentifier* identifierTable = (NPIdentifier*)malloc(identifierCount * sizeof(NPIdentifier));
+	if(!identifierTable){
+		return false;
+	}
+
+	memcpy(identifierTable, identifiers.data(), sizeof(NPIdentifier) * identifierCount);
+
+	*identifier = identifierTable;
+	*count 		= identifierCount;
+	return true;
 }
 
+// TODO: Global list with asynchronous calls executed when doing eventhandling?
 void NP_LOADDS NPN_PluginThreadAsyncCall(NPP instance, void (*func)(void *), void *userData){
 	debugNotImplemented("NPN_PluginThreadAsyncCall");
 }
 
+// Hopefully not required
 bool NP_LOADDS NPN_Construct(NPP npp, NPObject* obj, const NPVariant *args, uint32_t argCount, NPVariant *result){
 	debugNotImplemented("NPN_Construct");
 	return false;
@@ -491,6 +649,7 @@ NPError NP_LOADDS NPN_SetValueForURL(NPP npp, NPNURLVariable variable, const cha
 	return NPERR_NO_ERROR;	
 }
 
+// This isn't implemented for security reasons
 NPError NPN_GetAuthenticationInfo(NPP npp, const char *protocol, const char *host, int32_t port, const char *scheme, const char *realm, char **username, uint32_t *ulen, char **password, uint32_t *plen){
 	debugNotImplemented("NPN_GetAuthenticationInfo");
 	return NPERR_NO_ERROR;	
@@ -505,40 +664,48 @@ void NP_LOADDS NPN_UnscheduleTimer(NPP instance, uint32_t timerID){
 	debugNotImplemented("NPN_UnscheduleTimer");
 }
 
+// I hope this one isn't important
 NPError NP_LOADDS NPN_PopUpContextMenu(NPP instance, NPMenu* menu){
 	debugNotImplemented("NPN_PopUpContextMenu");
 	return NPERR_NO_ERROR;
 }
 
+// I hope this one isn't important
 NPBool NP_LOADDS NPN_ConvertPoint(NPP instance, double sourceX, double sourceY, NPCoordinateSpace sourceSpace, double *destX, double *destY, NPCoordinateSpace destSpace){
 	debugNotImplemented("NPN_ConvertPoint");
 	return false;
 }
 
+// I hope this one isn't important
 NPBool NP_LOADDS NPN_HandleEvent(NPP instance, void *event, NPBool handled){
 	debugNotImplemented("NPN_HandleEvent");
 	return false;
 }
 
+// I hope this one isn't important
 NPBool NP_LOADDS NPN_UnfocusInstance(NPP instance, NPFocusDirection direction){
 	debugNotImplemented("NPN_UnfocusInstance");
 	return false;
 }
 
+// I hope this one isn't important
 void NP_LOADDS NPN_URLRedirectResponse(NPP instance, void* notifyData, NPBool allow){
 	debugNotImplemented("NPN_URLRedirectResponse");
 }
 
+// I hope this one isn't important
 NPError NP_LOADDS NPN_InitAsyncSurface(NPP instance, NPSize *size, NPImageFormat format, void *initData, NPAsyncSurface *surface){
 	debugNotImplemented("NPN_InitAsyncSurface");
 	return NPERR_NO_ERROR;	
 }
 
+// I hope this one isn't important
 NPError NP_LOADDS NPN_FinalizeAsyncSurface(NPP instance, NPAsyncSurface *surface){
 	debugNotImplemented("NPN_FinalizeAsyncSurface");
 	return NPERR_NO_ERROR;	
 }
 
+// I hope this one isn't important
 void NP_LOADDS NPN_SetCurrentAsyncSurface(NPP instance, NPAsyncSurface *surface, NPRect *changed){
 	debugNotImplemented("NPN_SetCurrentAsyncSurface");
 }

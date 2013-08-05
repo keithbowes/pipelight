@@ -104,5 +104,8 @@ void writeStringArray(char* str[], int count);
 std::vector<char*> readStringArray(Stack &stack, int count);
 void freeStringArray(std::vector<char*> str);
 
+void writeIdentifierArray(NPIdentifier* identifiers, int count);
+std::vector<NPIdentifier> readIdentifierArray(Stack &stack, int count);
+
 void writeNPBool(NPBool value);
 NPBool readNPBool(Stack &stack);

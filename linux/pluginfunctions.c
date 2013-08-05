@@ -113,10 +113,14 @@ NP_GetValue(void* future, NPPVariable aVariable, void* aValue) {
 	return result;
 }
 
-
+// TODO: Is this type correct? Does an errorcode make sense?
 NP_EXPORT(NPError)
 NP_Shutdown() {
-	debugNotImplemented("NP_Shutdown");
+	debugEnterFunction("NP_Shutdown");
+
+	callFunction(NP_SHUTDOWN);
+	waitReturn();
+
 	return NPERR_NO_ERROR;
 }
 
@@ -285,16 +289,19 @@ NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, void* buf
 	return readResultInt32();
 }
 
+// Not implemented as it doesnt make sense to pass filenames between both the windows and linux instances
 void
 NPP_StreamAsFile(NPP instance, NPStream* stream, const char* fname) {
 	debugNotImplemented("NPP_StreamAsFile");
 }
 
+// Platform-specific print operation also isn't well defined between two different platforma
 void
 NPP_Print(NPP instance, NPPrint* platformPrint) {
 	debugNotImplemented("NPP_Print");
 }
 
+// Delivers platform-specific events.. but again this doesnt make much sense, as long as a translation function is missing
 int16_t
 NPP_HandleEvent(NPP instance, void* event) {
 	debugNotImplemented("NPP_HandleEvent");
@@ -358,6 +365,7 @@ NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 	return result;
 }
 
+// As the size of the value depends on the specific variable, this also isn't easy to implement
 NPError
 NPP_SetValue(NPP instance, NPNVariable variable, void *value) {
 	debugNotImplemented("NPP_SetValue");
