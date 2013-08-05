@@ -327,39 +327,10 @@ NPObject* NP_LOADDS NPN_RetainObject(NPObject *obj){
 void NP_LOADDS NPN_ReleaseObject(NPObject *obj){
 	debugEnterFunction("NPN_ReleaseObject");
 
-	if (obj){
-		if(obj->referenceCount == 0) throw std::runtime_error("Reference count is zero when calling ReleaseObject!");
-
-		if(obj->referenceCount != REFCOUNT_UNDEFINED)
-			obj->referenceCount--;
-
-		writeInt32( (obj->referenceCount == 0) );
-		writeHandleObj(obj, true);
+	if (obj){	
+		writeHandleObjDecRef(obj, true);
 		callFunction(FUNCTION_NPN_RELEASEOBJECT);
 		waitReturn();
-
-		// Can never occur for user-created objects
-		// For such objects the other side calls KILL_OBJECT
-		if(obj->referenceCount == 0){
-
-			// Remove the object locally
-			if(obj->_class->deallocate){
-				output << "call deallocate function " << (void*)obj->_class->deallocate << std::endl;
-
-				obj->_class->deallocate(obj);
-			}else{
-				output << "call default dealloc function " << std::endl;
-
-				free((char*)obj);
-			}
-
-			output << "removeHandleByReal (NPN_ReleaseObject): " << (uint64_t)obj << " or " << (void*)obj << std::endl;
-
-			// Remove it in the handle manager
-			handlemanager.removeHandleByReal((uint64_t)obj, TYPE_NPObject);
-
-		}
-
 	}
 }
 

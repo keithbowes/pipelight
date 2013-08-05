@@ -222,10 +222,10 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPN_RELEASEOBJECT: // Verified, everything okay
 			{
 				NPObject* obj 		= readHandleObj(stack);
-				bool killObject 	= readInt32(stack);
+				//bool killObject 	= readInt32(stack);
 
 				// TODO: Comment this out in the final version - acessing the referenceCount variable directly is not a very nice way ;-)
-				if(obj->referenceCount == 1 && !killObject){
+				/*if(obj->referenceCount == 1 && !killObject){
 
 					writeHandleObj(obj);
 					callFunction(OBJECT_IS_CUSTOM);
@@ -234,13 +234,13 @@ void dispatcher(int functionid, Stack &stack){
 						throw std::runtime_error("Forgot to set killObject?");
 					}
 					
-				}
+				} */
 
 				sBrowserFuncs->releaseobject(obj);
 
-				if(killObject){
+				/*if(killObject){
 					handlemanager.removeHandleByReal((uint64_t)obj, TYPE_NPObject);
-				}
+				}*/
 
 				returnCommand();
 			}
