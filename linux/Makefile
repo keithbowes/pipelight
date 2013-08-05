@@ -37,10 +37,10 @@
 # ***** END LICENSE BLOCK *****
 
 # Basic plugin requires GTK and X11
-CFLAGS = -Wall -DXP_UNIX=1 -DMOZ_X11=1 -g -fPIC -std=c++0x -Wl,--no-undefined
+CFLAGS = -Wall -DXP_UNIX=1 -DMOZ_X11=1 -g -fPIC -std=c++0x -Wl,--no-undefined 
 
 all :
-	g++ $(CFLAGS) -shared basicplugin.c ../communication/communication.c ../handlemanager/handlemanager.c npclass.c pluginfunctions.c -o npbasicplugin.so 
+	g++ $(CFLAGS) -shared basicplugin.c ../communication/communication.c ../handlemanager/handlemanager.c npclass.c pluginfunctions.c -o npbasicplugin.so -ldl
 
 #common.o : ../common.c ../common.h
 #	g++ $(CFLAGS) -c ../common.c -o common.o	

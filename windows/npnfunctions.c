@@ -646,7 +646,7 @@ void NP_LOADDS NPN_SetCurrentAsyncSurface(NPP instance, NPAsyncSurface *surface,
 
 NPNetscapeFuncs browserFuncs = {
   sizeof(NPNetscapeFuncs),
-  NP_VERSION_MINOR,
+  NP_VERSION_MINOR, //must be below 9 when using Quicktime to prevent a crash
   NPN_GetURL,
   NPN_PostURL,
   NPN_RequestRead,

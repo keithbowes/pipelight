@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <fstream>
+#include <vector>
 #include <io.h>
 #include "pluginloader.h"
 
@@ -53,33 +54,54 @@ std::string np_Language;
 
 NPPluginFuncs pluginFuncs = {sizeof(pluginFuncs), NP_VERSION_MINOR};
 
-std::string createLinuxCompatibleMimeType(){
-
-	std::string result = "";
+std::vector<std::string> splitMimeType(std::string input){
+	
+	std::vector<std::string> result;
 
 	int start 	= 0;
 	int i 		= 0;
 
-	while (i < np_MimeType.length()){
+	while (i < input.length()){
 
-		while (i < np_MimeType.length() && np_MimeType[i] != '|'){
+		while (i < input.length() && input[i] != '|'){
 			i++;
 		}
 
 		if (i - start > 0){
-
-			if (start != 0)
-				result += ";";
-
-			result += np_MimeType.substr(start, i-start);
-			result += ":" + np_FileExtents;
-			result += ":" + np_FileOpenName;
+			result.push_back(input.substr(start, i-start));
 		}
 
 		i++;
 		start = i;
 	}
 
+	return result;
+
+}
+
+std::string createLinuxCompatibleMimeType(){
+
+	std::vector<std::string> mimeTypes 		= splitMimeType(np_MimeType);
+	std::vector<std::string> fileExtensions = splitMimeType(np_FileExtents);
+	std::vector<std::string> extDescription = splitMimeType(np_FileOpenName);
+
+	std::string result = "";
+
+	for(int i = 0; i < mimeTypes.size(); i++){
+
+		if(i != 0) 
+			result += ";";
+
+		result += mimeTypes[i];
+		
+		result += ":";	
+		if(i < fileExtensions.size())
+			result += fileExtensions[i];
+
+		result += ":";
+		if(i < extDescription.size())
+			result += extDescription[i];
+	}
 
 	return result;
 
@@ -89,7 +111,8 @@ bool InitDLL(){
 
 	// Thanks Microsoft - I searched a whole day to find this bug!
 	CoInitialize(NULL);
-	
+	//CoInitializeEx(NULL, COINIT_MULTITHREADED);
+
 	SetDllDirectory(DLL_PATH);
 
 	HMODULE dll = LoadLibrary(DLL_NAME);
@@ -99,7 +122,7 @@ bool InitDLL(){
 		int requiredBytes = GetFileVersionInfoSize(DLL_NAME, NULL);
 
 		if(requiredBytes){
-			
+
 			std::unique_ptr<void, void (*)(void *)> data(malloc(requiredBytes), freeDataPointer);
 			if(data){
 
@@ -153,28 +176,30 @@ bool InitDLL(){
 					if(NP_GetEntryPoints && NP_Initialize){
 
 						if (NP_Initialize(&browserFuncs) == NPERR_NO_ERROR){
+
 							if(NP_GetEntryPoints(&pluginFuncs) == NPERR_NO_ERROR){
-						
+								output << "Adress NPP_New: " << (void*) pluginFuncs.newp << std::endl;
 								return true;
 
+							}else{
+								output << "Failed to get entry points for plugin functions" << std::endl;
 							}
+						}else{
+							output << "Failed to initialize" << std::endl;
 						}
-
 					}else{
 						output << "Could not load Entry Points from DLL" << std::endl;
 					}
+				}else{
+					output << "Failed to get File Version" << std::endl;
 				}
-
 			}else{
 				output << "Failed to allocate Memory" << std::endl;		
 			}
-
 		}else{
 			output << "Could not load version information" << std::endl;
 		}
-
 		FreeLibrary(dll);
-
 	}else{
 		output << "Could not load library :-(" << std::endl;
 	}
@@ -188,54 +213,59 @@ int main(){
 	
 	output << "---------" << std::endl;
 
-	if (InitDLL()){
+	/* Great TIP:
+		Create a copy of Stdin & Stdout!
+		Some plugins will take it away otherwise...
+	*/
 
-		/* Great TIP:
-			Create a copy of Stdin & Stdout!
-			Some plugins will take it away otherwise...
-		*/
+	int stdoutF	= _dup(1);
+	pipeOutF 	= _fdopen(stdoutF, 	"wb");
 
-		int stdoutF	= _dup(1);
-		pipeOutF 	= _fdopen(stdoutF, 	"wb");
+	int stdinF	= _dup(0);
+	pipeInF 	= _fdopen(stdinF, 	"rb");
+	
+	// Disable buffering not necessary here
+	//setbuf(pipeInF, NULL);
 
-		int stdinF	= _dup(0);
-		pipeInF 	= _fdopen(stdinF, 	"rb");
-		
-		// Disable buffering not necessary here
-		//setbuf(pipeInF, NULL);
+	//Redirect STDOUT to STDERR
+	SetStdHandle(STD_OUTPUT_HANDLE, GetStdHandle(STD_ERROR_HANDLE));
 
-		//Redirect STDOUT to STDERR
-		SetStdHandle(STD_OUTPUT_HANDLE, GetStdHandle(STD_ERROR_HANDLE));
+	WNDCLASSEX WndClsEx;
 
-		WNDCLASSEX WndClsEx;
+	// Create the application window
+	WndClsEx.cbSize        = sizeof(WNDCLASSEX);
+	WndClsEx.style         = CS_HREDRAW | CS_VREDRAW;
+	WndClsEx.lpfnWndProc   = &WndProcedure;
+	WndClsEx.cbClsExtra    = 0;
+	WndClsEx.cbWndExtra    = 0;
+	WndClsEx.hIcon         = LoadIcon(NULL, IDI_APPLICATION);
+	WndClsEx.hCursor       = LoadCursor(NULL, IDC_ARROW);
+	WndClsEx.hbrBackground = (HBRUSH)GetStockObject(LTGRAY_BRUSH);
+	WndClsEx.lpszMenuName  = NULL;
+	WndClsEx.lpszClassName = ClsName;
+	WndClsEx.hInstance     = GetModuleHandle(NULL);
+	WndClsEx.hIconSm       = LoadIcon(NULL, IDI_APPLICATION);
 
-		// Create the application window
-		WndClsEx.cbSize        = sizeof(WNDCLASSEX);
-		WndClsEx.style         = CS_HREDRAW | CS_VREDRAW;
-		WndClsEx.lpfnWndProc   = &WndProcedure;
-		WndClsEx.cbClsExtra    = 0;
-		WndClsEx.cbWndExtra    = 0;
-		WndClsEx.hIcon         = LoadIcon(NULL, IDI_APPLICATION);
-		WndClsEx.hCursor       = LoadCursor(NULL, IDC_ARROW);
-		WndClsEx.hbrBackground = (HBRUSH)GetStockObject(LTGRAY_BRUSH);
-		WndClsEx.lpszMenuName  = NULL;
-		WndClsEx.lpszClassName = ClsName;
-		WndClsEx.hInstance     = GetModuleHandle(NULL);
-		WndClsEx.hIconSm       = LoadIcon(NULL, IDI_APPLICATION);
+	ATOM classAtom = RegisterClassEx(&WndClsEx);
 
-		ATOM classAtom = RegisterClassEx(&WndClsEx);
+	if(classAtom){
 
-		if(classAtom){
+		if (InitDLL()){
 			output << "Init sucessfull!" << std::endl;
 
 			Stack stack;
 			readCommands(stack, false);		
 		}else{
-			output << "Failed to register class" << std::endl;
+			output << "Failed to initialize DLL" << std::endl;
 		}
+
+
+	}else{
+		output << "Failed to register class" << std::endl;
 	}
 
-	return 2;
+
+	return 1;
 	
 }
 

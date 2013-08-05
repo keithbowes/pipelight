@@ -1,9 +1,9 @@
 #include "basicplugin.h"
 
-char strMimeType[1024] 			= {0};
+char strMimeType[2048] 			= {0};
 char strPluginversion[100]		= {0};
 char strPluginName[256] 		= {0};
-char strPluginDescription[256]	= {0};
+char strPluginDescription[1024]	= {0};
 
 void pokeString(std::string str, char *dest, unsigned int maxLength){
 	if(maxLength > 0){
