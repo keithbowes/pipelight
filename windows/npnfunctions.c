@@ -381,6 +381,8 @@ void NP_LOADDS NPN_ReleaseObject(NPObject *obj){
 	if (obj){
 		//if(obj->referenceCount != 0xDEADBEEF) throw std::runtime_error("REFERENCE COUNT HAS BEEN MODIFIED BY PLUGIN!");
 
+		if(obj->referenceCount == 0) throw std::runtime_error("Reference count is zero when calling ReleaseObject! Not allowed!");
+
 		if(obj->referenceCount != 0xffffffff)
 			obj->referenceCount--;
 

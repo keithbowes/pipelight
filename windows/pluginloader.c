@@ -402,9 +402,17 @@ void setWindowInfo(Stack &stack){
 
 		pluginFuncs.setwindow(instance, &window);
 
+		// Show again!
+		ShowWindow(hwnd, SW_SHOW);
+		UpdateWindow (hwnd);
+
 	}else{
 		output << "Could not create window" << std::endl;
 	}
+
+	
+	
+
 
 	returnCommand();
 }

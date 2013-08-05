@@ -41,7 +41,7 @@ NPObject* createNPObject(uint64_t id, NPClass *aclass = NULL, NPP instance = 0){
 
 
 	obj->_class 		= aclass; //(NPClass*)0xdeadbeef;
-	obj->referenceCount	= 1; //0xDEADBEEF; // TODO: Is this useful?
+	obj->referenceCount	= 0; //0xDEADBEEF; // TODO: Is this useful?
 
 
 	if(aclass != &myClass || instance ) obj->referenceCount = 0xffffffff;
@@ -227,6 +227,30 @@ void HandleManager::removeHandleByReal(uint64_t real, HandleType type){
 	handlesReal.erase(it);
 
 	output << "Removed from handle manager: REAL=" << (void*)real << std::endl;
+
+	int num[TYPE_MaxTypes];
+
+	for(int i = 0; i < TYPE_MaxTypes; i++){
+		num[i] = 0;
+	}
+
+	output << "Handles:";
+
+	for(it = handlesReal.begin(); it != handlesReal.end(); it++){
+		num[ it->second.type ]++;
+
+		output << " " << (void*)it->second.real;
+	}
+	output << std::endl;
+
+	output << "* TYPE_NPObject: " << num[TYPE_NPObject] << std::endl;
+	output << "* TYPE_NPIdentifier: " << num[TYPE_NPIdentifier] << std::endl;
+	output << "* TYPE_NPPInstance: " << num[TYPE_NPPInstance] << std::endl;
+	output << "* TYPE_NPStream: " << num[TYPE_NPStream] << std::endl;
+	output << "* TYPE_NotifyData: " << num[TYPE_NotifyData] << std::endl;
+
+
+
 }
 
 bool HandleManager::existsHandleByReal(uint64_t real, HandleType type){

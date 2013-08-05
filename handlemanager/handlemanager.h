@@ -14,7 +14,9 @@ enum HandleType{
 	TYPE_NPIdentifier,
 	TYPE_NPPInstance,
 	TYPE_NPStream,
-	TYPE_NotifyData
+	TYPE_NotifyData,
+
+	TYPE_MaxTypes
 };
 
 struct Handle{
