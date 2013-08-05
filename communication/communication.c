@@ -55,8 +55,6 @@ void writeCommand(char command, const char* data, size_t length){
 		throw std::runtime_error("Data for command too long");
 	}
 
-	//output << "writing command " << (int)command << " with length ... " << length << std::endl;
-
 	int32_t blockInfo = (command << 24) | length;
 
 	// Transmit command info	
@@ -66,8 +64,6 @@ void writeCommand(char command, const char* data, size_t length){
 	if(length > 0 && data != NULL){
 		transmitData(data, length);
 	}
-
-	//output << "done" << std::endl;
 
 	// Flush data!
 	fflush(pipeOutF);
@@ -460,13 +456,10 @@ char* readMemoryBrowserAlloc(Stack &stack){
 
 
 void readCommands(Stack &stack, bool allowReturn){
-	//output << ">>>>>> READCOMMANDS" << std::endl;
 
 	while(true){
 		int32_t blockInfo 	= 0;
 		size_t  pos    		= 0;
-
-		//output << "waiting for command" << std::endl;
 
 		// Wait for initial command
 		while(pos < sizeof(int32_t)){
@@ -479,8 +472,6 @@ void readCommands(Stack &stack, bool allowReturn){
 		char    	blockCommand 	= blockInfo >> 24;
 		uint32_t 	blockLength     = blockInfo & 0xFFFFFF;
 		char*   	blockData  		= NULL;
-
-		//output << "got command " << (int)blockCommand << ", now waiting for data" << std::endl;
 
 		// Read arguments
 		if(blockLength > 0){
@@ -497,30 +488,29 @@ void readCommands(Stack &stack, bool allowReturn){
 
 		}
 
-		//output << "got command " << (int)blockCommand << " with data length " << blockLength << std::endl;
-
 		// Call command
 		if( blockCommand == BLOCKCMD_CALL_DIRECT ){
 			if(blockLength != sizeof(uint32_t)) throw std::runtime_error("Wrong number of arguments for BLOCKCMD_CALL_DIRECT");
 			int32_t function = *((int32_t*)blockData);
 			if(blockData) free(blockData);
 
+			if(function == 0){
+				throw std::runtime_error("Function ID 0 for BLOCKCMD_CALL_DIRECT not allowed");
+			}
+
 			// Here the dispatcher routine - depending on the command number call the specific function
 			// Remove the number of elements from the stack required for the function
-
-			if(function != 0){
-				dispatcher(function, stack);
-			}
-
-			// Check for unusual stack condition
-			if(stack.size() != 0){
-				output << "UNUSUAL STACK CONDITION - NOT ALL ELEMENTS REMOVED AFTER CALL OF FUNCTION " << function << std::endl;
-			}
+			dispatcher(function, stack);
 			
 		// Return command
 		}else if( blockCommand == BLOCKCMD_RETURN ){
 			if(blockData) free(blockData);
-			if(allowReturn) break;
+			
+			if(!allowReturn){
+				throw std::runtime_error("BLOCKCMD_RETURN not allowed here");
+			}
+
+			break;
 
 		// Other commands - push to stack
 		}else{
@@ -530,7 +520,6 @@ void readCommands(Stack &stack, bool allowReturn){
 
 	}
 
-	//output << "<<<<<< READCOMMANDS" << std::endl;
 }
 
 
@@ -555,4 +544,14 @@ std::string readResultString(){
 void waitReturn(){
 	Stack stack;
 	readCommands(stack);
+}
+
+// Debug stuff
+
+void debugEnterFunction( std::string name ){
+	output << name << std::endl << std::flush;
+}
+
+void debugNotImplemented( std::string name ){
+	output << "NOT IMPLEMENTED: " << name << std::endl << std::flush;
 }

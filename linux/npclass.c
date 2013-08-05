@@ -1,37 +1,34 @@
 #include "basicplugin.h"
 
 void NPInvalidateFunction(NPObject *npobj){
-	//output << ">>>>> STUB: NPInvalidateFunction" << std::endl;
+	debugEnterFunction("NPInvalidateFunction");
 
-	output << "NPInvalidateFunction" << std::endl;
-
-	writeHandle(npobj);
+	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_INVALIDATE_FUNCTION);
 	waitReturn();
-
 }
 
 // Verified, everything okay
 bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name){
-	output << "NPHasMethodFunction" << std::endl;
+	debugEnterFunction("NPHasMethodFunction");
 
-	writeHandle(name);
-	writeHandle(npobj);
+	writeHandleIdentifier(name);
+	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_HAS_METHOD_FUNCTION);
+
 	return (bool)readResultInt32();
 
 }
 
 // Verified, everything okay
 bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args, uint32_t argCount, NPVariant *result){
-
-	output << "NPInvokeFunction (myClass)" << std::endl;
+	debugEnterFunction("NPInvokeFunction");
 
 	// Warning: parameter order swapped!
 	writeVariantArrayConst(args, argCount);
 	writeInt32(argCount);
-	writeHandle(name);
-	writeHandle(npobj);
+	writeHandleIdentifier(name);
+	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_INVOKE);
 
 	std::vector<ParameterInfo> stack;
@@ -47,35 +44,32 @@ bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args,
 
 	// The caller has to call NPN_ReleaseVariant if this should be freed
 
-	output << "NP_Invoke Result: " << resultBool << std::endl;
-
 	return resultBool;
 }
 
 bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result){
-	output << ">>>>> STUB: NPInvokeDefaultFunction" << std::endl;
+	debugNotImplemented("NPInvokeDefaultFunction");
 	return false;
 }
 
 // Verified, everything okay
 bool NPHasPropertyFunction(NPObject *npobj, NPIdentifier name){
+	debugEnterFunction("NPHasPropertyFunction");
 
-	output << "NPHasPropertyFunction" << std::endl;
-
-	writeHandle(name);
-	writeHandle(npobj);
+	writeHandleIdentifier(name);
+	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_HAS_PROPERTY_FUNCTION);
+
 	return (bool)readResultInt32();
 	
 }
 
 // Verified, everything okay
 bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result){
+	debugEnterFunction("NPGetPropertyFunction");
 
-	output << "NPGetPropertyFunction" << std::endl;
-
-	writeHandle(name);
-	writeHandle(npobj);
+	writeHandleIdentifier(name);
+	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_GET_PROPERTY_FUNCTION);
 
 	std::vector<ParameterInfo> stack;
@@ -93,12 +87,11 @@ bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result
 }
 
 bool NPSetPropertyFunction(NPObject *npobj, NPIdentifier name, const NPVariant *value){
-
-	output << "NPSetPropertyFunction" << std::endl;
+	debugEnterFunction("NPSetPropertyFunction");
 
 	writeVariantConst(*value);
-	writeHandle(name);
-	writeHandle(npobj);
+	writeHandleIdentifier(name);
+	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_SET_PROPERTY_FUNCTION);
 
 	return (bool)readResultInt32();
@@ -106,50 +99,46 @@ bool NPSetPropertyFunction(NPObject *npobj, NPIdentifier name, const NPVariant *
 }
 
 bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name){
-	output << ">>>>> STUB: NPRemovePropertyFunction" << std::endl;
+	debugNotImplemented("NPRemovePropertyFunction");
 	return false;
 }
 
 bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *count){
-	output << ">>>>> STUB: NPEnumerationFunction" << std::endl;
+	debugNotImplemented("NPEnumerationFunction");
 	return false;
 }
 
 bool NPConstructFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result){
-	output << ">>>>> STUB: NPConstructFunction" << std::endl;
+	debugNotImplemented("NPConstructFunction");
 	return false;
 }
 
 // Verified, everything okay
 NPObject * NPAllocateFunction(NPP npp, NPClass *aClass){
+	debugEnterFunction("NPAllocateFunction");
 
 	NPObject* obj = (NPObject*)malloc(sizeof(NPObject));
 	if(obj){
-		obj->_class = aClass;
+		obj->_class = aClass; // Probably not required, just to be on the save side ;-)
 	}
-
-	output << "Browser called Allocate Object " << (void*)obj << std::endl;
 
 	return obj;
 }
 
 // Verified, everything okay
 void NPDeallocateFunction(NPObject *npobj){
-	output << "Browser called Deallocate Object " << (void*)npobj << std::endl;
+	debugEnterFunction("NPDeallocateFunction");
 
 	if(npobj){
 		bool exists = handlemanager.existsHandleByReal((uint64_t)npobj, TYPE_NPObject);
 
-
 		if( exists ){
-
 			// This has to be a user-created object which has to be freed via a KILL_OBJECT message
 
 			// Kill the object on the other side
-			writeHandle(npobj);
+			writeHandleObj(npobj);
 			callFunction(OBJECT_KILL);
 			waitReturn();
-
 		}
 
 		// Remove the object locally
