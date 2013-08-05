@@ -1,5 +1,18 @@
 #include "pluginloader.h"
 
+char strUserAgent[1024] 			= {0};
+extern HandleManager handlemanager;
+
+void pokeString(std::string str, char *dest, unsigned int maxLength){
+	if(maxLength > 0){
+		unsigned int length = std::min((unsigned int)str.length(), maxLength-1);
+
+		// Always at least one byte to copy (nullbyte)
+		memcpy(dest, str.c_str(), length);
+		dest[length] = 0;
+	}
+}
+
 NPError NP_LOADDS NPN_GetURL(NPP instance, const char* url, const char* window){
 	output << ">>>>> STUB: NPN_GetURL" << std::endl;
 	return NPERR_NO_ERROR;
@@ -30,19 +43,33 @@ NPError NP_LOADDS NPN_DestroyStream(NPP instance, NPStream* stream, NPReason rea
 	return NPERR_NO_ERROR;	
 }
 
+// Verified, everything okay
 void NP_LOADDS NPN_Status(NPP instance, const char* message){
 	output << "NPN_Status: " << message <<  std::endl;
 	
 	writeString(message);
 	writeHandle(instance);
-
 	callFunction(FUNCTION_NPN_STATUS);
 	waitReturn();
 }
 
+// Verified, everything okay
 const char*  NP_LOADDS NPN_UserAgent(NPP instance){
 	output << "NPN_UserAgent" << std::endl;
-	return "Dark's virtual Browser";
+
+	writeHandle(instance);
+	callFunction(FUNCTION_NPN_USERAGENT);
+
+	std::string result = readResultString();
+
+	// TODO: Remove this if it doesnt cause problems
+	result = "Mozilla/5.0 (Windows NT 5.1; rv:18.0) Gecko/20100101 Firefox/18.0";
+
+	pokeString(result, strUserAgent, sizeof(strUserAgent));
+
+	output << "user Agent: '" << strUserAgent << "'" << std::endl;
+
+	return strUserAgent;
 }
 
 void* NP_LOADDS NPN_MemAlloc(uint32_t size){
@@ -74,6 +101,7 @@ void* NP_LOADDS NPN_GetJavaPeer(NPP instance){
 	return NULL;		
 }
 
+// Verified, everything okay
 NPError NPN_GetURLNotify(NPP instance, const  char* url, const char* target, void* notifyData){
 
 	output << "NPN_GetURLNotify: " << url << std::endl;
@@ -83,7 +111,6 @@ NPError NPN_GetURLNotify(NPP instance, const  char* url, const char* target, voi
 	writeString(target);
 	writeString(url);
 	writeHandle(instance);
-
 	callFunction(FUNCTION_NPN_GET_URL_NOTIFY);
 
 	NPError result = readResultInt32();
@@ -96,12 +123,15 @@ NPError NPN_PostURLNotify(NPP instance, const char* url, const char* target, uin
 	return NPERR_NO_ERROR;	
 }
 
+// Verified, everything okay
 NPError NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 	
 	output << "NPN_GetValue: " << variable << std::endl;
 
-	NPError returnvalue = NPERR_GENERIC_ERROR;
+	NPError result = NPERR_GENERIC_ERROR;
 	std::vector<ParameterInfo> stack;
+
+	// TODO: Deduplicate this code! One function for bool/obj is enough!
 
 	switch (variable){
 
@@ -114,8 +144,13 @@ NPError NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 
 			readCommands(stack);
 
-			returnvalue 			= readInt32(stack);
-			*((NPObject**)value) 	= readHandleObj(stack, true);
+			result 			= readInt32(stack);
+
+			// Refcount was already incremented by getValue, moreover the windows
+			// side doesnt need to have accurate values
+			if(result == NPERR_NO_ERROR)
+				*((NPObject**)value) 	= readHandleObjIncRef(stack);
+			
 			break;
 
 		case NPNVprivateModeBool:
@@ -127,8 +162,11 @@ NPError NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 
 			readCommands(stack);
 
-			returnvalue  		= readInt32(stack);
-			*((int32_t*)value) 	= readInt32(stack);
+			result  		= readInt32(stack);
+
+			if(result == NPERR_NO_ERROR)
+				*((NPBool*)value) 	= (NPBool)readInt32(stack);
+
 			break;
 
 		case NPNVPluginElementNPObject:
@@ -140,16 +178,20 @@ NPError NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 
 			readCommands(stack);
 
-			returnvalue 			= readInt32(stack);
-			*((NPObject**)value) 	= readHandleObj(stack, true);
+			result 			= readInt32(stack);
+			
+			if(result == NPERR_NO_ERROR)
+				*((NPObject**)value) 	= readHandleObjIncRef(stack);
+
+
 			break;
 
 		default:
-			output << "NPN_GetValue : Unknown" << std::endl;
+			output << "NPN_GetValue : NOT IMPLEMENTED YET!" << std::endl;
 			break;
 	}
 
-	return returnvalue;		
+	return result;		
 }
 
 NPError NPN_SetValue(NPP instance, NPPVariable variable, void *value){
@@ -170,6 +212,7 @@ void NP_LOADDS NPN_ForceRedraw(NPP instance){
 	output << ">>>>> STUB: NPN_ForceRedraw" << std::endl;
 }
 
+// Verified, everything okay
 NPIdentifier NP_LOADDS NPN_GetStringIdentifier(const NPUTF8* name){
 	output << "NPN_GetStringIdentifier: " << name << std::endl;
 	
@@ -190,23 +233,22 @@ NPIdentifier NP_LOADDS NPN_GetIntIdentifier(int32_t intid){
 	return 0;
 }
 
+// Verified, everything okay
 bool NP_LOADDS NPN_IdentifierIsString(NPIdentifier identifier){
 	output << "NPN_IdentifierIsString" << std::endl;
 
 	writeHandle(identifier);
 	callFunction(FUNCTION_NPN_IDENTIFIER_IS_STRING);
-	
-	output << "NPN_IdentifierIsString got args" << std::endl;
 
 	bool result = (bool)readResultInt32();
 
 	output << "NPN_IdentifierIsString result:" << result << std::endl;
 
-
 	return result;
 
 }
 
+// Verified, everything okay
 NPUTF8* NP_LOADDS NPN_UTF8FromIdentifier(NPIdentifier identifier){
 	output << "NPN_UTF8FromIdentifier" << std::endl;
 
@@ -214,10 +256,13 @@ NPUTF8* NP_LOADDS NPN_UTF8FromIdentifier(NPIdentifier identifier){
 	callFunction(FUNCTION_NPN_UTF8_FROM_IDENTIFIER);
 
 	std::vector<ParameterInfo> stack;
-	readCommands(stack);	
-	return readStringAsMalloc(stack);
+	readCommands(stack);
+
+	// The plugin is responsible for freeing this with NPN_MemFree() when done
+	return readStringMalloc(stack);
 }
 
+// Verified, everything okay
 int32_t NP_LOADDS NPN_IntFromIdentifier(NPIdentifier identifier){
 	output << "NPN_IntFromIdentifier" << std::endl;
 
@@ -227,30 +272,41 @@ int32_t NP_LOADDS NPN_IntFromIdentifier(NPIdentifier identifier){
 	return readResultInt32();
 }
 
+// Verified, everything okay
 NPObject* NP_LOADDS NPN_CreateObject(NPP npp, NPClass *aClass){
 
 	output << "NPN_CreateObject" << std::endl;
 
+	// The other side doesnt need to know aClass
 	writeHandle(npp);
 	callFunction(FUNCTION_NPN_CREATE_OBJECT);
 
 	std::vector<ParameterInfo> stack;
 	readCommands(stack);	
 
-	NPObject* result = readHandleObj(stack, false, aClass, npp);
+	// When we get a object handle back, then allocate a local corresponding object
+	// and initialize the refcounter to one before returning it.
+	NPObject* result = readHandleObjIncRef(stack, npp, aClass);
 
 	return result;
 
 }
 
+// Verified, everything okay
 NPObject* NP_LOADDS NPN_RetainObject(NPObject *obj){
 
-	output << "NPN_RetainObject" << std::endl;
-	
-	if (obj){
-		obj->referenceCount++;
-		writeHandle(obj);
+	output << "NPN_RetainObject " << (void*)obj << std::endl;
+	output << "-- class: " << obj->_class << " (myclass: " << &myClass << ")" << std::endl;
+	output << "-- referenceCount: " << (void*)obj->referenceCount << std::endl;
+	output << "-- version: " << obj->_class->structVersion << std::endl;
 
+	if (obj){
+
+		//if(obj->referenceCount != 0xDEADBEEF) throw std::runtime_error("REFERENCE COUNT HAS BEEN MODIFIED BY PLUGIN!");
+
+		obj->referenceCount++;
+
+		writeHandle(obj, true);
 		callFunction(FUNCTION_NPN_RETAINOBJECT);
 		waitReturn();		
 	}
@@ -258,21 +314,51 @@ NPObject* NP_LOADDS NPN_RetainObject(NPObject *obj){
 	return obj;	
 }
 
+// Verified, everything okay
 void NP_LOADDS NPN_ReleaseObject(NPObject *obj){
 
-	output << "NPN_ReleaseObject" << std::endl;
+	output << "NPN_ReleaseObject " << (void*)obj << std::endl;
+	output << "-- class: " << obj->_class << " (myclass: " << &myClass << ")" << std::endl;
+	output << "-- referenceCount: " << (void*)obj->referenceCount << std::endl;
+	output << "-- version: " << obj->_class->structVersion << std::endl;
 
 	if (obj){
-		
-		writeHandle(obj);
+		//if(obj->referenceCount != 0xDEADBEEF) throw std::runtime_error("REFERENCE COUNT HAS BEEN MODIFIED BY PLUGIN!");
+
+		writeHandle(obj, true);
 		callFunction(FUNCTION_NPN_RELEASEOBJECT);
 		waitReturn();
 
 		obj->referenceCount--;
-	
+
+		if(obj->referenceCount == 0){
+
+			writeHandle(obj, true);
+			callFunction(OBJECT_KILL);
+			waitReturn();
+
+			// Remove the object locally
+			if(obj->_class->deallocate){
+				output << "call deallocate function " << (void*)obj->_class->deallocate << std::endl;
+
+				obj->_class->deallocate(obj);
+			}else{
+				output << "call default dealloc function " << std::endl;
+
+				free((char*)obj);
+			}
+
+			output << "removeHandleByReal: " << (uint64_t)obj << " or " << (void*)obj << std::endl;
+
+			// Remove it in the handle manager
+			handlemanager.removeHandleByReal((uint64_t)obj, TYPE_NPObject);
+
+		}
+
 	}
 }
 
+// Verified, everything okay
 bool NP_LOADDS NPN_Invoke(NPP npp, NPObject* obj, NPIdentifier methodName, const NPVariant *args, uint32_t argCount, NPVariant *result){
 	
 	output << "NPN_Invoke - Parameter Count: " << argCount  << "result: " << (void*) result<< std::endl;
@@ -282,24 +368,22 @@ bool NP_LOADDS NPN_Invoke(NPP npp, NPObject* obj, NPIdentifier methodName, const
 		read the right amount of arguments
 		from the stack */
 
-	writeVariantArray(args, argCount);
-
+	writeVariantArrayConst(args, argCount);
 	writeInt32(argCount);
-
 	writeHandle(methodName);
 	writeHandle(obj);
 	writeHandle(npp);
-
 	callFunction(FUNCTION_NPN_INVOKE);
 
 	std::vector<ParameterInfo> stack;
 	readCommands(stack);
 
-	uint32_t resultBool = readInt32(stack);
+	bool resultBool = readInt32(stack);
+
 	if(resultBool){
-		readVariant(stack, *result);
-	}else{
-		result->type = NPVariantType_Null;
+		readVariantIncRef(stack, *result);// no incref, as linux is responsible for refcounting!
+	//}else{
+	//	result->type = NPVariantType_Null;
 	}	
 
 	output << "NPN_Invoke Result: " << resultBool << std::endl;
@@ -312,23 +396,27 @@ bool NP_LOADDS NPN_InvokeDefault(NPP npp, NPObject* obj, const NPVariant *args, 
 	return false;
 }
 
+// Verified, everything okay
 bool NP_LOADDS NPN_Evaluate(NPP npp, NPObject *obj, NPString *script, NPVariant *result){
 
 	output << "NPN_Evaluate" << std::endl;
-	//output << script->UTF8Characters << std::endl;
+	
+	output << "--- SCRIPT ---" << std::endl;
+	output << script->UTF8Characters << std::endl;
+	output << "--- /SCRIPT ---" << std::endl;
 
 	writeNPString(script);
 	writeHandle(obj);
 	writeHandle(npp);
-
 	callFunction(FUNCTION_NPN_Evaluate);
 
 	std::vector<ParameterInfo> stack;
 	readCommands(stack);
 
-	uint32_t resultBool = readInt32(stack);
+	bool resultBool = readInt32(stack);
+
 	if(resultBool){
-		readVariant(stack, *result, true);
+		readVariantIncRef(stack, *result); // no incref, as linux is responsible for refcounting!
 	}	
 
 	output << "NPN_Evaluate resultBool=" << resultBool << std::endl;
@@ -336,6 +424,7 @@ bool NP_LOADDS NPN_Evaluate(NPP npp, NPObject *obj, NPString *script, NPVariant 
 	return resultBool;
 }
 
+// Verified, everything okay
 bool NP_LOADDS NPN_GetProperty(NPP npp, NPObject *obj, NPIdentifier propertyName, NPVariant *result){
 
 	output << "NPN_GetProperty" << std::endl;
@@ -343,16 +432,17 @@ bool NP_LOADDS NPN_GetProperty(NPP npp, NPObject *obj, NPIdentifier propertyName
 	writeHandle(propertyName);
 	writeHandle(obj);
 	writeHandle(npp);
-
 	callFunction(FUNCTION_NPN_GET_PROPERTY);
 
 	std::vector<ParameterInfo> stack;
 	readCommands(stack);
 
-	uint32_t resultBool = readInt32(stack);
+	bool resultBool = readInt32(stack);
+
 	if(resultBool){
-		readVariant(stack, *result, true);
+		readVariantIncRef(stack, *result); // no incref, as linux is responsible for refcounting!
 	}
+
 	output << "NPN_GetProperty Result " <<  resultBool << std::endl;
 	return resultBool;
 
@@ -378,6 +468,7 @@ bool NP_LOADDS NPN_HasMethod(NPP npp, NPObject *obj, NPIdentifier propertyName){
 	return false;
 }
 
+// Verified, everything okay
 void NP_LOADDS NPN_ReleaseVariantValue(NPVariant *variant){
 	output << "NPN_ReleaseVariantValue: " << std::endl;
 
@@ -396,6 +487,8 @@ void NP_LOADDS NPN_ReleaseVariantValue(NPVariant *variant){
 			break;		
 	}
 
+	// Ensure that noone is reading that stuff again!
+	variant->type = NPVariantType_Null;
 }
 
 void NP_LOADDS NPN_SetException(NPObject *obj, const NPUTF8 *message){

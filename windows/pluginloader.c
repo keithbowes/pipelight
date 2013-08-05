@@ -7,6 +7,8 @@
 #include <io.h>
 #include "pluginloader.h"
 
+#include <objbase.h>
+
 FILE * pipeOutF = stdout;
 FILE * pipeInF 	= stdin;
 
@@ -82,6 +84,9 @@ std::string createLinuxCompatibleMimeType(){
 }
 
 bool InitDLL(){
+
+	// Thanks Microsoft - I searched a whole day to find this bug!
+	CoInitialize(NULL);
 	
 	SetDllDirectory(DLL_PATH);
 
@@ -145,9 +150,9 @@ bool InitDLL(){
 					
 					if(NP_GetEntryPoints && NP_Initialize){
 
-						if(NP_GetEntryPoints(&pluginFuncs) == NPERR_NO_ERROR){
+						if (NP_Initialize(&browserFuncs) == NPERR_NO_ERROR){
+							if(NP_GetEntryPoints(&pluginFuncs) == NPERR_NO_ERROR){
 						
-							if (NP_Initialize(&browserFuncs) == NPERR_NO_ERROR){
 								return true;
 
 							}
@@ -179,7 +184,6 @@ bool InitDLL(){
 
 int main(){
 	
-	
 	output << "---------" << std::endl;
 
 	if (InitDLL()){
@@ -195,8 +199,8 @@ int main(){
 		int stdinF	= _dup(0);
 		pipeInF 	= _fdopen(stdinF, 	"rb");
 		
-		// Disable buffering
-		setbuf(pipeInF, NULL);
+		// Disable buffering not necessary here
+		//setbuf(pipeInF, NULL);
 
 		//Redirect STDOUT to STDERR
 		SetStdHandle(STD_OUTPUT_HANDLE, GetStdHandle(STD_ERROR_HANDLE));
@@ -223,7 +227,7 @@ int main(){
 			output << "Init sucessfull!" << std::endl;
 
 			Stack stack;
-			readCommands(stack, true);		
+			readCommands(stack, false);		
 		}else{
 			output << "Failed to register class" << std::endl;
 		}
@@ -234,54 +238,46 @@ int main(){
 }
 
 void callNPP_New(Stack &stack){
+	std::shared_ptr<char> mimeType		= readStringAsMemory(stack);
+	NPP instance						= readHandleInstance(stack);
+	uint16_t mode 						= readInt32(stack);
+	int16_t argc 						= readInt32(stack);
+	std::vector<char*> argn 			= readStringArray(stack, argc);
+	std::vector<char*> argv 			= readStringArray(stack, argc);
 
-	std::shared_ptr<char> mimeType	= readStringAsBinaryData(stack);
-
-	output << "Init: " << std::endl;
-
-	NPP instance		= readHandleInstance(stack);
-	uint16_t mode 		= readInt32(stack);
-	int16_t argc 		= readInt32(stack);
-
-	instance->ndata = NULL;
-
-	//Fix code here
-	if(mode != NP_EMBED){
-		mode = NP_EMBED;
-	}
-
-	charArray argn 		= readCharStringArray(stack, argc);
-	charArray argv 		= readCharStringArray(stack, argc);
+	size_t saved_length;
+	char* saved_data 					= readMemoryMalloc(stack, saved_length);
 
 	NPSavedData saved;
-	size_t length;
+	NPSavedData* savedPtr = NULL;
 
-	std::shared_ptr<char> data = readBinaryData(stack, length);
+	if(saved_data){ // Note: The plugin is responsible for freeing the saved memory when not required anymore!
+		saved.buf 	= saved_data;
+		saved.len 	= saved_length;
+		savedPtr 	= &saved;
+	}
 
-	saved.buf = data.get();
-	saved.len = length;
+	// Set ndata to zero
+	//instance->ndata = NULL;
 
-	NPError result = pluginFuncs.newp(mimeType.get(), instance, mode, argc, argn.charPointers.data(), argv.charPointers.data(), &saved);
+	// TODO: Is this really correct?
+	//if(mode != NP_EMBED){
+	//	mode = NP_EMBED;
+	//}
 
-	output << "Init end " << std::endl;
-	output << "result = " << result << std::endl;
+	output << "before NPP_New" << std::endl;
+
+	NPError result = pluginFuncs.newp(mimeType.get(), instance, mode, argc, argn.data(), argv.data(), savedPtr);
+
+	output << "after NPP_New, result: " << result << std::endl;
+
+	// Free the arrays before returning
+	freeStringArray(argn);
+	freeStringArray(argv);
 
 	writeInt32(result);
 	returnCommand();
 }
-
-void freeVariant(NPVariant &variant){
-	if (variant.type == NPVariantType_String){
-		free((char*)variant.value.stringValue.UTF8Characters);
-	}
-}
-
-void freeVariant(std::vector<NPVariant> args){
-	for(NPVariant &variant :  args){
-		freeVariant(variant);
-	}
-}
-
 
 void callNP_Invoke(Stack &stack){
 
@@ -291,15 +287,22 @@ void callNP_Invoke(Stack &stack){
 	NPIdentifier name 	= readHandleIdentifier(stack);
 	uint32_t argCount 	= readInt32(stack);
 
+	// Note: This doesnt increment the refcounter.
+	// The refcounter contains only accurate values on the linux side.
 	std::vector<NPVariant> args = readVariantArray(stack, argCount);
+
 	NPVariant resultVariant;
+	resultVariant.type = NPVariantType_Null;
 
 	bool result = npobj->_class->invoke(npobj, name, args.data(), argCount, &resultVariant);
 
-	freeVariant(args);
+	// This frees ONLY all the strings!
+	freeVariantArray(args);
 
+	// The objects refcount has been incremented by invoke
+	// Return the variant without modifying the objects refcount
 	if(result){
-		writeVariant(resultVariant);
+		writeVariantRelease(resultVariant);
 	}
 
 	writeInt32(result);
@@ -307,35 +310,46 @@ void callNP_Invoke(Stack &stack){
 	
 }
 
+// Verified, everything okay
 void callNPP_GetValue_Bool(Stack &stack){
 
 	NPP instance 			= readHandleInstance(stack);
 	NPPVariable variable 	= (NPPVariable)readInt32(stack);
 
-	PRBool result;
+	PRBool boolValue;
 
-	NPError returnvalue = pluginFuncs.getvalue(instance, variable, &result);
+	NPError result = pluginFuncs.getvalue(instance, variable, &boolValue);
+
+	if(result == NPERR_NO_ERROR)
+		writeInt32(boolValue);
 
 	writeInt32(result);
-	writeInt32(returnvalue);
 	returnCommand();
 }
 
+// Verified, everything okay
 void callNPP_GetValue_Object(Stack &stack){
 
 	NPP instance 			= readHandleInstance(stack);
 	NPPVariable variable 	= (NPPVariable)readInt32(stack);
 
-	NPObject *result;
+	NPObject *objectValue;
 
-	NPError returnvalue = pluginFuncs.getvalue(instance, variable, &result);
+	NPError result = pluginFuncs.getvalue(instance, variable, &objectValue);
 
-	writeHandle(result);
-	writeInt32(returnvalue);
+	// Note: The refcounter of objectValue will be incremented when returing an objectValue!
+	// http://stackoverflow.com/questions/1955073/when-to-release-object-in-npapi-plugin
+	// The incrementing has to be done using NPN_RetainObject, so this will be already redirected
+	// to the linux side ...
+
+	if(result == NPERR_NO_ERROR)
+		writeHandle(objectValue);
+
+	writeInt32(result);
 	returnCommand();
 }
 
-
+// Verified, everything okay
 void setWindowInfo(Stack &stack){
 
 	NPP instance 	= readHandleInstance(stack);
@@ -397,18 +411,20 @@ void callNPP_NewStream(Stack &stack){
 	
 	output << "callNPP_NewStream" << std::endl;
 
-	NPP instance 			= readHandleInstance(stack);
-	std::string mimeType 	= readString(stack);
-	NPStream *stream 		= readHandleStream(stack);
-	NPBool seekable			= (NPBool) readInt32(stack); 
+	NPP instance 					= readHandleInstance(stack);
+	std::shared_ptr<char> type 		= readStringAsMemory(stack);
+	NPStream *stream 				= readHandleStream(stack);
+	NPBool seekable					= (NPBool) readInt32(stack); 
+
+	output << "New Stream with Type " << type << " an URL: " << stream->url << std::endl;
 
 	uint16_t stype = NP_NORMAL; //Fix for silverlight....
-	output << "New Stream with Type " << mimeType << " an URL: " << stream->url << std::endl;
-	//output << "Overriding Mimetype to application/x-silverlight-app" << std::endl;
-	NPError result = pluginFuncs.newstream(instance, (char*)mimeType.c_str(), stream, seekable, &stype);
-	//NPError result = pluginFuncs.newstream(instance, "application/x-silverlight-app", stream, seekable, &stype);
-
-	writeInt32(stype);
+	NPError result = pluginFuncs.newstream(instance, type.get(), stream, seekable, &stype);
+	
+	// Return result
+	if(result == NPERR_NO_ERROR)
+		writeInt32(stype);
+	
 	writeInt32(result);
 
 	returnCommand();
@@ -417,6 +433,7 @@ void callNPP_NewStream(Stack &stack){
 
 }
 
+// Verified, everything okay
 void callNPP_DestroyStream(Stack &stack){
 	
 	output << "callNPP_DestroyStream" << std::endl;
@@ -427,20 +444,21 @@ void callNPP_DestroyStream(Stack &stack){
 
 	NPError result = pluginFuncs.destroystream(instance, stream, reason);
 
-	handlemanager.removeHandleByReal((uint64_t)stream);
+	// Let the handlemanager remove this one
+	handlemanager.removeHandleByReal((uint64_t)stream, TYPE_NPStream);
 
 	// Free Data
-	if(stream->url) free((char*)stream->url);
-	if(stream->headers) free((char*)stream->headers);
-
-	delete stream;
+	if(stream){
+		if(stream->url) 	free((char*)stream->url);
+		if(stream->headers) free((char*)stream->headers);
+		free(stream);
+	}
 
 	writeInt32(result);
 	returnCommand();
-
 }
 
-
+// Verified, everything okay
 void callNPP_WriteReady(Stack &stack){
 	
 	output << "callNPP_WriteReady" << std::endl;
@@ -449,11 +467,12 @@ void callNPP_WriteReady(Stack &stack){
 	NPStream* stream 	= readHandleStream(stack);
 
 	int32_t result = pluginFuncs.writeready(instance, stream);
+
 	writeInt32(result);	
 	returnCommand();
-
 }
 
+// Verified, everything okay
 void callNPP_Write(Stack &stack){
 	
 	output << "callNPP_Write" << std::endl;
@@ -462,32 +481,32 @@ void callNPP_Write(Stack &stack){
 	NPStream* stream 	= readHandleStream(stack);
 	int32_t offset 		= readInt32(stack);
 
-	size_t len;
-	std::shared_ptr<char> data = readBinaryData(stack, len);
+	size_t length;
+	std::shared_ptr<char> data = readMemory(stack, length);
 
-	int32_t result = pluginFuncs.write(instance, stream, offset, len, data.get());
+	int32_t result = pluginFuncs.write(instance, stream, offset, length, data.get());
 
 	output << "callNPP_Write Result: " << result << std::endl;
 
 	writeInt32(result);	
 	returnCommand();
-
 }
 
 void callNPP_URLNotify(Stack &stack){
 
-	NPP instance 		= readHandleInstance(stack);
-	std::string URL 	= readString(stack);
-	NPReason reason 	= (NPReason) readInt32(stack);
-	void *notifyData 	= readHandleNotify(stack);
+	NPP instance 				= readHandleInstance(stack);
+	std::shared_ptr<char> URL 	= readStringAsMemory(stack);
+	NPReason reason 			= (NPReason) readInt32(stack);
+	void *notifyData 			= readHandleNotify(stack);
 
 	output << "NotifyData: " << notifyData << std::endl;
 
-	pluginFuncs.urlnotify(instance, URL.c_str(), reason, notifyData);
+	pluginFuncs.urlnotify(instance, URL.get(), reason, notifyData);
 
 	returnCommand();
 }
 
+// Verified, everything okay
 void callNP_HasPropertyFunction(Stack &stack){
 
 	output << "callNP_HasPropertyFunction" << std::endl;
@@ -501,27 +520,33 @@ void callNP_HasPropertyFunction(Stack &stack){
 	returnCommand();
 }
 
+// Verified, everything okay
 void callNP_HasMethodFunction(Stack &stack){
+
+	output << "callNP_HasMethodFunction" << std::endl;
 
 	NPObject *obj 		= readHandleObj(stack);
 	NPIdentifier name 	= readHandleIdentifier(stack);	
 
 	bool result = obj->_class->hasMethod(obj, name);
+
 	writeInt32(result);
 	returnCommand();
 }
 
+// Verified, everything okay
 void callNP_GetPropertyFunction(Stack &stack){
 
 	NPObject *obj 		= readHandleObj(stack);
 	NPIdentifier name 	= readHandleIdentifier(stack);	
 
 	NPVariant resultVariant;
+	resultVariant.type = NPVariantType_Null;
 
 	bool result = obj->_class->getProperty(obj, name, &resultVariant);
 
 	if (result){
-		writeVariant(resultVariant);
+		writeVariantRelease(resultVariant);
 	}
 
 	writeInt32(result);
@@ -568,20 +593,32 @@ void dispatcher(int functionid, Stack &stack){
 			callNP_Invoke(stack);
 			break;
 
-		case OBJECT_KILL:
-			
+		/*case OBJECT_KILL: // Verified, everything okay
 			obj = readHandleObj(stack);
 
 			output << "Killed " << (void*) obj << std::endl;
 			
-			handlemanager.removeHandleByReal((uint64_t)obj);
+			// Reset refcount to detect further access
+			obj->referenceCount = 0xDEADBEEF;
 
+			// Remove the object locally
 			if(obj->_class->deallocate){
+				output << "call deallocate function " << (void*)obj->_class->deallocate << std::endl;
+
 				obj->_class->deallocate(obj);
 			}else{
-				delete obj;
+				output << "call default dealloc function " << std::endl;
+
+				free((char*)obj);
 			}
-			break;
+
+			output << "removeHandleByReal: " << (uint64_t)obj << " or " << (void*)obj << std::endl;
+
+			// Remove it in the handle manager
+			handlemanager.removeHandleByReal((uint64_t)obj, TYPE_NPObject);
+
+			returnCommand();
+			break;*/
 
 		case FUNCTION_NPP_GETVALUE_BOOL:
 			callNPP_GetValue_Bool(stack);
@@ -627,10 +664,6 @@ void dispatcher(int functionid, Stack &stack){
 			callNP_GetPropertyFunction(stack);
 			break;
 
-		case NOP:
-			output << "NOP!" << std::endl;
-			returnCommand();
-			break;
 
 		case PROCESS_WINDOW_EVENTS:
 			// Process window events

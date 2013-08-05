@@ -6,14 +6,16 @@ char strPluginName[256] 		= {0};
 char strPluginDescription[256]	= {0};
 
 void pokeString(std::string str, char *dest, unsigned int maxLength){
+	if(maxLength > 0){
+		unsigned int length = std::min((unsigned int)str.length(), maxLength-1);
 
-	unsigned int length = std::min((unsigned int)str.length(), maxLength-1);
-	if (length > 0){
+		// Always at least one byte to copy (nullbyte)
 		memcpy(dest, str.c_str(), length);
+		dest[length] = 0;
 	}
 }
 
-
+// Verified, everything okay
 NP_EXPORT(NPError)
 NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 {
@@ -43,26 +45,31 @@ NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 	return NPERR_NO_ERROR;
 }
 
+// Verified, everything okay
 NP_EXPORT(char*)
 NP_GetPluginVersion()
 {
 	callFunction(FUNCTION_GET_VERSION);
+
 	std::string result = readResultString();
 	pokeString(result, strPluginversion, sizeof(strPluginversion));
 
 	return strPluginversion;
 }
 
+// Verified, everything okay
 NP_EXPORT(const char*)
 NP_GetMIMEDescription()
 {
 	callFunction(FUNCTION_GET_MIMETYPE);
+
 	std::string result = readResultString();
 	pokeString(result, strMimeType, sizeof(strMimeType));
 
 	return strMimeType;
 }
 
+// Verified, everything okay
 NP_EXPORT(NPError)
 NP_GetValue(void* future, NPPVariable aVariable, void* aValue) {
 
@@ -71,8 +78,8 @@ NP_GetValue(void* future, NPPVariable aVariable, void* aValue) {
 	switch (aVariable) {
 
 		case NPPVpluginNameString:
-	
 			callFunction(FUNCTION_GET_NAME);
+
 			result = readResultString();
 			pokeString(result, strPluginName, sizeof(strPluginName));		
 
@@ -80,8 +87,8 @@ NP_GetValue(void* future, NPPVariable aVariable, void* aValue) {
 			break;
 
 		case NPPVpluginDescriptionString:
-
 			callFunction(FUNCTION_GET_DESCRIPTION);
+
 			result = readResultString();
 			pokeString(result, strPluginDescription, sizeof(strPluginDescription));		
 
@@ -91,12 +98,12 @@ NP_GetValue(void* future, NPPVariable aVariable, void* aValue) {
 		default:
 			output << ">>>>> STUB: NP_GetValue" << std::endl;
 			return NPERR_INVALID_PARAM;
-			break;
 
 	}
 
 	return NPERR_NO_ERROR;
 }
+
 
 NP_EXPORT(NPError)
 NP_Shutdown()
@@ -106,47 +113,48 @@ NP_Shutdown()
 }
 
 void timerFunc(NPP instance, uint32_t timerID){
-
-	//output << "timer tid" << syscall(SYS_gettid) << std::endl;
-
-	/*if(checkReadCommands()){
-		std::vector<ParameterInfo> stack;
-		readCommands(stack, false, true); // return when stack empty
-	}*/
-
-	//output << "timer ready" << std::endl;
-
 	callFunction(PROCESS_WINDOW_EVENTS);
 	waitReturn();
 }
 
+// Verified, everything okay
 NPError
 NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* argn[], char* argv[], NPSavedData* saved) {
 
 	output << "NPP_New" << std::endl;
 
+	// TODO: SCHEDULE ONLY ONE TIMER?!
 	sBrowserFuncs->scheduletimer(instance, 50, true, timerFunc);
 
-	//output << "other tid" << syscall(SYS_gettid) << std::endl;
-
-	if (saved){
+	if(saved){
 		writeMemory((char*)saved->buf, saved->len);
 	}else{
 		writeMemory(NULL, 0);
 	}
 
-	writeCharStringArray(argv, argc);
-	writeCharStringArray(argn, argc);
-
+	writeStringArray(argv, argc);
+	writeStringArray(argn, argc);
 	writeInt32(argc);
 	writeInt32(mode);
-
 	writeHandle(instance);
-	writeString(pluginType);	
-
+	writeString(pluginType);
 	callFunction(FUNCTION_NPP_NEW);
 
-	return readResultInt32();
+	NPError result = readResultInt32();
+
+	// The plugin is responsible for freeing *saved
+	// The other side has its own copy of this memory
+	if(saved){
+		sBrowserFuncs->memfree(saved->buf);
+		saved->buf = NULL;
+		saved->len = 0;
+	}
+
+	//result = NPERR_NO_ERROR;
+
+	output << "result is " << result << std::endl;
+
+	return result;
 }
 
 NPError
@@ -155,53 +163,49 @@ NPP_Destroy(NPP instance, NPSavedData** save) {
 	return NPERR_NO_ERROR;
 }
 
+// Verified, everything okay
 NPError
 NPP_SetWindow(NPP instance, NPWindow* window) {
 
-	output << "NPP_SetWindow" << std::endl;
-
-	//TODO: translate to Screen coordinates
+	// TODO: translate to Screen coordinates
+	// TODO: Use all parameters
 
 	writeInt32(window->height);
 	writeInt32(window->width);
 	writeInt32(window->y);
 	writeInt32(window->x);
 	writeHandle(instance);
-
 	callFunction(FUNCTION_SET_WINDOW_INFO);
 	waitReturn();
-
-	output << "NPP_SetWindow returned" << std::endl;
 
 	return NPERR_NO_ERROR;
 }
 
+// Verified, everything okay
 NPError
 NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool seekable, uint16_t* stype) {
 	output << "NPP_NewStream with URL: " << stream->url << std::endl;
 
 	writeInt32(seekable);
 	writeHandle(stream);
-	
-	if(!type) 
-		throw std::runtime_error("Mimetype: NULL?");
-
 	writeString(type);
 	writeHandle(instance);
-
 	callFunction(FUNCTION_NPP_NEW_STREAM);
 
 	Stack stack;
 	readCommands(stack);	
 
 	NPError result 	= readInt32(stack);
-	*stype 			= (uint16_t)readInt32(stack);
+
+	if(result == NPERR_NO_ERROR)
+		*stype 			= (uint16_t)readInt32(stack);
 
 	output << "NPP_NewStream finished with result " << result << " and type " << *stype << std::endl;
 
 	return result;
 }
 
+// Verified, everything okay
 NPError
 NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
 
@@ -214,11 +218,13 @@ NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
 
 	NPError result = readResultInt32();
 
-	handlemanager.removeHandleByReal((uint64_t)stream);
+	// Remove the handle by the corresponding stream real object
+	handlemanager.removeHandleByReal((uint64_t)stream, TYPE_NPStream);
 
 	return result;
 }
 
+// Verified, everything okay
 int32_t
 NPP_WriteReady(NPP instance, NPStream* stream) {
 
@@ -226,27 +232,25 @@ NPP_WriteReady(NPP instance, NPStream* stream) {
 
 	writeHandle(stream);
 	writeHandle(instance);	
-
 	callFunction(FUNCTION_NPP_WRITE_READY);
 	
 	int32_t result = readResultInt32();
 
-	output << "NPP_WriteReady - Maximum Length" << result << std::endl;
+	output << "NPP_WriteReady - Maximum Length: " << result << std::endl;
 
 	return result;
 }
 
+// Verified, everything okay
 int32_t
 NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, void* buffer) {
 
 	output << "NPP_Write Length: " << len << std::endl;
 
 	writeMemory((char*)buffer, len);
-	//writeInt32(len); Our protocol does send this information automaticly
 	writeInt32(offset);
 	writeHandle(stream);
 	writeHandle(instance);
-
 	callFunction(FUNCTION_NPP_WRITE);
 	
 	return readResultInt32();
@@ -268,6 +272,7 @@ NPP_HandleEvent(NPP instance, void* event) {
 	return 0;
 }
 
+// Verified, everything okay
 void
 NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyData) {
 
@@ -277,18 +282,17 @@ NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyData) 
 	writeInt32(reason);
 	writeString(URL);
 	writeHandle(instance);
-
 	callFunction(FUNCTION_NPP_URL_NOTIFY);
 	waitReturn();
 }
 
+// Verified, everything okay
 NPError
 NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 
 	output << "NPP_GetValue: " << variable << std::endl;
 
 	NPError result = NPERR_GENERIC_ERROR;
-
 	std::vector<ParameterInfo> stack;
 
 	switch(variable){
@@ -298,13 +302,20 @@ NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 
 			writeInt32(variable);
 			writeHandle(instance);
-
 			callFunction(FUNCTION_NPP_GETVALUE_BOOL);
 
 			readCommands(stack);
 
 			result = (NPError)readInt32(stack);
-			*((PRBool *)value) = (PRBool)readInt32(stack);
+
+			if(result == NPERR_NO_ERROR)
+				*((PRBool *)value) = (PRBool)readInt32(stack);
+			
+			// TODO: Remove this silverlight fix
+			/*result = NPERR_NO_ERROR;
+			*((PRBool *)value) = PR_TRUE;*/
+			// END OF SILVERLIGHT FIX
+
 			output << "XEmbed support: " << *((PRBool *)value) << " return error: " << result << std::endl;
 			break;
 
@@ -319,7 +330,12 @@ NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 			readCommands(stack);
 
 			result 					= readInt32(stack);
-			*((NPObject**)value) 	= readHandleObj(stack);
+
+			if(result == NPERR_NO_ERROR)
+				*((NPObject**)value) 	= readHandleObj(stack);
+			
+			output << "NPPVpluginScriptableNPObject return error: " << result << std::endl;
+			output << "TODO: Check if there was an RetainObject inbetween (should be there!)" << std::endl;
 			break;
 
 

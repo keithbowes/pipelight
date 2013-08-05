@@ -4,6 +4,7 @@ void NPInvalidateFunction(NPObject *npobj){
 	output << ">>>>> STUB: NPInvalidateFunction" << std::endl;
 }
 
+// Verified, everything okay
 bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name){
 	output << "NPHasMethodFunction" << std::endl;
 
@@ -14,29 +15,30 @@ bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name){
 
 }
 
+// Verified, everything okay
 bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args, uint32_t argCount, NPVariant *result){
 
-	output << "NPInvokeFunction" << std::endl;
+	output << "NPInvokeFunction (myClass)" << std::endl;
 
 	// Warning: parameter order swapped!
-	writeVariantArray(args, argCount);
-
+	writeVariantArrayConst(args, argCount);
 	writeInt32(argCount);
-
 	writeHandle(name);
 	writeHandle(npobj);
-
 	callFunction(FUNCTION_NP_INVOKE);
 
 	std::vector<ParameterInfo> stack;
 	readCommands(stack);
 
-	uint32_t resultBool = readInt32(stack);
+	bool resultBool = (bool)readInt32(stack);
+
 	if(resultBool){
-		readVariant(stack, *result);
+		readVariant(stack, *result); // Dont increment refcount, this has already been done by invoke()
 	}else{
 		result->type = NPVariantType_Null;
 	}	
+
+	// The caller has to call NPN_ReleaseVariant if this should be freed
 
 	output << "NP_Invoke Result: " << resultBool << std::endl;
 
@@ -48,6 +50,7 @@ bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t ar
 	return false;
 }
 
+// Verified, everything okay
 bool NPHasPropertyFunction(NPObject *npobj, NPIdentifier name){
 
 	output << "NPHasPropertyFunction" << std::endl;
@@ -55,38 +58,31 @@ bool NPHasPropertyFunction(NPObject *npobj, NPIdentifier name){
 	writeHandle(name);
 	writeHandle(npobj);
 	callFunction(FUNCTION_NP_HAS_PROPERTY_FUNCTION);
-	
-	output << "NPHasPropertyFunction redirected" << std::endl;
-
-
-	bool result = (bool)readResultInt32();
-
-	output << "NPHasPropertyFunction returned " << result << std::endl;
-
-	return result;
+	return (bool)readResultInt32();
 	
 }
 
+// Verified, everything okay
 bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result){
 
 	output << "NPGetPropertyFunction" << std::endl;
 
 	writeHandle(name);
 	writeHandle(npobj);
-
 	callFunction(FUNCTION_NP_GET_PROPERTY_FUNCTION);
 
 	std::vector<ParameterInfo> stack;
 	readCommands(stack);
 
-	uint32_t resultBool = readInt32(stack);
+	bool resultBool = readInt32(stack);
+
 	if(resultBool){
 		readVariant(stack, *result);
 	}else{
 		result->type = NPVariantType_Null;
 	}	
 
-	return (bool)resultBool;
+	return resultBool;
 }
 
 bool NPSetPropertyFunction(NPObject *npobj, NPIdentifier name, const NPVariant *value){
@@ -109,27 +105,36 @@ bool NPConstructFunction(NPObject *npobj, const NPVariant *args, uint32_t argCou
 	return false;
 }
 
+// Verified, everything okay
 NPObject * NPAllocateFunction(NPP npp, NPClass *aClass){
-
-	output << "Browser called Allocate Object" << std::endl;
 
 	NPObject* obj = (NPObject*)malloc(sizeof(NPObject));
 	if(obj){
 		obj->_class = aClass;
 	}
+
+	output << "Browser called Allocate Object " << (void*)obj << std::endl;
+
 	return obj;
 }
 
+// Verified, everything okay
 void NPDeallocateFunction(NPObject *npobj){
-	output << "Browser called Deallocate Object" << std::endl;
+	output << "Browser called Deallocate Object " << (void*)npobj << std::endl;
 
-	writeHandle(npobj);
-	callFunction(OBJECT_KILL);
-	waitReturn();
+	if(npobj){
 
-	handlemanager.removeHandleByReal((uint64_t)npobj);
+		// Kill the object on the other side
+		/*writeHandle(npobj);
+		callFunction(OBJECT_KILL);
+		waitReturn();*/
 
-	free(npobj);
+		// Remove the object locally
+		free(npobj);
+
+		// Remove it in the handle manager
+		//handlemanager.removeHandleByReal((uint64_t)npobj, TYPE_NPObject);
+	}
 }
 
 NPClass myClass = {

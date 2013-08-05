@@ -6,21 +6,12 @@
 #include <sstream>
 #include "communication.h"
 #include <cstring>
-
-#ifdef __WIN32__
-#include <winsock2.h>
-#include <windows.h>
-#include <io.h>
-extern HANDLE hStdIn;
-
-
-#endif
+#include <fstream>
 
 #ifndef __WIN32__
-#include <sys/ioctl.h>
+#include "../npapi-headers/npfunctions.h"
+extern NPNetscapeFuncs *sBrowserFuncs;
 #endif
-
-#include <fstream>
 
 extern void dispatcher(int functionid, Stack &stack);
 
@@ -28,30 +19,25 @@ extern FILE * pipeOutF;
 extern FILE * pipeInF;
 extern std::ofstream output;
 
-void freeMemory(char *memory){
+// Function to free shared_ptr memory - prevent null pointer exceptions
+void freeSharedPtrMemory(char *memory){
 	if(memory){
 		free(memory);
 	}
 }
 
-ParameterInfo::ParameterInfo(char command, char* newdata, size_t length) : data(newdata, freeMemory){
+ParameterInfo::ParameterInfo(char command, char* newdata, size_t length) : data(newdata, freeSharedPtrMemory){
 	this->command = command;
 	this->length  = length;
 }
 
 ParameterInfo::~ParameterInfo(){
-
+	// Do nothing
 }
 
-std::string convertInt(int number){
 
-	std::stringstream ss;
-	ss << number;
-	return ss.str();
-}
-
+// Transmits the given number of bytes
 void transmitData(const char* data, size_t length){
-
 	size_t pos = 0;
 
 	// Transmit data until everything is done
@@ -61,121 +47,390 @@ void transmitData(const char* data, size_t length){
 		pos += numBytes;
 	}
 
-	// Flush data!
-	fflush(pipeOutF);
-
-	//#ifdef __WIN32__
-	//	FlushFileBuffers((HANDLE) _fileno(pipeOutF));
-	//#else
-		//if(fsync(fileno(pipeOutF))){
-		//	output << "Failed to flush pipe" << std::endl;
-		//}
-	//#endif
 }
 
+// Writes a command to the pipe
 void writeCommand(char command, const char* data, size_t length){
 	if(length > 0xFFFFFF){
 		throw std::runtime_error("Data for command too long");
 	}
 
-	int32_t blockInfo = (command << 24) | length;
-	
-	transmitData((char*)&blockInfo, sizeof(int32_t));
-	
-	//output << "writing command " << (int)command << " with length " << length << std::endl;
+	//output << "writing command " << (int)command << " with length ... " << length << std::endl;
 
+	int32_t blockInfo = (command << 24) | length;
+
+	// Transmit command info	
+	transmitData((char*)&blockInfo, sizeof(int32_t));
+
+	// Transmit argument (if any)
 	if(length > 0 && data != NULL){
 		transmitData(data, length);
 	}
+
+	//output << "done" << std::endl;
+
+	// Flush data!
+	fflush(pipeOutF);
 }
 
+// Call a function
 void callFunction(int32_t function){
 	writeCommand(BLOCKCMD_CALL_DIRECT, (char*)&function, sizeof(int32_t));
 }
 
+// Return from a function
 void returnCommand(){
 	writeCommand(BLOCKCMD_RETURN);
 }
 
+// Writes an int32
 void writeInt32(int32_t value){
 	writeCommand(BLOCKCMD_PUSH_INT32, (char*)&value, sizeof(int32_t));
 }
 
+// Read an int32
+int32_t readInt32(Stack &stack){
+
+	// get last element in stack
+	std::vector<ParameterInfo>::reverse_iterator rit = stack.rbegin();
+	if(rit == stack.rend())	throw std::runtime_error("No return value found");
+
+	uint32_t *data = (uint32_t*)rit->data.get();
+
+	// check for correct type
+	if( rit->command != BLOCKCMD_PUSH_INT32 || rit->length != sizeof(int32_t) || data == NULL ){
+		throw std::runtime_error("Wrong return value, expected int32");
+	}
+
+	int32_t result = *data;
+	stack.pop_back();
+
+	return result;
+}
+
+// Writes an int64
 void writeInt64(int64_t value){
 	writeCommand(BLOCKCMD_PUSH_INT64, (char*)&value, sizeof(int64_t));
 }
 
+// Read an int64
+uint64_t readInt64(Stack &stack){
+
+	// get last element in stack
+	std::vector<ParameterInfo>::reverse_iterator rit = stack.rbegin();
+	if(rit == stack.rend())	throw std::runtime_error("No return value found");
+
+	uint64_t *data = (uint64_t*)rit->data.get();
+
+	// check for correct type
+	if( rit->command != BLOCKCMD_PUSH_INT64 || rit->length != sizeof(uint64_t) || data == NULL ){
+		throw std::runtime_error("Wrong return value, expected int64");
+	}
+
+	uint64_t result = *data;
+	stack.pop_back();
+
+	return result;
+}
+
+// Writes an double
 void writeDouble(double value){
 	writeCommand(BLOCKCMD_PUSH_DOUBLE, (char*)&value, sizeof(double));
 }
 
+// Read double
+double readDouble(Stack &stack){
+
+	// get last element in stack
+	std::vector<ParameterInfo>::reverse_iterator rit = stack.rbegin();
+	if(rit == stack.rend())	throw std::runtime_error("No return value found");
+
+	double *data = (double*)rit->data.get();
+
+	// check for correct type
+	if( rit->command != BLOCKCMD_PUSH_DOUBLE || rit->length != sizeof(double) || data == NULL ){
+		throw std::runtime_error("Wrong return value, expected double");
+	}
+
+	double result = *data;
+	stack.pop_back();
+
+	return result;
+}
+
+
+// Writes a C++-String (including terminating zero)
 void writeString(std::string str){
 	writeCommand(BLOCKCMD_PUSH_STRING, str.c_str(), str.length()+1);
 }
 
+// Writes a string based on a char* (including the terminating zero)
 void writeString(const char *str){
-
 	if(str){
-		size_t length = strlen(str);
-		writeCommand(BLOCKCMD_PUSH_STRING, str, length+1);
+		writeCommand(BLOCKCMD_PUSH_STRING, str, strlen(str)+1);
+
+	}else{
+		writeCommand(BLOCKCMD_PUSH_STRING, NULL, 0);
+
+	}
+}
+
+// Writes a string and appends a final nullptr
+void writeString(const char *str, size_t length){
+	if(str){
+		//writeCommand(BLOCKCMD_PUSH_STRING, str, length);
+
+		if(length > 0xFFFFFF - 1){
+			throw std::runtime_error("Data for command too long");
+		}
+
+		int32_t blockInfo = (BLOCKCMD_PUSH_STRING << 24) | (length + 1);
+
+		// Transmit command info	
+		transmitData((char*)&blockInfo, sizeof(int32_t));
+
+		// Transmit string (first part)
+		if(length > 0) transmitData(str, length);
+
+		// Transmit end of string
+		char eos = 0;
+		transmitData(&eos, sizeof(char));
+		
+		// Flush data!
+		fflush(pipeOutF);
+
 	}else{
 		writeCommand(BLOCKCMD_PUSH_STRING, NULL, 0);
 	}
-
 }
 
+// Read string as std::string
+// WARNING: Nullpointer strings will be returned as empty-strings! This is not always correct!
+std::string readString(Stack &stack){
+	
+	// get last element in stack
+	std::vector<ParameterInfo>::reverse_iterator rit = stack.rbegin();
+	if(rit == stack.rend())	throw std::runtime_error("No return value found");
+
+	char *data = rit->data.get();
+
+	// check for correct type
+	if( rit->command != BLOCKCMD_PUSH_STRING ){
+		throw std::runtime_error("Wrong return value, expected string");
+	}
+
+	std::string result = "";
+
+	if( rit->length > 0 && data ){
+
+		// Ensure string is nullterminated
+		if( data[rit->length-1] != 0 ) throw std::runtime_error("String not nullterminated!");
+
+		result = std::string(data, rit->length);
+	}
+
+	stack.pop_back();
+
+	return result;
+}
+
+// Reads a memory-block as a shared pointer
+// ResultLength is the number of bytes WITHOUT the trailing nullbyte
+std::shared_ptr<char> readStringAsMemory(Stack &stack, size_t &resultLength){
+	
+	// get last element in stack
+	std::vector<ParameterInfo>::reverse_iterator rit = stack.rbegin();
+	if(rit == stack.rend())	throw std::runtime_error("No return value found");
+
+	// check for correct type
+	if( rit->command != BLOCKCMD_PUSH_STRING ){
+		throw std::runtime_error("Wrong return value, expected string");
+	}
+
+	std::shared_ptr<char> result = rit->data;
+	resultLength = 0;
+
+	if( rit->length > 0 && result ){
+
+		// Ensure string is nullterminated
+		if( result.get()[rit->length-1] != 0 ) throw std::runtime_error("String not nullterminated!");
+
+		resultLength = rit->length - 1;
+	}
+
+	stack.pop_back();
+
+	return result;
+}
+
+std::shared_ptr<char> readStringAsMemory(Stack &stack){
+	size_t resultLength;
+	return readStringAsMemory(stack, resultLength);
+}
+
+// Reads a memory-block as a char pointer
+// YOU ARE RESPONSIBLE FOR FREEING THIS PTR!
+char* readStringMalloc(Stack &stack, size_t &resultLength){
+
+	// get last element in stack
+	std::vector<ParameterInfo>::reverse_iterator rit = stack.rbegin();
+	if(rit == stack.rend())	throw std::runtime_error("No return value found");
+
+	// check for correct type
+	if( rit->command != BLOCKCMD_PUSH_STRING ){
+		throw std::runtime_error("Wrong return value, expected string");
+	}
+
+	char *data 		= rit->data.get();
+	char *result 	= NULL;
+	resultLength = 0;
+
+	if(rit->length > 0 && data){
+
+		// Ensure string is nullterminated
+		if( data[rit->length-1] != 0 ) throw std::runtime_error("String not nullterminated!");
+
+		result = (char*)malloc(rit->length);
+		if(result){
+			memcpy(result, data, rit->length);
+			resultLength = rit->length - 1;
+		}
+	}
+
+	stack.pop_back();
+
+	return result;	
+}
+
+// YOU ARE RESPONSIBLE FOR FREEING THIS PTR!
+char* readStringMalloc(Stack &stack){
+	size_t resultLength;
+	return readStringMalloc(stack, resultLength);
+}
+
+#ifndef __WIN32__
+
+char* readStringBrowserAlloc(Stack &stack, size_t &resultLength){
+
+	// get last element in stack
+	std::vector<ParameterInfo>::reverse_iterator rit = stack.rbegin();
+	if(rit == stack.rend())	throw std::runtime_error("No return value found");
+
+	// check for correct type
+	if( rit->command != BLOCKCMD_PUSH_STRING ){
+		throw std::runtime_error("Wrong return value, expected string");
+	}
+
+	char *data 		= rit->data.get();
+	char *result 	= NULL;
+	resultLength = 0;
+
+	if(rit->length > 0 && data){
+
+		// Ensure string is nullterminated
+		if( data[rit->length-1] != 0 ) throw std::runtime_error("String not nullterminated!");
+
+		result = (char*)sBrowserFuncs->memalloc(rit->length);
+		if(result){
+			memcpy(result, data, rit->length);
+			resultLength = rit->length - 1;
+		}
+	}
+
+	stack.pop_back();
+
+	return result;	
+}
+
+char* readStringBrowserAlloc(Stack &stack){
+	size_t resultLength;
+	return readStringBrowserAlloc(stack, resultLength);
+}
+
+#endif
+
+// Writes a memory block (also works for nullptr)
 void writeMemory(const char *memory, size_t length){
 	writeCommand(BLOCKCMD_PUSH_MEMORY, memory, length);
 }
 
-#ifndef __WIN32__
-bool checkReadCommands(){
-	int totalAvail = 0; // TODO: Is this correct?
-	int res = ioctl(fileno(pipeInF), FIONREAD, &totalAvail);
-	return (!res && (totalAvail != 0));
-}
-#endif
+// Reads a memory-block as a shared pointer
+std::shared_ptr<char> readMemory(Stack &stack, size_t &resultLength){
+	
+	// get last element in stack
+	std::vector<ParameterInfo>::reverse_iterator rit = stack.rbegin();
+	if(rit == stack.rend())	throw std::runtime_error("No return value found");
 
-void readCommands(Stack &stack, bool noReturn, bool returnWhenStackEmpty){
+	// check for correct type
+	if( rit->command != BLOCKCMD_PUSH_MEMORY ){
+		throw std::runtime_error("Wrong return value, expected memory");
+	}
+
+	std::shared_ptr<char> result = rit->data;
+	resultLength = 0;
+
+	if( rit->length > 0 && result ){
+		resultLength = rit->length;
+	}
+
+	stack.pop_back();
+
+	return result;
+}
+
+std::shared_ptr<char> readMemory(Stack &stack){
+	size_t resultLength;
+	return readMemory(stack, resultLength);
+}
+
+// Reads a memory-block as a char pointer
+// YOU ARE RESPONSIBLE FOR FREEING THIS PTR!
+char* readMemoryMalloc(Stack &stack, size_t &resultLength){
+
+	// get last element in stack
+	std::vector<ParameterInfo>::reverse_iterator rit = stack.rbegin();
+	if(rit == stack.rend())	throw std::runtime_error("No return value found");
+
+	// check for correct type
+	if( rit->command != BLOCKCMD_PUSH_MEMORY ){
+		throw std::runtime_error("Wrong return value, expected memory");
+	}
+
+	char *data 		= rit->data.get();
+	char *result 	= NULL;
+	resultLength = 0;
+
+	if(rit->length > 0 && data){
+		result = (char*)malloc(rit->length);
+		if(result){
+			memcpy(result, data, rit->length);
+			resultLength = rit->length;
+		}
+	}
+
+	stack.pop_back();
+
+	return result;	
+}
+
+// YOU ARE RESPONSIBLE FOR FREEING THIS PTR!
+char* readMemoryMalloc(Stack &stack){
+	size_t resultLength;
+	return readMemoryMalloc(stack, resultLength);
+}
+
+
+void readCommands(Stack &stack, bool allowReturn){
+	//output << ">>>>>> READCOMMANDS" << std::endl;
 
 	while(true){
-
 		int32_t blockInfo 	= 0;
 		size_t  pos    		= 0;
 
-		//output << "waiting for more commands" << std::endl;
+		//output << "waiting for command" << std::endl;
 
+		// Wait for initial command
 		while(pos < sizeof(int32_t)){
-
-			// Handle events
-			/*#ifdef __WIN32__
-				if(noReturn){
-					u_long totalAvail = 0;
-
-					// If there is nothing available
-					while(true){
-						int res = ioctlsocket(_get_osfhandle(_fileno(pipeInF)), FIONREAD, &totalAvail);
-						if(res || (totalAvail != 0)){
-							//output << "res = " << res << ", totalAvail = " << totalAvail << std::endl;
-							break;
-						}
-						//output << "PeekNamedPipe returned" << res << ", totalAvail" << totalAvail << std::endl;
-
-						// Process window events
-						MSG msg;
-						while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)){
-							//output << "handling window events" << std::endl;
-							TranslateMessage(&msg);
-							DispatchMessage(&msg);
-						}
-
-						// Sleep a bit
-						Sleep(10);
-					}
-				}
-				//output << "data available" << std::endl;
-			#endif*/
-
 			size_t numBytes = fread( (char*)&blockInfo + pos, sizeof(char), sizeof(int32_t) - pos, pipeInF);
 			if( numBytes <= 0 ) throw std::runtime_error("Unable to receive data");
 			pos += numBytes;
@@ -188,6 +443,7 @@ void readCommands(Stack &stack, bool noReturn, bool returnWhenStackEmpty){
 
 		//output << "got command " << (int)blockCommand << ", now waiting for data" << std::endl;
 
+		// Read arguments
 		if(blockLength > 0){
 			blockData = (char*)malloc(blockLength);
 			if( blockData == NULL ) throw std::runtime_error("Not enough memory");
@@ -204,6 +460,7 @@ void readCommands(Stack &stack, bool noReturn, bool returnWhenStackEmpty){
 
 		//output << "got command " << (int)blockCommand << " with data length " << blockLength << std::endl;
 
+		// Call command
 		if( blockCommand == BLOCKCMD_CALL_DIRECT ){
 			if(blockLength != sizeof(uint32_t)) throw std::runtime_error("Wrong number of arguments for BLOCKCMD_CALL_DIRECT");
 			int32_t function = *((int32_t*)blockData);
@@ -215,207 +472,48 @@ void readCommands(Stack &stack, bool noReturn, bool returnWhenStackEmpty){
 			if(function != 0){
 				dispatcher(function, stack);
 			}
+
+			// Check for unusual stack condition
+			if(stack.size() != 0){
+				output << "UNUSUAL STACK CONDITION - NOT ALL ELEMENTS REMOVED AFTER CALL OF FUNCTION " << function << std::endl;
+			}
 			
+		// Return command
 		}else if( blockCommand == BLOCKCMD_RETURN ){
 			if(blockData) free(blockData);
-			if(!noReturn) return;
+			if(allowReturn) break;
 
+		// Other commands - push to stack
 		}else{
 			stack.emplace_back(blockCommand, blockData, blockLength);
+
 		}
 
-		// Return if the stack is empty now!
-		if(returnWhenStackEmpty && stack.size() == 0) return;
-
 	}
+
+	//output << "<<<<<< READCOMMANDS" << std::endl;
 }
 
-int32_t readInt32(Stack &stack){
-
-	// get last element in stack
-	std::vector<ParameterInfo>::reverse_iterator rit = stack.rbegin();
-	if(rit == stack.rend())	throw std::runtime_error("No return value found");
-
-	uint32_t *data = (uint32_t*)rit->data.get();
-
-	// check for correct type
-	if( rit->command != BLOCKCMD_PUSH_INT32 || rit->length != sizeof(int32_t) || data == NULL ){
-		throw std::runtime_error("Wrong return value");
-	}
-
-	int32_t result = *data;
-	stack.pop_back();
-
-	return result;
-}
-
-uint64_t readInt64(Stack &stack){
-
-	// get last element in stack
-	std::vector<ParameterInfo>::reverse_iterator rit = stack.rbegin();
-	if(rit == stack.rend())	throw std::runtime_error("No return value found");
-
-	uint64_t *data = (uint64_t*)rit->data.get();
-
-	// check for correct type
-	if( rit->command != BLOCKCMD_PUSH_INT64 || rit->length != sizeof(uint64_t) || data == NULL ){
-		throw std::runtime_error("Wrong return value");
-	}
-
-	uint64_t result = *data;
-	stack.pop_back();
-
-	return result;
-}
-
-double readDouble(Stack &stack){
-
-	// get last element in stack
-	std::vector<ParameterInfo>::reverse_iterator rit = stack.rbegin();
-	if(rit == stack.rend())	throw std::runtime_error("No return value found");
-
-	double *data = (double*)rit->data.get();
-
-	// check for correct type
-	if( rit->command != BLOCKCMD_PUSH_DOUBLE || rit->length != sizeof(double) || data == NULL ){
-		throw std::runtime_error("Wrong return value");
-	}
-
-	double result = *data;
-	stack.pop_back();
-
-	return result;
-}
-
-
-std::shared_ptr<char> readBinaryData(Stack &stack, size_t &resultLength){
-	
-	// get last element in stack
-	std::vector<ParameterInfo>::reverse_iterator rit = stack.rbegin();
-	if(rit == stack.rend())	throw std::runtime_error("No return value found");
-
-	// check for correct type
-	if( rit->command != BLOCKCMD_PUSH_MEMORY ){
-		throw std::runtime_error("Wrong return value");
-	}
-
-	std::shared_ptr<char> result = rit->data;
-
-	if( rit->length == 0 || !result ){
-		resultLength = 0;
-	}else{
-		resultLength = rit->length;
-	}
-
-	stack.pop_back();
-
-	return result;
-}
-
-std::shared_ptr<char> readStringAsBinaryData(Stack &stack){
-	
-	// get last element in stack
-	std::vector<ParameterInfo>::reverse_iterator rit = stack.rbegin();
-	if(rit == stack.rend())	throw std::runtime_error("No return value found");
-
-	// check for correct type
-	if( rit->command != BLOCKCMD_PUSH_STRING ){
-		throw std::runtime_error("Wrong return value");
-	}
-
-	std::shared_ptr<char> result = rit->data;
-
-	if( rit->length != 0 && result){
-		if (result.get()[rit->length-1] != 0){
-			throw std::runtime_error("String not nullterimanted");
-		}
-	}
-
-	stack.pop_back();
-
-	return result;
-}
-
-char* readStringAsMalloc(Stack &stack){
-
-	// get last element in stack
-	std::vector<ParameterInfo>::reverse_iterator rit = stack.rbegin();
-	if(rit == stack.rend())	throw std::runtime_error("No return value found");
-
-	// check for correct type
-	if( rit->command != BLOCKCMD_PUSH_STRING ){
-		throw std::runtime_error("Wrong return value");
-	}
-
-	char *data = rit->data.get();
-
-	if( rit->length != 0 && data){
-		if (data[rit->length-1] != 0){
-			throw std::runtime_error("String not nullterimanted");
-		}
-	}
-
-	if(!rit->length || !data){
-		stack.pop_back();
-		return NULL;
-	}
-
-	char *result = (char*)malloc(rit->length);
-	if(result){
-		memcpy(result, data, rit->length);
-	}
-
-	stack.pop_back();
-
-	return result;	
-}
-
-std::string readString(Stack &stack){
-	
-	// get last element in stack
-	std::vector<ParameterInfo>::reverse_iterator rit = stack.rbegin();
-	if(rit == stack.rend())	throw std::runtime_error("No return value found");
-
-	char *data = rit->data.get();
-
-	// check for correct type
-	if( rit->command != BLOCKCMD_PUSH_STRING ){
-		throw std::runtime_error("Wrong return value");
-	}
-
-	std::string result;
-
-	size_t size = rit->length;
-
-	if( rit->length != 0 && data != NULL ){
-		while( size > 0 && data[size-1] == 0) size--;
-		result = std::string(data, size);
-	}
-
-	stack.pop_back();
-
-	return result;
-}
 
 int32_t readResultInt32(){
-	std::vector<ParameterInfo> stack;
+	Stack stack;
 	readCommands(stack);
 	return readInt32(stack);
 }
 
 int64_t readResultInt64(){
-	std::vector<ParameterInfo> stack;
+	Stack stack;
 	readCommands(stack);
 	return readInt64(stack);
 }
 
 std::string readResultString(){
-	std::vector<ParameterInfo> stack;
+	Stack stack;
 	readCommands(stack);
 	return readString(stack);
 }
 
 void waitReturn(){
-	std::vector<ParameterInfo> stack;
+	Stack stack;
 	readCommands(stack);
 }

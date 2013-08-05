@@ -6,8 +6,16 @@
 
 enum FunctionIDs{
 
+	// ------- Special -------
+	HANDLE_MANAGER_DELETE = 1,
+	HANDLE_MANAGER_REQUEST_STREAM_INFO,
+	OBJECT_KILL,
+	//STREAM_KILL,
+	PROCESS_WINDOW_EVENTS,
+
+
 	// ------- Plugin -------
-	FUNCTION_GET_VERSION = 1,
+	FUNCTION_GET_VERSION,
 	FUNCTION_GET_MIMETYPE,
 	FUNCTION_GET_NAME,
 	FUNCTION_GET_DESCRIPTION,
@@ -28,6 +36,8 @@ enum FunctionIDs{
 	FUNCTION_NPP_WRITE_READY,
 	FUNCTION_NPP_WRITE,
 	FUNCTION_NPP_URL_NOTIFY,
+
+	FUNCTION_NPN_USERAGENT,
 
 	// ------- Browser -------
 	FUNCTION_NPN_CREATE_OBJECT,
@@ -51,15 +61,6 @@ enum FunctionIDs{
 	FUNCTION_NPN_IDENTIFIER_IS_STRING,
 	FUNCTION_NPN_INT_FROM_IDENTIFIER,
 
-	// ------- Both -------
-	HANDLE_MANAGER_DELETE,
-	HANDLE_MANAGER_REQUEST_STREAM_INFO,
-	OBJECT_KILL,
-	//STREAM_KILL,
-
-	// ------- IDLE -------
-	NOP,
-	PROCESS_WINDOW_EVENTS
 };
 
 enum{
@@ -93,29 +94,36 @@ void callFunction(int32_t function);
 void returnCommand();
 
 void writeInt32(int32_t value);
+int32_t readInt32(Stack &stack);
+
 void writeInt64(int64_t value);
+uint64_t readInt64(Stack &stack);
+
 void writeDouble(double value);
+double readDouble(Stack &stack);
+
 void writeString(std::string str);
 void writeString(const char *str);
-void writeMemory(const char *memory, size_t length);
-
+void writeString(const char *str, size_t length);
+std::string readString(Stack &stack);
+std::shared_ptr<char> readStringAsMemory(Stack &stack, size_t &resultLength);
+std::shared_ptr<char> readStringAsMemory(Stack &stack);
+char* readStringMalloc(Stack &stack, size_t &resultLength);
+char* readStringMalloc(Stack &stack);
 #ifndef __WIN32__
-bool checkReadCommands();
+char* readStringBrowserAlloc(Stack &stack, size_t &resultLength);
+char* readStringBrowserAlloc(Stack &stack);
 #endif
 
-void readCommands(Stack &stack, bool noReturn = false, bool returnWhenStackEmpty = false);
+void writeMemory(const char *memory, size_t length);
+std::shared_ptr<char> readMemory(Stack &stack, size_t &resultLength);
+std::shared_ptr<char> readMemory(Stack &stack);
+char* readMemoryMalloc(Stack &stack, size_t &resultLength);
+char* readMemoryMalloc(Stack &stack);
 
-int32_t readInt32(Stack &stack);
-uint64_t readInt64(Stack &stack);
-std::shared_ptr<char> readBinaryData(Stack &stack, size_t &resultLength);
-std::shared_ptr<char> readStringAsBinaryData(Stack &stack);
-char* readStringAsMalloc(Stack &stack);
-std::string readString(Stack &stack);
+void readCommands(Stack &stack, bool allowReturn = true);
 
 int32_t readResultInt32();
 int64_t readResultInt64();
-double readDouble(Stack &stack);
 std::string readResultString();
-
 void waitReturn();
-

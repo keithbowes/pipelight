@@ -58,17 +58,28 @@ bool NPConstructFunction(NPObject *npobj, const NPVariant *args, uint32_t argCou
 
 NPObject * NPAllocateFunction(NPP npp, NPClass *aClass){
 	output << ">>>>> NPClass STUB: NPAllocateFunction" << std::endl;
-	return 0;
+
+	NPObject* obj = (NPObject*)malloc(sizeof(NPObject));
+	if(obj){
+		obj->_class = aClass;
+	}
+
+	output << "NEW HANDLE " << obj << std::endl;
+
+	return obj;
 }
 
 void NPDeallocateFunction(NPObject *npobj){
 	output << ">>>>> NPClass STUB: NPDeallocateFunction" << std::endl;
+
+	// Remove the object locally
+	free(npobj);
 }
 
 NPClass myClass = {
 	NP_CLASS_STRUCT_VERSION,
-	NULL,//NPAllocateFunction,
-	NULL,//NPDeallocateFunction,
+	NPAllocateFunction,
+	NPDeallocateFunction,
 	NPInvalidateFunction,
 	NPHasMethodFunction,
 	NPInvokeFunction,

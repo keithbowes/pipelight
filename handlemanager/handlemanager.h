@@ -10,17 +10,11 @@
 typedef enum { PR_FALSE = 0, PR_TRUE = 1 } PRBool;
 
 enum HandleType{  
-	TYPE_NPObject,
+	TYPE_NPObject = 0,
 	TYPE_NPIdentifier,
 	TYPE_NPPInstance,
 	TYPE_NPStream,
 	TYPE_NotifyData
-};
-
-enum StreamNotify{
-	NOTIFY_NULL,
-	NOTIFY_GET,
-	NOTIFY_POST
 };
 
 struct Handle{
@@ -35,63 +29,67 @@ class HandleManager{
 	private:
 		uint64_t getFreeID();
 		std::map<uint64_t, Handle> handlesID;
-		std::map<uint64_t, Handle> handlesReal;
+		std::map<std::pair<HandleType, uint64_t>, Handle> handlesReal;
 
 	public:
-		uint64_t translateFrom(uint64_t id, HandleType type, bool forceRefInc = false, NPClass *aclass = 0, NPP instance = NULL);
-		uint64_t translateTo(uint64_t real, HandleType type);
+		uint64_t translateFrom(uint64_t id, HandleType type, NPP instance = NULL, NPClass *aclass = 0, bool shouldExist = false);
+		uint64_t translateTo(uint64_t real, HandleType type, bool shouldExist = false);
 
 		void removeHandleByID(uint64_t id);
-		void removeHandleByReal(uint64_t real);
+		void removeHandleByReal(uint64_t real, HandleType type);
 
 		//uint64_t manuallyAddHandle(uint64_t real, HandleType type);
 };
 
-void writeHandle(uint64_t real, HandleType type);
+void writeHandle(uint64_t real, HandleType type, bool shouldExist = false);
 
-void writeHandle(NPP instance);
-void writeHandle(NPObject *obj);
-void writeHandle(NPIdentifier name);
-void writeHandle(NPStream* stream);
-void writeHandleNotify(void* notifyData);
+void writeHandle(NPP instance, bool shouldExist = false);
+void writeHandle(NPObject *obj, bool shouldExist = false);
+void writeHandle(NPIdentifier name, bool shouldExist = false);
+void writeHandle(NPStream* stream, bool shouldExist = false);
+void writeHandleNotify(void* notifyData, bool shouldExist = false);
 
-uint64_t		readHandle(Stack &stack, int32_t &type, bool forceRefInc = false, NPClass *aclass = 0, NPP instance = NULL);
+uint64_t		readHandle(Stack &stack, int32_t &type, NPP instance = NULL, NPClass *aclass = 0, bool shouldExist = false);
 
-NPObject * 		readHandleObj(Stack &stack, bool forceRefInc = false, NPClass *aclass = 0, NPP instance = NULL);
-NPIdentifier 	readHandleIdentifier(Stack &stack);
-NPP 			readHandleInstance(Stack &stack);
-NPStream* 		readHandleStream(Stack &stack);
-void* 			readHandleNotify(Stack &stack);
+NPObject * 		readHandleObj(Stack &stack, NPP instance = NULL, NPClass *aclass = 0, bool shouldExist = false);
+NPIdentifier 	readHandleIdentifier(Stack &stack, bool shouldExist = false);
+NPP 			readHandleInstance(Stack &stack, bool shouldExist = false);
+NPStream* 		readHandleStream(Stack &stack, bool shouldExist = false);
+void* 			readHandleNotify(Stack &stack, bool shouldExist = false);
 
-#ifndef __WIN32__
-void writeVariant(const NPVariant &variant, bool releaseVariant = true);
-#else
-void writeVariant(const NPVariant &variant);
+void writeVariantRelease(NPVariant &variant);
+void writeVariantArrayRelease(NPVariant *variant, int count);
+
+void writeVariantConst(const NPVariant &variant);
+void writeVariantArrayConst(const NPVariant *variant, int count);
+
+void readVariant(Stack &stack, NPVariant &variant);
+void freeVariant(NPVariant &variant);
+void freeVariantArray(std::vector<NPVariant> args);
+
+std::vector<NPVariant> readVariantArray(Stack &stack, int count);
+
+#ifdef __WIN32__
+NPObject * 		readHandleObjIncRef(Stack &stack, NPP instance = NULL, NPClass *aclass = 0, bool shouldExist = false);
+void readVariantIncRef(Stack &stack, NPVariant &variant);
+std::vector<NPVariant> readVariantArrayIncRef(Stack &stack, int count);
 #endif
-
-#ifndef __WIN32_
-void writeVariantArray(const NPVariant *variant, int count, bool releaseVariant = true);
-#else
-void writeVariantArray(const NPVariant *variant, int count);
-#endif
-
-void readVariant(Stack &stack, NPVariant &variant, bool forceRefInc = false);
-
-std::vector<NPVariant> readVariantArray(Stack &stack, int count, bool forceRefInc = false);
 
 void writeNPString(NPString *string);
 void readNPString(Stack &stack, NPString &string);
-
 void freeNPString(NPString &string);
 
-void writeCharStringArray(char* str[], int count);
+void writeStringArray(char* str[], int count);
+std::vector<char*> readStringArray(Stack &stack, int count);
+void freeStringArray(std::vector<char*> str);
 
+/*
 struct charArray{
 	std::vector<char*> 					charPointers;
 	std::vector<std::shared_ptr<char> > sharedPointers;
-};
+};*/
 
-charArray readCharStringArray(Stack &stack, int count);
+//charArray readCharStringArray(Stack &stack, int count);
 
 void writeNPBool(NPBool value);
 NPBool readNPBool(Stack &stack);
