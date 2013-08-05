@@ -136,7 +136,7 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 	writeStringArray(argn, argc);
 	writeInt32(argc);
 	writeInt32(mode);
-	writeHandle(instance);
+	writeHandleInstance(instance);
 	writeString(pluginType);
 	callFunction(FUNCTION_NPP_NEW);
 
@@ -161,7 +161,7 @@ NPError
 NPP_Destroy(NPP instance, NPSavedData** save) {
 	output << "NPP_Destroy" << std::endl;
 
-	writeHandle(instance);
+	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_DESTROY);
 
 	Stack stack;
@@ -190,6 +190,8 @@ NPP_Destroy(NPP instance, NPSavedData** save) {
 
 	}
 
+	output << "removeHandleByReal (NPP_Destroy): " << (uint64_t)instance << " or " << (void*)instance << std::endl;
+
 	handlemanager.removeHandleByReal((uint64_t)instance, TYPE_NPPInstance);
 
 	return result;
@@ -210,8 +212,8 @@ NPP_SetWindow(NPP instance, NPWindow* window) {
 	writeInt32(window->width);
 	writeInt32(window->y);
 	writeInt32(window->x);
-	writeHandle(instance);
-	callFunction(FUNCTION_SET_WINDOW_INFO);
+	writeHandleInstance(instance);
+	callFunction(FUNCTION_NPP_SET_WINDOW);
 	waitReturn();
 
 	return NPERR_NO_ERROR;
@@ -223,9 +225,9 @@ NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool seekable, 
 	output << "NPP_NewStream with URL: " << stream->url << std::endl;
 
 	writeInt32(seekable);
-	writeHandle(stream);
+	writeHandleStream(stream);
 	writeString(type);
-	writeHandle(instance);
+	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_NEW_STREAM);
 
 	Stack stack;
@@ -248,14 +250,16 @@ NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
 	output << "NPP_DestroyStream" << std::endl;
 	
 	writeInt32(reason);
-	writeHandle(stream);
-	writeHandle(instance);
+	writeHandleStream(stream);
+	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_DESTROY_STREAM);
 
 	NPError result = readResultInt32();
 
 	// Remove the handle by the corresponding stream real object
 	handlemanager.removeHandleByReal((uint64_t)stream, TYPE_NPStream);
+
+	output << "removeHandleByReal (NPP_DestroyStream): " << (uint64_t)stream << " or " << (void*)stream << std::endl;
 
 	return result;
 }
@@ -266,8 +270,8 @@ NPP_WriteReady(NPP instance, NPStream* stream) {
 
 	output << "NPP_WriteReady" << std::endl;
 
-	writeHandle(stream);
-	writeHandle(instance);	
+	writeHandleStream(stream);
+	writeHandleInstance(instance);	
 	callFunction(FUNCTION_NPP_WRITE_READY);
 	
 	int32_t result = readResultInt32();
@@ -285,8 +289,8 @@ NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, void* buf
 
 	writeMemory((char*)buffer, len);
 	writeInt32(offset);
-	writeHandle(stream);
-	writeHandle(instance);
+	writeHandleStream(stream);
+	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_WRITE);
 	
 	return readResultInt32();
@@ -317,7 +321,7 @@ NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyData) 
 	writeHandleNotify(notifyData);
 	writeInt32(reason);
 	writeString(URL);
-	writeHandle(instance);
+	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_URL_NOTIFY);
 	waitReturn();
 }
@@ -337,7 +341,7 @@ NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 			output << "NPP_GetValue: NPPVpluginNeedsXEmbed" << std::endl;
 
 			writeInt32(variable);
-			writeHandle(instance);
+			writeHandleInstance(instance);
 			callFunction(FUNCTION_NPP_GETVALUE_BOOL);
 
 			readCommands(stack);
@@ -360,7 +364,7 @@ NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 			output << "NPP_GetValue: NPPVpluginScriptableNPObject" << std::endl;
 			
 			writeInt32(variable);
-			writeHandle(instance);
+			writeHandleInstance(instance);
 			callFunction(FUNCTION_NPP_GETVALUE_OBJECT);
 
 			readCommands(stack);

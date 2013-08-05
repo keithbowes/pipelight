@@ -38,8 +38,8 @@ int32_t NP_LOADDS NPN_Write(NPP instance, NPStream* stream, int32_t len, void* b
 	output << "NPN_Write" << std::endl;
 
 	writeMemory((char*)buffer, len);
-	writeHandle(stream);
-	writeHandle(instance);
+	writeHandleStream(stream);
+	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_WRITE);
 
 	NPError result = readResultInt32();
@@ -55,8 +55,8 @@ NPError NP_LOADDS NPN_DestroyStream(NPP instance, NPStream* stream, NPReason rea
 	output << "NPN_DestroyStream" << std::endl;
 
 	writeInt32(reason);
-	writeHandle(stream);
-	writeHandle(instance);
+	writeHandleStream(stream);
+	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_DESTROY_STREAM);
 
 	NPError result = readResultInt32();
@@ -83,7 +83,7 @@ void NP_LOADDS NPN_Status(NPP instance, const char* message){
 	output << "NPN_Status: " << message <<  std::endl;
 	
 	writeString(message);
-	writeHandle(instance);
+	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_STATUS);
 	waitReturn();
 }
@@ -92,7 +92,7 @@ void NP_LOADDS NPN_Status(NPP instance, const char* message){
 const char*  NP_LOADDS NPN_UserAgent(NPP instance){
 	output << "NPN_UserAgent" << std::endl;
 
-	writeHandle(instance);
+	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_USERAGENT);
 
 	std::string result = readResultString();
@@ -145,7 +145,7 @@ NPError NPN_GetURLNotify(NPP instance, const  char* url, const char* target, voi
 	writeHandleNotify(notifyData);
 	writeString(target);
 	writeString(url);
-	writeHandle(instance);
+	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_GET_URL_NOTIFY);
 
 	NPError result = readResultInt32();
@@ -167,7 +167,7 @@ NPError NPN_PostURLNotify(NPP instance, const char* url, const char* target, uin
 	writeMemory(buf, len);
 	writeString(target);
 	writeString(url);
-	writeHandle(instance);
+	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_POST_URL_NOTIFY);
 
 	NPError result = readResultInt32();
@@ -194,7 +194,7 @@ NPError NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 
 			output << "NPN_GetValue : NPNVWindowNPObject" << std::endl;
 
-			writeHandle(instance);
+			writeHandleInstance(instance);
 			callFunction(FUNCTION_NPN_GET_WINDOWNPOBJECT);
 
 			readCommands(stack);
@@ -212,7 +212,7 @@ NPError NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 
 			output << "NPN_GetValue : NPNVprivateModeBool" << std::endl;
 
-			writeHandle(instance);
+			writeHandleInstance(instance);
 			callFunction(FUNCTION_NPN_GET_PRIVATEMODE);
 
 			readCommands(stack);
@@ -228,7 +228,7 @@ NPError NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 
 			output << "NPN_GetValue : NPNVPluginElementNPObject" << std::endl;
 
-			writeHandle(instance);
+			writeHandleInstance(instance);
 			callFunction(FUNCTION_NPN_GET_PLUGINELEMENTNPOBJECT);
 
 			readCommands(stack);
@@ -292,7 +292,7 @@ NPIdentifier NP_LOADDS NPN_GetIntIdentifier(int32_t intid){
 bool NP_LOADDS NPN_IdentifierIsString(NPIdentifier identifier){
 	output << "NPN_IdentifierIsString" << std::endl;
 
-	writeHandle(identifier);
+	writeHandleIdentifier(identifier);
 	callFunction(FUNCTION_NPN_IDENTIFIER_IS_STRING);
 
 	bool result = (bool)readResultInt32();
@@ -307,7 +307,7 @@ bool NP_LOADDS NPN_IdentifierIsString(NPIdentifier identifier){
 NPUTF8* NP_LOADDS NPN_UTF8FromIdentifier(NPIdentifier identifier){
 	output << "NPN_UTF8FromIdentifier" << std::endl;
 
-	writeHandle(identifier);
+	writeHandleIdentifier(identifier);
 	callFunction(FUNCTION_NPN_UTF8_FROM_IDENTIFIER);
 
 	std::vector<ParameterInfo> stack;
@@ -321,7 +321,7 @@ NPUTF8* NP_LOADDS NPN_UTF8FromIdentifier(NPIdentifier identifier){
 int32_t NP_LOADDS NPN_IntFromIdentifier(NPIdentifier identifier){
 	output << "NPN_IntFromIdentifier" << std::endl;
 
-	writeHandle(identifier);
+	writeHandleIdentifier(identifier);
 	callFunction(FUNCTION_NPN_INT_FROM_IDENTIFIER);
 	
 	return readResultInt32();
@@ -333,7 +333,7 @@ NPObject* NP_LOADDS NPN_CreateObject(NPP npp, NPClass *aClass){
 	output << "NPN_CreateObject" << std::endl;
 
 	// The other side doesnt need to know aClass
-	writeHandle(npp);
+	writeHandleInstance(npp);
 	callFunction(FUNCTION_NPN_CREATE_OBJECT);
 
 	std::vector<ParameterInfo> stack;
@@ -359,10 +359,10 @@ NPObject* NP_LOADDS NPN_RetainObject(NPObject *obj){
 
 		//if(obj->referenceCount != 0xDEADBEEF) throw std::runtime_error("REFERENCE COUNT HAS BEEN MODIFIED BY PLUGIN!");
 
-		if(obj->referenceCount != 0xffffffff)
+		if(obj->referenceCount != REFCOUNT_UNDEFINED)
 			obj->referenceCount++;
 
-		writeHandle(obj, true);
+		writeHandleObj(obj, true);
 		callFunction(FUNCTION_NPN_RETAINOBJECT);
 		waitReturn();		
 	}
@@ -381,13 +381,13 @@ void NP_LOADDS NPN_ReleaseObject(NPObject *obj){
 	if (obj){
 		//if(obj->referenceCount != 0xDEADBEEF) throw std::runtime_error("REFERENCE COUNT HAS BEEN MODIFIED BY PLUGIN!");
 
-		if(obj->referenceCount == 0) throw std::runtime_error("Reference count is zero when calling ReleaseObject! Not allowed!");
+		if(obj->referenceCount == 0) throw std::runtime_error("Reference count is zero when calling ReleaseObject!");
 
-		if(obj->referenceCount != 0xffffffff)
+		if(obj->referenceCount != REFCOUNT_UNDEFINED)
 			obj->referenceCount--;
 
 		writeInt32( (obj->referenceCount == 0) );
-		writeHandle(obj, true);
+		writeHandleObj(obj, true);
 		callFunction(FUNCTION_NPN_RELEASEOBJECT);
 		waitReturn();
 
@@ -412,7 +412,7 @@ void NP_LOADDS NPN_ReleaseObject(NPObject *obj){
 				free((char*)obj);
 			}
 
-			output << "removeHandleByReal: " << (uint64_t)obj << " or " << (void*)obj << std::endl;
+			output << "removeHandleByReal (NPN_ReleaseObject): " << (uint64_t)obj << " or " << (void*)obj << std::endl;
 
 			// Remove it in the handle manager
 			handlemanager.removeHandleByReal((uint64_t)obj, TYPE_NPObject);
@@ -434,9 +434,9 @@ bool NP_LOADDS NPN_Invoke(NPP npp, NPObject* obj, NPIdentifier methodName, const
 
 	writeVariantArrayConst(args, argCount);
 	writeInt32(argCount);
-	writeHandle(methodName);
-	writeHandle(obj);
-	writeHandle(npp);
+	writeHandleIdentifier(methodName);
+	writeHandleObj(obj);
+	writeHandleInstance(npp);
 	callFunction(FUNCTION_NPN_INVOKE);
 
 	std::vector<ParameterInfo> stack;
@@ -470,8 +470,8 @@ bool NP_LOADDS NPN_Evaluate(NPP npp, NPObject *obj, NPString *script, NPVariant 
 	output << "--- /SCRIPT ---" << std::endl;
 
 	writeNPString(script);
-	writeHandle(obj);
-	writeHandle(npp);
+	writeHandleObj(obj);
+	writeHandleInstance(npp);
 	callFunction(FUNCTION_NPN_Evaluate);
 
 	std::vector<ParameterInfo> stack;
@@ -493,9 +493,9 @@ bool NP_LOADDS NPN_GetProperty(NPP npp, NPObject *obj, NPIdentifier propertyName
 
 	output << "NPN_GetProperty" << std::endl;
 
-	writeHandle(propertyName);
-	writeHandle(obj);
-	writeHandle(npp);
+	writeHandleIdentifier(propertyName);
+	writeHandleObj(obj);
+	writeHandleInstance(npp);
 	callFunction(FUNCTION_NPN_GET_PROPERTY);
 
 	std::vector<ParameterInfo> stack;

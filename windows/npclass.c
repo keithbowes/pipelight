@@ -3,8 +3,8 @@
 /*
 	NP Class
 	These function *should* never be called from a plugin.
-	The plugin must use the browser API instead, so we just
-	need stubs to detect a violation of the api.
+	The plugin has to use the browser API instead, so we just
+	need stubs to detect a violation of the API.
 */
 
 void NPInvalidateFunction(NPObject *npobj){
@@ -58,28 +58,17 @@ bool NPConstructFunction(NPObject *npobj, const NPVariant *args, uint32_t argCou
 
 NPObject * NPAllocateFunction(NPP npp, NPClass *aClass){
 	output << ">>>>> NPClass STUB: NPAllocateFunction" << std::endl;
-
-	NPObject* obj = (NPObject*)malloc(sizeof(NPObject));
-	if(obj){
-		obj->_class = aClass;
-	}
-
-	output << "NEW HANDLE " << obj << std::endl;
-
-	return obj;
+	return NULL;
 }
 
 void NPDeallocateFunction(NPObject *npobj){
 	output << ">>>>> NPClass STUB: NPDeallocateFunction" << std::endl;
-
-	// Remove the object locally
-	free(npobj);
 }
 
 NPClass myClass = {
 	NP_CLASS_STRUCT_VERSION,
-	NPAllocateFunction,
-	NPDeallocateFunction,
+	NULL,
+	NULL,
 	NPInvalidateFunction,
 	NPHasMethodFunction,
 	NPInvokeFunction,

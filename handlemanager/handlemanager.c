@@ -23,13 +23,12 @@ uint64_t HandleManager::getFreeID(){
 
 }
 
+#ifdef __WIN32__
 NPObject* createNPObject(uint64_t id, NPClass *aclass = NULL, NPP instance = 0){
-
-	NPObject* obj = NULL;
+	NPObject* obj 		= NULL;
+	bool customObject  	= (aclass != NULL);
 
 	if(!aclass) aclass = &myClass;
-
-	if(aclass != &myClass) output << "Created object without fake class" << std::endl;
 
 	if(aclass->allocate){
 		obj = aclass->allocate(instance, aclass);
@@ -39,28 +38,19 @@ NPObject* createNPObject(uint64_t id, NPClass *aclass = NULL, NPP instance = 0){
 
 	if(!obj) throw std::runtime_error("Could not create object!");			
 
+	obj->_class 		= aclass;
 
-	obj->_class 		= aclass; //(NPClass*)0xdeadbeef;
-	obj->referenceCount	= 0; //0xDEADBEEF; // TODO: Is this useful?
+	// If its a custom created object then we can get the deallocate event and don't have to do manually refcounting.
+	// Otherwise its just a proxy object and can be destroyed when there is no pointer anymore in the Windows area
+	if(customObject){
+		obj->referenceCount = REFCOUNT_UNDEFINED;
 
-
-	if(aclass != &myClass || instance ) obj->referenceCount = 0xffffffff;
-
-	//if(aclass == &myClass) obj->_class = (NPClass*)0xDEADBEEF;
-
-	if(aclass != &myClass) output << "Version number: " << aclass->structVersion << " (my version:" <<  NP_CLASS_STRUCT_VERSION << ")" << std::endl;
-
-	output << "Handle manager added object " << (void*)obj << std::endl;
-
-
-	output << "-- class: " << obj->_class << " (myclass: " << &myClass << ")" << std::endl;
-	output << "-- referenceCount: " << (void*)obj->referenceCount << std::endl;
-	output << "-- version: " << obj->_class->structVersion << std::endl;
-
+	}else{
+		obj->referenceCount	= 0; // Will be incremented via readHandleObjInc
+	}
 
 	return obj;
 }
-
 
 NPP_t* createNPPInstance(uint64_t id){
 	NPP_t* instance = (NPP_t*)malloc(sizeof(NPP_t));
@@ -71,14 +61,10 @@ NPP_t* createNPPInstance(uint64_t id){
 	return instance;
 }
 
-
-#ifdef __WIN32__
 NPStream * createNPStream(uint64_t id){
 	NPStream *stream = (NPStream*)malloc(sizeof(NPStream));
 
 	if(!stream) throw std::runtime_error("Could not create stream!");
-
-	// In order to simulate a browser we have to query the original fields of this stream
 
 	// We cannot use writeHandle, as the handle manager hasn't finished adding this yet.
 	writeInt64(id);
@@ -110,18 +96,16 @@ uint64_t HandleManager::translateFrom(uint64_t id, HandleType type, NPP instance
 	it = handlesID.find(id);
 	if(it != handlesID.end()){
 
-		// Ensure that aClass or instance is given
-		if(instance || aclass){
-
-			output << "I ALREADY GOT THIS ONE: " << (void*)it->second.real << std::endl;
-
+		// WHen an aclass is given, this is an error, as we expected a new object
+		if(aclass){
 			throw std::runtime_error("Expected a new handle, but I already got this one");
 		}
 
 		return it->second.real;
 	}
 
-	if(shouldExist) throw std::runtime_error("Got ID which sould exist, but it doesnt!");
+	// Should the ID already exist
+	if(shouldExist) throw std::runtime_error("Got ID which should exist, but it doesnt!");
 
 	//Create handle
 	Handle handle;
@@ -132,12 +116,11 @@ uint64_t HandleManager::translateFrom(uint64_t id, HandleType type, NPP instance
 	switch(type){
 
 		case TYPE_NPObject:
-
-			#ifndef __WIN32__
-				throw std::runtime_error("Got unknown object! This should never happen!");
+			#ifdef __WIN32__
+				handle.real = (uint64_t) createNPObject(id, aclass, instance);
+			#else
+				throw std::runtime_error("Error in handle manager: Cannot create remote NPObject");
 			#endif
-
-			handle.real = (uint64_t) createNPObject(id, aclass, instance);
 			break;
 
 		case TYPE_NPIdentifier:
@@ -146,7 +129,11 @@ uint64_t HandleManager::translateFrom(uint64_t id, HandleType type, NPP instance
 			break;
 
 		case TYPE_NPPInstance:
-			handle.real = (uint64_t) createNPPInstance(id);
+			#ifdef __WIN32__
+				handle.real = (uint64_t) createNPPInstance(id);
+			#else
+				throw std::runtime_error("Error in handle manager: Cannot create remote TYPE_NPPInstance");
+			#endif
 			break;
 
 		case TYPE_NPStream:
@@ -160,7 +147,7 @@ uint64_t HandleManager::translateFrom(uint64_t id, HandleType type, NPP instance
 
 		case TYPE_NotifyData:
 			#ifdef __WIN32__
-				handle.real = 0; 	// If something is new for the plugin side, there is no notifyData
+				handle.real = 0; 	// If something is new for the plugin side, there is no notifyData assigned
 			#else
 				handle.real = id; 	// But on the other side we have to set notifyData!
 			#endif
@@ -172,7 +159,7 @@ uint64_t HandleManager::translateFrom(uint64_t id, HandleType type, NPP instance
 			break;
 	}	
 
-	handlesID[id] 			= handle;
+	handlesID[id] 														= handle;
 	handlesReal[std::pair<HandleType, uint64_t>(type, handle.real)] 	= handle;
 	return handle.real;
 }
@@ -190,7 +177,7 @@ uint64_t HandleManager::translateTo(uint64_t real, HandleType type, bool shouldE
 		return it->second.id;
 	}
 
-	if(shouldExist) throw std::runtime_error("Got real handle which sould exist, but it doesnt!");
+	if(shouldExist) throw std::runtime_error("Got real handle which should exist, but it doesnt!");
 
 	Handle handle;
 	handle.id 			= getFreeID();
@@ -212,9 +199,6 @@ void HandleManager::removeHandleByID(uint64_t id){
 
 	handlesReal.erase(std::pair<HandleType, uint64_t>(it->second.type, it->second.real));
 	handlesID.erase(it);
-
-
-	output << "Removed from handle manager: ID=" << id << std::endl;
 }
 
 void HandleManager::removeHandleByReal(uint64_t real, HandleType type){
@@ -248,9 +232,6 @@ void HandleManager::removeHandleByReal(uint64_t real, HandleType type){
 	output << "* TYPE_NPPInstance: " << num[TYPE_NPPInstance] << std::endl;
 	output << "* TYPE_NPStream: " << num[TYPE_NPStream] << std::endl;
 	output << "* TYPE_NotifyData: " << num[TYPE_NotifyData] << std::endl;
-
-
-
 }
 
 bool HandleManager::existsHandleByReal(uint64_t real, HandleType type){
@@ -262,24 +243,32 @@ bool HandleManager::existsHandleByReal(uint64_t real, HandleType type){
 	return true;
 }
 
+
+
 void writeHandle(uint64_t real, HandleType type, bool shouldExist){
 	writeInt64(handlemanager.translateTo(real, type, shouldExist));
 	writeInt32(type);
 }
 
-void writeHandle(NPP instance, bool shouldExist){
-	writeHandle((uint64_t)instance, TYPE_NPPInstance, shouldExist);
-}
+void writeHandleObj(NPObject *obj, bool shouldExist, bool deleteFromHandleManager){
 
-void writeHandle(NPObject *obj, bool shouldExist){
+	#ifndef __WIN32__
+		if(deleteFromHandleManager) throw std::runtime_error("writeHandleObj called with deleteFromHandleManager=true, but not allowed on Linux.");
+	#endif
+
+	writeInt32(deleteFromHandleManager);
 	writeHandle((uint64_t)obj, TYPE_NPObject, shouldExist);
 }
 
-void writeHandle(NPIdentifier name, bool shouldExist){
+void writeHandleInstance(NPP instance, bool shouldExist){
+	writeHandle((uint64_t)instance, TYPE_NPPInstance, shouldExist);
+}
+
+void writeHandleIdentifier(NPIdentifier name, bool shouldExist){
 	writeHandle((uint64_t)name, TYPE_NPIdentifier, shouldExist);
 }
 
-void writeHandle(NPStream* stream, bool shouldExist){
+void writeHandleStream(NPStream* stream, bool shouldExist){
 	writeHandle((uint64_t)stream, TYPE_NPStream, shouldExist);
 }
 
@@ -287,11 +276,13 @@ void writeHandleNotify(void* notifyData, bool shouldExist){
 	writeHandle((uint64_t)notifyData, TYPE_NotifyData, shouldExist);
 }
 
+
 uint64_t readHandle(Stack &stack, int32_t &type, NPP instance, NPClass *aclass, bool shouldExist){
 	type = readInt32(stack);
 	return handlemanager.translateFrom(readInt64(stack), (HandleType)type, instance, aclass, shouldExist);
 }
 
+#ifndef __WIN32__
 NPObject * readHandleObj(Stack &stack, NPP instance, NPClass *aclass, bool shouldExist){
 	int32_t type;
 	NPObject *obj = (NPObject *)readHandle(stack, type, instance, aclass, shouldExist);
@@ -299,14 +290,14 @@ NPObject * readHandleObj(Stack &stack, NPP instance, NPClass *aclass, bool shoul
 	if (type != TYPE_NPObject)
 		throw std::runtime_error("Wrong handle type, expected object");
 
-	// Check if this is required everywhere
-	/*#ifdef __WIN32__
-		if(obj->referenceCount != -1)
-			obj->referenceCount++;
-	#endif*/
+	bool deleteFromHandleManager     = (bool)readInt32(stack);
+	if(deleteFromHandleManager){
+		handlemanager.removeHandleByReal((uint64_t)obj, TYPE_NPObject);
+	}
 
 	return obj;
 }
+#endif
 
 NPIdentifier readHandleIdentifier(Stack &stack, bool shouldExist){
 	int32_t type;
@@ -349,95 +340,112 @@ void* readHandleNotify(Stack &stack, bool shouldExist){
 }
 
 
-void writeVariantRelease(NPVariant &variant){
-	bool deleteFromHandleManager = false;
+#ifdef __WIN32__
+NPObject * readHandleObjIncRef(Stack &stack, NPP instance, NPClass *aclass, bool shouldExist){
+	int32_t type;
+	NPObject *obj = (NPObject *)readHandle(stack, type, instance, aclass, shouldExist);
+	
+	if (type != TYPE_NPObject)
+		throw std::runtime_error("Wrong handle type, expected object");
 
-	#ifdef __WIN32__
-	if(variant.type == NPVariantType_Object){
-		NPObject* obj = variant.value.objectValue;
+	//bool deleteFromHandleManager     = (bool)
+	readInt32(stack);
+	// This value is not possible on windows!
 
-		if(obj->referenceCount == 1){
-			deleteFromHandleManager = true;
-		}
+	if(obj->referenceCount != REFCOUNT_UNDEFINED)
+		obj->referenceCount++;
+
+	return obj;
+}
+
+void writeHandleObjDecRef(NPObject *obj, bool shouldExist){
+	writeHandleObj(obj, shouldExist, (obj->referenceCount == 1));
+	objectDecRef(obj);
+}
+
+
+void objectDecRef(NPObject *obj){
+
+	// Is the refcount already zero?
+	if(obj->referenceCount == 0){
+		throw std::runtime_error("Reference count is zero when calling objectDecRef!");
 	}
-	#endif
 
-	writeVariantConst(variant, deleteFromHandleManager);
+	// Decrement refcounter
+	if(obj->referenceCount != REFCOUNT_UNDEFINED)
+		obj->referenceCount--;
 
-	#ifdef __WIN32__
+	// Remove the object locally
+	if(obj->referenceCount == 0){
 
-		// The variant has already incremented the refcounter by one... in case of an object we dont have to do anything
-
-		if( variant.type == NPVariantType_String){
-			if (variant.value.stringValue.UTF8Characters)
-				free((char*)variant.value.stringValue.UTF8Characters);
-
-		}else if(variant.type == NPVariantType_Object){
-
-			NPObject* obj = variant.value.objectValue;
-
-			// If refCount is -1, then the other side (browser) is responsible for this object
-			// if it is <> -1 then it is just a virtual object, which doesnt really exist
-			if(obj->referenceCount != 0xffffffff)
-				obj->referenceCount--;
-
-			// Can never occur for user-created objects
-			// For such objects the other side calls KILL_OBJECT
-			if(obj->referenceCount == 0){
-
-				/*
-				writeHandle(obj, true);
-				callFunction(OBJECT_KILL);
-				waitReturn();
-				*/
-
-				// Remove the object locally
-				if(obj->_class->deallocate){
-					output << "call deallocate function " << (void*)obj->_class->deallocate << std::endl;
-
-					obj->_class->deallocate(obj);
-				}else{
-					output << "call default dealloc function " << std::endl;
-
-					free((char*)obj);
-				}
-
-				output << "removeHandleByReal: " << (uint64_t)obj << " or " << (void*)obj << std::endl;
-
-				// Remove it in the handle manager
-				handlemanager.removeHandleByReal((uint64_t)obj, TYPE_NPObject);
-
-			}
+		if(obj->_class->deallocate){
+			throw std::runtime_error("Proxy object has a deallocate method set?");
 		}
 
-		/*
-		if(variant.type == NPVariantType_Object){
-			NPN_RetainObject(variant.value.objectValue);
+		free((char*)obj);
 
-			// We dont own the reference anymore!
-			NPObject* obj = variant.value.objectValue;
-			obj->referenceCount--;
-		}
+		// Remove it in the handle manager
+		handlemanager.removeHandleByReal((uint64_t)obj, TYPE_NPObject);
 
-		NPN_ReleaseVariantValue(&variant);
-		*/
-		
-		variant.type = NPVariantType_Null;
+	}
+}
 
-		/*
-		
-			NPN_RetainObject(variant.value.objectValue);			
-		}
+void objectKill(NPObject *obj){
 
-		NPN_ReleaseVariantValue(&variant);*/
+	if(obj->referenceCount != REFCOUNT_UNDEFINED){
+		throw std::runtime_error("objectKill for wrong object type");
+	}
 
-	#else
-		if(variant.type == NPVariantType_Object){
-			sBrowserFuncs->retainobject(variant.value.objectValue);
-		}
+	// Set to some trash value! (not really necessary)
+	obj->referenceCount = 0xDEADBEEF;
 
-		sBrowserFuncs->releasevariantvalue(&variant);
-	#endif
+	// Remove the object locally
+	if(obj->_class->deallocate){
+		obj->_class->deallocate(obj);
+	}else{
+		free((char*)obj);
+	}
+
+	// Remove it in the handle manager
+	handlemanager.removeHandleByReal((uint64_t)obj, TYPE_NPObject);
+}
+
+
+void writeVariantReleaseDecRef(NPVariant &variant){
+	writeVariantConst(variant);
+
+	if( variant.type == NPVariantType_String){
+		if (variant.value.stringValue.UTF8Characters)
+			free((char*)variant.value.stringValue.UTF8Characters);
+
+	}else if(variant.type == NPVariantType_Object){
+
+		NPObject* obj = variant.value.objectValue;
+		objectDecRef(obj);
+
+	}
+	
+	variant.type = NPVariantType_Null;
+}
+
+void writeVariantArrayReleaseDecRef(NPVariant *variant, int count){
+	for(int i = count - 1; i >= 0; i--){
+		writeVariantReleaseDecRef(variant[i]);
+	}
+}
+
+#else
+
+void writeVariantRelease(NPVariant &variant){
+	writeVariantConst(variant);
+
+	// We want to keep the contained object until it is freed on the other side
+	if(variant.type == NPVariantType_Object){
+		sBrowserFuncs->retainobject(variant.value.objectValue);
+	}
+
+	// But the variant itself is not required anymore.
+	sBrowserFuncs->releasevariantvalue(&variant);
 }
 
 void writeVariantArrayRelease(NPVariant *variant, int count){
@@ -446,7 +454,9 @@ void writeVariantArrayRelease(NPVariant *variant, int count){
 	}
 }
 
-void writeVariantConst(const NPVariant &variant, bool deleteFromHandleManager){
+#endif
+
+void writeVariantConst(const NPVariant &variant){
 	switch(variant.type){
 		
 		case NPVariantType_Null:
@@ -478,8 +488,7 @@ void writeVariantConst(const NPVariant &variant, bool deleteFromHandleManager){
 			break;
 
 		case NPVariantType_Object:
-			writeInt32(deleteFromHandleManager);
-			writeHandle(variant.value.objectValue);
+			writeHandleObj(variant.value.objectValue);
 			output << "WriteVariant: Object(" <<  (void*)variant.value.objectValue << ")" << std::endl;
 
 			NPObject* obj;
@@ -487,13 +496,7 @@ void writeVariantConst(const NPVariant &variant, bool deleteFromHandleManager){
 			output << "-- class: " << obj->_class << " (myclass: " << &myClass << ")" << std::endl;
 			output << "-- referenceCount: " << (void*)obj->referenceCount << std::endl;
 			output << "-- version: " << obj->_class->structVersion << std::endl;
-
-			// Now also delete from handle-manager
-			//if(deleteFromHandleManager){
-			//	handlemanager.removeHandleByReal((uint64_t)variant.value.objectValue, TYPE_NPObject);
-			//}
-
-		break;
+			break;
 
 		default:
 			throw std::runtime_error("Unsupported variant type");
@@ -509,108 +512,13 @@ void writeVariantArrayConst(const NPVariant *variant, int count){
 	}
 }
 
-void readVariant(Stack &stack, NPVariant &variant){
-	int32_t type = readInt32(stack);
-	variant.type = (NPVariantType)type;
-
-	size_t stringLength;
-	bool deleteFromHandleManager;
-
-	switch(variant.type){
-		
-		case NPVariantType_Null:
-			output << "ReadVariant: Null" << std::endl;
-			break;
-
-		case NPVariantType_Void:
-			output << "ReadVariant: Void" << std::endl;
-			break;
-
-		case NPVariantType_Bool:
-			variant.value.boolValue 	= (bool)readInt32(stack);
-			output << "ReadVariant: Bool(" << variant.value.boolValue << ")" << std::endl;
-			break;
-
-		case NPVariantType_Int32:
-			variant.value.intValue  	= readInt32(stack);
-			output << "ReadVariant: Int32(" << variant.value.intValue << ")" << std::endl;
-			break;	
-
-		case NPVariantType_Double:
-			variant.value.doubleValue  	= readDouble(stack);
-			output << "ReadVariant: Double(" << variant.value.doubleValue << ")" << std::endl;
-			break;		
-
-		case NPVariantType_String:
-			#ifdef __WIN32__
-				variant.value.stringValue.UTF8Characters = readStringMalloc(stack, stringLength);
-			#else
-				variant.value.stringValue.UTF8Characters = readStringBrowserAlloc(stack, stringLength);
-			#endif
-			variant.value.stringValue.UTF8Length = stringLength;
-			output << "ReadVariant: String('" << variant.value.stringValue.UTF8Characters << "')" << std::endl;
-			break;
-
-
-		case NPVariantType_Object:
-			variant.value.objectValue 	= readHandleObj(stack);
-			deleteFromHandleManager     = (bool)readInt32(stack);
-
-			output << "ReadVariant: Object(" <<  (void*)variant.value.objectValue << ")" << std::endl;
-
-			NPObject* obj;
-			obj = (NPObject*)variant.value.objectValue;
-			output << "-- class: " << obj->_class << " (myclass: " << &myClass << ")" << std::endl;
-			output << "-- referenceCount: " << (void*)obj->referenceCount << std::endl;
-			output << "-- version: " << obj->_class->structVersion << std::endl;
-
-			if(deleteFromHandleManager){
-				handlemanager.removeHandleByReal((uint64_t)variant.value.objectValue, TYPE_NPObject);
-			}
-
-			break;
-
-		default:
-			throw std::runtime_error("Unsupported variant type");
-
-	}
-
-}
-
-std::vector<NPVariant> readVariantArray(Stack &stack, int count){
-
-	NPVariant variant;
-	std::vector<NPVariant> result;
-
-	for(int i = 0; i < count; i++){
-		readVariant(stack, variant);
-		result.push_back(variant);
-	}
-
-	return result;
-}
-
 #ifdef __WIN32__
-NPObject * readHandleObjIncRef(Stack &stack, NPP instance, NPClass *aclass, bool shouldExist){
-	int32_t type;
-	NPObject *obj = (NPObject *)readHandle(stack, type, instance, aclass, shouldExist);
-	
-	if (type != TYPE_NPObject)
-		throw std::runtime_error("Wrong handle type, expected object");
-
-	// Check if this is required everywhere
-	if(obj->referenceCount != 0xffffffff)
-		obj->referenceCount++;
-
-	return obj;
-}
 
 void readVariantIncRef(Stack &stack, NPVariant &variant){
 	int32_t type = readInt32(stack);
 	variant.type = (NPVariantType)type;
 
 	size_t stringLength;
-	bool deleteFromHandleManager;
 
 	switch(variant.type){
 		
@@ -650,12 +558,7 @@ void readVariantIncRef(Stack &stack, NPVariant &variant){
 
 		case NPVariantType_Object:
 			variant.value.objectValue 	= readHandleObjIncRef(stack);
-			deleteFromHandleManager     = (bool)readInt32(stack);
 			output << "ReadVariant: Object(" <<  (void*)variant.value.objectValue << ")" << std::endl;
-
-			if(deleteFromHandleManager){
-				handlemanager.removeHandleByReal((uint64_t)variant.value.objectValue, TYPE_NPObject);
-			}
 
 			break;
 
@@ -679,25 +582,112 @@ std::vector<NPVariant> readVariantArrayIncRef(Stack &stack, int count){
 	return result;
 }
 
-#endif
+void freeVariantDecRef(NPVariant &variant){
+	if( variant.type == NPVariantType_String){
+		if (variant.value.stringValue.UTF8Characters)
+			free((char*)variant.value.stringValue.UTF8Characters);
 
+	}else if(variant.type == NPVariantType_Object){
+
+		NPObject* obj = variant.value.objectValue;
+		objectDecRef(obj);
+
+	}
+	
+	variant.type = NPVariantType_Null;
+
+}
+
+void freeVariantArrayDecRef(std::vector<NPVariant> args){
+	for(NPVariant &variant :  args){
+		freeVariantDecRef(variant);
+	}
+}
+
+
+#else
+
+void readVariant(Stack &stack, NPVariant &variant){
+	int32_t type = readInt32(stack);
+	variant.type = (NPVariantType)type;
+
+	size_t stringLength;
+
+	switch(variant.type){
+		
+		case NPVariantType_Null:
+			output << "ReadVariant: Null" << std::endl;
+			break;
+
+		case NPVariantType_Void:
+			output << "ReadVariant: Void" << std::endl;
+			break;
+
+		case NPVariantType_Bool:
+			variant.value.boolValue 	= (bool)readInt32(stack);
+			output << "ReadVariant: Bool(" << variant.value.boolValue << ")" << std::endl;
+			break;
+
+		case NPVariantType_Int32:
+			variant.value.intValue  	= readInt32(stack);
+			output << "ReadVariant: Int32(" << variant.value.intValue << ")" << std::endl;
+			break;	
+
+		case NPVariantType_Double:
+			variant.value.doubleValue  	= readDouble(stack);
+			output << "ReadVariant: Double(" << variant.value.doubleValue << ")" << std::endl;
+			break;		
+
+		case NPVariantType_String:
+			#ifdef __WIN32__
+				variant.value.stringValue.UTF8Characters = readStringMalloc(stack, stringLength);
+			#else
+				variant.value.stringValue.UTF8Characters = readStringBrowserAlloc(stack, stringLength);
+			#endif
+			variant.value.stringValue.UTF8Length = stringLength;
+			output << "ReadVariant: String('" << variant.value.stringValue.UTF8Characters << "')" << std::endl;
+			break;
+
+
+		case NPVariantType_Object:
+			variant.value.objectValue 	= readHandleObj(stack);
+
+			output << "ReadVariant: Object(" <<  (void*)variant.value.objectValue << ")" << std::endl;
+
+			NPObject* obj;
+			obj = (NPObject*)variant.value.objectValue;
+			output << "-- class: " << obj->_class << " (myclass: " << &myClass << ")" << std::endl;
+			output << "-- referenceCount: " << (void*)obj->referenceCount << std::endl;
+			output << "-- version: " << obj->_class->structVersion << std::endl;
+			break;
+
+		default:
+			throw std::runtime_error("Unsupported variant type");
+
+	}
+
+}
+
+std::vector<NPVariant> readVariantArray(Stack &stack, int count){
+
+	NPVariant variant;
+	std::vector<NPVariant> result;
+
+	for(int i = 0; i < count; i++){
+		readVariant(stack, variant);
+		result.push_back(variant);
+	}
+
+	return result;
+}
 
 
 void freeVariant(NPVariant &variant){
 	if (variant.type == NPVariantType_String){
+		if( variant.value.stringValue.UTF8Characters )
+			sBrowserFuncs->memfree((char*)variant.value.stringValue.UTF8Characters);
 
-		#ifdef __WIN32__
-			free((char*)variant.value.stringValue.UTF8Characters);
-		#else
-			sBrowserFuncs->memfree((char*)variant.value.stringValue.UTF8Characters); // o.O ?
-		#endif
-
-	} else if (variant.type == NPVariantType_Object){
-		// Placeholder?
-		// On the windows side only strings should be freed!
-		// Same is true on linux!
-
-	}
+	} // Objects dont have to be freed
 
 	variant.type = NPVariantType_Null;
 }
@@ -707,6 +697,10 @@ void freeVariantArray(std::vector<NPVariant> args){
 		freeVariant(variant);
 	}
 }
+
+#endif
+
+
 
 void writeNPString(NPString *string){
 	

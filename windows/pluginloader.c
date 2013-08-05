@@ -285,13 +285,13 @@ void callNP_Invoke(Stack &stack){
 
 	output << "callNP_INVOKE" << std::endl << std::flush;
 
-	NPObject 	*npobj 	= readHandleObj(stack);
+	NPObject 	*npobj 	= readHandleObjIncRef(stack);
 	NPIdentifier name 	= readHandleIdentifier(stack);
 	uint32_t argCount 	= readInt32(stack);
 
 	// Note: This doesnt increment the refcounter.
 	// The refcounter contains only accurate values on the linux side.
-	std::vector<NPVariant> args = readVariantArray(stack, argCount);
+	std::vector<NPVariant> args = readVariantArrayIncRef(stack, argCount);
 
 	NPVariant resultVariant;
 	resultVariant.type = NPVariantType_Null;
@@ -299,12 +299,13 @@ void callNP_Invoke(Stack &stack){
 	bool result = npobj->_class->invoke(npobj, name, args.data(), argCount, &resultVariant);
 
 	// This frees ONLY all the strings!
-	freeVariantArray(args);
+	freeVariantArrayDecRef(args);
+	objectDecRef(npobj);
 
 	// The objects refcount has been incremented by invoke
 	// Return the variant without modifying the objects refcount
 	if(result){
-		writeVariantRelease(resultVariant);
+		writeVariantReleaseDecRef(resultVariant);
 	}
 
 	writeInt32(result);
@@ -345,7 +346,7 @@ void callNPP_GetValue_Object(Stack &stack){
 	// to the linux side ...
 
 	if(result == NPERR_NO_ERROR)
-		writeHandle(objectValue);
+		writeHandleObjDecRef(objectValue);
 
 	writeInt32(result);
 	returnCommand();
@@ -522,10 +523,12 @@ void callNP_HasPropertyFunction(Stack &stack){
 
 	output << "callNP_HasPropertyFunction" << std::endl;
 
-	NPObject *obj 		= readHandleObj(stack);
+	NPObject *obj 		= readHandleObjIncRef(stack);
 	NPIdentifier name 	= readHandleIdentifier(stack);	
 
 	bool result = obj->_class->hasProperty(obj, name);
+
+	objectDecRef(obj);
 
 	writeInt32(result);
 	returnCommand();
@@ -536,10 +539,12 @@ void callNP_HasMethodFunction(Stack &stack){
 
 	output << "callNP_HasMethodFunction" << std::endl;
 
-	NPObject *obj 		= readHandleObj(stack);
+	NPObject *obj 		= readHandleObjIncRef(stack);
 	NPIdentifier name 	= readHandleIdentifier(stack);	
 
 	bool result = obj->_class->hasMethod(obj, name);
+
+	objectDecRef(obj);
 
 	writeInt32(result);
 	returnCommand();
@@ -548,7 +553,7 @@ void callNP_HasMethodFunction(Stack &stack){
 // Verified, everything okay
 void callNP_GetPropertyFunction(Stack &stack){
 
-	NPObject *obj 		= readHandleObj(stack);
+	NPObject *obj 		= readHandleObjIncRef(stack);
 	NPIdentifier name 	= readHandleIdentifier(stack);	
 
 	NPVariant resultVariant;
@@ -556,8 +561,10 @@ void callNP_GetPropertyFunction(Stack &stack){
 
 	bool result = obj->_class->getProperty(obj, name, &resultVariant);
 
+	objectDecRef(obj);
+
 	if (result){
-		writeVariantRelease(resultVariant);
+		writeVariantReleaseDecRef(resultVariant);
 	}
 
 	writeInt32(result);
@@ -580,7 +587,11 @@ void callNPP_Destroy(Stack &stack){
 		DestroyWindow(hwnd);
 	}
 
+	output << "removeHandleByReal (callNPP_Destroy): " << (uint64_t)instance << " or " << (void*)instance << std::endl;
+
+
 	handlemanager.removeHandleByReal((uint64_t)instance, TYPE_NPPInstance);
+
 	free(instance);
 
 	if(result == NPERR_NO_ERROR){
@@ -601,24 +612,27 @@ void callNPP_Destroy(Stack &stack){
 
 void callNP_SetPropertyFunction(Stack &stack){
 
-	NPObject 		*obj 		= readHandleObj(stack);
+	NPObject 		*obj 		= readHandleObjIncRef(stack);
 	NPIdentifier 	name 		= readHandleIdentifier(stack);	
 	NPVariant 		variant;
 
-	readVariant(stack, variant);
+	readVariantIncRef(stack, variant);
 
 	bool result = obj->_class->setProperty(obj, name, &variant);
 
-	freeVariant(variant);
+	freeVariantDecRef(variant);
+	objectDecRef(obj);
 
 	writeInt32(result);
 	returnCommand();	
 }
 
 void callNP_NPInvalidateFunction(Stack &stack){
-	NPObject *obj = readHandleObj(stack);
+	NPObject *obj = readHandleObjIncRef(stack);
 
 	obj->_class->invalidate(obj);
+
+	objectDecRef(obj);
 
 	returnCommand();	
 }
@@ -669,31 +683,11 @@ void dispatcher(int functionid, Stack &stack){
 
 		// Note: Only called for custom-created objects! Not for objects transmitted by pipe from the browser!
 		case OBJECT_KILL: // Verified, everything okay
-			obj = readHandleObj(stack, NULL, 0, true);
+			obj = readHandleObjIncRef(stack, NULL, 0, true);
 
 			output << "Killed " << (void*) obj << std::endl;
 			
-			// Reset refcount to detect further access
-			if(obj->referenceCount != 0xffffffff) throw std::runtime_error("Object_kill for unexpected object");
-
-			obj->referenceCount = 0xDEADBEEF;
-
-			// Remove the object locally
-			if(obj->_class->deallocate){
-				output << "call deallocate function " << (void*)obj->_class->deallocate << std::endl;
-
-				obj->_class->deallocate(obj);
-			}else{
-				output << "call default dealloc function " << std::endl;
-
-				free((char*)obj);
-			}
-
-			output << "removeHandleByReal: " << (uint64_t)obj << " or " << (void*)obj << std::endl;
-
-			// Remove it in the handle manager
-			handlemanager.removeHandleByReal((uint64_t)obj, TYPE_NPObject);
-
+			objectKill(obj);
 			returnCommand();
 			break;
 
@@ -705,7 +699,7 @@ void dispatcher(int functionid, Stack &stack){
 			callNPP_GetValue_Object(stack);
 			break;		
 
-		case FUNCTION_SET_WINDOW_INFO:
+		case FUNCTION_NPP_SET_WINDOW:
 			setWindowInfo(stack);
 			break;
 

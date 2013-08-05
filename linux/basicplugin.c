@@ -320,7 +320,7 @@ void dispatcher(int functionid, Stack &stack){
 
 			output << "FUNCTION_NPN_CREATE_OBJECT ready with obj " << (void*)obj << std::endl;
 
-			writeHandle(obj); // refcounter is hopefully 1
+			writeHandleObj(obj); // refcounter is hopefully 1
 			returnCommand();
 
 			break;
@@ -332,7 +332,7 @@ void dispatcher(int functionid, Stack &stack){
 			output << obj->referenceCount << std::endl;
 
 			if(error == NPERR_NO_ERROR)
-				writeHandle(obj); // Refcount was already incremented by getValue
+				writeHandleObj(obj); // Refcount was already incremented by getValue
 
 			writeInt32(error);
 			returnCommand();
@@ -352,7 +352,7 @@ void dispatcher(int functionid, Stack &stack){
 
 			utf8name 	= readStringAsMemory(stack);	
 			identifier 	= sBrowserFuncs->getstringidentifier((NPUTF8*) utf8name.get());
-			writeHandle(identifier);
+			writeHandleIdentifier(identifier);
 			returnCommand();
 			break;
 
@@ -388,6 +388,10 @@ void dispatcher(int functionid, Stack &stack){
 				output << "Killed " << (void*) obj << std::endl;
 			
 				// Remove it in the handle manager
+
+				output << "removeHandleByReal (FUNCTION_NPN_RELEASEOBJECT): " << (uint64_t)obj << " or " << (void*)obj << std::endl;
+
+
 				handlemanager.removeHandleByReal((uint64_t)obj, TYPE_NPObject);
 
 			}
@@ -446,15 +450,6 @@ void dispatcher(int functionid, Stack &stack){
 			handle_NPN_Invoke(stack);
 			break;
 
-		/*case HANDLE_MANAGER_DELETE:
-			type 	= readInt32(stack);
-			id 		= readInt64(stack);
-
-			handlemanager.removeHandleByID(id);
-
-			returnCommand();
-			break;*/
-
 		case HANDLE_MANAGER_REQUEST_STREAM_INFO:
 			sendStreamInfo(stack);
 			break;
@@ -498,7 +493,7 @@ void dispatcher(int functionid, Stack &stack){
 			error = sBrowserFuncs->getvalue(readHandleInstance(stack), NPNVPluginElementNPObject, &obj);
 
 			if(error == NPERR_NO_ERROR)
-				writeHandle(obj);
+				writeHandleObj(obj);
 			
 			writeInt32(error);
 			returnCommand();

@@ -5,7 +5,7 @@ void NPInvalidateFunction(NPObject *npobj){
 
 	output << "NPInvalidateFunction" << std::endl;
 
-	writeHandle(npobj);
+	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_INVALIDATE_FUNCTION);
 	waitReturn();
 
@@ -15,8 +15,8 @@ void NPInvalidateFunction(NPObject *npobj){
 bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name){
 	output << "NPHasMethodFunction" << std::endl;
 
-	writeHandle(name);
-	writeHandle(npobj);
+	writeHandleIdentifier(name);
+	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_HAS_METHOD_FUNCTION);
 	return (bool)readResultInt32();
 
@@ -30,8 +30,8 @@ bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args,
 	// Warning: parameter order swapped!
 	writeVariantArrayConst(args, argCount);
 	writeInt32(argCount);
-	writeHandle(name);
-	writeHandle(npobj);
+	writeHandleIdentifier(name);
+	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_INVOKE);
 
 	std::vector<ParameterInfo> stack;
@@ -62,8 +62,8 @@ bool NPHasPropertyFunction(NPObject *npobj, NPIdentifier name){
 
 	output << "NPHasPropertyFunction" << std::endl;
 
-	writeHandle(name);
-	writeHandle(npobj);
+	writeHandleIdentifier(name);
+	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_HAS_PROPERTY_FUNCTION);
 	return (bool)readResultInt32();
 	
@@ -74,8 +74,8 @@ bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result
 
 	output << "NPGetPropertyFunction" << std::endl;
 
-	writeHandle(name);
-	writeHandle(npobj);
+	writeHandleIdentifier(name);
+	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_GET_PROPERTY_FUNCTION);
 
 	std::vector<ParameterInfo> stack;
@@ -97,8 +97,8 @@ bool NPSetPropertyFunction(NPObject *npobj, NPIdentifier name, const NPVariant *
 	output << "NPSetPropertyFunction" << std::endl;
 
 	writeVariantConst(*value);
-	writeHandle(name);
-	writeHandle(npobj);
+	writeHandleIdentifier(name);
+	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_SET_PROPERTY_FUNCTION);
 
 	return (bool)readResultInt32();
@@ -146,7 +146,7 @@ void NPDeallocateFunction(NPObject *npobj){
 			// This has to be a user-created object which has to be freed via a KILL_OBJECT message
 
 			// Kill the object on the other side
-			writeHandle(npobj);
+			writeHandleObj(npobj);
 			callFunction(OBJECT_KILL);
 			waitReturn();
 
@@ -157,6 +157,11 @@ void NPDeallocateFunction(NPObject *npobj){
 
 		// Remove it in the handle manager
 		if( exists ){
+
+
+			output << "removeHandleByReal (NPDeallocateFunction): " << (uint64_t)npobj << " or " << (void*)npobj << std::endl;
+
+
 			handlemanager.removeHandleByReal((uint64_t)npobj, TYPE_NPObject);
 		}
 
