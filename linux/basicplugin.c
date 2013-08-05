@@ -289,6 +289,7 @@ void handle_NPN_DestroyStream(Stack &stack){
 
 void dispatcher(int functionid, Stack &stack){
 
+	/*
 	NPP instance;
 	NPObject* obj;
 	NPIdentifier propertyName;
@@ -306,7 +307,7 @@ void dispatcher(int functionid, Stack &stack){
 	int64_t id;
 	int32_t type;
 
-	bool killObject;
+	bool killObject;*/
 
 	//output << "dispatching function " << functionid << std::endl;
 
@@ -314,136 +315,156 @@ void dispatcher(int functionid, Stack &stack){
 	switch(functionid){
 		
 		case FUNCTION_NPN_CREATE_OBJECT: // Verified, everything okay
-			output << "FUNCTION_NPN_CREATE_OBJECT" << std::endl;
+			{
 
-			obj = sBrowserFuncs->createobject(readHandleInstance(stack), &myClass);
+				output << "FUNCTION_NPN_CREATE_OBJECT" << std::endl;
 
-			output << "FUNCTION_NPN_CREATE_OBJECT ready with obj " << (void*)obj << std::endl;
+				NPObject* obj = sBrowserFuncs->createobject(readHandleInstance(stack), &myClass);
 
-			writeHandleObj(obj); // refcounter is hopefully 1
-			returnCommand();
+				output << "FUNCTION_NPN_CREATE_OBJECT ready with obj " << (void*)obj << std::endl;
 
+				writeHandleObj(obj); // refcounter is hopefully 1
+				returnCommand();
+			}
 			break;
 
 		case FUNCTION_NPN_GET_WINDOWNPOBJECT: // Verified, everything okay
-			error = sBrowserFuncs->getvalue(readHandleInstance(stack), NPNVWindowNPObject, &obj);
+			{
+				NPObject* obj = NULL;
+				NPError error = sBrowserFuncs->getvalue(readHandleInstance(stack), NPNVWindowNPObject, &obj);
 
-			output << "FUNCTION_NPN_GET_WINDOWNPOBJECT returned " << obj << " and error " << error << std::endl; 
-			output << obj->referenceCount << std::endl;
+				output << "FUNCTION_NPN_GET_WINDOWNPOBJECT returned " << obj << " and error " << error << std::endl; 
+				output << obj->referenceCount << std::endl;
 
-			if(error == NPERR_NO_ERROR)
-				writeHandleObj(obj); // Refcount was already incremented by getValue
+				if(error == NPERR_NO_ERROR)
+					writeHandleObj(obj); // Refcount was already incremented by getValue
 
-			writeInt32(error);
-			returnCommand();
+				writeInt32(error);
+				returnCommand();
+			}
 			break;	
 		
 		case FUNCTION_NPN_GET_PRIVATEMODE: // Verified, everything okay
-			error = sBrowserFuncs->getvalue(readHandleInstance(stack), NPNVprivateModeBool, &resultBool);
+			{
+				NPBool resultBool;
+				NPError error = sBrowserFuncs->getvalue(readHandleInstance(stack), NPNVprivateModeBool, &resultBool);
 
-			if(error == NPERR_NO_ERROR)
-				writeInt32(resultBool);
+				if(error == NPERR_NO_ERROR)
+					writeInt32(resultBool);
 
-			writeInt32(error);
-			returnCommand();
+				writeInt32(error);
+				returnCommand();
+			}
 			break;	
 
 		case FUNCTION_NPP_GET_STRINGIDENTIFIER: // Verified, everything okay
-
-			utf8name 	= readStringAsMemory(stack);	
-			identifier 	= sBrowserFuncs->getstringidentifier((NPUTF8*) utf8name.get());
-			writeHandleIdentifier(identifier);
-			returnCommand();
+			{
+				std::shared_ptr<char> utf8name 	= readStringAsMemory(stack);	
+				NPIdentifier identifier 		= sBrowserFuncs->getstringidentifier((NPUTF8*) utf8name.get());
+				writeHandleIdentifier(identifier);
+				returnCommand();
+			}
 			break;
 
 		case FUNCTION_NPN_GET_PROPERTY: // Verified, everything okay
+			{
+				NPP instance 				= readHandleInstance(stack);
+				NPObject*  obj 				= readHandleObj(stack);
+				NPIdentifier propertyName	= readHandleIdentifier(stack);
 
-			instance 		= readHandleInstance(stack);
-			obj 			= readHandleObj(stack);
-			propertyName	= readHandleIdentifier(stack);
+				// Reset variant type
+				NPVariant resultVariant;
+				resultVariant.type = NPVariantType_Null;
 
-			// Reset variant type
-			resultVariant.type = NPVariantType_Null;
+				bool result = sBrowserFuncs->getproperty(instance, obj, propertyName, &resultVariant);
 
-			result = sBrowserFuncs->getproperty(instance, obj, propertyName, &resultVariant);
+				output << "NPN_GET_PROPERTY Server result " << result << std::endl;
 
-			output << "NPN_GET_PROPERTY Server result " << result << std::endl;
+				if(result)
+					writeVariantRelease(resultVariant); // free variant (except contained objects)
 
-			if(result)
-				writeVariantRelease(resultVariant); // free variant (except contained objects)
-
-			writeInt32( result );
-			returnCommand();
+				writeInt32( result );
+				returnCommand();
+			}
 			break;
 
 		case FUNCTION_NPN_RELEASEOBJECT: // Verified, everything okay
-			obj 		= readHandleObj(stack);
-			killObject 	= readInt32(stack);
+			{
+				NPObject* obj 		= readHandleObj(stack);
+				bool killObject 	= readInt32(stack);
 
-			output << "RELEASE " << obj << std::endl;
-			output << obj->referenceCount << std::endl;
+				output << "RELEASE " << obj << std::endl;
+				output << obj->referenceCount << std::endl;
 
-			if(killObject){
+				if(killObject){
 
-				output << "Killed " << (void*) obj << std::endl;
-			
-				// Remove it in the handle manager
+					output << "Killed " << (void*) obj << std::endl;
+				
+					// Remove it in the handle manager
 
-				output << "removeHandleByReal (FUNCTION_NPN_RELEASEOBJECT): " << (uint64_t)obj << " or " << (void*)obj << std::endl;
+					output << "removeHandleByReal (FUNCTION_NPN_RELEASEOBJECT): " << (uint64_t)obj << " or " << (void*)obj << std::endl;
 
 
-				handlemanager.removeHandleByReal((uint64_t)obj, TYPE_NPObject);
+					handlemanager.removeHandleByReal((uint64_t)obj, TYPE_NPObject);
 
+				}
+
+				sBrowserFuncs->releaseobject(obj);
+
+				returnCommand();
 			}
-
-			sBrowserFuncs->releaseobject(obj);
-
-			returnCommand();
 			break;
 
 		case FUNCTION_NPN_RETAINOBJECT: // Verified, everything okay
-			obj = readHandleObj(stack);
+			{
+				NPObject* obj = readHandleObj(stack);
 
 
-			output << "RETAIN " << obj << std::endl;
-			output << obj->referenceCount << std::endl;
+				output << "RETAIN " << obj << std::endl;
+				output << obj->referenceCount << std::endl;
 
-			sBrowserFuncs->retainobject(obj);
+				sBrowserFuncs->retainobject(obj);
 
-			output << "after: " << obj->referenceCount << std::endl;
+				output << "after: " << obj->referenceCount << std::endl;
 
-			returnCommand();
+				returnCommand();
+			}
 			break;
 
 
 		case FUNCTION_NPN_Evaluate: // Verified, everything okay
-			output << "NPN_Evaluate Server" << std::endl;
+			{
+				output << "NPN_Evaluate Server" << std::endl;
 
-			instance 	= readHandleInstance(stack);
-			obj 		= readHandleObj(stack);	
-			readNPString(stack, script);
+				NPP instance 		= readHandleInstance(stack);
+				NPObject* obj 		= readHandleObj(stack);	
 
-			output << "--- SCRIPT ---" << std::endl;
-			output << script.UTF8Characters << std::endl;
-			output << "--- /SCRIPT ---" << std::endl;
+				NPString script;
+				readNPString(stack, script);
 
-			//output << std::string(script.UTF8Characters, script.UTF8Length) << std::endl;
+				output << "--- SCRIPT ---" << std::endl;
+				output << script.UTF8Characters << std::endl;
+				output << "--- /SCRIPT ---" << std::endl;
 
-			// Reset variant type
-			resultVariant.type = NPVariantType_Null;
+				//output << std::string(script.UTF8Characters, script.UTF8Length) << std::endl;
 
-			result = sBrowserFuncs->evaluate(instance, obj, &script, &resultVariant);	
-			
-			output << "NPN_Evaluate Server result " << result << std::endl;
+				// Reset variant type
+				NPVariant resultVariant;
+				resultVariant.type = NPVariantType_Null;
 
-			// Free the string
-			freeNPString(script);
+				bool result = sBrowserFuncs->evaluate(instance, obj, &script, &resultVariant);	
+				
+				output << "NPN_Evaluate Server result " << result << std::endl;
 
-			if(result)
-				writeVariantRelease(resultVariant);
+				// Free the string
+				freeNPString(script);
 
-			writeInt32( result );
-			returnCommand();
+				if(result)
+					writeVariantRelease(resultVariant);
+
+				writeInt32( result );
+				returnCommand();
+			}
 			break;
 	
 		case FUNCTION_NPN_INVOKE:
@@ -490,30 +511,22 @@ void dispatcher(int functionid, Stack &stack){
 
 
 		case FUNCTION_NPN_GET_PLUGINELEMENTNPOBJECT: // Verified, everything okay
-			error = sBrowserFuncs->getvalue(readHandleInstance(stack), NPNVPluginElementNPObject, &obj);
+			{
+				NPObject* obj;
+				NPError error = sBrowserFuncs->getvalue(readHandleInstance(stack), NPNVPluginElementNPObject, &obj);
 
-			if(error == NPERR_NO_ERROR)
-				writeHandleObj(obj);
-			
-			writeInt32(error);
-			returnCommand();
+				if(error == NPERR_NO_ERROR)
+					writeHandleObj(obj);
+				
+				writeInt32(error);
+				returnCommand();
+			}
 			break;
 
 		case FUNCTION_NPN_USERAGENT: // Verified, everything okay
 			writeString( sBrowserFuncs->uagent(readHandleInstance(stack)) );
 			returnCommand();
 			break;
-
-		/*case OBJECT_KILL: // Verified, everything okay
-			obj = readHandleObj(stack);
-
-			output << "Killed " << (void*) obj << std::endl;
-			
-			// Remove it in the handle manager
-			handlemanager.removeHandleByReal((uint64_t)obj, TYPE_NPObject);
-
-			returnCommand();
-			break;*/
 
 		default:
 			throw std::runtime_error("WTF? Which Function?");
