@@ -190,12 +190,14 @@ NPError NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 
 	switch (variable){
 
+		case NPNVPluginElementNPObject:
 		case NPNVWindowNPObject:
 
-			output << "NPN_GetValue : NPNVWindowNPObject" << std::endl;
+			output << "NPN_GetValue : NPNVWindowNPObject / NPNVPluginElementNPObject" << std::endl;
 
+			writeInt32(variable);
 			writeHandleInstance(instance);
-			callFunction(FUNCTION_NPN_GET_WINDOWNPOBJECT);
+			callFunction(FUNCTION_NPN_GETVALUE_OBJECT); //FUNCTION_NPN_GET_WINDOWNPOBJECT);
 
 			readCommands(stack);
 
@@ -212,8 +214,9 @@ NPError NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 
 			output << "NPN_GetValue : NPNVprivateModeBool" << std::endl;
 
+			writeInt32(variable);
 			writeHandleInstance(instance);
-			callFunction(FUNCTION_NPN_GET_PRIVATEMODE);
+			callFunction(FUNCTION_NPN_GETVALUE_BOOL); //FUNCTION_NPN_GET_PRIVATEMODE);
 
 			readCommands(stack);
 
@@ -224,7 +227,7 @@ NPError NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 
 			break;
 
-		case NPNVPluginElementNPObject:
+		/*case NPNVPluginElementNPObject:
 
 			output << "NPN_GetValue : NPNVPluginElementNPObject" << std::endl;
 
@@ -239,7 +242,7 @@ NPError NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 				*((NPObject**)value) 	= readHandleObjIncRef(stack);
 
 
-			break;
+			break;*/
 
 		default:
 			output << "NPN_GetValue : NOT IMPLEMENTED YET!" << std::endl;
@@ -472,7 +475,7 @@ bool NP_LOADDS NPN_Evaluate(NPP npp, NPObject *obj, NPString *script, NPVariant 
 	writeNPString(script);
 	writeHandleObj(obj);
 	writeHandleInstance(npp);
-	callFunction(FUNCTION_NPN_Evaluate);
+	callFunction(FUNCTION_NPN_EVALUATE);
 
 	std::vector<ParameterInfo> stack;
 	readCommands(stack);

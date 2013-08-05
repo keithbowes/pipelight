@@ -10,6 +10,7 @@ enum FunctionIDs{
 
 	// Tells the windows side that the given object should be freed
 	OBJECT_KILL = 1,
+	OBJECT_IS_CUSTOM,
 
 	// Used to request stream details
 	HANDLE_MANAGER_REQUEST_STREAM_INFO,
@@ -46,16 +47,15 @@ enum FunctionIDs{
 
 	// ------- Browser -------
 	FUNCTION_NPN_CREATE_OBJECT,
-	
-	FUNCTION_NPN_GET_WINDOWNPOBJECT,
-	FUNCTION_NPN_GET_PRIVATEMODE,
-	FUNCTION_NPN_GET_PLUGINELEMENTNPOBJECT,
+
+	FUNCTION_NPN_GETVALUE_BOOL,
+	FUNCTION_NPN_GETVALUE_OBJECT,
 
 	FUNCTION_NPP_GET_STRINGIDENTIFIER,
 	FUNCTION_NPN_GET_PROPERTY,
 	FUNCTION_NPN_RELEASEOBJECT,
 	FUNCTION_NPN_RETAINOBJECT,
-	FUNCTION_NPN_Evaluate,
+	FUNCTION_NPN_EVALUATE,
 	FUNCTION_NPN_INVOKE,
 
 	FUNCTION_NPN_GET_URL_NOTIFY,
@@ -139,3 +139,6 @@ int32_t readResultInt32();
 int64_t readResultInt64();
 std::string readResultString();
 void waitReturn();
+
+void debugEnterFunction( std::string name );
+void debugNotImplemented( std::string name );

@@ -298,15 +298,15 @@ void callNP_Invoke(Stack &stack){
 
 	bool result = npobj->_class->invoke(npobj, name, args.data(), argCount, &resultVariant);
 
-	// This frees ONLY all the strings!
-	freeVariantArrayDecRef(args);
-	objectDecRef(npobj);
-
 	// The objects refcount has been incremented by invoke
 	// Return the variant without modifying the objects refcount
 	if(result){
 		writeVariantReleaseDecRef(resultVariant);
 	}
+
+	// This frees ONLY all the strings!
+	freeVariantArrayDecRef(args);
+	objectDecRef(npobj);
 
 	writeInt32(result);
 	returnCommand();
@@ -561,11 +561,11 @@ void callNP_GetPropertyFunction(Stack &stack){
 
 	bool result = obj->_class->getProperty(obj, name, &resultVariant);
 
-	objectDecRef(obj);
-
 	if (result){
 		writeVariantReleaseDecRef(resultVariant);
 	}
+
+	objectDecRef(obj);
 
 	writeInt32(result);
 	returnCommand();	
@@ -647,6 +647,26 @@ void dispatcher(int functionid, Stack &stack){
 
 	switch (functionid){
 		
+		// Note: Only called for custom-created objects! Not for objects transmitted by pipe from the browser!
+		case OBJECT_KILL: // Verified, everything okay
+			obj = readHandleObjIncRef(stack, NULL, 0, true);
+
+			output << "Killed " << (void*) obj << std::endl;
+			
+			objectKill(obj);
+			returnCommand();
+			break;
+
+
+		case OBJECT_IS_CUSTOM:
+			{
+				obj = readHandleObjIncRef(stack, NULL, 0, true);
+
+				writeInt32( (obj->referenceCount == REFCOUNT_UNDEFINED) );
+				returnCommand();
+			}
+			break;
+
 		case FUNCTION_GET_VERSION:
 			writeString(np_FileDescription);
 			returnCommand();
@@ -679,16 +699,6 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NP_INVOKE:
 			callNP_Invoke(stack);
-			break;
-
-		// Note: Only called for custom-created objects! Not for objects transmitted by pipe from the browser!
-		case OBJECT_KILL: // Verified, everything okay
-			obj = readHandleObjIncRef(stack, NULL, 0, true);
-
-			output << "Killed " << (void*) obj << std::endl;
-			
-			objectKill(obj);
-			returnCommand();
 			break;
 
 		case FUNCTION_NPP_GETVALUE_BOOL:
