@@ -549,9 +549,9 @@ void waitReturn(){
 // Debug stuff
 
 void debugEnterFunction( std::string name ){
-	output << name << std::endl << std::flush;
+	//output << name << std::endl << std::flush;
 }
 
 void debugNotImplemented( std::string name ){
-	output << "NOT IMPLEMENTED: " << name << std::endl << std::flush;
+	//output << "NOT IMPLEMENTED: " << name << std::endl << std::flush;
 }

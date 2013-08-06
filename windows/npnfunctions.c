@@ -270,7 +270,8 @@ void NP_LOADDS NPN_InvalidateRect(NPP instance, NPRect *rect){
 		r.right 	= rect->right;
 		r.bottom 	= rect->bottom;
 
-		InvalidateRect(hwnd, &r, false);
+		InvalidateRect(hwnd, &r, true);
+		//UpdateWindow(hwnd);
 	}
 }
 
@@ -279,7 +280,8 @@ void NP_LOADDS NPN_InvalidateRegion(NPP instance, NPRegion region){
 
 	HWND hwnd = (HWND)instance->ndata;
 	if(hwnd){
-		InvalidateRgn(hwnd, region, false);
+		InvalidateRgn(hwnd, region, true);
+		//UpdateWindow(hwnd);
 	}
 }
 
