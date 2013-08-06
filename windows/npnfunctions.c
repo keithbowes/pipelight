@@ -262,25 +262,27 @@ NPError NPN_SetValue(NPP instance, NPPVariable variable, void *value){
 void NP_LOADDS NPN_InvalidateRect(NPP instance, NPRect *rect){
 	debugEnterFunction("NPN_InvalidateRect");
 
-	HWND hwnd = (HWND)instance->ndata;
-	if(hwnd){
-		RECT r;
+	HWND hWnd = (HWND)instance->ndata;
+	if(hWnd){
+		/*RECT r;
 		r.left 		= rect->left;
 		r.top 		= rect->top;
 		r.right 	= rect->right;
-		r.bottom 	= rect->bottom;
+		r.bottom 	= rect->bottom;*/
 
-		InvalidateRect(hwnd, &r, true);
-		//UpdateWindow(hwnd);
+		// r doesnt provide accurate information, so we use NULL here
+		InvalidateRect(hWnd, NULL, false);
+		//UpdateWindow(hWnd);
+
 	}
 }
 
 void NP_LOADDS NPN_InvalidateRegion(NPP instance, NPRegion region){
 	debugEnterFunction("NPN_InvalidateRegion");
 
-	HWND hwnd = (HWND)instance->ndata;
-	if(hwnd){
-		InvalidateRgn(hwnd, region, true);
+	HWND hWnd = (HWND)instance->ndata;
+	if(hWnd){
+		InvalidateRgn(hWnd, region, false);
 		//UpdateWindow(hwnd);
 	}
 }
@@ -288,9 +290,9 @@ void NP_LOADDS NPN_InvalidateRegion(NPP instance, NPRegion region){
 void NP_LOADDS NPN_ForceRedraw(NPP instance){
 	debugEnterFunction("NPN_ForceRedraw");
 
-	HWND hwnd = (HWND)instance->ndata;
-	if(hwnd){
-		UpdateWindow(hwnd);
+	HWND hWnd = (HWND)instance->ndata;
+	if(hWnd){
+		UpdateWindow(hWnd);
 	}
 }
 

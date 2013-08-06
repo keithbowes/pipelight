@@ -304,11 +304,21 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				// Process window events
 				MSG msg;
-				while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)){
-					//output << "handling window events" << std::endl;
+
+				/*int maxEvents = 64;
+				while (maxEvents > 0 && PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)){
+					TranslateMessage(&msg);
+					DispatchMessage(&msg);
+					maxEvents--;
+				}*/
+
+				// Experimental...
+				DWORD abortTime = GetTickCount() + 10;
+				while (GetTickCount() < abortTime && PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)){
 					TranslateMessage(&msg);
 					DispatchMessage(&msg);
 				}
+
 				returnCommand();
 			}
 			break;
