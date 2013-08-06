@@ -107,26 +107,28 @@ std::string createLinuxCompatibleMimeType(){
 
 }
 
-bool InitDLL(){
+bool InitDLL(std::string dllPath, std::string dllName){
 
 	// Thanks Microsoft - I searched a whole day to find this bug!
 	CoInitialize(NULL);
 	//CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
-	SetDllDirectory(DLL_PATH);
+	if(!SetDllDirectory(dllPath.c_str())){
+		output << "Failed to set DLL directory" << std::endl;
+	}
 
-	HMODULE dll = LoadLibrary(DLL_NAME);
+	HMODULE dll = LoadLibrary(dllName.c_str());
 
 	if(dll){
 
-		int requiredBytes = GetFileVersionInfoSize(DLL_NAME, NULL);
+		int requiredBytes = GetFileVersionInfoSize(dllName.c_str(), NULL);
 
 		if(requiredBytes){
 
 			std::unique_ptr<void, void (*)(void *)> data(malloc(requiredBytes), freeDataPointer);
 			if(data){
 
-				if (GetFileVersionInfo(DLL_NAME, 0, requiredBytes, data.get())){
+				if (GetFileVersionInfo(dllName.c_str(), 0, requiredBytes, data.get())){
 
 					char *info = NULL;
 					UINT size = 0; 
@@ -202,6 +204,7 @@ bool InitDLL(){
 		FreeLibrary(dll);
 	}else{
 		output << "Could not load library :-(" << std::endl;
+		output << "Last error: " << GetLastError() << std::endl;
 	}
 
 	return false;
@@ -209,9 +212,15 @@ bool InitDLL(){
 }
 
 
-int main(){
+int main(int argc, char *argv[]){
 	
 	output << "---------" << std::endl;
+
+	if(argc < 3)
+		throw std::runtime_error("Not enough arguments supplied");
+
+	std::string dllPath = std::string(argv[1]);
+	std::string dllName = std::string(argv[2]);
 
 	/* Great TIP:
 		Create a copy of Stdin & Stdout!
@@ -250,7 +259,7 @@ int main(){
 
 	if(classAtom){
 
-		if (InitDLL()){
+		if (InitDLL(dllPath, dllName)){
 			output << "Init sucessfull!" << std::endl;
 
 			Stack stack;
