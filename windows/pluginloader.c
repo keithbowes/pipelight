@@ -24,6 +24,9 @@ LRESULT CALLBACK WndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	switch(Msg)
 	{
 
+		case WM_CLOSE:
+			return 0; //Prevent closing of window
+
 		case WM_DESTROY:
 			//PostQuitMessage(WM_QUIT);
 			return 0;
@@ -649,7 +652,7 @@ void dispatcher(int functionid, Stack &stack){
 
 					AdjustWindowRect(&rect, WS_TILEDWINDOW, false);
 
-					hwnd = CreateWindow(ClsName, "Plugintest", WS_TILEDWINDOW, x, y, rect.right - rect.left, rect.bottom - rect.top, 0, 0, 0, 0);
+					hwnd = CreateWindow(ClsName, "Plugin", WS_TILEDWINDOW, x, y, rect.right - rect.left, rect.bottom - rect.top, 0, 0, 0, 0);
 
 					ShowWindow(hwnd, SW_SHOW);
 					UpdateWindow (hwnd);

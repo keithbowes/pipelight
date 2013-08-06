@@ -135,7 +135,7 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 	debugEnterFunction("NPP_New");
 
 	// TODO: SCHEDULE ONLY ONE TIMER?!
-	sBrowserFuncs->scheduletimer(instance, 10, true, timerFunc);
+	sBrowserFuncs->scheduletimer(instance, 5, true, timerFunc);
 
 	if(saved){
 		writeMemory((char*)saved->buf, saved->len);
