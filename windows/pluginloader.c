@@ -180,7 +180,6 @@ bool InitDLL(std::string dllPath, std::string dllName){
 						if (NP_Initialize(&browserFuncs) == NPERR_NO_ERROR){
 
 							if(NP_GetEntryPoints(&pluginFuncs) == NPERR_NO_ERROR){
-								output << "Adress NPP_New: " << (void*) pluginFuncs.newp << std::endl;
 								return true;
 
 							}else{
