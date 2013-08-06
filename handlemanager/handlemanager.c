@@ -11,7 +11,6 @@ extern NPNetscapeFuncs *sBrowserFuncs;
 #endif
 
 #include <fstream>
-extern std::ofstream output;
 
 uint64_t HandleManager::getFreeID(){
 	if(handlesID.size() > 0){
@@ -211,7 +210,7 @@ void HandleManager::removeHandleByReal(uint64_t real, HandleType type){
 	handlesReal.erase(it);
 
 	/*
-	output << "Removed from handle manager: REAL=" << (void*)real << std::endl;
+	std::cerr << "Removed from handle manager: REAL=" << (void*)real << std::endl;
 
 	int num[TYPE_MaxTypes];
 
@@ -219,20 +218,20 @@ void HandleManager::removeHandleByReal(uint64_t real, HandleType type){
 		num[i] = 0;
 	}
 
-	output << "Handles:";
+	std::cerr << "Handles:";
 
 	for(it = handlesReal.begin(); it != handlesReal.end(); it++){
 		num[ it->second.type ]++;
 
-		output << " " << (void*)it->second.real;
+		std::cerr << " " << (void*)it->second.real;
 	}
-	output << std::endl;
+	std::cerr << std::endl;
 
-	output << "* TYPE_NPObject: " << num[TYPE_NPObject] << std::endl;
-	output << "* TYPE_NPIdentifier: " << num[TYPE_NPIdentifier] << std::endl;
-	output << "* TYPE_NPPInstance: " << num[TYPE_NPPInstance] << std::endl;
-	output << "* TYPE_NPStream: " << num[TYPE_NPStream] << std::endl;
-	output << "* TYPE_NotifyData: " << num[TYPE_NotifyData] << std::endl;
+	std::cerr << "* TYPE_NPObject: " << num[TYPE_NPObject] << std::endl;
+	std::cerr << "* TYPE_NPIdentifier: " << num[TYPE_NPIdentifier] << std::endl;
+	std::cerr << "* TYPE_NPPInstance: " << num[TYPE_NPPInstance] << std::endl;
+	std::cerr << "* TYPE_NPStream: " << num[TYPE_NPStream] << std::endl;
+	std::cerr << "* TYPE_NotifyData: " << num[TYPE_NotifyData] << std::endl;
 	*/
 }
 
@@ -462,42 +461,29 @@ void writeVariantConst(const NPVariant &variant){
 	switch(variant.type){
 		
 		case NPVariantType_Null:
-			//output << "WriteVariant: Null" << std::endl;
 			break;
 
 		case NPVariantType_Void:
-			//output << "WriteVariant: Void" << std::endl;
 			break;
 
 		case NPVariantType_Bool:
 			writeInt32(variant.value.boolValue );
-			//output << "WriteVariant: Bool(" << variant.value.boolValue << ")" << std::endl;
 			break;
 
 		case NPVariantType_Int32:
 			writeInt32(variant.value.intValue);
-			//output << "WriteVariant: Int32(" << variant.value.intValue << ")" << std::endl;
 			break;	
 
 		case NPVariantType_Double:
 			writeDouble(variant.value.doubleValue);
-			//output << "WriteVariant: Double(" << variant.value.doubleValue << ")" << std::endl;
 			break;		
 
 		case NPVariantType_String:
 			writeString((char*)variant.value.stringValue.UTF8Characters, variant.value.stringValue.UTF8Length);
-			//output << "WriteVariant: String(len=" << variant.value.stringValue.UTF8Length << ", '" << std::string(variant.value.stringValue.UTF8Characters, variant.value.stringValue.UTF8Length) << "')" << std::endl;
 			break;
 
 		case NPVariantType_Object:
 			writeHandleObj(variant.value.objectValue);
-			/*output << "WriteVariant: Object(" <<  (void*)variant.value.objectValue << ")" << std::endl;
-
-			NPObject* obj;
-			obj = (NPObject*)variant.value.objectValue;	
-			output << "-- class: " << obj->_class << " (myclass: " << &myClass << ")" << std::endl;
-			output << "-- referenceCount: " << (void*)obj->referenceCount << std::endl;
-			output << "-- version: " << obj->_class->structVersion << std::endl;*/
 			break;
 
 		default:
@@ -525,26 +511,21 @@ void readVariantIncRef(Stack &stack, NPVariant &variant){
 	switch(variant.type){
 		
 		case NPVariantType_Null:
-			//output << "ReadVariant: Null" << std::endl;
 			break;
 
 		case NPVariantType_Void:
-			//output << "ReadVariant: Void" << std::endl;
 			break;
 
 		case NPVariantType_Bool:
 			variant.value.boolValue 	= (bool)readInt32(stack);
-			//output << "ReadVariant: Bool(" << variant.value.boolValue << ")" << std::endl;
 			break;
 
 		case NPVariantType_Int32:
 			variant.value.intValue  	= readInt32(stack);
-			//output << "ReadVariant: Int32(" << variant.value.intValue << ")" << std::endl;
 			break;	
 
 		case NPVariantType_Double:
 			variant.value.doubleValue  	= readDouble(stack);
-			//output << "ReadVariant: Double(" << variant.value.doubleValue << ")" << std::endl;
 			break;		
 
 		case NPVariantType_String:
@@ -554,14 +535,11 @@ void readVariantIncRef(Stack &stack, NPVariant &variant){
 				variant.value.stringValue.UTF8Characters = readStringBrowserAlloc(stack, stringLength);
 			#endif
 			variant.value.stringValue.UTF8Length = stringLength;
-			//output << "ReadVariant: String('" << variant.value.stringValue.UTF8Characters << "')" << std::endl;
 			break;
 
 
 		case NPVariantType_Object:
 			variant.value.objectValue 	= readHandleObjIncRef(stack);
-			//output << "ReadVariant: Object(" <<  (void*)variant.value.objectValue << ")" << std::endl;
-
 			break;
 
 		default:
@@ -618,26 +596,21 @@ void readVariant(Stack &stack, NPVariant &variant){
 	switch(variant.type){
 		
 		case NPVariantType_Null:
-			//output << "ReadVariant: Null" << std::endl;
 			break;
 
 		case NPVariantType_Void:
-			//output << "ReadVariant: Void" << std::endl;
 			break;
 
 		case NPVariantType_Bool:
 			variant.value.boolValue 	= (bool)readInt32(stack);
-			//output << "ReadVariant: Bool(" << variant.value.boolValue << ")" << std::endl;
 			break;
 
 		case NPVariantType_Int32:
 			variant.value.intValue  	= readInt32(stack);
-			//output << "ReadVariant: Int32(" << variant.value.intValue << ")" << std::endl;
 			break;	
 
 		case NPVariantType_Double:
 			variant.value.doubleValue  	= readDouble(stack);
-			//output << "ReadVariant: Double(" << variant.value.doubleValue << ")" << std::endl;
 			break;		
 
 		case NPVariantType_String:
@@ -647,19 +620,11 @@ void readVariant(Stack &stack, NPVariant &variant){
 				variant.value.stringValue.UTF8Characters = readStringBrowserAlloc(stack, stringLength);
 			#endif
 			variant.value.stringValue.UTF8Length = stringLength;
-			//output << "ReadVariant: String('" << variant.value.stringValue.UTF8Characters << "')" << std::endl;
 			break;
 
 
 		case NPVariantType_Object:
 			variant.value.objectValue 	= readHandleObj(stack);
-			/*output << "ReadVariant: Object(" <<  (void*)variant.value.objectValue << ")" << std::endl;
-
-			NPObject* obj;
-			obj = (NPObject*)variant.value.objectValue;
-			output << "-- class: " << obj->_class << " (myclass: " << &myClass << ")" << std::endl;
-			output << "-- referenceCount: " << (void*)obj->referenceCount << std::endl;
-			output << "-- version: " << obj->_class->structVersion << std::endl;*/
 			break;
 
 		default:

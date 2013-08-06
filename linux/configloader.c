@@ -4,7 +4,7 @@
 #include <pwd.h>
 #include <sys/types.h>
 #include <dlfcn.h>
-
+#include <iostream>
 
 std::string getFileName(std::string path){
 
@@ -89,7 +89,9 @@ bool loadConfig(PluginConfig &config, void *function){
 		return false;
 
 	std::string configPath = homeDir + "/.pipelight/" + filename;
-	output << "Trying to load config from " << configPath << std::endl;
+
+	// Print some debug message
+	std::cerr << "Trying to load config file from " << configPath << std::endl;
 
 	std::ifstream configFile(configPath);
 
@@ -157,11 +159,11 @@ bool loadConfig(PluginConfig &config, void *function){
 		config.winePath = "wine";
 
 	/*
-	output << "winePath: " << config.winePath << std::endl;
-	output << "winePrefix: " << config.winePrefix << std::endl;
-	output << "dllPath: " << config.dllPath << std::endl;
-	output << "dllName: " << config.dllName << std::endl;
-	output << "pluginLoaderPath: " << config.pluginLoaderPath << std::endl;
+	std::cerr << "winePath: " << config.winePath << std::endl;
+	std::cerr << "winePrefix: " << config.winePrefix << std::endl;
+	std::cerr << "dllPath: " << config.dllPath << std::endl;
+	std::cerr << "dllName: " << config.dllName << std::endl;
+	std::cerr << "pluginLoaderPath: " << config.pluginLoaderPath << std::endl;
 	*/
 	
 	return true;

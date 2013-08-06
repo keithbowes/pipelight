@@ -17,7 +17,6 @@ extern void dispatcher(int functionid, Stack &stack);
 
 extern FILE * pipeOutF;
 extern FILE * pipeInF;
-extern std::ofstream output;
 
 // Function to free shared_ptr memory - prevent null pointer exceptions
 void freeSharedPtrMemory(char *memory){
@@ -549,9 +548,15 @@ void waitReturn(){
 // Debug stuff
 
 void debugEnterFunction( std::string name ){
-	//output << name << std::endl << std::flush;
+	//std::cerr << name << std::endl;
 }
 
 void debugNotImplemented( std::string name ){
-	//output << "NOT IMPLEMENTED: " << name << std::endl << std::flush;
+	#ifdef __WIN32__
+		std::cerr << "PIPELIGHT:WIN: NOTIMPLEMENTED: " << name << std::endl;
+
+	#else
+		std::cerr << "PIPELIGHT:LIN: NOTIMPLEMENTED:  " << name << std::endl;
+
+	#endif
 }

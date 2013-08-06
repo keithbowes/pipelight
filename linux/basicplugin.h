@@ -48,7 +48,6 @@
 #include "../npapi-headers/npfunctions.h"
 #include "../communication/communication.h"
 #include "../handlemanager/handlemanager.h"
-#include "../config.h"
 #include <cstdlib>
 #include <cstring>
 
@@ -93,7 +92,6 @@ void NPDeallocateFunction(NPObject *npobj);
 extern NPClass myClass;
 
 extern NPNetscapeFuncs* sBrowserFuncs;
-extern std::ofstream output;
 extern HandleManager handlemanager;
 
 #endif // BasicPlugin_h_
