@@ -36,15 +36,32 @@
 #
 # ***** END LICENSE BLOCK *****
 
-# Basic plugin requires GTK and X11
-CFLAGS = -Wall -DXP_UNIX=1 -DMOZ_X11=1 -g -fPIC -std=c++0x -Wl,--no-undefined 
+CC=g++
+CFLAGS=-Wall -DXP_UNIX=1 -DMOZ_X11=1 -g -fPIC -std=c++0x
+LDFLAGS=-ldl
+OBJECTS=communication.o handlemanager.o npclass.o configloader.o pluginfunctions.o
 
-all :
-	g++ $(CFLAGS) -shared basicplugin.c ../communication/communication.c ../handlemanager/handlemanager.c npclass.c configloader.c pluginfunctions.c -o npbasicplugin.so -ldl
+pipelight.so: basicplugin.c basicplugin.h $(OBJECTS)
+	$(CC) $(CFLAGS) -z defs -shared basicplugin.c $(OBJECTS) $(LDFLAGS) -o pipelight.so
 
-#common.o : ../common.c ../common.h
-#	g++ $(CFLAGS) -c ../common.c -o common.o	
+communication.o: ../communication/communication.c ../communication/communication.h
+	$(CC) $(CFLAGS) -c ../communication/communication.c -o communication.o
 
-clean :
-	rm npbasicplugin.so
+handlemanager.o: ../handlemanager/handlemanager.c ../handlemanager/handlemanager.h
+	$(CC) $(CFLAGS) -c ../handlemanager/handlemanager.c -o handlemanager.o
 
+npclass.o: npclass.c
+	$(CC) $(CFLAGS) -c npclass.c -o npclass.o
+
+configloader.o: configloader.c configloader.h
+	$(CC) $(CFLAGS) -c configloader.c -o configloader.o
+
+pluginfunctions.o:
+	$(CC) $(CFLAGS) -c pluginfunctions.c -o pluginfunctions.o
+
+.PHONY: all
+all: pipelight.so
+
+.PHONY: clean
+clean:
+	rm -f pipelight.so *.o
