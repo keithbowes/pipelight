@@ -8,61 +8,61 @@
 */
 
 void NPInvalidateFunction(NPObject *npobj){
-	output << ">>>>> NPClass STUB: NPInvalidateFunction" << std::endl;
+	debugNotImplemented("NPCLASS:NPInvalidateFunction");
 }
 
 bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name){
-	output << ">>>>> NPClass STUB: NPHasMethodFunction" << std::endl;
+	debugNotImplemented("NPCLASS:NPHasMethodFunction");
 	return false;
 }
 
 bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args, uint32_t argCount, NPVariant *result){
-	output << ">>>>> NPClass STUB: NPInvokeFunction" << std::endl;
+	debugNotImplemented("NPCLASS:NPInvokeFunction");
 	return false;
 }
 
 bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result){
-	output << ">>>>> NPClass STUB: NPInvokeDefaultFunction" << std::endl;
+	debugNotImplemented("NPCLASS:NPInvokeDefaultFunction");
 	return false;
 }
 
 bool NPHasPropertyFunction(NPObject *npobj, NPIdentifier name){
-	output << ">>>>> NPClass STUB: NPHasPropertyFunction" << std::endl;
+	debugNotImplemented("NPCLASS:NPHasPropertyFunction");
 	return false;
 }
 
 bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result){
-	output << ">>>>> NPClass STUB: NPGetPropertyFunction" << std::endl;
+	debugNotImplemented("NPCLASS:NPGetPropertyFunction");
 	return false;
 }
 
 bool NPSetPropertyFunction(NPObject *npobj, NPIdentifier name, const NPVariant *value){
-	output << ">>>>> NPClass STUB: NPSetPropertyFunction" << std::endl;
+	debugNotImplemented("NPCLASS:NPSetPropertyFunction");
 	return false;
 }
 
 bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name){
-	output << ">>>>> NPClass STUB: NPRemovePropertyFunction" << std::endl;
+	debugNotImplemented("NPCLASS:NPRemovePropertyFunction");
 	return false;
 }
 
 bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *count){
-	output << ">>>>> NPClass STUB: NPEnumerationFunction" << std::endl;
+	debugNotImplemented("NPCLASS:NPEnumerationFunction");
 	return false;
 }
 
 bool NPConstructFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result){
-	output << ">>>>> NPClass STUB: NPConstructFunction" << std::endl;
+	debugNotImplemented("NPCLASS:NPConstructFunction");
 	return false;
 }
 
 NPObject * NPAllocateFunction(NPP npp, NPClass *aClass){
-	output << ">>>>> NPClass STUB: NPAllocateFunction" << std::endl;
+	debugNotImplemented("NPCLASS:NPAllocateFunction");
 	return NULL;
 }
 
 void NPDeallocateFunction(NPObject *npobj){
-	output << ">>>>> NPClass STUB: NPDeallocateFunction" << std::endl;
+	debugNotImplemented("NPCLASS:NPDeallocateFunction");
 }
 
 NPClass myClass = {

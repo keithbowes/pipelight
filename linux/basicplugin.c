@@ -191,36 +191,6 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		case FUNCTION_NPP_GET_STRINGIDENTIFIER: // Verified, everything okay
-			{
-				std::shared_ptr<char> utf8name 	= readStringAsMemory(stack);
-
-				NPIdentifier identifier 		= sBrowserFuncs->getstringidentifier((NPUTF8*) utf8name.get());
-
-				writeHandleIdentifier(identifier);
-				returnCommand();
-			}
-			break;
-
-		case FUNCTION_NPN_GET_PROPERTY: // Verified, everything okay
-			{
-				NPP instance 				= readHandleInstance(stack);
-				NPObject*  obj 				= readHandleObj(stack);
-				NPIdentifier propertyName	= readHandleIdentifier(stack);
-
-				NPVariant resultVariant;
-				resultVariant.type = NPVariantType_Null;
-
-				bool result = sBrowserFuncs->getproperty(instance, obj, propertyName, &resultVariant);
-
-				if(result)
-					writeVariantRelease(resultVariant); // free variant (except contained objects)
-
-				writeInt32( result );
-				returnCommand();
-			}
-			break;
-
 		case FUNCTION_NPN_RELEASEOBJECT: // Verified, everything okay
 			{
 				NPObject* obj 		= readHandleObj(stack);
@@ -310,6 +280,141 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
+		case FUNCTION_NPN_INVOKE_DEFAULT: // UNTESTED!
+			{
+				NPP instance 					= readHandleInstance(stack);
+				NPObject* obj 					= readHandleObj(stack);
+				int32_t argCount				= readInt32(stack);
+				std::vector<NPVariant> args 	= readVariantArray(stack, argCount);
+				// refcount is not incremented here!
+
+				NPVariant resultVariant;
+				resultVariant.type = NPVariantType_Null;
+				
+				bool result = sBrowserFuncs->invokeDefault(instance, obj, args.data(), argCount, &resultVariant);
+
+				// Free the variant array
+				freeVariantArray(args);
+
+				if(result)
+					writeVariantRelease(resultVariant);
+
+				writeInt32( result );
+				returnCommand();	
+
+			}
+			break;
+
+		case FUNCTION_NPN_HAS_PROPERTY: // UNTESTED!
+			{
+				NPP instance 					= readHandleInstance(stack);
+				NPObject* obj 					= readHandleObj(stack);
+				NPIdentifier identifier			= readHandleIdentifier(stack);
+
+				bool result = sBrowserFuncs->hasproperty(instance, obj, identifier);
+
+				writeInt32(result);
+				returnCommand();	
+			}
+			break;
+
+		case FUNCTION_NPN_HAS_METHOD: // UNTESTED!
+			{
+				NPP instance 					= readHandleInstance(stack);
+				NPObject* obj 					= readHandleObj(stack);
+				NPIdentifier identifier			= readHandleIdentifier(stack);
+
+				bool result = sBrowserFuncs->hasmethod(instance, obj, identifier);
+
+				writeInt32(result);
+				returnCommand();
+			}
+			break;
+
+		case FUNCTION_NPN_GET_PROPERTY: // Verified, everything okay
+			{
+				NPP instance 				= readHandleInstance(stack);
+				NPObject*  obj 				= readHandleObj(stack);
+				NPIdentifier propertyName	= readHandleIdentifier(stack);
+
+				NPVariant resultVariant;
+				resultVariant.type = NPVariantType_Null;
+
+				bool result = sBrowserFuncs->getproperty(instance, obj, propertyName, &resultVariant);
+
+				if(result)
+					writeVariantRelease(resultVariant); // free variant (except contained objects)
+
+				writeInt32( result );
+				returnCommand();
+			}
+			break;
+
+		case FUNCTION_NPN_SET_PROPERTY: // UNTESTED!
+			{
+				NPP instance 					= readHandleInstance(stack);
+				NPObject* obj 					= readHandleObj(stack);
+				NPIdentifier identifier			= readHandleIdentifier(stack);
+
+				NPVariant value;
+				readVariant(stack, value);
+
+				bool result = sBrowserFuncs->setproperty(instance, obj, identifier, &value);
+
+				freeVariant(value);
+
+				writeInt32(result);
+				returnCommand();
+			}
+			break;
+
+		case FUNCTION_NPN_REMOVE_PROPERTY: // UNTESTED!
+			{
+				NPP instance 					= readHandleInstance(stack);
+				NPObject* obj 					= readHandleObj(stack);
+				NPIdentifier identifier			= readHandleIdentifier(stack);
+
+				bool result = sBrowserFuncs->removeproperty(instance, obj, identifier);
+
+				writeInt32(result);
+				returnCommand();
+			}
+			break;
+
+		case FUNCTION_NPN_ENUMERATE: // UNTESTED!
+			{
+				NPP instance 					= readHandleInstance(stack);
+				NPObject 		*obj 			= readHandleObj(stack);
+
+				NPIdentifier*   identifierTable  = NULL;
+				uint32_t 		identifierCount  = 0;
+
+				bool result = sBrowserFuncs->enumerate(instance, obj, &identifierTable, &identifierCount);
+
+				if(result){
+					writeIdentifierArray(identifierTable, identifierCount);
+
+					// Free the memory for the table
+					if(identifierTable)
+						sBrowserFuncs->memfree(identifierTable);
+				}
+
+				writeInt32(result);
+				returnCommand();
+			}
+			break;
+
+		case FUNCTION_NPN_SET_EXCEPTION: // UNTESTED!
+			{
+				NPObject* obj 					= readHandleObj(stack);
+				std::shared_ptr<char> message 	= readStringAsMemory(stack);
+
+				sBrowserFuncs->setexception(obj, message.get());
+
+				returnCommand();
+			}
+			break;
+
 		case FUNCTION_NPN_GET_URL_NOTIFY:
 			{
 				NPP instance 					= readHandleInstance(stack);
@@ -342,6 +447,74 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
+		case FUNCTION_NPN_GET_URL:
+			{
+				NPP instance 					= readHandleInstance(stack);
+				std::shared_ptr<char> url 		= readStringAsMemory(stack);
+				std::shared_ptr<char> target 	= readStringAsMemory(stack);
+
+				NPError result = sBrowserFuncs->geturl(instance, url.get(), target.get());
+
+				writeInt32(result);
+				returnCommand();
+			}
+			break;
+
+		case FUNCTION_NPN_POST_URL:
+			{
+				NPP instance 					= readHandleInstance(stack);
+				std::shared_ptr<char> url 		= readStringAsMemory(stack);
+				std::shared_ptr<char> target 	= readStringAsMemory(stack);
+
+				size_t len;
+				std::shared_ptr<char> buffer	= readMemory(stack, len);
+				bool file 						= (bool)readInt32(stack);
+
+				NPError result = sBrowserFuncs->posturl(instance, url.get(), target.get(), len, buffer.get(), file);
+
+				writeInt32(result);
+				returnCommand();
+			}
+			break;
+
+		case FUNCTION_NPN_REQUEST_READ: // UNTESTED!
+			{
+				NPStream *stream 				= readHandleStream(stack);
+				uint32_t rangeCount				= readInt32(stack);
+
+				// TODO: Verify that this is correct!
+				std::vector<NPByteRange> rangeVector;
+
+				for(int i = 0; i < rangeCount; i++){
+					NPByteRange range;
+					range.offset = readInt32(stack);
+					range.length = readInt32(stack);
+					range.next   = NULL;
+					rangeVector.push_back(range);
+				}
+
+				// The last element is the latest one, we have to create the links between them...
+				std::vector<NPByteRange>::reverse_iterator lastObject = rangeVector.rend();
+				NPByteRange* rangeList = NULL;
+
+				for(std::vector<NPByteRange>::reverse_iterator it = rangeVector.rbegin(); it != rangeVector.rend(); it++){
+					if(lastObject != rangeVector.rend()){
+						lastObject->next = &(*it);
+					}else{
+						rangeList        = &(*it);
+					}
+					lastObject = it;
+				}
+
+				NPError result = sBrowserFuncs->requestread(stream, rangeList);
+
+				// As soon as the vector is deallocated everything else is gone, too
+
+				writeInt32(result);
+				returnCommand();
+			}
+			break;
+
 		case FUNCTION_NPN_WRITE:
 			{
 				size_t len;
@@ -355,7 +528,24 @@ void dispatcher(int functionid, Stack &stack){
 				writeInt32(result);
 				returnCommand();
 			}
-			break;		
+			break;
+
+		case FUNCTION_NPN_NEW_STREAM:
+			{
+				NPP instance 					= readHandleInstance(stack);
+				std::shared_ptr<char> type 		= readStringAsMemory(stack);
+				std::shared_ptr<char> target 	= readStringAsMemory(stack);
+
+				NPStream* stream = NULL;
+				NPError result = sBrowserFuncs->newstream(instance, type.get(), target.get(), &stream);
+
+				if(result == NPERR_NO_ERROR)
+					writeHandleStream(stream);
+
+				writeInt32(result);
+				returnCommand();
+			}
+			break;
 
 		case FUNCTION_NPN_DESTROY_STREAM:
 			{
@@ -391,6 +581,16 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
+		case FUNCTION_NPN_IDENTIFIER_IS_STRING:
+			{
+				NPIdentifier identifier = readHandleIdentifier(stack);
+				bool result = sBrowserFuncs->identifierisstring(identifier);
+
+				writeInt32(result);
+				returnCommand();
+			}
+			break;
+
 		case FUNCTION_NPN_UTF8_FROM_IDENTIFIER:
 			{
 				NPIdentifier identifier	= readHandleIdentifier(stack);
@@ -406,15 +606,6 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		case FUNCTION_NPN_IDENTIFIER_IS_STRING:
-			{
-				NPIdentifier identifier = readHandleIdentifier(stack);
-				bool result = sBrowserFuncs->identifierisstring(identifier);
-
-				writeInt32(result);
-				returnCommand();
-			}
-			break;
 
 		case FUNCTION_NPN_INT_FROM_IDENTIFIER:
 			{
@@ -424,7 +615,27 @@ void dispatcher(int functionid, Stack &stack){
 				writeInt32(result);
 				returnCommand();
 			}
-			break;		
+			break;
+
+		case FUNCTION_NPN_GET_STRINGIDENTIFIER: // Verified, everything okay
+			{
+				std::shared_ptr<char> utf8name 	= readStringAsMemory(stack);
+				NPIdentifier identifier 		= sBrowserFuncs->getstringidentifier((NPUTF8*) utf8name.get());
+
+				writeHandleIdentifier(identifier);
+				returnCommand();
+			}
+			break;
+
+		case FUNCTION_NPN_GET_INTIDENTIFIER:
+			{
+				int32_t intid 					= readInt32(stack);
+				NPIdentifier identifier 		= sBrowserFuncs->getintidentifier(intid);
+
+				writeHandleIdentifier(identifier);
+				returnCommand();
+			}
+			break;
 
 
 		default:
