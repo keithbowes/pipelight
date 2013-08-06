@@ -53,7 +53,7 @@ static void dettach() __attribute__((destructor));
 
 NPNetscapeFuncs* sBrowserFuncs = NULL;
 
-std::ofstream output(BROWSER_LOG, std::ios::out | std::ios::app);
+//std::ofstream output(BROWSER_LOG, std::ios::out | std::ios::app);
 
 HandleManager handlemanager;
 
@@ -71,30 +71,26 @@ FILE * pipeInF	= NULL;
 pid_t pid = -1;
 
 void attach(){
-	
-	output << "attached" << std::endl;
 
 	PluginConfig config;
 	
 	if(!loadConfig(config, (void*) attach))
 		throw std::runtime_error("Could not load config");
 
-	if( pipe(pipeOut) == -1 ){
-		output << "Could not create Pipe 1" << std::endl;
-		return;
-	}
+	if( pipe(pipeOut) == -1 )
+		throw std::runtime_error("Could not create pipe 1");
 
-	if( pipe(pipeIn) == -1 ){
-		output << "Could not create Pipe 2" << std::endl;
-		return;
-	}
+	if( pipe(pipeIn) == -1 )
+		throw std::runtime_error("Could not create pipe 2");
 
 	pid_t pid = fork();
 	if (pid == 0){
-		
+		// The child process will be replaced with wine
+
 		close(PIPE_BROWSER_READ);
 		close(PIPE_BROWSER_WRITE);
 
+		// Assign to stdin/stdout
 		dup2(PIPE_PLUGIN_READ,  0);
 		dup2(PIPE_PLUGIN_WRITE, 1);	
 		
@@ -103,9 +99,12 @@ void attach(){
 			putenv((char*)prefix.c_str());
 		}
 
+		// Execute wine
 		execlp(config.winePath.c_str(), "wine", config.pluginLoaderPath.c_str(), config.dllPath.c_str(), config.dllName.c_str(), NULL);	
+		throw std::runtime_error("Error in execlp command - probably wrong filename?");
 
 	}else if (pid != -1){
+		// The parent process will return normally and use the pipes to communicate with the child process
 
 		close(PIPE_PLUGIN_READ);
 		close(PIPE_PLUGIN_WRITE);		
@@ -114,9 +113,9 @@ void attach(){
 		pipeInF		= fdopen(PIPE_BROWSER_READ, 	"rb");		
 
 	}else{
-		output << "Error while fork" << std::endl;
-	}
+		throw std::runtime_error("Error while forking");
 
+	}
 }
 
 void dettach(){
@@ -485,7 +484,7 @@ void dispatcher(int functionid, Stack &stack){
 				// TODO: Verify that this is correct!
 				std::vector<NPByteRange> rangeVector;
 
-				for(int i = 0; i < rangeCount; i++){
+				for(unsigned int i = 0; i < rangeCount; i++){
 					NPByteRange range;
 					range.offset = readInt32(stack);
 					range.length = readInt32(stack);

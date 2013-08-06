@@ -135,6 +135,7 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 	debugEnterFunction("NPP_New");
 
 	// TODO: SCHEDULE ONLY ONE TIMER?!
+	// TODO: For Chrome this should be ~0, for Firefox a value of 5-10 is better.
 	sBrowserFuncs->scheduletimer(instance, 5, true, timerFunc);
 
 	if(saved){

@@ -17,7 +17,7 @@ LPCTSTR ClsName = "VirtualBrowser";
 
 //Global Variables
 HandleManager handlemanager;
-std::ofstream output(PLUGIN_LOG, std::ios::out | std::ios::app);
+//std::ofstream output(PLUGIN_LOG, std::ios::out | std::ios::app);
 
 LRESULT CALLBACK WndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
@@ -39,13 +39,10 @@ LRESULT CALLBACK WndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-void freeDataPointer(void *data){
-	
-	if (data){
-		free(data);
-		output << "called free" << std::endl;
+void freeSharedPtrMemory(void *memory){
+	if(memory){
+		free(memory);
 	}
-
 }
 
 std::string np_MimeType;
@@ -61,8 +58,8 @@ std::vector<std::string> splitMimeType(std::string input){
 	
 	std::vector<std::string> result;
 
-	int start 	= 0;
-	int i 		= 0;
+	int start 			= 0;
+	unsigned int i 		= 0;
 
 	while (i < input.length()){
 
@@ -90,7 +87,7 @@ std::string createLinuxCompatibleMimeType(){
 
 	std::string result = "";
 
-	for(int i = 0; i < mimeTypes.size(); i++){
+	for(unsigned int i = 0; i < mimeTypes.size(); i++){
 
 		if(i != 0) 
 			result += ";";
@@ -117,7 +114,7 @@ bool InitDLL(std::string dllPath, std::string dllName){
 	//CoInitializeEx(NULL, COINIT_MULTITHREADED);
 
 	if(!SetDllDirectory(dllPath.c_str())){
-		output << "Failed to set DLL directory" << std::endl;
+		std::cerr << "Failed to set DLL directory" << std::endl;
 	}
 
 	HMODULE dll = LoadLibrary(dllName.c_str());
@@ -128,7 +125,7 @@ bool InitDLL(std::string dllPath, std::string dllName){
 
 		if(requiredBytes){
 
-			std::unique_ptr<void, void (*)(void *)> data(malloc(requiredBytes), freeDataPointer);
+			std::unique_ptr<void, void (*)(void *)> data(malloc(requiredBytes), freeSharedPtrMemory);
 			if(data){
 
 				if (GetFileVersionInfo(dllName.c_str(), 0, requiredBytes, data.get())){
@@ -167,46 +164,48 @@ bool InitDLL(std::string dllPath, std::string dllName){
 					}
 
 					/*
-					output << "mimeType: " << np_MimeType << std::endl;
-					output << "FileExtents: " << np_FileExtents << std::endl;
-					output << "FileOpenName" << np_FileOpenName << std::endl;
-					output << "ProductName" << np_ProductName << std::endl;
-					output << "FileDescription" << np_FileDescription << std::endl;
-					output << "Language:" << np_Language << std::endl;
+					std::cerr << "mimeType: " << np_MimeType << std::endl;
+					std::cerr << "FileExtents: " << np_FileExtents << std::endl;
+					std::cerr << "FileOpenName" << np_FileOpenName << std::endl;
+					std::cerr << "ProductName" << np_ProductName << std::endl;
+					std::cerr << "FileDescription" << np_FileDescription << std::endl;
+					std::cerr << "Language:" << np_Language << std::endl;
 					*/
 
 					NP_GetEntryPointsFunc 	NP_GetEntryPoints 	= (NP_GetEntryPointsFunc) 	GetProcAddress(dll, "NP_GetEntryPoints");
 					NP_InitializeFunc 		NP_Initialize 		= (NP_InitializeFunc) 		GetProcAddress(dll, "NP_Initialize");
 
 					if(NP_GetEntryPoints && NP_Initialize){
-
 						if (NP_Initialize(&browserFuncs) == NPERR_NO_ERROR){
 
 							if(NP_GetEntryPoints(&pluginFuncs) == NPERR_NO_ERROR){
 								return true;
 
 							}else{
-								output << "Failed to get entry points for plugin functions" << std::endl;
+								std::cerr << "Failed to get entry points for plugin functions" << std::endl;
 							}
 						}else{
-							output << "Failed to initialize" << std::endl;
+							std::cerr << "Failed to initialize" << std::endl;
 						}
 					}else{
-						output << "Could not load Entry Points from DLL" << std::endl;
+						std::cerr << "Could not load Entry Points from DLL" << std::endl;
 					}
+
 				}else{
-					output << "Failed to get File Version" << std::endl;
+					std::cerr << "Failed to get File Version" << std::endl;
 				}
 			}else{
-				output << "Failed to allocate Memory" << std::endl;		
+				std::cerr << "Failed to allocate Memory" << std::endl;		
 			}
 		}else{
-			output << "Could not load version information" << std::endl;
+			std::cerr << "Could not load version information" << std::endl;
 		}
+
 		FreeLibrary(dll);
+
 	}else{
-		output << "Could not load library :-(" << std::endl;
-		output << "Last error: " << GetLastError() << std::endl;
+		std::cerr << "Last error: " << GetLastError() << std::endl;
+		std::cerr << "Could not load library" << std::endl;
 	}
 
 	return false;
@@ -215,8 +214,6 @@ bool InitDLL(std::string dllPath, std::string dllName){
 
 
 int main(int argc, char *argv[]){
-	
-	output << "---------" << std::endl;
 
 	if(argc < 3)
 		throw std::runtime_error("Not enough arguments supplied");
@@ -224,11 +221,7 @@ int main(int argc, char *argv[]){
 	std::string dllPath = std::string(argv[1]);
 	std::string dllName = std::string(argv[2]);
 
-	/* Great TIP:
-		Create a copy of Stdin & Stdout!
-		Some plugins will take it away otherwise...
-	*/
-
+	// Copy stdin and stdout
 	int stdoutF	= _dup(1);
 	pipeOutF 	= _fdopen(stdoutF, 	"wb");
 
@@ -241,9 +234,8 @@ int main(int argc, char *argv[]){
 	//Redirect STDOUT to STDERR
 	SetStdHandle(STD_OUTPUT_HANDLE, GetStdHandle(STD_ERROR_HANDLE));
 
-	WNDCLASSEX WndClsEx;
-
 	// Create the application window
+	WNDCLASSEX WndClsEx;
 	WndClsEx.cbSize        = sizeof(WNDCLASSEX);
 	WndClsEx.style         = CS_HREDRAW | CS_VREDRAW;
 	WndClsEx.lpfnWndProc   = &WndProcedure;
@@ -258,21 +250,21 @@ int main(int argc, char *argv[]){
 	WndClsEx.hIconSm       = LoadIcon(NULL, IDI_APPLICATION);
 
 	ATOM classAtom = RegisterClassEx(&WndClsEx);
-
 	if(classAtom){
 
 		if (InitDLL(dllPath, dllName)){
-			output << "Init sucessfull!" << std::endl;
+			std::cerr << "Init sucessfull!" << std::endl;
 
 			Stack stack;
-			readCommands(stack, false);		
+			readCommands(stack, false);	
+
 		}else{
-			output << "Failed to initialize DLL" << std::endl;
+			std::cerr << "Failed to initialize DLL" << std::endl;
 		}
 
 
 	}else{
-		output << "Failed to register class" << std::endl;
+		std::cerr << "Failed to register class" << std::endl;
 	}
 
 
@@ -658,8 +650,6 @@ void dispatcher(int functionid, Stack &stack){
 					UpdateWindow (hwnd);
 
 					instance->ndata = (void*) hwnd;
-
-					output << "Created Window" << std::endl;
 				}
 
 				//HWND hwnd = GetDesktopWindow();
@@ -687,7 +677,7 @@ void dispatcher(int functionid, Stack &stack){
 					UpdateWindow (hwnd);
 
 				}else{
-					output << "Could not create window" << std::endl;
+					std::cerr << "Could not create window" << std::endl;
 				}
 
 				returnCommand();

@@ -3,7 +3,6 @@
 #include "../npapi-headers/npfunctions.h"
 #include "../handlemanager/handlemanager.h"
 #include "../communication/communication.h"
-#include "../config.h"
 #include <fstream>
 #include <cstdlib>
 #include <windows.h>
@@ -96,5 +95,3 @@ LRESULT CALLBACK WndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 void freeDataPointer(void *data);
 std::string createLinuxCompatibleMimeType();
 bool InitDLL();
-
-extern std::ofstream output;
