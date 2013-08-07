@@ -210,7 +210,7 @@ void HandleManager::removeHandleByReal(uint64_t real, HandleType type){
 	handlesReal.erase(it);
 
 	/*
-	std::cerr << "Removed from handle manager: REAL=" << (void*)real << std::endl;
+	std::cerr << "[PIPELIGHT] Removed from handle manager: REAL=" << (void*)real << std::endl;
 
 	int num[TYPE_MaxTypes];
 
@@ -218,20 +218,20 @@ void HandleManager::removeHandleByReal(uint64_t real, HandleType type){
 		num[i] = 0;
 	}
 
-	std::cerr << "Handles:";
+	std::cerr << "[PIPELIGHT] Handles:";
 
 	for(it = handlesReal.begin(); it != handlesReal.end(); it++){
 		num[ it->second.type ]++;
 
-		std::cerr << " " << (void*)it->second.real;
+		std::cerr << "[PIPELIGHT] " << (void*)it->second.real;
 	}
 	std::cerr << std::endl;
 
-	std::cerr << "* TYPE_NPObject: " << num[TYPE_NPObject] << std::endl;
-	std::cerr << "* TYPE_NPIdentifier: " << num[TYPE_NPIdentifier] << std::endl;
-	std::cerr << "* TYPE_NPPInstance: " << num[TYPE_NPPInstance] << std::endl;
-	std::cerr << "* TYPE_NPStream: " << num[TYPE_NPStream] << std::endl;
-	std::cerr << "* TYPE_NotifyData: " << num[TYPE_NotifyData] << std::endl;
+	std::cerr << "[PIPELIGHT] * TYPE_NPObject: " << num[TYPE_NPObject] << std::endl;
+	std::cerr << "[PIPELIGHT] * TYPE_NPIdentifier: " << num[TYPE_NPIdentifier] << std::endl;
+	std::cerr << "[PIPELIGHT] * TYPE_NPPInstance: " << num[TYPE_NPPInstance] << std::endl;
+	std::cerr << "[PIPELIGHT] * TYPE_NPStream: " << num[TYPE_NPStream] << std::endl;
+	std::cerr << "[PIPELIGHT] * TYPE_NotifyData: " << num[TYPE_NotifyData] << std::endl;
 	*/
 }
 

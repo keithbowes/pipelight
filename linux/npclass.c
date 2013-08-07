@@ -1,7 +1,7 @@
 #include "basicplugin.h"
 
 void NPInvalidateFunction(NPObject *npobj){
-	debugEnterFunction("NPInvalidateFunction");
+	EnterFunction();
 
 	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_INVALIDATE);
@@ -10,7 +10,7 @@ void NPInvalidateFunction(NPObject *npobj){
 
 // Verified, everything okay
 bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name){
-	debugEnterFunction("NPHasMethodFunction");
+	EnterFunction();
 
 	writeHandleIdentifier(name);
 	writeHandleObj(npobj);
@@ -22,7 +22,7 @@ bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name){
 
 // Verified, everything okay
 bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args, uint32_t argCount, NPVariant *result){
-	debugEnterFunction("NPInvokeFunction");
+	EnterFunction();
 
 	// Warning: parameter order swapped!
 	writeVariantArrayConst(args, argCount);
@@ -48,7 +48,7 @@ bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args,
 }
 
 bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result){ // UNTESTED!
-	debugEnterFunction("NPInvokeDefaultFunction");
+	EnterFunction();
 
 	writeVariantArrayConst(args, argCount);
 	writeInt32(argCount);
@@ -73,7 +73,7 @@ bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t ar
 
 // Verified, everything okay
 bool NPHasPropertyFunction(NPObject *npobj, NPIdentifier name){
-	debugEnterFunction("NPHasPropertyFunction");
+	EnterFunction();
 
 	writeHandleIdentifier(name);
 	writeHandleObj(npobj);
@@ -85,7 +85,7 @@ bool NPHasPropertyFunction(NPObject *npobj, NPIdentifier name){
 
 // Verified, everything okay
 bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result){
-	debugEnterFunction("NPGetPropertyFunction");
+	EnterFunction();
 
 	writeHandleIdentifier(name);
 	writeHandleObj(npobj);
@@ -106,7 +106,7 @@ bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result
 }
 
 bool NPSetPropertyFunction(NPObject *npobj, NPIdentifier name, const NPVariant *value){
-	debugEnterFunction("NPSetPropertyFunction");
+	EnterFunction();
 
 	writeVariantConst(*value);
 	writeHandleIdentifier(name);
@@ -118,7 +118,7 @@ bool NPSetPropertyFunction(NPObject *npobj, NPIdentifier name, const NPVariant *
 }
 
 bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name){ // UNTESTED!
-	debugEnterFunction("NPRemovePropertyFunction");
+	EnterFunction();
 
 	writeHandleIdentifier(name);
 	writeHandleObj(npobj);
@@ -128,7 +128,7 @@ bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name){ // UNTESTED!
 }
 
 bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *count){ // UNTESTED!
-	debugEnterFunction("NPEnumerationFunction");
+	EnterFunction();
 
 	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_ENUMERATE);
@@ -160,13 +160,13 @@ bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *coun
 // Not implemented yet as this is not yet included in the official docs and its very unlikely that
 // an old plugin requires this function
 bool NPConstructFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result){
-	debugNotImplemented("NPConstructFunction");
+	NotImplemented();
 	return false;
 }
 
 // Verified, everything okay
 NPObject * NPAllocateFunction(NPP npp, NPClass *aClass){
-	debugEnterFunction("NPAllocateFunction");
+	EnterFunction();
 
 	NPObject* obj = (NPObject*)malloc(sizeof(NPObject));
 	if(obj){
@@ -178,7 +178,7 @@ NPObject * NPAllocateFunction(NPP npp, NPClass *aClass){
 
 // Verified, everything okay
 void NPDeallocateFunction(NPObject *npobj){
-	debugEnterFunction("NPDeallocateFunction");
+	EnterFunction();
 
 	if(npobj){
 		bool exists = handlemanager.existsHandleByReal((uint64_t)npobj, TYPE_NPObject);

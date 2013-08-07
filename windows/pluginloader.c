@@ -173,7 +173,7 @@ bool InitDLL(std::string dllPath, std::string dllName){
 	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 
 	if(!SetDllDirectory(dllPath.c_str())){
-		std::cerr << "Failed to set DLL directory" << std::endl;
+		std::cerr << "[PIPELIGHT] Failed to set DLL directory" << std::endl;
 	}
 
 	HMODULE dll = LoadLibrary(dllName.c_str());
@@ -223,12 +223,12 @@ bool InitDLL(std::string dllPath, std::string dllName){
 					}
 
 					/*
-					std::cerr << "mimeType: " << np_MimeType << std::endl;
-					std::cerr << "FileExtents: " << np_FileExtents << std::endl;
-					std::cerr << "FileOpenName" << np_FileOpenName << std::endl;
-					std::cerr << "ProductName" << np_ProductName << std::endl;
-					std::cerr << "FileDescription" << np_FileDescription << std::endl;
-					std::cerr << "Language:" << np_Language << std::endl;
+					std::cerr << "[PIPELIGHT] mimeType: " << np_MimeType << std::endl;
+					std::cerr << "[PIPELIGHT] FileExtents: " << np_FileExtents << std::endl;
+					std::cerr << "[PIPELIGHT] FileOpenName" << np_FileOpenName << std::endl;
+					std::cerr << "[PIPELIGHT] ProductName" << np_ProductName << std::endl;
+					std::cerr << "[PIPELIGHT] FileDescription" << np_FileDescription << std::endl;
+					std::cerr << "[PIPELIGHT] Language:" << np_Language << std::endl;
 					*/
 
 					NP_GetEntryPointsFunc 	NP_GetEntryPoints 	= (NP_GetEntryPointsFunc) 	GetProcAddress(dll, "NP_GetEntryPoints");
@@ -241,30 +241,30 @@ bool InitDLL(std::string dllPath, std::string dllName){
 								return true;
 
 							}else{
-								std::cerr << "Failed to get entry points for plugin functions" << std::endl;
+								std::cerr << "[PIPELIGHT] Failed to get entry points for plugin functions" << std::endl;
 							}
 						}else{
-							std::cerr << "Failed to initialize" << std::endl;
+							std::cerr << "[PIPELIGHT] Failed to initialize" << std::endl;
 						}
 					}else{
-						std::cerr << "Could not load Entry Points from DLL" << std::endl;
+						std::cerr << "[PIPELIGHT] Could not load Entry Points from DLL" << std::endl;
 					}
 
 				}else{
-					std::cerr << "Failed to get File Version" << std::endl;
+					std::cerr << "[PIPELIGHT] Failed to get File Version" << std::endl;
 				}
 			}else{
-				std::cerr << "Failed to allocate Memory" << std::endl;		
+				std::cerr << "[PIPELIGHT] Failed to allocate Memory" << std::endl;
 			}
 		}else{
-			std::cerr << "Could not load version information" << std::endl;
+			std::cerr << "[PIPELIGHT] Could not load version information" << std::endl;
 		}
 
 		FreeLibrary(dll);
 
 	}else{
-		std::cerr << "Last error: " << GetLastError() << std::endl;
-		std::cerr << "Could not load library" << std::endl;
+		std::cerr << "[PIPELIGHT] Last error: " << GetLastError() << std::endl;
+		std::cerr << "[PIPELIGHT] Could not load library" << std::endl;
 	}
 
 	return false;
@@ -285,9 +285,9 @@ int main(int argc, char *argv[]){
 	IsWindowlessMode = (windowMode == "windowless");
 
 	if(IsWindowlessMode){
-		std::cerr << "Using WINDOWLESS mode" << std::endl;
+		std::cerr << "[PIPELIGHT] Using WINDOWLESS mode" << std::endl;
 	}else{
-		std::cerr << "Using WINDOW mode" << std::endl;
+		std::cerr << "[PIPELIGHT] Using WINDOW mode" << std::endl;
 	}
 
 	// Copy stdin and stdout
@@ -322,18 +322,18 @@ int main(int argc, char *argv[]){
 	if(classAtom){
 
 		if (InitDLL(dllPath, dllName)){
-			std::cerr << "Init sucessfull!" << std::endl;
+			std::cerr << "[PIPELIGHT] Init sucessfull!" << std::endl;
 
 			Stack stack;
 			readCommands(stack, false);	
 
 		}else{
-			std::cerr << "Failed to initialize DLL" << std::endl;
+			std::cerr << "[PIPELIGHT] Failed to initialize DLL" << std::endl;
 		}
 
 
 	}else{
-		std::cerr << "Failed to register class" << std::endl;
+		std::cerr << "[PIPELIGHT] Failed to register class" << std::endl;
 	}
 
 
@@ -728,7 +728,7 @@ void dispatcher(int functionid, Stack &stack){
 				}
 
 				if(!hWnd){
-					std::cerr << "Failed to create window!" << std::endl;
+					std::cerr << "[PIPELIGHT] Failed to create window!" << std::endl;
 				}
 
 				if(!IsWindowlessMode && hWnd){

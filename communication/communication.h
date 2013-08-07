@@ -160,3 +160,18 @@ void waitReturn();
 
 void debugEnterFunction( std::string name );
 void debugNotImplemented( std::string name );
+
+#define STRINGIZE_DETAIL(x) #x
+#define STRINGIZE(x) STRINGIZE_DETAIL(x)
+
+//#define DEBUG_FUNCTION_ENTER
+
+#ifdef DEBUG_FUNCTION_ENTER
+	#define EnterFunction() \
+		debugEnterFunction(std::string(__func__));
+#else
+	#define EnterFunction() 
+#endif
+
+#define NotImplemented() \
+	debugNotImplemented(std::string(__func__) + " (" + std::string(__FILE__) + ":" + std::string(STRINGIZE(__LINE__)) + ")" );

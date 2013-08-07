@@ -548,15 +548,21 @@ void waitReturn(){
 // Debug stuff
 
 void debugEnterFunction( std::string name ){
-	//std::cerr << name << std::endl;
+	#ifdef __WIN32__
+		std::cerr << "[PIPELIGHT:WINDOWS] " << name << " entered" << std::endl;
+
+	#else
+		std::cerr << "[PIPELIGHT:LINUX] " << name << " entered" << std::endl;
+
+	#endif
 }
 
 void debugNotImplemented( std::string name ){
 	#ifdef __WIN32__
-		std::cerr << "PIPELIGHT:WIN: NOTIMPLEMENTED: " << name << std::endl;
+		std::cerr << "[PIPELIGHT:WINDOWS] " << name << " not implemented!" << std::endl;
 
 	#else
-		std::cerr << "PIPELIGHT:LIN: NOTIMPLEMENTED:  " << name << std::endl;
+		std::cerr << "[PIPELIGHT:LINUX] " << name << " not implemented!" << std::endl;
 
 	#endif
 }

@@ -19,7 +19,7 @@ void pokeString(std::string str, char *dest, unsigned int maxLength){
 NP_EXPORT(NPError)
 NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 {
-	debugEnterFunction("NP_Initialize");
+	EnterFunction();
 
 	sBrowserFuncs = bFuncs;
 
@@ -49,7 +49,7 @@ NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 NP_EXPORT(char*)
 NP_GetPluginVersion()
 {
-	debugEnterFunction("NP_GetPluginVersion");
+	EnterFunction();
 
 	callFunction(FUNCTION_GET_VERSION);
 
@@ -63,7 +63,7 @@ NP_GetPluginVersion()
 NP_EXPORT(const char*)
 NP_GetMIMEDescription()
 {
-	debugEnterFunction("NP_GetMIMEDescription");
+	EnterFunction();
 
 	callFunction(FUNCTION_GET_MIMETYPE);
 
@@ -76,7 +76,7 @@ NP_GetMIMEDescription()
 // Verified, everything okay
 NP_EXPORT(NPError)
 NP_GetValue(void* future, NPPVariable aVariable, void* aValue) {
-	debugEnterFunction("NP_GetValue");
+	EnterFunction();
 	
 	NPError result = NPERR_GENERIC_ERROR;
 	std::string resultStr;
@@ -104,7 +104,7 @@ NP_GetValue(void* future, NPPVariable aVariable, void* aValue) {
 			break;
 
 		default:
-			debugNotImplemented("NP_GetValue (several variables)");
+			NotImplemented();
 			result = NPERR_INVALID_PARAM;
 			break;
 
@@ -116,7 +116,7 @@ NP_GetValue(void* future, NPPVariable aVariable, void* aValue) {
 // TODO: Is this type correct? Does an errorcode make sense?
 NP_EXPORT(NPError)
 NP_Shutdown() {
-	debugEnterFunction("NP_Shutdown");
+	EnterFunction();
 
 	callFunction(NP_SHUTDOWN);
 	waitReturn();
@@ -132,7 +132,7 @@ void timerFunc(NPP instance, uint32_t timerID){
 // Verified, everything okay
 NPError
 NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* argn[], char* argv[], NPSavedData* saved) {
-	debugEnterFunction("NPP_New");
+	EnterFunction();
 
 	// TODO: SCHEDULE ONLY ONE TIMER?!
 	// TODO: For Chrome this should be ~0, for Firefox a value of 5-10 is better.
@@ -167,7 +167,7 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 
 NPError
 NPP_Destroy(NPP instance, NPSavedData** save) {
-	debugEnterFunction("NPP_Destroy");
+	EnterFunction();
 
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_DESTROY);
@@ -206,7 +206,7 @@ NPP_Destroy(NPP instance, NPSavedData** save) {
 // Verified, everything okay
 NPError
 NPP_SetWindow(NPP instance, NPWindow* window) {
-	debugEnterFunction("NPP_SetWindow");
+	EnterFunction();
 
 	// TODO: translate to Screen coordinates
 	// TODO: Use all parameters
@@ -225,7 +225,7 @@ NPP_SetWindow(NPP instance, NPWindow* window) {
 // Verified, everything okay
 NPError
 NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool seekable, uint16_t* stype) {
-	debugEnterFunction("NPP_NewStream");
+	EnterFunction();
 
 	writeInt32(seekable);
 	writeHandleStream(stream);
@@ -247,7 +247,7 @@ NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool seekable, 
 // Verified, everything okay
 NPError
 NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
-	debugEnterFunction("NPP_DestroyStream");
+	EnterFunction();
 	
 	writeInt32(reason);
 	writeHandleStream(stream);
@@ -265,7 +265,7 @@ NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
 // Verified, everything okay
 int32_t
 NPP_WriteReady(NPP instance, NPStream* stream) {
-	debugEnterFunction("NPP_WriteReady");
+	EnterFunction();
 	
 	writeHandleStream(stream);
 	writeHandleInstance(instance);	
@@ -279,7 +279,7 @@ NPP_WriteReady(NPP instance, NPStream* stream) {
 // Verified, everything okay
 int32_t
 NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, void* buffer) {
-	debugEnterFunction("NPP_Write");
+	EnterFunction();
 
 	writeMemory((char*)buffer, len);
 	writeInt32(offset);
@@ -293,26 +293,26 @@ NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, void* buf
 // Not implemented as it doesnt make sense to pass filenames between both the windows and linux instances
 void
 NPP_StreamAsFile(NPP instance, NPStream* stream, const char* fname) {
-	debugNotImplemented("NPP_StreamAsFile");
+	NotImplemented();
 }
 
 // Platform-specific print operation also isn't well defined between two different platforma
 void
 NPP_Print(NPP instance, NPPrint* platformPrint) {
-	debugNotImplemented("NPP_Print");
+	NotImplemented();
 }
 
 // Delivers platform-specific events.. but again this doesnt make much sense, as long as a translation function is missing
 int16_t
 NPP_HandleEvent(NPP instance, void* event) {
-	debugNotImplemented("NPP_HandleEvent");
+	NotImplemented();
 	return 0;
 }
 
 // Verified, everything okay
 void
 NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyData) {
-	debugEnterFunction("NPP_URLNotify");
+	EnterFunction();
 
 	writeHandleNotify(notifyData);
 	writeInt32(reason);
@@ -325,7 +325,7 @@ NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyData) 
 // Verified, everything okay
 NPError
 NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
-	debugEnterFunction("NPP_GetValue");
+	EnterFunction();
 
 	NPError result = NPERR_GENERIC_ERROR;
 	std::vector<ParameterInfo> stack;
@@ -358,7 +358,7 @@ NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 
 
 		default:
-			debugNotImplemented("NPP_GetValue (several variables)");
+			NotImplemented();
 			result = NPERR_INVALID_PARAM;
 			break;
 	}
@@ -369,6 +369,6 @@ NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 // As the size of the value depends on the specific variable, this also isn't easy to implement
 NPError
 NPP_SetValue(NPP instance, NPNVariable variable, void *value) {
-	debugNotImplemented("NPP_SetValue");
+	NotImplemented();
 	return NPERR_GENERIC_ERROR;
 }

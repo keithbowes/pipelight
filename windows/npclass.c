@@ -8,61 +8,61 @@
 */
 
 void NPInvalidateFunction(NPObject *npobj){
-	debugNotImplemented("NPCLASS:NPInvalidateFunction");
+	NotImplemented();
 }
 
 bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name){
-	debugNotImplemented("NPCLASS:NPHasMethodFunction");
+	NotImplemented();
 	return false;
 }
 
 bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args, uint32_t argCount, NPVariant *result){
-	debugNotImplemented("NPCLASS:NPInvokeFunction");
+	NotImplemented();
 	return false;
 }
 
 bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result){
-	debugNotImplemented("NPCLASS:NPInvokeDefaultFunction");
+	NotImplemented();
 	return false;
 }
 
 bool NPHasPropertyFunction(NPObject *npobj, NPIdentifier name){
-	debugNotImplemented("NPCLASS:NPHasPropertyFunction");
+	NotImplemented();
 	return false;
 }
 
 bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result){
-	debugNotImplemented("NPCLASS:NPGetPropertyFunction");
+	NotImplemented();
 	return false;
 }
 
 bool NPSetPropertyFunction(NPObject *npobj, NPIdentifier name, const NPVariant *value){
-	debugNotImplemented("NPCLASS:NPSetPropertyFunction");
+	NotImplemented();
 	return false;
 }
 
 bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name){
-	debugNotImplemented("NPCLASS:NPRemovePropertyFunction");
+	NotImplemented();
 	return false;
 }
 
 bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *count){
-	debugNotImplemented("NPCLASS:NPEnumerationFunction");
+	NotImplemented();
 	return false;
 }
 
 bool NPConstructFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result){
-	debugNotImplemented("NPCLASS:NPConstructFunction");
+	NotImplemented();
 	return false;
 }
 
 NPObject * NPAllocateFunction(NPP npp, NPClass *aClass){
-	debugNotImplemented("NPCLASS:NPAllocateFunction");
+	NotImplemented();
 	return NULL;
 }
 
 void NPDeallocateFunction(NPObject *npobj){
-	debugNotImplemented("NPCLASS:NPDeallocateFunction");
+	NotImplemented();
 }
 
 NPClass myClass = {

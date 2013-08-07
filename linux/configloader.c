@@ -99,7 +99,7 @@ bool loadConfig(PluginConfig &config, void *function){
 	std::string configPath = homeDir + "/.pipelight/" + filename;
 
 	// Print some debug message
-	std::cerr << "Trying to load config file from " << configPath << std::endl;
+	std::cerr << "[PIPELIGHT] Trying to load config file from " << configPath << std::endl;
 
 	std::ifstream configFile(configPath);
 
@@ -164,7 +164,7 @@ bool loadConfig(PluginConfig &config, void *function){
 			config.windowlessMode = (value == "true");
 
 		}else{
-			std::cerr << "Unrecognized config key: " << key << std::endl;
+			std::cerr << "[PIPELIGHT] Unrecognized config key: " << key << std::endl;
 		}
 
 	}
@@ -178,11 +178,11 @@ bool loadConfig(PluginConfig &config, void *function){
 		config.winePath = "wine";
 
 	/*
-	std::cerr << "winePath: " << config.winePath << std::endl;
-	std::cerr << "winePrefix: " << config.winePrefix << std::endl;
-	std::cerr << "dllPath: " << config.dllPath << std::endl;
-	std::cerr << "dllName: " << config.dllName << std::endl;
-	std::cerr << "pluginLoaderPath: " << config.pluginLoaderPath << std::endl;
+	std::cerr << "[PIPELIGHT] winePath: " << config.winePath << std::endl;
+	std::cerr << "[PIPELIGHT] winePrefix: " << config.winePrefix << std::endl;
+	std::cerr << "[PIPELIGHT] dllPath: " << config.dllPath << std::endl;
+	std::cerr << "[PIPELIGHT] dllName: " << config.dllName << std::endl;
+	std::cerr << "[PIPELIGHT] pluginLoaderPath: " << config.pluginLoaderPath << std::endl;
 	*/
 	
 	return true;
