@@ -53,6 +53,14 @@ LRESULT CALLBACK WndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 						hDC = BeginPaint(hWnd, &paint);
 						if(hDC != NULL){
 
+							// Save the previous DC (or allocate a new one)
+							HDC previousDC;
+							if(window->type == NPWindowTypeDrawable){
+								previousDC = (HDC)window->window;
+							}else{
+								previousDC = GetDC(hWnd);
+							}
+
 							window->window 				= hDC;
 							window->x 					= 0;
 							window->y 					= 0;
@@ -78,7 +86,11 @@ LRESULT CALLBACK WndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 							pluginFuncs.event(instance, &event);
 
 							EndPaint(hWnd, &paint);
-							window->window = NULL;
+
+							// Restore the previous DC
+							window->window = previousDC;
+							pluginFuncs.setwindow(instance, window);
+
 						}
 
 						return 0;
@@ -87,20 +99,32 @@ LRESULT CALLBACK WndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 				// All other events
 				}else{
 
-					window->window 				= GetDC(hWnd);
-					window->type 				= NPWindowTypeDrawable;
-					pluginFuncs.setwindow(instance, window);
+					// Workaround for Silverlight - the events are not correctly handled if
+					// window->window is nonzero
+					// Set it to zero before calling the event handler in this case
+
+					HDC previousDC = NULL;
+
+					if(	window->type == NPWindowTypeDrawable &&
+						((Msg >= WM_KEYFIRST && Msg <= WM_KEYLAST) ||
+						 (Msg >= WM_MOUSEFIRST && Msg <= WM_MOUSELAST )) ){
+
+						previousDC = (HDC)window->window;
+						window->window = NULL;
+					}
 
 					NPEvent event;
 					event.event 	= Msg;
 					event.wParam 	= wParam;
 					event.lParam 	= lParam;
-					pluginFuncs.event(instance, &event);
+					int16_t result = pluginFuncs.event(instance, &event);
 
-					ReleaseDC(hWnd, (HDC)window->window);
-					window->window = NULL;
+					if(previousDC){
+						window->window = previousDC;
+					}
 
-					// Even though the event is handled, it is necessary to call the DefWindowProc!
+					if(result == kNPEventHandled) return 0;
+
 				}
 			}
 		}
@@ -397,39 +421,6 @@ void dispatcher(int functionid, Stack &stack){
 				DWORD abortTime = GetTickCount() + 100;
 				while (GetTickCount() < abortTime && PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) ){
 					TranslateMessage(&msg);
-
-					// This is very tricky, but I didn't find any other method to solve some mysterious problems
-					if(IsWindowlessMode){
-						if( msg.hwnd && (
-								(msg.message >= WM_KEYFIRST && msg.message <= WM_KEYLAST) ||
-								(msg.message >= WM_MOUSEFIRST && msg.message <= WM_MOUSELAST )
-								) ){
-
-							std::map<HWND, NPP>::iterator it = hwndToInstance.find(msg.hwnd);
-							if(it != hwndToInstance.end()){
-
-								NPP instance = it->second;
-								if(instance){
-
-									/*NetscapeData* ndata = (NetscapeData*)instance->ndata;
-									if(ndata && ndata->window){
-										NPWindow* window = ndata->window;*/
-
-									NPEvent event;
-									event.event 	= msg.message;
-									event.wParam 	= msg.wParam;
-									event.lParam 	= msg.lParam;
-									pluginFuncs.event(instance, &event);
-
-									//}
-								}
-
-								continue;
-							}
-						}
-					}
-
-					// All other messages have to be dispatched
 					DispatchMessage(&msg);
 				}
 				returnCommand();
@@ -698,13 +689,21 @@ void dispatcher(int functionid, Stack &stack){
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
 				if(ndata){
 
+					// ReleaseDC and free memory for window info
+					if(ndata->window){
+						if(ndata->window->type == NPWindowTypeDrawable && ndata->hWnd){
+							ReleaseDC(ndata->hWnd, (HDC)ndata->window->window);
+						}
+						free(ndata->window);
+					}
+
+					// Destroy the window itself
 					if(ndata->hWnd){
 						hwndToInstance.erase(ndata->hWnd);
 						DestroyWindow(ndata->hWnd);
 					}
 
-					if(ndata->window)	free(ndata->window);
-
+					// Free this structure
 					free(ndata);
 					instance->ndata = NULL;
 				}
@@ -819,17 +818,17 @@ void dispatcher(int functionid, Stack &stack){
 							window->clipRect.bottom = height;
 
 							if(IsWindowlessMode){
-								window->window 			= NULL; //GetDC(ndata->hWnd);
+								window->window 			= GetDC(ndata->hWnd);
 								window->type 			= NPWindowTypeDrawable;
+
+								pluginFuncs.setwindow(instance, window);
 								// setwindow doesnt make sense until we have a DC
 
 							}else{
 								window->window 			= ndata->hWnd;
 								window->type 			= NPWindowTypeWindow;
 								pluginFuncs.setwindow(instance, window);
-							}
-							
-							
+							}						
 
 						}
 						
