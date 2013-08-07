@@ -110,7 +110,6 @@ uint64_t HandleManager::translateFrom(uint64_t id, HandleType type, NPP instance
 	Handle handle;
 	handle.id 			= id;
 	handle.type 		= type;
-	handle.selfCreated 	= true;
 
 	switch(type){
 
@@ -182,7 +181,6 @@ uint64_t HandleManager::translateTo(uint64_t real, HandleType type, bool shouldE
 	handle.id 			= getFreeID();
 	handle.real 		= real;
 	handle.type 		= type;
-	handle.selfCreated 	= false;
 
 	handlesID[handle.id] 	= handle;
 	handlesReal[std::pair<HandleType, uint64_t>(type, real)] 		= handle;
@@ -244,6 +242,17 @@ bool HandleManager::existsHandleByReal(uint64_t real, HandleType type){
 	return true;
 }
 
+NPP_t* HandleManager::findInstance(){
+	std::map<uint64_t, Handle>::iterator it;
+
+	for(it = handlesID.begin(); it != handlesID.end(); it++){
+		if(it->second.type == TYPE_NPPInstance){
+			return (NPP_t*)it->second.real;
+		}
+	}
+
+	return NULL;
+}
 
 
 void writeHandle(uint64_t real, HandleType type, bool shouldExist){

@@ -1,9 +1,14 @@
 #include "basicplugin.h"
+#include <iostream>
 
 char strMimeType[2048] 			= {0};
 char strPluginversion[100]		= {0};
 char strPluginName[256] 		= {0};
 char strPluginDescription[1024]	= {0};
+
+// Instance responsible for triggering the timer
+uint32_t  	EventTimerID 			= 0;
+NPP 		EventTimerInstance 		= NULL;
 
 void pokeString(std::string str, char *dest, unsigned int maxLength){
 	if(maxLength > 0){
@@ -136,7 +141,13 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 
 	// TODO: SCHEDULE ONLY ONE TIMER?!
 	// TODO: For Chrome this should be ~0, for Firefox a value of 5-10 is better.
-	sBrowserFuncs->scheduletimer(instance, 5, true, timerFunc);
+
+	if( EventTimerInstance == NULL ){
+		EventTimerID 		= sBrowserFuncs->scheduletimer(instance, 5, true, timerFunc);
+		EventTimerInstance 	= instance;
+	}else{
+		std::cerr << "[PIPELIGHT] Already one running timer" << std::endl;
+	}
 
 	if(saved){
 		writeMemory((char*)saved->buf, saved->len);
@@ -168,6 +179,14 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 NPError
 NPP_Destroy(NPP instance, NPSavedData** save) {
 	EnterFunction();
+
+	if( EventTimerInstance && EventTimerInstance == instance ){
+		sBrowserFuncs->unscheduletimer(instance, EventTimerID);
+		EventTimerInstance 	= NULL;
+		EventTimerID 		= 0;
+
+		std::cerr << "[PIPELIGHT] Unscheduled event timer" << std::endl;
+	}
 
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_DESTROY);
@@ -205,6 +224,19 @@ NPP_Destroy(NPP instance, NPSavedData** save) {
 	}
 
 	handlemanager.removeHandleByReal((uint64_t)instance, TYPE_NPPInstance);
+
+	if( EventTimerInstance == NULL ){
+		NPP nextInstance = handlemanager.findInstance();
+		if( nextInstance ){
+			EventTimerID 		= sBrowserFuncs->scheduletimer(nextInstance, 5, true, timerFunc);
+			EventTimerInstance 	= instance;
+
+			std::cerr << "[PIPELIGHT] Started timer in instance " << (void*)nextInstance << std::endl;
+
+		}else{
+			std::cerr << "[PIPELIGHT] No more instance found, timer stays stopped" << std::endl;
+		}
+	}
 
 	return result;
 }
