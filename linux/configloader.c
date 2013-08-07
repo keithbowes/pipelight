@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <dlfcn.h>
 #include <iostream>
+#include <unistd.h>
 
 std::string getFileName(std::string path){
 
