@@ -7,6 +7,7 @@ struct PluginConfig{
 	std::string dllPath; //we may need to extend this to a vector in the future
 	std::string dllName;
 	std::string pluginLoaderPath;
+	bool 		windowlessMode;
 };
 
 std::string getFileName(std::string path);

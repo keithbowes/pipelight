@@ -99,8 +99,12 @@ void attach(){
 			putenv((char*)prefix.c_str());
 		}
 
+		// Put together the flags
+		std::string windowMode = "window";
+		if(config.windowlessMode) windowMode = "windowless";
+
 		// Execute wine
-		execlp(config.winePath.c_str(), "wine", config.pluginLoaderPath.c_str(), config.dllPath.c_str(), config.dllName.c_str(), NULL);	
+		execlp(config.winePath.c_str(), "wine", config.pluginLoaderPath.c_str(), config.dllPath.c_str(), config.dllName.c_str(), windowMode.c_str(), NULL);	
 		throw std::runtime_error("Error in execlp command - probably wrong filename?");
 
 	}else if (pid != -1){

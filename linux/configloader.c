@@ -71,6 +71,14 @@ std::string trim(std::string str){
 
 bool loadConfig(PluginConfig &config, void *function){
 
+	// Initialize config variables
+	config.winePath 		= "";
+	config.winePrefix 		= "";
+	config.dllPath 			= "";
+	config.dllName 			= "";
+	config.pluginLoaderPath = "";
+	config.windowlessMode 	= false;
+
 	Dl_info dl_info;
 	if(!dladdr(function, &dl_info))
 		return false;
@@ -138,14 +146,25 @@ bool loadConfig(PluginConfig &config, void *function){
 
 		if(key == "winepath"){
 			config.winePath = value;
+
 		}else if(key == "wineprefix"){
 			config.winePrefix = value;
+
 		}else if(key == "dllpath"){
-			config.dllPath = value;			
+			config.dllPath = value;	
+
 		}else if(key == "dllname"){
-			config.dllName = value;		
+			config.dllName = value;
+
 		}else if(key == "pluginloaderpath"){
-			config.pluginLoaderPath = value;		
+			config.pluginLoaderPath = value;
+
+		}else if(key == "windowlessmode"){
+			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+			config.windowlessMode = (value == "true");
+
+		}else{
+			std::cerr << "Unrecognized config key: " << key << std::endl;
 		}
 
 	}

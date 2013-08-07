@@ -5,6 +5,7 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <algorithm>
 #include <io.h>
 #include "pluginloader.h"
 
@@ -19,21 +20,84 @@ LPCTSTR ClsName = "VirtualBrowser";
 HandleManager handlemanager;
 //std::ofstream output(PLUGIN_LOG, std::ios::out | std::ios::app);
 
+NPPluginFuncs pluginFuncs = {sizeof(pluginFuncs), NP_VERSION_MINOR};
+
+bool IsWindowlessMode = false;
+
+
 LRESULT CALLBACK WndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
-	switch(Msg)
-	{
 
-		case WM_DESTROY:
-			//PostQuitMessage(WM_QUIT);
-			return 0;
+	// Handle events in windowless mode
+	if(IsWindowlessMode){
 
-		default:
-			return DefWindowProc(hWnd, Msg, wParam, lParam);
+		NPP instance = (NPP)GetWindowLongPtr(hWnd, 0);
+		if(instance){
+			if( Msg == WM_PAINT ){
+				RECT rect;
+				PAINTSTRUCT paint;
+				HDC hDC;
+
+				if( GetClientRect(hWnd, &rect) ){
+					
+					hDC = BeginPaint(hWnd, &paint);
+					if(hDC != NULL){
+
+						NPWindow window;
+						window.window 			= hDC;
+						window.x 				= 0;
+						window.y 				= 0;
+						window.width 			= rect.right;
+						window.height 			= rect.bottom;
+						window.clipRect.top 	= 0;
+						window.clipRect.left 	= 0;
+						window.clipRect.right 	= rect.right;
+						window.clipRect.bottom 	= rect.bottom;
+						window.type 			= NPWindowTypeDrawable;
+						pluginFuncs.setwindow(instance, &window);
+
+						NPEvent event;
+						event.event 	= Msg;
+						event.wParam 	= (uintptr_t)hDC;
+						event.lParam 	= (uintptr_t)&paint.rcPaint;
+						pluginFuncs.event(instance, &event);
+
+						EndPaint(hWnd, &paint);
+					}
+				}
+
+				return 0;
+
+			}else if(	(Msg >= WM_KEYFIRST   && Msg <= WM_KEYLAST) ||
+						(Msg >= WM_MOUSEFIRST && Msg <= WM_MOUSELAST) ||
+						Msg == WM_SETCURSOR || Msg == WM_SETFOCUS || Msg == WM_KILLFOCUS ){
+
+				NPEvent event;
+				event.event 	= Msg;
+				event.wParam 	= wParam;
+				event.lParam 	= lParam;
+
+				// If the event was captured by the plugin, then dont call the default handler
+				if(pluginFuncs.event(instance, &event)) return 0;
+
+			}else if( Msg == WM_SIZE ){
+				InvalidateRect(hWnd, NULL, false);
+
+			}
+		}
 
 	}
-	
-	return 0;
+
+
+	if(Msg == WM_DESTROY){
+		return 0;
+
+	}else if(Msg == WM_CLOSE){
+		return 0;
+
+	}else{
+		return DefWindowProc(hWnd, Msg, wParam, lParam);
+	}
 }
 
 void freeSharedPtrMemory(void *memory){
@@ -48,8 +112,6 @@ std::string np_FileOpenName;
 std::string np_ProductName;
 std::string np_FileDescription;
 std::string np_Language;
-
-NPPluginFuncs pluginFuncs = {sizeof(pluginFuncs), NP_VERSION_MINOR};
 
 std::vector<std::string> splitMimeType(std::string input){
 	
@@ -107,8 +169,8 @@ std::string createLinuxCompatibleMimeType(){
 bool InitDLL(std::string dllPath, std::string dllName){
 
 	// Thanks Microsoft - I searched a whole day to find this bug!
-	CoInitialize(NULL);
-	//CoInitializeEx(NULL, COINIT_MULTITHREADED);
+	//CoInitialize(NULL);
+	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 
 	if(!SetDllDirectory(dllPath.c_str())){
 		std::cerr << "Failed to set DLL directory" << std::endl;
@@ -215,8 +277,18 @@ int main(int argc, char *argv[]){
 	if(argc < 3)
 		throw std::runtime_error("Not enough arguments supplied");
 
-	std::string dllPath = std::string(argv[1]);
-	std::string dllName = std::string(argv[2]);
+	std::string dllPath 		= std::string(argv[1]);
+	std::string dllName 		= std::string(argv[2]);
+
+	std::string windowMode   	= (argc >= 4) ? std::string(argv[3]) : "";
+	std::transform(windowMode.begin(), windowMode.end(), windowMode.begin(), ::tolower);
+	IsWindowlessMode = (windowMode == "windowless");
+
+	if(IsWindowlessMode){
+		std::cerr << "Using WINDOWLESS mode" << std::endl;
+	}else{
+		std::cerr << "Using WINDOW mode" << std::endl;
+	}
 
 	// Copy stdin and stdout
 	int stdoutF	= _dup(1);
@@ -237,10 +309,10 @@ int main(int argc, char *argv[]){
 	WndClsEx.style         = CS_HREDRAW | CS_VREDRAW;
 	WndClsEx.lpfnWndProc   = &WndProcedure;
 	WndClsEx.cbClsExtra    = 0;
-	WndClsEx.cbWndExtra    = 0;
+	WndClsEx.cbWndExtra    = sizeof(NPP);
 	WndClsEx.hIcon         = LoadIcon(NULL, IDI_APPLICATION);
 	WndClsEx.hCursor       = LoadCursor(NULL, IDC_ARROW);
-	WndClsEx.hbrBackground = (HBRUSH)GetStockObject(LTGRAY_BRUSH);
+	WndClsEx.hbrBackground = NULL; //(HBRUSH)GetStockObject(LTGRAY_BRUSH);
 	WndClsEx.lpszMenuName  = NULL;
 	WndClsEx.lpszClassName = ClsName;
 	WndClsEx.hInstance     = GetModuleHandle(NULL);
@@ -297,19 +369,20 @@ void dispatcher(int functionid, Stack &stack){
 				// Process window events
 				MSG msg;
 
-				/*int maxEvents = 64;
-				while (maxEvents > 0 && PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)){
-					TranslateMessage(&msg);
-					DispatchMessage(&msg);
-					maxEvents--;
-				}*/
+				DWORD abortTime = GetTickCount() + 100;
+				while (GetTickCount() < abortTime){
+					if( PeekMessage(&msg, NULL, WM_MOUSEFIRST, WM_MOUSELAST, PM_REMOVE) ||
+						PeekMessage(&msg, NULL, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE) ||
+						PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) ){
 
-				// Experimental...
-				DWORD abortTime = GetTickCount() + 10;
-				while (GetTickCount() < abortTime && PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)){
-					TranslateMessage(&msg);
-					DispatchMessage(&msg);
+						TranslateMessage(&msg);
+						DispatchMessage(&msg);
+					}else{
+						break;
+					}
+
 				}
+
 
 				returnCommand();
 			}
@@ -537,6 +610,9 @@ void dispatcher(int functionid, Stack &stack){
 					savedPtr 	= &saved;
 				}
 
+				// Most plugins only support windowlessMode in combination with NP_EMBED
+				if(IsWindowlessMode)	mode = NP_EMBED;
+
 				NPError result = pluginFuncs.newp(mimeType.get(), instance, mode, argc, argn.data(), argv.data(), savedPtr);
 
 				// Free the arrays before returning
@@ -629,9 +705,8 @@ void dispatcher(int functionid, Stack &stack){
 				int32_t width 	= readInt32(stack);
 				int32_t height 	= readInt32(stack);
 
-				HWND hwnd = (HWND)instance->ndata;
-
-				if(!hwnd){
+				HWND hWnd = (HWND)instance->ndata;
+				if(!hWnd){
 
 					RECT rect;
 					rect.left 	= 0;
@@ -641,40 +716,36 @@ void dispatcher(int functionid, Stack &stack){
 
 					AdjustWindowRect(&rect, WS_TILEDWINDOW, false);
 
-					hwnd = CreateWindow(ClsName, "Plugintest", WS_TILEDWINDOW, x, y, rect.right - rect.left, rect.bottom - rect.top, 0, 0, 0, 0);
+					hWnd = CreateWindow(ClsName, "Plugintest", WS_TILEDWINDOW, x, y, rect.right - rect.left, rect.bottom - rect.top, 0, 0, 0, 0);
+					if(hWnd){
+						SetWindowLongPtr(hWnd, 0, (LONG_PTR)instance);
 
-					ShowWindow(hwnd, SW_SHOW);
-					UpdateWindow (hwnd);
+						ShowWindow(hWnd, SW_SHOW);
+						UpdateWindow (hWnd);
 
-					instance->ndata = (void*) hwnd;
+						instance->ndata = (void*) hWnd;
+					}
 				}
 
-				//HWND hwnd = GetDesktopWindow();
-				if (hwnd){
-					
+				if(!hWnd){
+					std::cerr << "Failed to create window!" << std::endl;
+				}
+
+				if(!IsWindowlessMode && hWnd){
 					NPWindow window;
 
-					window.window 	= (void*)hwnd;
-					window.x 		= x;
-					window.y 		= y;
-					window.width 	= width;
-					window.height 	= height; 
-
+					window.window 			= hWnd;
+					window.x 				= 0;
+					window.y 				= 0;
+					window.width 			= width;
+					window.height 			= height; 
 					window.clipRect.top 	= 0;
 					window.clipRect.left 	= 0;
 					window.clipRect.right 	= width;
 					window.clipRect.bottom 	= height;
-
 					window.type = NPWindowTypeWindow;
 
 					pluginFuncs.setwindow(instance, &window);
-
-					// Show again!
-					ShowWindow(hwnd, SW_SHOW);
-					UpdateWindow (hwnd);
-
-				}else{
-					std::cerr << "Could not create window" << std::endl;
 				}
 
 				returnCommand();

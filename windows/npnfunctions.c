@@ -1,7 +1,10 @@
 #include "pluginloader.h"
+#include <iostream>
 
 char strUserAgent[1024] 			= {0};
+
 extern HandleManager handlemanager;
+extern bool IsWindowlessMode;
 
 void pokeString(std::string str, char *dest, unsigned int maxLength){
 	if(maxLength > 0){
@@ -264,15 +267,21 @@ void NP_LOADDS NPN_InvalidateRect(NPP instance, NPRect *rect){
 
 	HWND hWnd = (HWND)instance->ndata;
 	if(hWnd){
-		/*RECT r;
-		r.left 		= rect->left;
-		r.top 		= rect->top;
-		r.right 	= rect->right;
-		r.bottom 	= rect->bottom;*/
 
-		// r doesnt provide accurate information, so we use NULL here
-		InvalidateRect(hWnd, NULL, false);
-		//UpdateWindow(hWnd);
+		if(IsWindowlessMode){
+			RECT r;
+			r.left 		= rect->left;
+			r.top 		= rect->top;
+			r.right 	= rect->right;
+			r.bottom 	= rect->bottom;
+			InvalidateRect(hWnd, &r, false);
+
+		// As far as I have noticed the rect value is incorrect in windowed mode - invalidating the whole region necessary
+		// TODO: Completely disable this?
+		}else{
+			InvalidateRect(hWnd, NULL, false);
+
+		}
 
 	}
 }
