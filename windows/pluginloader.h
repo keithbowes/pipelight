@@ -95,3 +95,9 @@ LRESULT CALLBACK WndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 void freeDataPointer(void *data);
 std::string createLinuxCompatibleMimeType();
 bool InitDLL();
+
+
+struct NetscapeData{
+	HWND hWnd;
+	NPWindow* window;
+};

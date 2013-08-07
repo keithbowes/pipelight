@@ -248,6 +248,19 @@ NPError NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 
 			break;
 
+		case NPNVnetscapeWindow:
+			{
+				NetscapeData* ndata = (NetscapeData*)instance->ndata;
+				if(ndata && ndata->hWnd){
+					result = NPERR_NO_ERROR;
+					*((HWND*)value) = ndata->hWnd;
+
+				}else{
+					result = NPERR_GENERIC_ERROR;
+				}
+			}
+			break;
+
 		default:
 			debugNotImplemented("NPN_GetValue (several variables)");
 			break;
@@ -265,33 +278,35 @@ NPError NPN_SetValue(NPP instance, NPPVariable variable, void *value){
 void NP_LOADDS NPN_InvalidateRect(NPP instance, NPRect *rect){
 	debugEnterFunction("NPN_InvalidateRect");
 
-	HWND hWnd = (HWND)instance->ndata;
-	if(hWnd){
+	NetscapeData* ndata = (NetscapeData*)instance->ndata;
+	if(ndata){
+		if(ndata->hWnd){
+			if(IsWindowlessMode){
+				RECT r;
+				r.left 		= rect->left;
+				r.top 		= rect->top;
+				r.right 	= rect->right;
+				r.bottom 	= rect->bottom;
+				InvalidateRect(ndata->hWnd, &r, false);
 
-		if(IsWindowlessMode){
-			RECT r;
-			r.left 		= rect->left;
-			r.top 		= rect->top;
-			r.right 	= rect->right;
-			r.bottom 	= rect->bottom;
-			InvalidateRect(hWnd, &r, false);
+			// As far as I have noticed the rect value is incorrect in windowed mode - invalidating the whole region necessary
+			// TODO: Completely disable this?
+			}else{
+				InvalidateRect(ndata->hWnd, NULL, false);
 
-		// As far as I have noticed the rect value is incorrect in windowed mode - invalidating the whole region necessary
-		// TODO: Completely disable this?
-		}else{
-			InvalidateRect(hWnd, NULL, false);
-
+			}
 		}
-
 	}
 }
 
 void NP_LOADDS NPN_InvalidateRegion(NPP instance, NPRegion region){
 	debugEnterFunction("NPN_InvalidateRegion");
 
-	HWND hWnd = (HWND)instance->ndata;
-	if(hWnd){
-		InvalidateRgn(hWnd, region, false);
+	NetscapeData* ndata = (NetscapeData*)instance->ndata;
+	if(ndata){
+		if(ndata->hWnd){
+			InvalidateRgn(ndata->hWnd, region, false);
+		}
 		//UpdateWindow(hwnd);
 	}
 }
@@ -299,9 +314,11 @@ void NP_LOADDS NPN_InvalidateRegion(NPP instance, NPRegion region){
 void NP_LOADDS NPN_ForceRedraw(NPP instance){
 	debugEnterFunction("NPN_ForceRedraw");
 
-	HWND hWnd = (HWND)instance->ndata;
-	if(hWnd){
-		UpdateWindow(hWnd);
+	NetscapeData* ndata = (NetscapeData*)instance->ndata;
+	if(ndata){
+		if(ndata->hWnd){
+			UpdateWindow(ndata->hWnd);
+		}
 	}
 }
 

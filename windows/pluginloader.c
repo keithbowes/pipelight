@@ -23,76 +23,101 @@ HandleManager handlemanager;
 NPPluginFuncs pluginFuncs = {sizeof(pluginFuncs), NP_VERSION_MINOR};
 
 bool IsWindowlessMode = false;
-
+std::map<HWND, NPP> hwndToInstance;
 
 LRESULT CALLBACK WndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
 
 	// Handle events in windowless mode
-	if(IsWindowlessMode){
+	if(IsWindowlessMode && hWnd){
 
-		NPP instance = (NPP)GetWindowLongPtr(hWnd, 0);
-		if(instance){
-			if( Msg == WM_PAINT ){
-				RECT rect;
-				PAINTSTRUCT paint;
-				HDC hDC;
+		// Get instance
+		std::map<HWND, NPP>::iterator it = hwndToInstance.find(hWnd);
+		if(it != hwndToInstance.end()){
+			NPP instance = it->second;
 
-				if( GetClientRect(hWnd, &rect) ){
-					
-					hDC = BeginPaint(hWnd, &paint);
-					if(hDC != NULL){
+			// Get netscape data
+			NetscapeData* ndata = (NetscapeData*)instance->ndata;
+			if(ndata && ndata->window){
+				NPWindow* window = ndata->window;
 
-						NPWindow window;
-						window.window 			= hDC;
-						window.x 				= 0;
-						window.y 				= 0;
-						window.width 			= rect.right;
-						window.height 			= rect.bottom;
-						window.clipRect.top 	= 0;
-						window.clipRect.left 	= 0;
-						window.clipRect.right 	= rect.right;
-						window.clipRect.bottom 	= rect.bottom;
-						window.type 			= NPWindowTypeDrawable;
-						pluginFuncs.setwindow(instance, &window);
+				// Paint event
+				if( Msg == WM_PAINT ){
 
-						NPEvent event;
-						event.event 	= Msg;
-						event.wParam 	= (uintptr_t)hDC;
-						event.lParam 	= (uintptr_t)&paint.rcPaint;
-						pluginFuncs.event(instance, &event);
+					RECT rect;
+					PAINTSTRUCT paint;
+					HDC hDC;
 
-						EndPaint(hWnd, &paint);
+					if( GetClientRect(hWnd, &rect) ) {
+						
+						hDC = BeginPaint(hWnd, &paint);
+						if(hDC != NULL){
+
+							window->window 				= hDC;
+							window->x 					= 0;
+							window->y 					= 0;
+							window->width 				= rect.right;
+							window->height 				= rect.bottom;
+							window->clipRect.top 		= 0;
+							window->clipRect.left 		= 0;
+							window->clipRect.right 		= rect.right;
+							window->clipRect.bottom 	= rect.bottom;
+							window->type 				= NPWindowTypeDrawable;
+							pluginFuncs.setwindow(instance, window);
+
+							NPRect nRect;
+							nRect.top 		= paint.rcPaint.top;
+							nRect.left 		= paint.rcPaint.left;
+							nRect.bottom 	= paint.rcPaint.bottom;
+							nRect.right 	= paint.rcPaint.right;
+
+							NPEvent event;
+							event.event 	= Msg;
+							event.wParam 	= (uintptr_t)hDC;
+							event.lParam 	= (uintptr_t)&nRect;
+							pluginFuncs.event(instance, &event);
+
+							EndPaint(hWnd, &paint);
+							window->window = NULL;
+						}
+
+						return 0;
 					}
+
+				// All other events
+				}else{
+
+					window->window 				= GetDC(hWnd);
+					window->type 				= NPWindowTypeDrawable;
+					pluginFuncs.setwindow(instance, window);
+
+					NPEvent event;
+					event.event 	= Msg;
+					event.wParam 	= wParam;
+					event.lParam 	= lParam;
+					pluginFuncs.event(instance, &event);
+
+					ReleaseDC(hWnd, (HDC)window->window);
+					window->window = NULL;
+
+					// Even though the event is handled, it is necessary to call the DefWindowProc!
 				}
-
-				return 0;
-
-			}else if(	(Msg >= WM_KEYFIRST   && Msg <= WM_KEYLAST) ||
-						(Msg >= WM_MOUSEFIRST && Msg <= WM_MOUSELAST) ||
-						Msg == WM_SETCURSOR || Msg == WM_SETFOCUS || Msg == WM_KILLFOCUS ){
-
-				NPEvent event;
-				event.event 	= Msg;
-				event.wParam 	= wParam;
-				event.lParam 	= lParam;
-
-				// If the event was captured by the plugin, then dont call the default handler
-				if(pluginFuncs.event(instance, &event)) return 0;
-
-			}else if( Msg == WM_SIZE ){
-				InvalidateRect(hWnd, NULL, false);
-
 			}
 		}
-
 	}
 
-
+	// Otherwise we only have to handle several regular events
 	if(Msg == WM_DESTROY){
 		return 0;
 
 	}else if(Msg == WM_CLOSE){
+		return 0;
+
+	}else if(Msg == WM_ERASEBKGND){
+    	return 0; // TODO: Correct return value?
+
+	}else if( Msg == WM_SIZE ){
+		InvalidateRect(hWnd, NULL, false);
 		return 0;
 
 	}else{
@@ -309,7 +334,7 @@ int main(int argc, char *argv[]){
 	WndClsEx.style         = CS_HREDRAW | CS_VREDRAW;
 	WndClsEx.lpfnWndProc   = &WndProcedure;
 	WndClsEx.cbClsExtra    = 0;
-	WndClsEx.cbWndExtra    = sizeof(NPP);
+	WndClsEx.cbWndExtra    = 0;
 	WndClsEx.hIcon         = LoadIcon(NULL, IDI_APPLICATION);
 	WndClsEx.hCursor       = LoadCursor(NULL, IDC_ARROW);
 	WndClsEx.hbrBackground = NULL; //(HBRUSH)GetStockObject(LTGRAY_BRUSH);
@@ -370,20 +395,43 @@ void dispatcher(int functionid, Stack &stack){
 				MSG msg;
 
 				DWORD abortTime = GetTickCount() + 100;
-				while (GetTickCount() < abortTime){
-					if( PeekMessage(&msg, NULL, WM_MOUSEFIRST, WM_MOUSELAST, PM_REMOVE) ||
-						PeekMessage(&msg, NULL, WM_KEYFIRST, WM_KEYLAST, PM_REMOVE) ||
-						PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) ){
+				while (GetTickCount() < abortTime && PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) ){
+					TranslateMessage(&msg);
 
-						TranslateMessage(&msg);
-						DispatchMessage(&msg);
-					}else{
-						break;
+					// This is very tricky, but I didn't find any other method to solve some mysterious problems
+					if(IsWindowlessMode){
+						if( msg.hwnd && (
+								(msg.message >= WM_KEYFIRST && msg.message <= WM_KEYLAST) ||
+								(msg.message >= WM_MOUSEFIRST && msg.message <= WM_MOUSELAST )
+								) ){
+
+							std::map<HWND, NPP>::iterator it = hwndToInstance.find(msg.hwnd);
+							if(it != hwndToInstance.end()){
+
+								NPP instance = it->second;
+								if(instance){
+
+									/*NetscapeData* ndata = (NetscapeData*)instance->ndata;
+									if(ndata && ndata->window){
+										NPWindow* window = ndata->window;*/
+
+									NPEvent event;
+									event.event 	= msg.message;
+									event.wParam 	= msg.wParam;
+									event.lParam 	= msg.lParam;
+									pluginFuncs.event(instance, &event);
+
+									//}
+								}
+
+								continue;
+							}
+						}
 					}
 
+					// All other messages have to be dispatched
+					DispatchMessage(&msg);
 				}
-
-
 				returnCommand();
 			}
 			break;
@@ -615,6 +663,21 @@ void dispatcher(int functionid, Stack &stack){
 
 				NPError result = pluginFuncs.newp(mimeType.get(), instance, mode, argc, argn.data(), argv.data(), savedPtr);
 
+				// Allocate structure!
+				if(result == NPERR_NO_ERROR){
+					NetscapeData* ndata = (NetscapeData*)malloc(sizeof(NetscapeData));
+					if(ndata){
+						instance->ndata = ndata;
+
+						ndata->hWnd 	= NULL;
+						ndata->window 	= NULL;
+
+					}else{
+						instance->ndata = NULL;
+						std::cerr << "Unable to allocate memory for private data" << std::endl;
+					}
+				}
+
 				// Free the arrays before returning
 				freeStringArray(argn);
 				freeStringArray(argv);
@@ -631,10 +694,19 @@ void dispatcher(int functionid, Stack &stack){
 				
 				NPError result 		= pluginFuncs.destroy(instance, &saved);
 
-				// Destroy the window
-				HWND hwnd = (HWND)instance->ndata;
-				if(hwnd){
-					DestroyWindow(hwnd);
+				// Destroy the pointers
+				NetscapeData* ndata = (NetscapeData*)instance->ndata;
+				if(ndata){
+
+					if(ndata->hWnd){
+						hwndToInstance.erase(ndata->hWnd);
+						DestroyWindow(ndata->hWnd);
+					}
+
+					if(ndata->window)	free(ndata->window);
+
+					free(ndata);
+					instance->ndata = NULL;
 				}
 
 				free(instance);
@@ -705,47 +777,69 @@ void dispatcher(int functionid, Stack &stack){
 				int32_t width 	= readInt32(stack);
 				int32_t height 	= readInt32(stack);
 
-				HWND hWnd = (HWND)instance->ndata;
-				if(!hWnd){
+				NetscapeData* ndata = (NetscapeData*)instance->ndata;
+				if(ndata){
 
-					RECT rect;
-					rect.left 	= 0;
-					rect.top	= 0;
-					rect.right 	= width;
-					rect.bottom = height;
+					if(! ndata->hWnd){
 
-					AdjustWindowRect(&rect, WS_TILEDWINDOW, false);
+						RECT rect;
+						rect.left 	= 0;
+						rect.top	= 0;
+						rect.right 	= width;
+						rect.bottom = height;
 
-					hWnd = CreateWindow(ClsName, "Plugintest", WS_TILEDWINDOW, x, y, rect.right - rect.left, rect.bottom - rect.top, 0, 0, 0, 0);
-					if(hWnd){
-						SetWindowLongPtr(hWnd, 0, (LONG_PTR)instance);
+						AdjustWindowRect(&rect, WS_TILEDWINDOW, false);
 
-						ShowWindow(hWnd, SW_SHOW);
-						UpdateWindow (hWnd);
+						ndata->hWnd = CreateWindow(ClsName, "Plugin", WS_TILEDWINDOW, x, y, rect.right - rect.left, rect.bottom - rect.top, 0, 0, 0, 0);
+						if(ndata->hWnd){
+							ShowWindow(ndata->hWnd, SW_SHOW);
+							UpdateWindow (ndata->hWnd);
 
-						instance->ndata = (void*) hWnd;
+							hwndToInstance.insert( std::pair<HWND, NPP>(ndata->hWnd, instance) );
+						}
 					}
-				}
 
-				if(!hWnd){
-					std::cerr << "Failed to create window!" << std::endl;
-				}
+					if(ndata->hWnd){
 
-				if(!IsWindowlessMode && hWnd){
-					NPWindow window;
+						
+						NPWindow* window = (NPWindow*)malloc(sizeof(NPWindow));
+						if(window){
 
-					window.window 			= hWnd;
-					window.x 				= 0;
-					window.y 				= 0;
-					window.width 			= width;
-					window.height 			= height; 
-					window.clipRect.top 	= 0;
-					window.clipRect.left 	= 0;
-					window.clipRect.right 	= width;
-					window.clipRect.bottom 	= height;
-					window.type = NPWindowTypeWindow;
+							// This pointer replaces the previous one
+							if(ndata->window) free(ndata->window);
+							ndata->window = window;
 
-					pluginFuncs.setwindow(instance, &window);
+							window->x 				= 0;
+							window->y 				= 0;
+							window->width 			= width;
+							window->height 			= height; 
+							window->clipRect.top 	= 0;
+							window->clipRect.left 	= 0;
+							window->clipRect.right 	= width;
+							window->clipRect.bottom = height;
+
+							if(IsWindowlessMode){
+								window->window 			= NULL; //GetDC(ndata->hWnd);
+								window->type 			= NPWindowTypeDrawable;
+								// setwindow doesnt make sense until we have a DC
+
+							}else{
+								window->window 			= ndata->hWnd;
+								window->type 			= NPWindowTypeWindow;
+								pluginFuncs.setwindow(instance, window);
+							}
+							
+							
+
+						}
+
+						
+					}else{
+						std::cerr << "Failed to create window!" << std::endl;
+					}
+
+				}else{
+					std::cerr << "Unable to allocate window because of missing ndata" << std::endl;
 				}
 
 				returnCommand();
