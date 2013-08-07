@@ -177,25 +177,31 @@ NPP_Destroy(NPP instance, NPSavedData** save) {
 
 	NPError result 	= readInt32(stack);
 
-	// We write a nullpointer in case we dont want to return anything
-	*save = NULL;
-
 	if(result == NPERR_NO_ERROR){
-		size_t save_length;
-		char* save_data = readMemoryBrowserAlloc(stack, save_length);
+		if(save){
+			size_t save_length;
+			char* save_data = readMemoryBrowserAlloc(stack, save_length);
 
-		if(save_data){
-			*save = (NPSavedData*) sBrowserFuncs->memalloc(sizeof(NPSavedData));
-			if(*save){
+			if(save_data && save){
+				*save = (NPSavedData*) sBrowserFuncs->memalloc(sizeof(NPSavedData));
+				if(*save){
 
-				(*save)->buf = save_data;
-				(*save)->len = save_length;
+					(*save)->buf = save_data;
+					(*save)->len = save_length;
 
+				}else{
+					sBrowserFuncs->memfree(save_data);
+				}
 			}else{
 				sBrowserFuncs->memfree(save_data);
 			}
+
+		}else{ // Skip the saved data
+			stack.pop_back();
 		}
 
+	}else if(save){
+		*save = NULL; // Nothing to save
 	}
 
 	handlemanager.removeHandleByReal((uint64_t)instance, TYPE_NPPInstance);

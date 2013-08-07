@@ -18,7 +18,7 @@ npclass.o: npclass.c
 configloader.o: configloader.c configloader.h
 	$(CC) $(CFLAGS) -c configloader.c -o configloader.o
 
-pluginfunctions.o:
+pluginfunctions.o: pluginfunctions.c
 	$(CC) $(CFLAGS) -c pluginfunctions.c -o pluginfunctions.o
 
 .PHONY: all
