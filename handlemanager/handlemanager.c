@@ -12,10 +12,18 @@ extern NPNetscapeFuncs *sBrowserFuncs;
 
 #include <fstream>
 
+// TODO: Improve this method - allow using low handles again
 uint64_t HandleManager::getFreeID(){
 	if(handlesID.size() > 0){
 		//The last elment has the biggest ID
-		return handlesID.rbegin()->first + 1;
+		uint64_t freeHandle = handlesID.rbegin()->first + 1;
+
+		if(freeHandle == 0){
+			throw std::runtime_error("Too much handles?");
+		}
+
+		return freeHandle;
+
 	}else{
 		return 1;
 	}
@@ -84,6 +92,18 @@ NPStream * createNPStream(uint64_t id){
 
 	return stream;
 }
+
+#else
+
+NotifyDataRefCount* createNotifyDataRefCount(uint64_t id){
+	NotifyDataRefCount* notifyData = (NotifyDataRefCount*)malloc(sizeof(NotifyDataRefCount));
+	if(!notifyData) throw std::runtime_error("Could not create notify-data wrapper!");
+
+	notifyData->referenceCount = 0;
+
+	return notifyData;
+}
+
 #endif
 
 
@@ -91,6 +111,15 @@ NPStream * createNPStream(uint64_t id){
 // aclass and instance  are used for some cases when a new object is generated
 uint64_t HandleManager::translateFrom(uint64_t id, HandleType type, NPP instance, NPClass *aclass, HandleExists shouldExist){
 	std::map<uint64_t, Handle>::iterator it;
+
+	if(!id){
+		if(type == TYPE_NotifyData){
+			return 0;
+
+		}else{
+			throw std::runtime_error("Trying to translate the reserved null id");
+		}
+	}
 
 	it = handlesID.find(id);
 	if(it != handlesID.end()){
@@ -147,11 +176,12 @@ uint64_t HandleManager::translateFrom(uint64_t id, HandleType type, NPP instance
 
 		case TYPE_NotifyData:
 			#ifdef __WIN32__
-				handle.real = 0; 	// If something is new for the plugin side, there is no notifyData assigned
+				//handle.real = 0; 	// If something is new for the plugin side, there is no notifyData assigned
+				throw std::runtime_error("Error in handle manager: Cannot create local NotifyData");
+
 			#else
-				handle.real = id; 	// But on the other side we have to set notifyData!
+				handle.real = (uint64_t) createNotifyDataRefCount(id); 	// But on the other side we have to set notifyData!
 			#endif
-				
 			break;
 
 		default:
@@ -168,8 +198,13 @@ uint64_t HandleManager::translateTo(uint64_t real, HandleType type, HandleExists
 	std::map<std::pair<HandleType, uint64_t>, Handle>::iterator it;
 
 	// Except for TYPE_NotifyData we dont allow nullpointers here for obvious reasons
-	if(!real && type != TYPE_NotifyData){
-		throw std::runtime_error("trying to translate a null-handle");
+	if(!real){
+		if(type == TYPE_NotifyData){
+			return 0;
+
+		}else{
+			throw std::runtime_error("Trying to translate a null-handle");
+		}
 	}
 
 	it = handlesReal.find(std::pair<HandleType, uint64_t>(type, real));

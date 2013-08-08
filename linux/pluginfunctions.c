@@ -305,7 +305,7 @@ NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool seekable, 
 	EnterFunction();
 
 	writeInt32(seekable);
-	writeHandleStream(stream, HANDLE_SHOULD_NOT_EXIST);
+	writeHandleStream(stream);
 	writeString(type);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_NEW_STREAM);
@@ -317,8 +317,11 @@ NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool seekable, 
 
 	if(result == NPERR_NO_ERROR){
 		*stype 			= (uint16_t)readInt32(stack);
+
 	}else{ // Handle is now invalid because of this error
 		handlemanager.removeHandleByReal((uint64_t)stream, TYPE_NPStream);
+
+		// We get another request using our notifyData after everything
 	}
 
 	return result;
@@ -328,7 +331,7 @@ NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool seekable, 
 NPError
 NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
 	EnterFunction();
-	
+
 	writeInt32(reason);
 	writeHandleStream(stream, HANDLE_SHOULD_EXIST);
 	writeHandleInstance(instance);
@@ -338,6 +341,8 @@ NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
 
 	// Remove the handle by the corresponding stream real object
 	handlemanager.removeHandleByReal((uint64_t)stream, TYPE_NPStream);
+
+	// We get another request using our notifyData after everything
 
 	return result;
 }
@@ -399,12 +404,37 @@ void
 NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyData) {
 	EnterFunction();
 
-	writeHandleNotify(notifyData);
+	writeHandleNotify(notifyData, HANDLE_SHOULD_EXIST);
 	writeInt32(reason);
 	writeString(URL);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_URL_NOTIFY);
 	waitReturn();
+
+	// Free all the notifydata stuff
+	NotifyDataRefCount* myNotifyData = (NotifyDataRefCount*)notifyData;
+	if(myNotifyData){
+
+		if(myNotifyData->referenceCount == 0){
+			throw std::runtime_error("Reference count is zero when calling NPP_URLNotify!");
+		}
+
+		// Decrement refcount
+		myNotifyData->referenceCount--;
+
+		if(myNotifyData->referenceCount == 0){
+
+			// Free everything
+			writeHandleNotify(myNotifyData);
+			callFunction(HANDLE_MANAGER_FREE_NOTIFY_DATA);
+			waitReturn();
+
+			handlemanager.removeHandleByReal((uint64_t)myNotifyData, TYPE_NotifyData);
+
+			free(myNotifyData);
+		}
+	}
+
 }
 
 // Verified, everything okay

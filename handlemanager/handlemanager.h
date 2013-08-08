@@ -25,7 +25,6 @@ struct Handle{
 	uint64_t 	id;
 	uint64_t 	real;
 	HandleType	type;
-
 };
 
 enum HandleExists{
@@ -33,6 +32,13 @@ enum HandleExists{
 	HANDLE_CAN_EXIST 		= 0,			// Default
 	HANDLE_SHOULD_EXIST 	= 1
 };
+
+#ifndef __WIN32__
+struct NotifyDataRefCount{
+	uint32_t 	referenceCount;
+};
+#endif
+
 
 class HandleManager{
 

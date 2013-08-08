@@ -14,6 +14,7 @@ enum FunctionIDs{
 
 	// Used to request stream details
 	HANDLE_MANAGER_REQUEST_STREAM_INFO,
+	HANDLE_MANAGER_FREE_NOTIFY_DATA,
 
 	// Processes windoe events
 	PROCESS_WINDOW_EVENTS,

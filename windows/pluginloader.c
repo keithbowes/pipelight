@@ -431,6 +431,16 @@ void dispatcher(int functionid, Stack &stack){
 
 		// HANDLE_MANAGER_REQUEST_STREAM_INFO not implemented
 
+		case HANDLE_MANAGER_FREE_NOTIFY_DATA:
+			{
+				void *notifyData 			= readHandleNotify(stack, HANDLE_SHOULD_EXIST);
+
+				handlemanager.removeHandleByReal((uint64_t)notifyData, TYPE_NotifyData);
+
+				returnCommand();
+			}
+			break;
+
 		case PROCESS_WINDOW_EVENTS:
 			{
 				// Process window events
@@ -964,7 +974,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 				= readHandleInstance(stack);
 				std::shared_ptr<char> URL 	= readStringAsMemory(stack);
 				NPReason reason 			= (NPReason) readInt32(stack);
-				void *notifyData 			= readHandleNotify(stack);
+				void *notifyData 			= readHandleNotify(stack, HANDLE_SHOULD_EXIST);
 
 				pluginFuncs.urlnotify(instance, URL.get(), reason, notifyData);
 
