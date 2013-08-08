@@ -89,14 +89,14 @@ NPStream * createNPStream(uint64_t id){
 
 // Used for incoming handle translation(id -> real)
 // aclass and instance  are used for some cases when a new object is generated
-uint64_t HandleManager::translateFrom(uint64_t id, HandleType type, NPP instance, NPClass *aclass, bool shouldExist){
+uint64_t HandleManager::translateFrom(uint64_t id, HandleType type, NPP instance, NPClass *aclass, HandleExists shouldExist){
 	std::map<uint64_t, Handle>::iterator it;
 
 	it = handlesID.find(id);
 	if(it != handlesID.end()){
 
 		// WHen an aclass is given, this is an error, as we expected a new object
-		if(aclass){
+		if(aclass || shouldExist == HANDLE_SHOULD_NOT_EXIST){
 			throw std::runtime_error("Expected a new handle, but I already got this one");
 		}
 
@@ -104,7 +104,9 @@ uint64_t HandleManager::translateFrom(uint64_t id, HandleType type, NPP instance
 	}
 
 	// Should the ID already exist
-	if(shouldExist) throw std::runtime_error("Got ID which should exist, but it doesnt!");
+	if(shouldExist == HANDLE_SHOULD_EXIST){
+		throw std::runtime_error("Got ID which should exist, but it doesnt!");
+	}
 
 	//Create handle
 	Handle handle;
@@ -162,7 +164,7 @@ uint64_t HandleManager::translateFrom(uint64_t id, HandleType type, NPP instance
 	return handle.real;
 }
 
-uint64_t HandleManager::translateTo(uint64_t real, HandleType type, bool shouldExist){
+uint64_t HandleManager::translateTo(uint64_t real, HandleType type, HandleExists shouldExist){
 	std::map<std::pair<HandleType, uint64_t>, Handle>::iterator it;
 
 	// Except for TYPE_NotifyData we dont allow nullpointers here for obvious reasons
@@ -172,10 +174,17 @@ uint64_t HandleManager::translateTo(uint64_t real, HandleType type, bool shouldE
 
 	it = handlesReal.find(std::pair<HandleType, uint64_t>(type, real));
 	if(it != handlesReal.end()){
+
+		if(shouldExist == HANDLE_SHOULD_NOT_EXIST){
+			throw std::runtime_error("Expected a new handle, but I already got this one");
+		}
+
 		return it->second.id;
 	}
 
-	if(shouldExist) throw std::runtime_error("Got real handle which should exist, but it doesnt!");
+	if(shouldExist == HANDLE_SHOULD_EXIST){
+		throw std::runtime_error("Got real handle which should exist, but it doesnt!");
+	}
 
 	Handle handle;
 	handle.id 			= getFreeID();
@@ -255,12 +264,12 @@ NPP_t* HandleManager::findInstance(){
 }
 
 
-void writeHandle(uint64_t real, HandleType type, bool shouldExist){
+void writeHandle(uint64_t real, HandleType type, HandleExists shouldExist){
 	writeInt64(handlemanager.translateTo(real, type, shouldExist));
 	writeInt32(type);
 }
 
-void writeHandleObj(NPObject *obj, bool shouldExist, bool deleteFromHandleManager){
+void writeHandleObj(NPObject *obj, HandleExists shouldExist, bool deleteFromHandleManager){
 
 	#ifndef __WIN32__
 		if(deleteFromHandleManager) throw std::runtime_error("writeHandleObj called with deleteFromHandleManager=true, but not allowed on Linux.");
@@ -270,30 +279,30 @@ void writeHandleObj(NPObject *obj, bool shouldExist, bool deleteFromHandleManage
 	writeHandle((uint64_t)obj, TYPE_NPObject, shouldExist);
 }
 
-void writeHandleInstance(NPP instance, bool shouldExist){
+void writeHandleInstance(NPP instance, HandleExists shouldExist){
 	writeHandle((uint64_t)instance, TYPE_NPPInstance, shouldExist);
 }
 
-void writeHandleIdentifier(NPIdentifier name, bool shouldExist){
+void writeHandleIdentifier(NPIdentifier name, HandleExists shouldExist){
 	writeHandle((uint64_t)name, TYPE_NPIdentifier, shouldExist);
 }
 
-void writeHandleStream(NPStream* stream, bool shouldExist){
+void writeHandleStream(NPStream* stream, HandleExists shouldExist){
 	writeHandle((uint64_t)stream, TYPE_NPStream, shouldExist);
 }
 
-void writeHandleNotify(void* notifyData, bool shouldExist){
+void writeHandleNotify(void* notifyData, HandleExists shouldExist){
 	writeHandle((uint64_t)notifyData, TYPE_NotifyData, shouldExist);
 }
 
 
-uint64_t readHandle(Stack &stack, int32_t &type, NPP instance, NPClass *aclass, bool shouldExist){
+uint64_t readHandle(Stack &stack, int32_t &type, NPP instance, NPClass *aclass, HandleExists shouldExist){
 	type = readInt32(stack);
 	return handlemanager.translateFrom(readInt64(stack), (HandleType)type, instance, aclass, shouldExist);
 }
 
 #ifndef __WIN32__
-NPObject * readHandleObj(Stack &stack, NPP instance, NPClass *aclass, bool shouldExist){
+NPObject * readHandleObj(Stack &stack, NPP instance, NPClass *aclass, HandleExists shouldExist){
 	int32_t type;
 	NPObject *obj = (NPObject *)readHandle(stack, type, instance, aclass, shouldExist);
 	
@@ -309,7 +318,7 @@ NPObject * readHandleObj(Stack &stack, NPP instance, NPClass *aclass, bool shoul
 }
 #endif
 
-NPIdentifier readHandleIdentifier(Stack &stack, bool shouldExist){
+NPIdentifier readHandleIdentifier(Stack &stack, HandleExists shouldExist){
 	int32_t type;
 	NPIdentifier identifier = (NPIdentifier)readHandle(stack, type, 0, NULL, shouldExist);
 	
@@ -319,7 +328,7 @@ NPIdentifier readHandleIdentifier(Stack &stack, bool shouldExist){
 	return identifier;
 }
 
-NPP readHandleInstance(Stack &stack, bool shouldExist){
+NPP readHandleInstance(Stack &stack, HandleExists shouldExist){
 	int32_t type;
 	NPP instance = (NPP)readHandle(stack, type, 0, NULL, shouldExist);
 	
@@ -329,7 +338,7 @@ NPP readHandleInstance(Stack &stack, bool shouldExist){
 	return instance;
 }
 
-NPStream* readHandleStream(Stack &stack, bool shouldExist){
+NPStream* readHandleStream(Stack &stack, HandleExists shouldExist){
 	int32_t type;
 	NPStream* stream = (NPStream*)readHandle(stack, type, 0, NULL, shouldExist);
 	
@@ -339,7 +348,7 @@ NPStream* readHandleStream(Stack &stack, bool shouldExist){
 	return stream;
 }
 
-void* readHandleNotify(Stack &stack, bool shouldExist){
+void* readHandleNotify(Stack &stack, HandleExists shouldExist){
 	int32_t type;
 	void* notifyData = (void*)readHandle(stack, type, 0, NULL, shouldExist);
 	
@@ -351,7 +360,7 @@ void* readHandleNotify(Stack &stack, bool shouldExist){
 
 
 #ifdef __WIN32__
-NPObject * readHandleObjIncRef(Stack &stack, NPP instance, NPClass *aclass, bool shouldExist){
+NPObject * readHandleObjIncRef(Stack &stack, NPP instance, NPClass *aclass, HandleExists shouldExist){
 	int32_t type;
 	NPObject *obj = (NPObject *)readHandle(stack, type, instance, aclass, shouldExist);
 	
@@ -368,7 +377,7 @@ NPObject * readHandleObjIncRef(Stack &stack, NPP instance, NPClass *aclass, bool
 	return obj;
 }
 
-void writeHandleObjDecRef(NPObject *obj, bool shouldExist){
+void writeHandleObjDecRef(NPObject *obj, HandleExists shouldExist){
 	writeHandleObj(obj, shouldExist, (obj->referenceCount == 1));
 	objectDecRef(obj);
 }

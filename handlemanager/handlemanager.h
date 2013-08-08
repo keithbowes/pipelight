@@ -28,6 +28,12 @@ struct Handle{
 
 };
 
+enum HandleExists{
+	HANDLE_SHOULD_NOT_EXIST = -1,
+	HANDLE_CAN_EXIST 		= 0,			// Default
+	HANDLE_SHOULD_EXIST 	= 1
+};
+
 class HandleManager{
 
 	private:
@@ -36,8 +42,8 @@ class HandleManager{
 		std::map<std::pair<HandleType, uint64_t>, Handle> handlesReal;
 
 	public:
-		uint64_t translateFrom(uint64_t id, HandleType type, NPP instance = NULL, NPClass *aclass = 0, bool shouldExist = false);
-		uint64_t translateTo(uint64_t real, HandleType type, bool shouldExist = false);
+		uint64_t translateFrom(uint64_t id, HandleType type, NPP instance = NULL, NPClass *aclass = 0, HandleExists shouldExist = HANDLE_CAN_EXIST);
+		uint64_t translateTo(uint64_t real, HandleType type, HandleExists shouldExist = HANDLE_CAN_EXIST);
 
 		void removeHandleByID(uint64_t id);
 		void removeHandleByReal(uint64_t real, HandleType type);
@@ -49,26 +55,26 @@ class HandleManager{
 		NPP_t* findInstance();
 };
 
-void writeHandle(uint64_t real, HandleType type, bool shouldExist = false);
-uint64_t		readHandle(Stack &stack, int32_t &type, NPP instance = NULL, NPClass *aclass = 0, bool shouldExist = false);
+void writeHandle(uint64_t real, HandleType type, HandleExists shouldExist = HANDLE_CAN_EXIST);
+uint64_t		readHandle(Stack &stack, int32_t &type, NPP instance = NULL, NPClass *aclass = 0, HandleExists shouldExist = HANDLE_CAN_EXIST);
 
-void writeHandleObj(NPObject *obj, bool shouldExist = false, bool deleteFromHandleManager = false);
-void writeHandleInstance(NPP instance, bool shouldExist = false);
-void writeHandleIdentifier(NPIdentifier name, bool shouldExist = false);
-void writeHandleStream(NPStream* stream, bool shouldExist = false);
-void writeHandleNotify(void* notifyData, bool shouldExist = false);
+void writeHandleObj(NPObject *obj, HandleExists shouldExist = HANDLE_CAN_EXIST, bool deleteFromHandleManager = false);
+void writeHandleInstance(NPP instance, HandleExists shouldExist = HANDLE_CAN_EXIST);
+void writeHandleIdentifier(NPIdentifier name, HandleExists shouldExist = HANDLE_CAN_EXIST);
+void writeHandleStream(NPStream* stream, HandleExists shouldExist = HANDLE_CAN_EXIST);
+void writeHandleNotify(void* notifyData, HandleExists shouldExist = HANDLE_CAN_EXIST);
 
 #ifndef __WIN32__
-NPObject * 		readHandleObj(Stack &stack, NPP instance = NULL, NPClass *aclass = 0, bool shouldExist = false);
+NPObject * 		readHandleObj(Stack &stack, NPP instance = NULL, NPClass *aclass = 0, HandleExists shouldExist = HANDLE_CAN_EXIST);
 #endif
-NPIdentifier 	readHandleIdentifier(Stack &stack, bool shouldExist = false);
-NPP 			readHandleInstance(Stack &stack, bool shouldExist = false);
-NPStream* 		readHandleStream(Stack &stack, bool shouldExist = false);
-void* 			readHandleNotify(Stack &stack, bool shouldExist = false);
+NPIdentifier 	readHandleIdentifier(Stack &stack, HandleExists shouldExist = HANDLE_CAN_EXIST);
+NPP 			readHandleInstance(Stack &stack, HandleExists shouldExist = HANDLE_CAN_EXIST);
+NPStream* 		readHandleStream(Stack &stack, HandleExists shouldExist = HANDLE_CAN_EXIST);
+void* 			readHandleNotify(Stack &stack, HandleExists shouldExist = HANDLE_CAN_EXIST);
 
 #ifdef __WIN32__
-NPObject * 		readHandleObjIncRef(Stack &stack, NPP instance = NULL, NPClass *aclass = 0, bool shouldExist = false);
-void writeHandleObjDecRef(NPObject *obj, bool shouldExist = false);
+NPObject * 		readHandleObjIncRef(Stack &stack, NPP instance = NULL, NPClass *aclass = 0, HandleExists shouldExist = HANDLE_CAN_EXIST);
+void writeHandleObjDecRef(NPObject *obj, HandleExists shouldExist = HANDLE_CAN_EXIST);
 void objectDecRef(NPObject *obj);
 
 void objectKill(NPObject *obj);

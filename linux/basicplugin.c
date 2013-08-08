@@ -565,7 +565,7 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPN_DESTROY_STREAM:
 			{
 				NPP instance 		= readHandleInstance(stack);
-				NPStream *stream 	= readHandleStream(stack);
+				NPStream *stream 	= readHandleStream(stack, HANDLE_SHOULD_EXIST);
 				NPReason reason 	= (NPReason) readInt32(stack);
 
 				NPError result = sBrowserFuncs->destroystream(instance, stream, reason);

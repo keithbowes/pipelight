@@ -266,7 +266,7 @@ NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool seekable, 
 	EnterFunction();
 
 	writeInt32(seekable);
-	writeHandleStream(stream);
+	writeHandleStream(stream, HANDLE_SHOULD_NOT_EXIST);
 	writeString(type);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_NEW_STREAM);
@@ -276,8 +276,11 @@ NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool seekable, 
 
 	NPError result 	= readInt32(stack);
 
-	if(result == NPERR_NO_ERROR)
+	if(result == NPERR_NO_ERROR){
 		*stype 			= (uint16_t)readInt32(stack);
+	}else{ // Handle is now invalid because of this error
+		handlemanager.removeHandleByReal((uint64_t)stream, TYPE_NPStream);
+	}
 
 	return result;
 }
@@ -288,7 +291,7 @@ NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
 	EnterFunction();
 	
 	writeInt32(reason);
-	writeHandleStream(stream);
+	writeHandleStream(stream, HANDLE_SHOULD_EXIST);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_DESTROY_STREAM);
 
@@ -305,7 +308,12 @@ int32_t
 NPP_WriteReady(NPP instance, NPStream* stream) {
 	EnterFunction();
 	
-	writeHandleStream(stream);
+	if( !handlemanager.existsHandleByReal((uint64_t)stream, TYPE_NPStream) ){
+		//std::cerr << "[PIPELIGHT] Browser Use-After-Free bug in NPP_WriteReady" << std::endl;
+		return 0;
+	}
+
+	writeHandleStream(stream, HANDLE_SHOULD_EXIST);
 	writeHandleInstance(instance);	
 	callFunction(FUNCTION_NPP_WRITE_READY);
 	
@@ -321,7 +329,7 @@ NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, void* buf
 
 	writeMemory((char*)buffer, len);
 	writeInt32(offset);
-	writeHandleStream(stream);
+	writeHandleStream(stream, HANDLE_SHOULD_EXIST);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_WRITE);
 	
