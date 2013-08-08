@@ -4,7 +4,7 @@
 char strUserAgent[1024] 			= {0};
 
 extern HandleManager handlemanager;
-extern bool IsWindowlessMode;
+extern bool isWindowlessMode;
 
 void pokeString(std::string str, char *dest, unsigned int maxLength){
 	if(maxLength > 0){
@@ -283,7 +283,7 @@ void NP_LOADDS NPN_InvalidateRect(NPP instance, NPRect *rect){
 	NetscapeData* ndata = (NetscapeData*)instance->ndata;
 	if(ndata){
 		if(ndata->hWnd){
-			if(IsWindowlessMode){
+			if(isWindowlessMode){
 				RECT r;
 				r.left 		= rect->left;
 				r.top 		= rect->top;

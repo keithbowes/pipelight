@@ -72,13 +72,14 @@ std::string trim(std::string str){
 
 bool loadConfig(PluginConfig &config, void *function){
 
-	// Initialize config variables
-	config.winePath 		= "";
+	// Initialize config variables with default values
+	config.winePath 		= "wine";
 	config.winePrefix 		= "";
 	config.dllPath 			= "";
 	config.dllName 			= "";
 	config.pluginLoaderPath = "";
-	config.windowlessMode 	= false;
+	config.windowlessMode 	= true;
+	config.embed 			= false;
 
 	Dl_info dl_info;
 	if(!dladdr(function, &dl_info))
@@ -162,7 +163,11 @@ bool loadConfig(PluginConfig &config, void *function){
 
 		}else if(key == "windowlessmode"){
 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
-			config.windowlessMode = (value == "true");
+			config.windowlessMode = (value == "true" || value == "yes");
+
+		}else if(key == "embed"){
+			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+			config.embed = (value == "true" || value == "yes");
 
 		}else{
 			std::cerr << "[PIPELIGHT] Unrecognized config key: " << key << std::endl;
@@ -173,10 +178,6 @@ bool loadConfig(PluginConfig &config, void *function){
 	//Check for required arguments
 	if (config.dllPath == "" || config.dllName == "" || config.pluginLoaderPath == "")
 		return false;
-
-	//Set default values íf the other arguments are missing
-	if(config.winePath == "")
-		config.winePath = "wine";
 
 	/*
 	std::cerr << "[PIPELIGHT] winePath: " << config.winePath << std::endl;

@@ -1,5 +1,6 @@
 #include "basicplugin.h"
 #include <iostream>
+#include <X11/Xlib.h>
 
 char strMimeType[2048] 			= {0};
 char strPluginversion[100]		= {0};
@@ -9,6 +10,27 @@ char strPluginDescription[1024]	= {0};
 // Instance responsible for triggering the timer
 uint32_t  	EventTimerID 			= 0;
 NPP 		EventTimerInstance 		= NULL;
+
+#define XEMBED_EMBEDDED_NOTIFY		0
+
+void sendXembedMessage(Display* display, Window win, long message, long detail, long data1, long data2){
+	XEvent ev;
+	memset(&ev, 0, sizeof(ev));
+
+	ev.xclient.type 		= ClientMessage;
+	ev.xclient.window 		= win;
+	ev.xclient.message_type = XInternAtom(display, "_XEMBED", False);
+	ev.xclient.format 		= 32;
+
+	ev.xclient.data.l[0] 	= CurrentTime;
+	ev.xclient.data.l[1] 	= message;
+	ev.xclient.data.l[2] 	= detail;
+	ev.xclient.data.l[3] 	= data1;
+	ev.xclient.data.l[4] 	= data2;
+
+	XSendEvent(display, win, False, NoEventMask, &ev);
+	XSync(display, False);
+}
 
 void pokeString(std::string str, char *dest, unsigned int maxLength){
 	if(maxLength > 0){
@@ -255,8 +277,25 @@ NPP_SetWindow(NPP instance, NPWindow* window) {
 	writeInt32(window->x);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_SET_WINDOW);
-	waitReturn();
 
+	// Embed window if we get a valid window
+	Window win = (Window)readResultInt32();
+
+	if(win){
+
+		if(window->window){
+
+			Display *display = XOpenDisplay(NULL);
+
+			if(display){
+				XReparentWindow(display, win, (Window)window->window, 0, 0);
+				sendXembedMessage(display, win, XEMBED_EMBEDDED_NOTIFY, 0, (Window)window->window, 0);
+				XCloseDisplay(display);
+			}else{
+				std::cerr << "[PIPELIGHT] Could not open Display" << std::endl;
+			}
+		}
+	}
 	return NPERR_NO_ERROR;
 }
 

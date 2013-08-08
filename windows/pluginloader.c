@@ -22,14 +22,16 @@ HandleManager handlemanager;
 
 NPPluginFuncs pluginFuncs = {sizeof(pluginFuncs), NP_VERSION_MINOR};
 
-bool IsWindowlessMode = false;
+bool isWindowlessMode	= false;
+bool isEmbedMode		= false;
+
 std::map<HWND, NPP> hwndToInstance;
 
 LRESULT CALLBACK WndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
 
 	// Handle events in windowless mode
-	if(IsWindowlessMode && hWnd){
+	if(isWindowlessMode && hWnd){
 
 		// Get instance
 		std::map<HWND, NPP>::iterator it = hwndToInstance.find(hWnd);
@@ -329,14 +331,29 @@ int main(int argc, char *argv[]){
 	std::string dllPath 		= std::string(argv[1]);
 	std::string dllName 		= std::string(argv[2]);
 
-	std::string windowMode   	= (argc >= 4) ? std::string(argv[3]) : "";
-	std::transform(windowMode.begin(), windowMode.end(), windowMode.begin(), ::tolower);
-	IsWindowlessMode = (windowMode == "windowless");
+	for(int i = 3; i < argc; i++){
 
-	if(IsWindowlessMode){
+		std::string arg = std::string(argv[i]);
+		std::transform(arg.begin(), arg.end(), arg.begin(), ::tolower);
+
+		if(arg == "--windowless"){
+			isWindowlessMode = true;
+		}else if(arg == "--embed"){
+			isEmbedMode = true;
+		}
+
+	}
+
+	if(isWindowlessMode){
 		std::cerr << "[PIPELIGHT] Using WINDOWLESS mode" << std::endl;
 	}else{
 		std::cerr << "[PIPELIGHT] Using WINDOW mode" << std::endl;
+	}
+
+	if(isEmbedMode){
+		std::cerr << "[PIPELIGHT] Using EMBED mode" << std::endl;
+	}else{
+		std::cerr << "[PIPELIGHT] Using external window" << std::endl;
 	}
 
 	// Copy stdin and stdout
@@ -389,6 +406,7 @@ int main(int argc, char *argv[]){
 	return 1;
 	
 }
+
 
 void dispatcher(int functionid, Stack &stack){
 	switch (functionid){
@@ -650,7 +668,7 @@ void dispatcher(int functionid, Stack &stack){
 				}
 
 				// Most plugins only support windowlessMode in combination with NP_EMBED
-				if(IsWindowlessMode)	mode = NP_EMBED;
+				if(isWindowlessMode)	mode = NP_EMBED;
 
 				NPError result = pluginFuncs.newp(mimeType.get(), instance, mode, argc, argn.data(), argv.data(), savedPtr);
 
@@ -776,9 +794,7 @@ void dispatcher(int functionid, Stack &stack){
 				int32_t width 	= readInt32(stack);
 				int32_t height 	= readInt32(stack);
 
-				//
-				x = 0;
-				y = 20;
+				int32_t windowIDX11 = 0;
 
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
 				if(ndata){
@@ -791,10 +807,32 @@ void dispatcher(int functionid, Stack &stack){
 						rect.right 	= width;
 						rect.bottom = height;
 
-						AdjustWindowRect(&rect, WS_TILEDWINDOW, false);
+						DWORD style;
+						DWORD extStyle;
+						int posX;
+						int posY;
 
-						ndata->hWnd = CreateWindow(ClsName, "Plugin", WS_TILEDWINDOW, x, y, rect.right - rect.left, rect.bottom - rect.top, 0, 0, 0, 0);
+						if(isEmbedMode){
+							style 		= WS_POPUP;
+							extStyle 	= WS_EX_TOOLWINDOW;
+							posX		= 0;
+							posY		= 0;
+						}else{
+							style 		= WS_TILEDWINDOW;
+							extStyle 	= 0;
+							posX 		= CW_USEDEFAULT;
+							posY 		= CW_USEDEFAULT;
+						}
+
+						AdjustWindowRectEx(&rect, style, false, extStyle);
+
+						ndata->hWnd = CreateWindowEx(extStyle, ClsName, "Plugin", style, posX, posY, rect.right - rect.left, rect.bottom - rect.top, 0, 0, 0, 0);
 						if(ndata->hWnd){
+
+							if(isEmbedMode){
+								windowIDX11 = (int32_t) GetPropA(ndata->hWnd, "__wine_x11_whole_window");
+							}
+
 							ShowWindow(ndata->hWnd, SW_SHOW);
 							UpdateWindow (ndata->hWnd);
 
@@ -804,7 +842,6 @@ void dispatcher(int functionid, Stack &stack){
 
 					if(ndata->hWnd){
 
-						
 						NPWindow* window = (NPWindow*)malloc(sizeof(NPWindow));
 						if(window){
 
@@ -812,8 +849,8 @@ void dispatcher(int functionid, Stack &stack){
 							if(ndata->window) free(ndata->window);
 							ndata->window = window;
 
-							window->x 				= 0;
-							window->y 				= 0;
+							window->x 				= x;
+							window->y 				= y;
 							window->width 			= width;
 							window->height 			= height; 
 							window->clipRect.top 	= 0;
@@ -821,7 +858,7 @@ void dispatcher(int functionid, Stack &stack){
 							window->clipRect.right 	= width;
 							window->clipRect.bottom = height;
 
-							if(IsWindowlessMode){
+							if(isWindowlessMode){
 								window->window 			= GetDC(ndata->hWnd);
 								window->type 			= NPWindowTypeDrawable;
 
@@ -844,6 +881,7 @@ void dispatcher(int functionid, Stack &stack){
 					std::cerr << "[PIPELIGHT] Unable to allocate window because of missing ndata" << std::endl;
 				}
 
+				writeInt32(windowIDX11);
 				returnCommand();
 			}
 			break;
