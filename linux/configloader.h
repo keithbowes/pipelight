@@ -8,6 +8,7 @@ struct PluginConfig{
 	std::string dllName;
 	std::string pluginLoaderPath;
 	bool 		windowlessMode;
+	bool		embed;
 };
 
 std::string getFileName(std::string path);

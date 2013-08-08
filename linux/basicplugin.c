@@ -65,8 +65,6 @@ static void dettach() __attribute__((destructor));
 
 NPNetscapeFuncs* sBrowserFuncs = NULL;
 
-//std::ofstream output(BROWSER_LOG, std::ios::out | std::ios::app);
-
 HandleManager handlemanager;
 
 int pipeOut[2] 	= {0, 0};
@@ -112,11 +110,15 @@ void attach(){
 		}
 
 		// Put together the flags
-		std::string windowMode = "window";
-		if(config.windowlessMode) windowMode = "windowless";
+		std::string windowMode = "";
+		if(config.windowlessMode) windowMode = "--windowless";
+
+		// Put together the flags
+		std::string embedMode = "";
+		if(config.embed) embedMode = "--embed";
 
 		// Execute wine
-		execlp(config.winePath.c_str(), "wine", config.pluginLoaderPath.c_str(), config.dllPath.c_str(), config.dllName.c_str(), windowMode.c_str(), NULL);	
+		execlp(config.winePath.c_str(), "wine", config.pluginLoaderPath.c_str(), config.dllPath.c_str(), config.dllName.c_str(), windowMode.c_str(), embedMode.c_str(), NULL);	
 		throw std::runtime_error("Error in execlp command - probably wrong filename?");
 
 	}else if (pid != -1){
@@ -137,9 +139,6 @@ void attach(){
 void dettach(){
 
 }
-
-
-
 
 void dispatcher(int functionid, Stack &stack){
 	switch(functionid){
@@ -651,7 +650,6 @@ void dispatcher(int functionid, Stack &stack){
 				returnCommand();
 			}
 			break;
-
 
 		default:
 			throw std::runtime_error("Specified function not found!");

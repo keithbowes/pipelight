@@ -18,7 +18,6 @@ enum FunctionIDs{
 	// Processes windoe events
 	PROCESS_WINDOW_EVENTS,
 
-
 	// ------- Plugin -------
 	FUNCTION_GET_VERSION,
 	FUNCTION_GET_MIMETYPE,

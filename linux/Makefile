@@ -1,6 +1,6 @@
 CC=g++
 CFLAGS=-Wall -DXP_UNIX=1 -DMOZ_X11=1 -g -fPIC -std=c++0x
-LDFLAGS=-ldl
+LDFLAGS=-ldl -lX11
 OBJECTS=communication.o handlemanager.o npclass.o configloader.o pluginfunctions.o
 
 pipelight.so: basicplugin.c basicplugin.h $(OBJECTS)
@@ -18,7 +18,7 @@ npclass.o: npclass.c
 configloader.o: configloader.c configloader.h
 	$(CC) $(CFLAGS) -c configloader.c -o configloader.o
 
-pluginfunctions.o:
+pluginfunctions.o: pluginfunctions.c
 	$(CC) $(CFLAGS) -c pluginfunctions.c -o pluginfunctions.o
 
 .PHONY: all
