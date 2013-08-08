@@ -25,7 +25,7 @@ struct Handle{
 	uint64_t 	id;
 	uint64_t 	real;
 	HandleType	type;
-	bool		selfCreated;		
+
 };
 
 class HandleManager{
@@ -44,6 +44,9 @@ class HandleManager{
 
 		// Checks if the given handletype exists
 		bool existsHandleByReal(uint64_t real, HandleType type);
+
+		// Searches for an additional instance
+		NPP_t* findInstance();
 };
 
 void writeHandle(uint64_t real, HandleType type, bool shouldExist = false);

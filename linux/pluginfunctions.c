@@ -7,6 +7,10 @@ char strPluginversion[100]		= {0};
 char strPluginName[256] 		= {0};
 char strPluginDescription[1024]	= {0};
 
+// Instance responsible for triggering the timer
+uint32_t  	EventTimerID 			= 0;
+NPP 		EventTimerInstance 		= NULL;
+
 #define XEMBED_EMBEDDED_NOTIFY		0
 
 void sendXembedMessage(Display* display, Window win, long message, long detail, long data1, long data2){
@@ -27,7 +31,6 @@ void sendXembedMessage(Display* display, Window win, long message, long detail, 
 	XSendEvent(display, win, False, NoEventMask, &ev);
 	XSync(display, False);
 }
-
 
 void pokeString(std::string str, char *dest, unsigned int maxLength){
 	if(maxLength > 0){
@@ -160,7 +163,13 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 
 	// TODO: SCHEDULE ONLY ONE TIMER?!
 	// TODO: For Chrome this should be ~0, for Firefox a value of 5-10 is better.
-	sBrowserFuncs->scheduletimer(instance, 5, true, timerFunc);
+
+	if( EventTimerInstance == NULL ){
+		EventTimerID 		= sBrowserFuncs->scheduletimer(instance, 5, true, timerFunc);
+		EventTimerInstance 	= instance;
+	}else{
+		std::cerr << "[PIPELIGHT] Already one running timer" << std::endl;
+	}
 
 	if(saved){
 		writeMemory((char*)saved->buf, saved->len);
@@ -193,6 +202,14 @@ NPError
 NPP_Destroy(NPP instance, NPSavedData** save) {
 	EnterFunction();
 
+	if( EventTimerInstance && EventTimerInstance == instance ){
+		sBrowserFuncs->unscheduletimer(instance, EventTimerID);
+		EventTimerInstance 	= NULL;
+		EventTimerID 		= 0;
+
+		std::cerr << "[PIPELIGHT] Unscheduled event timer" << std::endl;
+	}
+
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_DESTROY);
 
@@ -201,28 +218,47 @@ NPP_Destroy(NPP instance, NPSavedData** save) {
 
 	NPError result 	= readInt32(stack);
 
-	// We write a nullpointer in case we dont want to return anything
-	*save = NULL;
-
 	if(result == NPERR_NO_ERROR){
-		size_t save_length;
-		char* save_data = readMemoryBrowserAlloc(stack, save_length);
+		if(save){
+			size_t save_length;
+			char* save_data = readMemoryBrowserAlloc(stack, save_length);
 
-		if(save_data){
-			*save = (NPSavedData*) sBrowserFuncs->memalloc(sizeof(NPSavedData));
-			if(*save){
+			if(save_data && save){
+				*save = (NPSavedData*) sBrowserFuncs->memalloc(sizeof(NPSavedData));
+				if(*save){
 
-				(*save)->buf = save_data;
-				(*save)->len = save_length;
+					(*save)->buf = save_data;
+					(*save)->len = save_length;
 
+				}else{
+					sBrowserFuncs->memfree(save_data);
+				}
 			}else{
 				sBrowserFuncs->memfree(save_data);
 			}
+
+		}else{ // Skip the saved data
+			stack.pop_back();
 		}
 
+	}else if(save){
+		*save = NULL; // Nothing to save
 	}
 
 	handlemanager.removeHandleByReal((uint64_t)instance, TYPE_NPPInstance);
+
+	if( EventTimerInstance == NULL ){
+		NPP nextInstance = handlemanager.findInstance();
+		if( nextInstance ){
+			EventTimerID 		= sBrowserFuncs->scheduletimer(nextInstance, 5, true, timerFunc);
+			EventTimerInstance 	= instance;
+
+			std::cerr << "[PIPELIGHT] Started timer in instance " << (void*)nextInstance << std::endl;
+
+		}else{
+			std::cerr << "[PIPELIGHT] No more instance found, timer stays stopped" << std::endl;
+		}
+	}
 
 	return result;
 }
