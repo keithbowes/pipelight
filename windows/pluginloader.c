@@ -413,7 +413,7 @@ void dispatcher(int functionid, Stack &stack){
 		
 		case OBJECT_KILL:
 			{
-				NPObject 	*obj = readHandleObjIncRef(stack, NULL, 0, true);
+				NPObject 	*obj = readHandleObjIncRef(stack, NULL, 0, HANDLE_SHOULD_EXIST);
 
 				objectKill(obj);
 				returnCommand();
@@ -422,7 +422,7 @@ void dispatcher(int functionid, Stack &stack){
 
 		case OBJECT_IS_CUSTOM:
 			{
-				NPObject 	*obj = readHandleObjIncRef(stack, NULL, 0, true);
+				NPObject 	*obj = readHandleObjIncRef(stack, NULL, 0, HANDLE_SHOULD_EXIST);
 
 				writeInt32( (obj->referenceCount == REFCOUNT_UNDEFINED) );
 				returnCommand();
@@ -430,6 +430,16 @@ void dispatcher(int functionid, Stack &stack){
 			break;
 
 		// HANDLE_MANAGER_REQUEST_STREAM_INFO not implemented
+
+		case HANDLE_MANAGER_FREE_NOTIFY_DATA:
+			{
+				void *notifyData 			= readHandleNotify(stack, HANDLE_SHOULD_EXIST);
+
+				handlemanager.removeHandleByReal((uint64_t)notifyData, TYPE_NotifyData);
+
+				returnCommand();
+			}
+			break;
 
 		case PROCESS_WINDOW_EVENTS:
 			{
@@ -890,15 +900,18 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPP instance 					= readHandleInstance(stack);
 				std::shared_ptr<char> type 		= readStringAsMemory(stack);
-				NPStream *stream 				= readHandleStream(stack);
+				NPStream *stream 				= readHandleStream(stack, HANDLE_SHOULD_NOT_EXIST);
 				NPBool seekable					= (NPBool) readInt32(stack); 
 
 				uint16_t stype = NP_NORMAL; // Fix for silverlight....
 				NPError result = pluginFuncs.newstream(instance, type.get(), stream, seekable, &stype);
 				
 				// Return result
-				if(result == NPERR_NO_ERROR)
+				if(result == NPERR_NO_ERROR){
 					writeInt32(stype);
+				}else{ // Handle is now invalid because of this error
+					handlemanager.removeHandleByReal((uint64_t)stream, TYPE_NPStream);
+				}
 				
 				writeInt32(result);
 				returnCommand();
@@ -908,7 +921,7 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPP_DESTROY_STREAM:
 			{
 				NPP instance 		= readHandleInstance(stack);
-				NPStream* stream 	= readHandleStream(stack);
+				NPStream* stream 	= readHandleStream(stack, HANDLE_SHOULD_EXIST);
 				NPReason reason 	= (NPReason)readInt32(stack);
 
 				NPError result = pluginFuncs.destroystream(instance, stream, reason);
@@ -931,7 +944,7 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPP_WRITE_READY:
 			{
 				NPP instance 		= readHandleInstance(stack);
-				NPStream* stream 	= readHandleStream(stack);
+				NPStream* stream 	= readHandleStream(stack, HANDLE_SHOULD_EXIST);
 
 				int32_t result = pluginFuncs.writeready(instance, stream);
 
@@ -943,7 +956,7 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPP_WRITE:
 			{
 				NPP instance 		= readHandleInstance(stack);
-				NPStream* stream 	= readHandleStream(stack);
+				NPStream* stream 	= readHandleStream(stack, HANDLE_SHOULD_EXIST);
 				int32_t offset 		= readInt32(stack);
 
 				size_t length;
@@ -961,7 +974,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 				= readHandleInstance(stack);
 				std::shared_ptr<char> URL 	= readStringAsMemory(stack);
 				NPReason reason 			= (NPReason) readInt32(stack);
-				void *notifyData 			= readHandleNotify(stack);
+				void *notifyData 			= readHandleNotify(stack, HANDLE_SHOULD_EXIST);
 
 				pluginFuncs.urlnotify(instance, URL.get(), reason, notifyData);
 

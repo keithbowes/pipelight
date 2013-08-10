@@ -339,8 +339,14 @@ NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool seekable, 
 
 	NPError result 	= readInt32(stack);
 
-	if(result == NPERR_NO_ERROR)
+	if(result == NPERR_NO_ERROR){
 		*stype 			= (uint16_t)readInt32(stack);
+
+	}else{ // Handle is now invalid because of this error
+		handlemanager.removeHandleByReal((uint64_t)stream, TYPE_NPStream);
+
+		// We get another request using our notifyData after everything
+	}
 
 	return result;
 }
@@ -349,9 +355,9 @@ NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool seekable, 
 NPError
 NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
 	EnterFunction();
-	
+
 	writeInt32(reason);
-	writeHandleStream(stream);
+	writeHandleStream(stream, HANDLE_SHOULD_EXIST);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_DESTROY_STREAM);
 
@@ -359,6 +365,8 @@ NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
 
 	// Remove the handle by the corresponding stream real object
 	handlemanager.removeHandleByReal((uint64_t)stream, TYPE_NPStream);
+
+	// We get another request using our notifyData after everything
 
 	return result;
 }
@@ -368,7 +376,12 @@ int32_t
 NPP_WriteReady(NPP instance, NPStream* stream) {
 	EnterFunction();
 	
-	writeHandleStream(stream);
+	if( !handlemanager.existsHandleByReal((uint64_t)stream, TYPE_NPStream) ){
+		//std::cerr << "[PIPELIGHT] Browser Use-After-Free bug in NPP_WriteReady" << std::endl;
+		return 0;
+	}
+
+	writeHandleStream(stream, HANDLE_SHOULD_EXIST);
 	writeHandleInstance(instance);	
 	callFunction(FUNCTION_NPP_WRITE_READY);
 	
@@ -384,7 +397,7 @@ NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, void* buf
 
 	writeMemory((char*)buffer, len);
 	writeInt32(offset);
-	writeHandleStream(stream);
+	writeHandleStream(stream, HANDLE_SHOULD_EXIST);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_WRITE);
 	
@@ -415,12 +428,37 @@ void
 NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyData) {
 	EnterFunction();
 
-	writeHandleNotify(notifyData);
+	writeHandleNotify(notifyData, HANDLE_SHOULD_EXIST);
 	writeInt32(reason);
 	writeString(URL);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_URL_NOTIFY);
 	waitReturn();
+
+	// Free all the notifydata stuff
+	NotifyDataRefCount* myNotifyData = (NotifyDataRefCount*)notifyData;
+	if(myNotifyData){
+
+		if(myNotifyData->referenceCount == 0){
+			throw std::runtime_error("Reference count is zero when calling NPP_URLNotify!");
+		}
+
+		// Decrement refcount
+		myNotifyData->referenceCount--;
+
+		if(myNotifyData->referenceCount == 0){
+
+			// Free everything
+			writeHandleNotify(myNotifyData);
+			callFunction(HANDLE_MANAGER_FREE_NOTIFY_DATA);
+			waitReturn();
+
+			handlemanager.removeHandleByReal((uint64_t)myNotifyData, TYPE_NotifyData);
+
+			free(myNotifyData);
+		}
+	}
+
 }
 
 // Verified, everything okay

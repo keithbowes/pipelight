@@ -64,10 +64,11 @@ NPError NP_LOADDS NPN_RequestRead(NPStream* stream, NPByteRange* rangeList){
 	}
 
 	writeInt32(rangeCount);
-	writeHandleStream(stream);
+	writeHandleStream(stream, HANDLE_SHOULD_EXIST);
 	callFunction(FUNCTION_NPN_REQUEST_READ);
 
 	NPError result = readResultInt32();
+
 	return result;
 }
 
@@ -94,7 +95,7 @@ int32_t NP_LOADDS NPN_Write(NPP instance, NPStream* stream, int32_t len, void* b
 	EnterFunction();
 
 	writeMemory((char*)buffer, len);
-	writeHandleStream(stream);
+	writeHandleStream(stream, HANDLE_SHOULD_EXIST);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_WRITE);
 
@@ -106,11 +107,12 @@ NPError NP_LOADDS NPN_DestroyStream(NPP instance, NPStream* stream, NPReason rea
 	EnterFunction();
 
 	writeInt32(reason);
-	writeHandleStream(stream);
+	writeHandleStream(stream, HANDLE_SHOULD_EXIST);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_DESTROY_STREAM);
 
 	NPError result = readResultInt32();
+
 	return result;	
 }
 
@@ -421,7 +423,7 @@ NPObject* NP_LOADDS NPN_RetainObject(NPObject *obj){
 		if(obj->referenceCount != REFCOUNT_UNDEFINED)
 			obj->referenceCount++;
 
-		writeHandleObj(obj, true);
+		writeHandleObj(obj, HANDLE_SHOULD_EXIST);
 		callFunction(FUNCTION_NPN_RETAINOBJECT);
 		waitReturn();	
 	}
@@ -434,7 +436,7 @@ void NP_LOADDS NPN_ReleaseObject(NPObject *obj){
 	EnterFunction();
 
 	if (obj){	
-		writeHandleObjDecRef(obj, true);
+		writeHandleObjDecRef(obj, HANDLE_SHOULD_EXIST);
 		callFunction(FUNCTION_NPN_RELEASEOBJECT);
 		waitReturn();
 	}

@@ -150,7 +150,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPStream* stream = readHandleStream(stack); // shouldExist not necessary, Linux checks always
 
 				writeString(stream->headers);
-				writeHandleNotify(stream->notifyData);
+				writeHandleNotify(stream->notifyData, HANDLE_SHOULD_EXIST);
 				writeInt32(stream->lastmodified);
 				writeInt32(stream->end);
 				writeString(stream->url);
@@ -434,7 +434,12 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 					= readHandleInstance(stack);
 				std::shared_ptr<char> url 		= readStringAsMemory(stack);
 				std::shared_ptr<char> target 	= readStringAsMemory(stack);
-				void* notifyData 				= readHandleNotify(stack);
+				NotifyDataRefCount* notifyData 	= (NotifyDataRefCount*)readHandleNotify(stack);
+
+				// Increase refcounter
+				if(notifyData){
+					notifyData->referenceCount++;
+				}
 
 				NPError result = sBrowserFuncs->geturlnotify(instance, url.get(), target.get(), notifyData);
 
@@ -452,7 +457,12 @@ void dispatcher(int functionid, Stack &stack){
 				size_t len;
 				std::shared_ptr<char> buffer	= readMemory(stack, len);
 				bool file 						= (bool)readInt32(stack);
-				void* notifyData 				= readHandleNotify(stack);
+				NotifyDataRefCount* notifyData 	= (NotifyDataRefCount*)readHandleNotify(stack);
+
+				// Increase refcounter
+				if(notifyData){
+					notifyData->referenceCount++;
+				}
 
 				NPError result = sBrowserFuncs->posturlnotify(instance, url.get(), target.get(), len, buffer.get(), file, notifyData);
 
@@ -564,7 +574,7 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPN_DESTROY_STREAM:
 			{
 				NPP instance 		= readHandleInstance(stack);
-				NPStream *stream 	= readHandleStream(stack);
+				NPStream *stream 	= readHandleStream(stack, HANDLE_SHOULD_EXIST);
 				NPReason reason 	= (NPReason) readInt32(stack);
 
 				NPError result = sBrowserFuncs->destroystream(instance, stream, reason);
