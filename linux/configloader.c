@@ -70,6 +70,31 @@ std::string trim(std::string str){
 	return str;
 }
 
+bool splitConfigValue(std::string line, std::string &key, std::string &value){
+
+	size_t pos;
+
+	line = trim(line);
+
+	//find delimiter
+	pos = line.find_first_of("=");
+	if (pos == std::string::npos)
+		return false;
+
+	//no key found
+	if(pos == 0)
+		return false;
+
+	//no value found
+	if(pos >= line.length()-1)
+		return false;
+
+	key 	= trim(line.substr(0, pos));
+	value 	= trim(line.substr(pos+1, std::string::npos));
+
+	return true;
+}
+
 bool loadConfig(PluginConfig &config, void *function){
 
 	// Initialize config variables with default values
@@ -80,6 +105,7 @@ bool loadConfig(PluginConfig &config, void *function){
 	config.pluginLoaderPath = "";
 	config.windowlessMode 	= true;
 	config.embed 			= false;
+	config.fakeVersion		= "";
 
 	Dl_info dl_info;
 	if(!dladdr(function, &dl_info))
@@ -125,23 +151,11 @@ bool loadConfig(PluginConfig &config, void *function){
 			line = line.substr(0, pos);
 		}
 
-		line = trim(line);
+		std::string key;
+		std::string value;
 
-		//find delimiter
-		pos = line.find_first_of("="); 
-		if (pos == std::string::npos)
+		if(!splitConfigValue(line, key, value))
 			continue;
-
-		//no key found
-		if(pos == 0)
-			continue;
-
-		//no value found
-		if(pos >= line.length()-1)
-			continue;
-
-		std::string key 	= trim(line.substr(0, pos));
-		std::string value 	= trim(line.substr(pos+1, std::string::npos));
 
 		//convert key to lower case
 		std::transform(key.begin(), key.end(), key.begin(), ::tolower);
@@ -168,6 +182,21 @@ bool loadConfig(PluginConfig &config, void *function){
 		}else if(key == "embed"){
 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 			config.embed = (value == "true" || value == "yes");
+
+		}else if(key == "fakeversion"){
+			config.fakeVersion = value;
+
+		}else if(key == "overwritearg"){
+
+			std::string argKey;
+			std::string argValue;
+
+			if(!splitConfigValue(value, argKey, argValue))
+				continue;
+
+			std::transform(argKey.begin(), argKey.end(), argKey.begin(), ::tolower);
+
+			config.overwriteArgs[argKey] = argValue;
 
 		}else{
 			std::cerr << "[PIPELIGHT] Unrecognized config key: " << key << std::endl;

@@ -1,5 +1,7 @@
 #include "basicplugin.h"
+#include "configloader.h"
 #include <iostream>
+#include <algorithm>
 #include <X11/Xlib.h>
 
 char strMimeType[2048] 			= {0};
@@ -10,6 +12,8 @@ char strPluginDescription[1024]	= {0};
 // Instance responsible for triggering the timer
 uint32_t  	EventTimerID 			= 0;
 NPP 		EventTimerInstance 		= NULL;
+
+extern PluginConfig config;
 
 #define XEMBED_EMBEDDED_NOTIFY		0
 
@@ -121,9 +125,14 @@ NP_GetValue(void* future, NPPVariable aVariable, void* aValue) {
 			break;
 
 		case NPPVpluginDescriptionString:
-			callFunction(FUNCTION_GET_DESCRIPTION);
 
-			resultStr = readResultString();
+			if(config.fakeVersion != ""){
+				resultStr = config.fakeVersion;
+			}else{
+				callFunction(FUNCTION_GET_DESCRIPTION);
+
+				resultStr = readResultString();
+			}
 			pokeString(resultStr, strPluginDescription, sizeof(strPluginDescription));		
 
 			*((char**)aValue) = strPluginDescription;
@@ -177,7 +186,22 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 		writeMemory(NULL, 0);
 	}
 
-	writeStringArray(argv, argc);
+	// We can't use this function as we may need to fake some values
+	//writeStringArray(argv, argc);
+	for(int i = argc - 1; i >= 0; i--){
+
+		std::string key(argn[i]);
+		std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+
+		std::map<std::string, std::string>::iterator it = config.overwriteArgs.find(key);
+
+		if(it != config.overwriteArgs.end()){
+			writeString(it->second);
+		}else{
+			writeString(argv[i]);
+		}
+	}
+
 	writeStringArray(argn, argc);
 	writeInt32(argc);
 	writeInt32(mode);

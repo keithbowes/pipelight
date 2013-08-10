@@ -80,9 +80,9 @@ FILE * pipeInF	= NULL;
 
 pid_t pid = -1;
 
-void attach(){
+PluginConfig config;
 
-	PluginConfig config;
+void attach(){
 	
 	if(!loadConfig(config, (void*) attach))
 		throw std::runtime_error("Could not load config");
