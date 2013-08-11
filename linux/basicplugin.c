@@ -119,6 +119,8 @@ bool startWineProcess(){
 			putenv((char*)prefix.c_str());
 		}
 
+		//putenv("WINEDEBUG=+relay");
+
 		// Put together the flags
 		std::string windowMode = "";
 		if(config.windowlessMode) windowMode = "--windowless";
