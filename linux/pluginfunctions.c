@@ -472,7 +472,10 @@ NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 	switch(variable){
 
 		case NPPVpluginNeedsXEmbed:
-			writeInt32(variable);
+			result 				= NPERR_NO_ERROR;
+			*((PRBool *)value) 	= PR_TRUE;
+
+			/*writeInt32(variable);
 			writeHandleInstance(instance);
 			callFunction(FUNCTION_NPP_GETVALUE_BOOL);
 			readCommands(stack);
@@ -480,7 +483,7 @@ NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 			result = (NPError)readInt32(stack);
 
 			if(result == NPERR_NO_ERROR)
-				*((PRBool *)value) = (PRBool)readInt32(stack);
+				*((PRBool *)value) = (PRBool)readInt32(stack);*/
 			break;
 
 		case NPPVpluginScriptableNPObject:
