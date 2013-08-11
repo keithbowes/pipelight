@@ -59,6 +59,8 @@ class HandleManager{
 
 		// Searches for an additional instance
 		NPP_t* findInstance();
+
+		void clear();
 };
 
 void writeHandle(uint64_t real, HandleType type, HandleExists shouldExist = HANDLE_CAN_EXIST);

@@ -94,4 +94,17 @@ extern NPClass myClass;
 extern NPNetscapeFuncs* sBrowserFuncs;
 extern HandleManager handlemanager;
 
+extern int pipeOut[2];
+extern int pipeIn[2];
+
+#define PIPE_BROWSER_READ   pipeIn[0]
+#define PIPE_PLUGIN_WRITE   pipeIn[1]
+#define PIPE_BROWSER_WRITE  pipeOut[1]
+#define PIPE_PLUGIN_READ    pipeOut[0]
+
+extern pid_t pid;
+
+void attach();
+bool startWineProcess();
+
 #endif // BasicPlugin_h_

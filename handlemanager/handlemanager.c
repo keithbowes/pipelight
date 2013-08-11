@@ -298,6 +298,14 @@ NPP_t* HandleManager::findInstance(){
 	return NULL;
 }
 
+void HandleManager::clear(){
+
+	handlesID.clear();
+	handlesReal.clear();
+
+}
+
+
 
 void writeHandle(uint64_t real, HandleType type, HandleExists shouldExist){
 	writeInt64(handlemanager.translateTo(real, type, shouldExist));

@@ -60,8 +60,8 @@
 #include <string>
 #include "configloader.h"
 
-static void attach() __attribute__((constructor));
-static void dettach() __attribute__((destructor));
+void attach() __attribute__((constructor));
+void dettach() __attribute__((destructor));
 
 NPNetscapeFuncs* sBrowserFuncs = NULL;
 
@@ -69,11 +69,6 @@ HandleManager handlemanager;
 
 int pipeOut[2] 	= {0, 0};
 int pipeIn[2] 	= {0, 0};
-
-#define PIPE_BROWSER_READ   pipeIn[0]
-#define PIPE_PLUGIN_WRITE   pipeIn[1]
-#define PIPE_BROWSER_WRITE  pipeOut[1]
-#define PIPE_PLUGIN_READ    pipeOut[0]
 
 FILE * pipeOutF = NULL;
 FILE * pipeInF	= NULL;
@@ -87,13 +82,28 @@ void attach(){
 	if(!loadConfig(config, (void*) attach))
 		throw std::runtime_error("Could not load config");
 
-	if( pipe(pipeOut) == -1 )
-		throw std::runtime_error("Could not create pipe 1");
+	if(!startWineProcess())
+		throw std::runtime_error("Could not start Wine process");
 
-	if( pipe(pipeIn) == -1 )
-		throw std::runtime_error("Could not create pipe 2");
+}
 
-	pid_t pid = fork();
+void dettach(){
+
+}
+
+bool startWineProcess(){
+
+	if( pipe(pipeOut) == -1 ){
+		std::cerr << "[PIPELIGHT] Could not create pipe 1" << std::endl;
+		return false;
+	}
+
+	if( pipe(pipeIn) == -1 ){
+		std::cerr << "[PIPELIGHT] Could not create pipe 2" << std::endl;
+		return false;
+	}
+
+	pid = fork();
 	if (pid == 0){
 		// The child process will be replaced with wine
 
@@ -130,15 +140,16 @@ void attach(){
 		pipeOutF 	= fdopen(PIPE_BROWSER_WRITE, 	"wb");
 		pipeInF		= fdopen(PIPE_BROWSER_READ, 	"rb");		
 
+		//This does not neccesarilly mean that everything worked well as execlp can still fail
+		return true;
+
 	}else{
-		throw std::runtime_error("Error while forking");
-
+		std::cerr << "[PIPELIGHT] Error while forking" << std::endl;
+		return false;
 	}
-}
-
-void dettach(){
 
 }
+
 
 void dispatcher(int functionid, Stack &stack){
 	switch(functionid){

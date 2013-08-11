@@ -10,12 +10,14 @@ struct PluginConfig{
 	std::string 	pluginLoaderPath;
 	bool 			windowlessMode;
 	bool			embed;
+	bool			forceReload;
+	bool			killPlugin;
 	std::string 	fakeVersion;
 
 	std::map<std::string, std::string> overwriteArgs;
 };
 
-std::string getFileName(std::string path);
+std::string getFileName(const std::string &path);
 std::string getHomeDirectory();
 std::string trim(std::string str);
 bool loadConfig(PluginConfig &config, void *function);
