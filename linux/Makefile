@@ -6,7 +6,7 @@ OBJECTS=communication.o handlemanager.o npclass.o configloader.o pluginfunctions
 pipelight.so: basicplugin.c basicplugin.h $(OBJECTS)
 	$(CC) $(CFLAGS) -z defs -shared basicplugin.c $(OBJECTS) $(LDFLAGS) -o pipelight.so
 
-communication.o: ../communication/communication.c ../communication/communication.h
+communication.o: ../communication/communication.c ../communication/communication.h ../handlemanager/handlemanager.h
 	$(CC) $(CFLAGS) -c ../communication/communication.c -o communication.o
 
 handlemanager.o: ../handlemanager/handlemanager.c ../handlemanager/handlemanager.h
