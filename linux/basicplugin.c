@@ -162,6 +162,38 @@ void dispatcher(int functionid, Stack &stack){
 
 		// PROCESS_WINDOW_EVENTS not implemented
 
+		case GET_WINDOW_RECT:
+			{
+				Window win 			= (Window)readInt32(stack);
+				XWindowAttributes winattr;
+				bool result         = false;
+				Window dummy;
+
+				Display *display 	= XOpenDisplay(NULL);
+
+				if(display){
+					result 				= XGetWindowAttributes(display, win, &winattr);
+					if(result) result 	= XTranslateCoordinates(display, win, RootWindow(display, 0), winattr.x, winattr.y, &winattr.x, &winattr.y, &dummy);
+
+
+					XCloseDisplay(display);
+
+				}else{
+					std::cerr << "[PIPELIGHT] Could not open Display" << std::endl;
+				}
+
+				if(result){
+					/*writeInt32(winattr.height);
+					writeInt32(winattr.width);*/
+					writeInt32(winattr.y);
+					writeInt32(winattr.x);
+				}
+
+				writeInt32(result);
+				returnCommand();
+			}
+			break;
+
 		// Plugin specific commands (_GET_, _NP_ and _NPP_) not implemented
 
 		case FUNCTION_NPN_CREATE_OBJECT: // Verified, everything okay

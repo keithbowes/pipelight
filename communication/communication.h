@@ -16,8 +16,11 @@ enum FunctionIDs{
 	HANDLE_MANAGER_REQUEST_STREAM_INFO,
 	HANDLE_MANAGER_FREE_NOTIFY_DATA,
 
-	// Processes windoe events
+	// Processes window events
 	PROCESS_WINDOW_EVENTS,
+
+	// Get window rects
+	GET_WINDOW_RECT,
 
 	// ------- Plugin -------
 	FUNCTION_GET_VERSION,

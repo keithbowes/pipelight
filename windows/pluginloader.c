@@ -23,7 +23,7 @@ HandleManager handlemanager;
 NPPluginFuncs pluginFuncs = {sizeof(pluginFuncs), NP_VERSION_MINOR};
 
 bool isWindowlessMode	= false;
-bool isEmbedMode		= false;
+bool isEmbeddedMode		= false;
 
 std::map<HWND, NPP> hwndToInstance;
 
@@ -100,6 +100,29 @@ LRESULT CALLBACK WndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 
 				// All other events
 				}else{
+
+					// Workaround for Contextmenu in embedded mode
+					if(Msg == WM_RBUTTONDOWN && isEmbeddedMode){
+						int32_t windowIDX11 = (int32_t) GetPropA(hWnd, "__wine_x11_whole_window");
+						if(windowIDX11){
+							Stack stack;
+
+							writeInt32(windowIDX11);
+							callFunction(GET_WINDOW_RECT);
+
+							readCommands(stack);
+
+							if( (bool)readInt32(stack) ){
+								int32_t x 			= readInt32(stack);
+								int32_t y 			= readInt32(stack);
+								/*int32_t width 		= readInt32(stack);
+								int32_t height 		= readInt32(stack);*/
+
+								SetWindowPos(ndata->hWnd, HWND_TOP, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+							}
+						}
+					}
+
 
 					// Workaround for Silverlight - the events are not correctly handled if
 					// window->window is nonzero
@@ -337,9 +360,9 @@ int main(int argc, char *argv[]){
 		std::transform(arg.begin(), arg.end(), arg.begin(), ::tolower);
 
 		if(arg == "--windowless"){
-			isWindowlessMode = true;
+			isWindowlessMode 	= true;
 		}else if(arg == "--embed"){
-			isEmbedMode = true;
+			isEmbeddedMode 		= true;
 		}
 
 	}
@@ -350,7 +373,7 @@ int main(int argc, char *argv[]){
 		std::cerr << "[PIPELIGHT] Using WINDOW mode" << std::endl;
 	}
 
-	if(isEmbedMode){
+	if(isEmbeddedMode){
 		std::cerr << "[PIPELIGHT] Using EMBED mode" << std::endl;
 	}else{
 		std::cerr << "[PIPELIGHT] Using external window" << std::endl;
@@ -804,6 +827,7 @@ void dispatcher(int functionid, Stack &stack){
 				int32_t width 	= readInt32(stack);
 				int32_t height 	= readInt32(stack);
 
+				// Only used in XEMBED mode
 				int32_t windowIDX11 = 0;
 
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
@@ -822,7 +846,7 @@ void dispatcher(int functionid, Stack &stack){
 						int posX;
 						int posY;
 
-						if(isEmbedMode){
+						if(isEmbeddedMode){
 							style 		= WS_POPUP;
 							extStyle 	= WS_EX_TOOLWINDOW;
 							posX		= 0;
@@ -839,7 +863,7 @@ void dispatcher(int functionid, Stack &stack){
 						ndata->hWnd = CreateWindowEx(extStyle, ClsName, "Plugin", style, posX, posY, rect.right - rect.left, rect.bottom - rect.top, 0, 0, 0, 0);
 						if(ndata->hWnd){
 
-							if(isEmbedMode){
+							if(isEmbeddedMode){
 								windowIDX11 = (int32_t) GetPropA(ndata->hWnd, "__wine_x11_whole_window");
 							}
 
@@ -851,16 +875,26 @@ void dispatcher(int functionid, Stack &stack){
 					}
 
 					if(ndata->hWnd){
+						NPWindow* window = ndata->window;
 
-						NPWindow* window = (NPWindow*)malloc(sizeof(NPWindow));
+						// Allocate new window structure
+						if(!window){
+							window 			= (NPWindow*)malloc(sizeof(NPWindow));
+							ndata->window 	= window;
+							// Only do this once to prevent leaking DCs
+							if(isWindowlessMode){
+								window->window 			= GetDC(ndata->hWnd);
+								window->type 			= NPWindowTypeDrawable;
+							}else{
+								window->window 			= ndata->hWnd;
+								window->type 			= NPWindowTypeWindow;
+							}
+
+						}
+
 						if(window){
-
-							// This pointer replaces the previous one
-							if(ndata->window) free(ndata->window);
-							ndata->window = window;
-
-							window->x 				= x;
-							window->y 				= y;
+							window->x 				= 0; //x;
+							window->y 				= 0; //y;
 							window->width 			= width;
 							window->height 			= height; 
 							window->clipRect.top 	= 0;
@@ -868,19 +902,7 @@ void dispatcher(int functionid, Stack &stack){
 							window->clipRect.right 	= width;
 							window->clipRect.bottom = height;
 
-							if(isWindowlessMode){
-								window->window 			= GetDC(ndata->hWnd);
-								window->type 			= NPWindowTypeDrawable;
-
-								pluginFuncs.setwindow(instance, window);
-								// setwindow doesnt make sense until we have a DC
-
-							}else{
-								window->window 			= ndata->hWnd;
-								window->type 			= NPWindowTypeWindow;
-								pluginFuncs.setwindow(instance, window);
-							}						
-
+							pluginFuncs.setwindow(instance, window);
 						}
 						
 					}else{
