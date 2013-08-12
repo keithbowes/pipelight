@@ -78,12 +78,13 @@ pid_t pid = -1;
 PluginConfig config;
 
 void attach(){
-	
+	std::cerr << "[PIPELIGHT] Attached to process, starting wine" << std::endl;
+
 	if(!loadConfig(config, (void*) attach))
 		throw std::runtime_error("Could not load config");
 
 	if(!startWineProcess())
-		throw std::runtime_error("Could not start Wine process");
+		throw std::runtime_error("Could not start wine process");
 
 }
 
@@ -115,7 +116,7 @@ bool startWineProcess(){
 		dup2(PIPE_PLUGIN_WRITE, 1);	
 		
 		if (config.winePrefix != ""){
-			setenv("WINEPREFIX", (char*)config.winePrefix.c_str(), true);
+			setenv("WINEPREFIX", config.winePrefix.c_str(), true);
 		}
 
 		if(config.gccRuntimeDLLs != ""){
@@ -127,7 +128,7 @@ bool startWineProcess(){
 
 			runtime += config.gccRuntimeDLLs;
 
-			setenv("Path", (char*)runtime.c_str(), true);
+			setenv("Path", runtime.c_str(), true);
 		}
 
 		// Put together the flags
@@ -163,6 +164,8 @@ bool startWineProcess(){
 
 
 void dispatcher(int functionid, Stack &stack){
+	if(!sBrowserFuncs) throw std::runtime_error("Browser didn't correctly initialize the plugin!");
+
 	switch(functionid){
 		
 		// OBJECT_KILL not implemented

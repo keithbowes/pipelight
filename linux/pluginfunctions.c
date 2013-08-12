@@ -55,12 +55,74 @@ NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 {
 	EnterFunction();
 
-	sBrowserFuncs = bFuncs;
+	if( bFuncs == NULL || pFuncs == NULL )
+		return NPERR_INVALID_PARAM;
 
-	// Check the size of the provided structure based on the offset of the
-	// last member we need.
-	if (pFuncs->size < (offsetof(NPPluginFuncs, setvalue) + sizeof(void*)))
+	if( (bFuncs->version >> 8) > NP_VERSION_MAJOR ){
+		std::cerr << "[PIPELIGHT] Incompatible browser version!" << std::endl;
+		return NPERR_INCOMPATIBLE_VERSION_ERROR;
+	}
+
+	// sBrowserFuncs = bFuncs;
+	// Copy browser functions instead of saving the pointer
+
+	if(!sBrowserFuncs){
+		sBrowserFuncs = (NPNetscapeFuncs*)malloc( sizeof(NPNetscapeFuncs) );
+	}
+
+	if(!sBrowserFuncs){
+		return NPERR_OUT_OF_MEMORY_ERROR;
+	}
+
+	memset(sBrowserFuncs, 0, sizeof(NPNetscapeFuncs));
+	memcpy(sBrowserFuncs, bFuncs, ((bFuncs->size < sizeof(NPNetscapeFuncs)) ? bFuncs->size : sizeof(NPNetscapeFuncs)) );
+
+	// Check if all required browser functions are available
+	if( !sBrowserFuncs->geturl ||
+		!sBrowserFuncs->posturl ||
+		!sBrowserFuncs->requestread ||
+		!sBrowserFuncs->newstream ||
+		!sBrowserFuncs->write ||
+		!sBrowserFuncs->destroystream ||
+		!sBrowserFuncs->status ||
+		!sBrowserFuncs->uagent ||
+		!sBrowserFuncs->memalloc ||
+		!sBrowserFuncs->memfree ||
+		!sBrowserFuncs->geturlnotify ||
+		!sBrowserFuncs->posturlnotify ||
+		!sBrowserFuncs->getvalue ||
+		!sBrowserFuncs->getstringidentifier ||
+		!sBrowserFuncs->getintidentifier ||
+		!sBrowserFuncs->identifierisstring ||
+		!sBrowserFuncs->utf8fromidentifier ||
+		!sBrowserFuncs->intfromidentifier ||
+		!sBrowserFuncs->createobject ||
+		!sBrowserFuncs->retainobject ||
+		!sBrowserFuncs->releaseobject ||
+		!sBrowserFuncs->invoke ||
+		!sBrowserFuncs->invokeDefault ||
+		!sBrowserFuncs->evaluate ||
+		!sBrowserFuncs->getproperty ||
+		!sBrowserFuncs->setproperty ||
+		!sBrowserFuncs->removeproperty ||
+		!sBrowserFuncs->hasproperty ||
+		!sBrowserFuncs->setexception ||
+		!sBrowserFuncs->enumerate ||
+		!sBrowserFuncs->scheduletimer ||
+		!sBrowserFuncs->unscheduletimer ){
+		std::cerr << "[PIPELIGHT] Your browser doesn't support all required functions!" << std::endl;
+		return NPERR_INCOMPATIBLE_VERSION_ERROR;
+	}
+
+
+	if( pFuncs->size < (offsetof(NPPluginFuncs, setvalue) + sizeof(void*)) )
 		return NPERR_INVALID_FUNCTABLE_ERROR;
+
+	// Return the plugin function table
+	pFuncs->version 		= (NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR;
+
+	// Dont overwrite the size of the function table, it might be smaller than usual
+	// pFuncs->size 		= sizeof(NPPluginFuncs);
 
 	pFuncs->newp 			= NPP_New;
 	pFuncs->destroy 		= NPP_Destroy;
