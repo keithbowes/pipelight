@@ -5,6 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include "communication.h"
+#include "../handlemanager/handlemanager.h"
 #include <cstring>
 #include <fstream>
 
@@ -13,6 +14,7 @@
 extern NPNetscapeFuncs *sBrowserFuncs;
 #endif
 
+extern HandleManager handlemanager;
 extern void dispatcher(int functionid, Stack &stack);
 
 extern FILE * pipeOutF;
@@ -463,7 +465,21 @@ void readCommands(Stack &stack, bool allowReturn){
 		// Wait for initial command
 		while(pos < sizeof(int32_t)){
 			size_t numBytes = fread( (char*)&blockInfo + pos, sizeof(char), sizeof(int32_t) - pos, pipeInF);
-			if( numBytes <= 0 ) throw std::runtime_error("Unable to receive data");
+			if( numBytes <= 0 ){
+				#ifdef __WIN32__
+					// If we don't have any running instances of our plugin
+					// a broken pipes simply means the shutdown of the browser
+					// plugin and doesn't need to be an error
+					if(!handlemanager.findInstance()){
+						exit(0);
+					}else{
+						throw std::runtime_error("Unable to receive data");
+					}
+				#else
+					throw std::runtime_error("Unable to receive data");
+				#endif
+			}
+
 			pos += numBytes;
 		}
 

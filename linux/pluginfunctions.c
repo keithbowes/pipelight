@@ -3,6 +3,9 @@
 #include <iostream>
 #include <algorithm>
 #include <X11/Xlib.h>
+#include <signal.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 char strMimeType[2048] 			= {0};
 char strPluginversion[100]		= {0};
@@ -170,7 +173,12 @@ NPError
 NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* argn[], char* argv[], NPSavedData* saved) {
 	EnterFunction();
 
-	// TODO: SCHEDULE ONLY ONE TIMER?!
+	if(config.forceReload){
+		if(!loadConfig(config, (void*) attach)){
+			throw std::runtime_error("Could not reload config");
+		}
+	}
+
 	// TODO: For Chrome this should be ~0, for Firefox a value of 5-10 is better.
 
 	if( EventTimerInstance == NULL ){
@@ -281,6 +289,32 @@ NPP_Destroy(NPP instance, NPSavedData** save) {
 
 		}else{
 			std::cerr << "[PIPELIGHT] No more instance found, timer stays stopped" << std::endl;
+		}
+	}
+
+	if(config.killPlugin){
+
+		// Check if we still have a running instance of the plugin
+		NPP nextInstance = handlemanager.findInstance();
+		if(!nextInstance){
+
+			// This should also terminate the child process if it didn't freeze
+			close(PIPE_BROWSER_READ);
+			close(PIPE_BROWSER_WRITE);
+
+			// Check if the child exited and kill it otherwise
+			int status;
+
+			if(pid > 0 && !waitpid(pid, &status, WNOHANG)){
+				kill(pid, SIGTERM);
+			}
+
+			// Start new Plugin and replace pipes
+			if(!startWineProcess())
+				throw std::runtime_error("Could not restart Wine process");
+
+			// We can now safely remove all handle translations
+			handlemanager.clear();
 		}
 	}
 

@@ -6,8 +6,10 @@
 #include <dlfcn.h>
 #include <iostream>
 #include <unistd.h>
+#include <map>
+#include <queue>
 
-std::string getFileName(std::string path){
+std::string getFileName(const std::string &path){
 
 	std::string result = path;
 
@@ -95,6 +97,72 @@ bool splitConfigValue(std::string line, std::string &key, std::string &value){
 	return true;
 }
 
+// If abort != 0 then this reads until the specific character occurs or the string is empty
+// If abort == 0 then the function aborts on the first non-variable character
+std::string readUntil(const char* &str, char abort = 0){
+	const char *start = str;
+
+	while(*str){
+
+		if( *str == abort || (!abort && !( (*str >= 'A' && *str <= 'Z') || (*str >= 'a' && *str <= 'z') || (*str >= '0' && *str <= '9') || *str == '_' ) ) ){
+			break;
+		}
+
+		str++;
+
+	}
+
+	return std::string(start, str-start);
+}
+
+std::string replaceVariables(const std::map<std::string, std::string> &variables, const char* str){
+
+	std::string output 	= "";
+	std::string varname = "";
+	std::map<std::string, std::string>::const_iterator it;
+
+	while(*str){
+
+		if(*str == '$'){ // Not escaped
+			str++;
+
+			if(*str == '$'){ // Escape
+				output.append(1, *str);
+				str++;
+				continue;
+
+			}else if(*str == '{'){ // In brackets
+				str++;
+
+				varname = readUntil(str, '}');
+
+				if(*str != '}'){
+					throw std::runtime_error("Expected closing tag } in config file");
+				}
+				str++; // Skip over it
+
+			}else{
+				varname = readUntil(str);
+			}
+
+			std::transform(varname.begin(), varname.end(), varname.begin(), ::tolower);
+			it = variables.find("$" + varname);
+			if( it != variables.end() ){
+				output.append( it->second ); // Append value
+			}else{
+				throw std::runtime_error("Variable not found: " + varname);
+			}
+
+		}else{
+			output.append(1, *str);
+			str++;
+		}
+	}
+
+	return output;
+}
+
+
 bool loadConfig(PluginConfig &config, void *function){
 
 	// Initialize config variables with default values
@@ -105,7 +173,12 @@ bool loadConfig(PluginConfig &config, void *function){
 	config.pluginLoaderPath = "";
 	config.windowlessMode 	= true;
 	config.embed 			= false;
+	config.forceReload		= false;
+	config.killPlugin		= false;
 	config.fakeVersion		= "";
+	config.gccRuntimeDLLs	= DEFAULT_GCC_RUNTIME_DLL_SEARCH_PATH;
+
+	std::map<std::string, std::string> variables;
 
 	Dl_info dl_info;
 	if(!dladdr(function, &dl_info))
@@ -124,6 +197,8 @@ bool loadConfig(PluginConfig &config, void *function){
 	if(homeDir == "")
 		return false;
 
+	variables["$home"] = homeDir;
+
 	std::string configPath = homeDir + "/.pipelight/" + filename;
 
 	// Print some debug message
@@ -138,6 +213,10 @@ bool loadConfig(PluginConfig &config, void *function){
 		std::string line;
 
 		getline(configFile, line);
+
+		line = trim(line);
+		if(line.length() == 0)
+			continue;
 
 		size_t pos;
 
@@ -160,6 +239,15 @@ bool loadConfig(PluginConfig &config, void *function){
 		//convert key to lower case
 		std::transform(key.begin(), key.end(), key.begin(), ::tolower);
 
+		value = replaceVariables(variables, value.c_str());
+
+		// check for variables
+		// splitConfiguration takes care that the key has at least one character
+		if(key[0] == '$'){
+			variables[key] = value;
+			continue;
+		}
+
 		if(key == "winepath"){
 			config.winePath = value;
 
@@ -172,6 +260,9 @@ bool loadConfig(PluginConfig &config, void *function){
 		}else if(key == "dllname"){
 			config.dllName = value;
 
+		}else if(key == "gccruntimedlls"){
+			config.gccRuntimeDLLs = value;
+
 		}else if(key == "pluginloaderpath"){
 			config.pluginLoaderPath = value;
 
@@ -182,6 +273,14 @@ bool loadConfig(PluginConfig &config, void *function){
 		}else if(key == "embed"){
 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 			config.embed = (value == "true" || value == "yes");
+
+		}else if(key == "forcereload"){
+			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+			config.forceReload = (value == "true" || value == "yes");
+
+		}else if(key == "killplugin"){
+			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+			config.killPlugin = (value == "true" || value == "yes");
 
 		}else if(key == "fakeversion"){
 			config.fakeVersion = value;

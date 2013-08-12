@@ -36,6 +36,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+/*	Pipelight - License
+ *
+ *	The source code is based on mozilla.org code and is licensed under
+ *	MPL 1.1/GPL 2.0/LGPL 2.1 as stated above. Modifications to create
+ * 	Pipelight are done by:
+ *
+ *	Contributor(s):
+ *		Michael Müller <michael@fds-team.de>
+ *		Sebastian Lackner <sebastian@fds-team.de>
+ *
+ */
+
 #ifndef BasicPlugin_h_
 #define BasicPlugin_h_
 
@@ -93,5 +105,18 @@ extern NPClass myClass;
 
 extern NPNetscapeFuncs* sBrowserFuncs;
 extern HandleManager handlemanager;
+
+extern int pipeOut[2];
+extern int pipeIn[2];
+
+#define PIPE_BROWSER_READ   pipeIn[0]
+#define PIPE_PLUGIN_WRITE   pipeIn[1]
+#define PIPE_BROWSER_WRITE  pipeOut[1]
+#define PIPE_PLUGIN_READ    pipeOut[0]
+
+extern pid_t pid;
+
+void attach();
+bool startWineProcess();
 
 #endif // BasicPlugin_h_

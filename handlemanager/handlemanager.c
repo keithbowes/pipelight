@@ -139,8 +139,8 @@ uint64_t HandleManager::translateFrom(uint64_t id, HandleType type, NPP instance
 
 	//Create handle
 	Handle handle;
-	handle.id 			= id;
-	handle.type 		= type;
+	handle.id 	= id;
+	handle.type = type;
 
 	switch(type){
 
@@ -297,6 +297,14 @@ NPP_t* HandleManager::findInstance(){
 
 	return NULL;
 }
+
+void HandleManager::clear(){
+
+	handlesID.clear();
+	handlesReal.clear();
+
+}
+
 
 
 void writeHandle(uint64_t real, HandleType type, HandleExists shouldExist){
