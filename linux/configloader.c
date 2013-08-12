@@ -171,8 +171,8 @@ bool loadConfig(PluginConfig &config, void *function){
 	config.dllPath 			= "";
 	config.dllName 			= "";
 	config.pluginLoaderPath = "";
-	config.windowlessMode 	= true;
-	config.embed 			= false;
+	config.windowlessMode 	= false; // Default is window mode, as windowless currently is still a bit buggy
+	config.embed 			= true;
 	config.forceReload		= false;
 	config.killPlugin		= false;
 	config.fakeVersion		= "";
