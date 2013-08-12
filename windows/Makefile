@@ -15,7 +15,7 @@ handlemanager.o: ../handlemanager/handlemanager.c ../handlemanager/handlemanager
 npclass.o: npclass.c
 	$(CC) $(CFLAGS) -c npclass.c -o npclass.o
 
-npnfunctions.o: npnfunctions.c npnfunctions.h
+npnfunctions.o: npnfunctions.c
 	$(CC) $(CFLAGS) -c npnfunctions.c -o npnfunctions.o
 
 pluginfunctions.o:

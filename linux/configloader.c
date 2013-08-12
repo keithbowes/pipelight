@@ -176,6 +176,7 @@ bool loadConfig(PluginConfig &config, void *function){
 	config.forceReload		= false;
 	config.killPlugin		= false;
 	config.fakeVersion		= "";
+	config.gccRuntimeDLLs	= DEFAULT_GCC_RUNTIME_DLL_SEARCH_PATH;
 
 	std::map<std::string, std::string> variables;
 
@@ -258,6 +259,9 @@ bool loadConfig(PluginConfig &config, void *function){
 
 		}else if(key == "dllname"){
 			config.dllName = value;
+
+		}else if(key == "gccruntimedlls"){
+			config.gccRuntimeDLLs = value;
 
 		}else if(key == "pluginloaderpath"){
 			config.pluginLoaderPath = value;

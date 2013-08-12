@@ -96,8 +96,7 @@ void freeDataPointer(void *data);
 std::string createLinuxCompatibleMimeType();
 bool InitDLL();
 
-
 struct NetscapeData{
-	HWND hWnd;
-	NPWindow* window;
+	HWND 		hWnd;
+	NPWindow* 	window;
 };

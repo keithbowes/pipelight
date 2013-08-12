@@ -1,0 +1,15 @@
+Source: pipelight
+Maintainer: Michael Mueller <michael@fds-team.de>
+Section: misc
+Priority: optional
+Standards-Version: 3.9.3
+Build-Depends: debhelper (>= 8), libc6-dev(>= 2.11.1), libx11-dev (>= 2:1.3), 
+	mingw-w64, g++-mingw-w64, make (>= 3.81), g++ (>= 4:4.4)
+
+Package: pipelight
+Architecture: amd64 i386
+Depends: ${shlibs:Depends}, ${misc:Depends}, libx11-6,
+	gcc-mingw-w64-i686
+Description: allows usage of Silverlight through Wine
+	Pipelight allows one to use Silverlight inside a Linux browser 
+	with the help of Wine.

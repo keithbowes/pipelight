@@ -139,8 +139,8 @@ uint64_t HandleManager::translateFrom(uint64_t id, HandleType type, NPP instance
 
 	//Create handle
 	Handle handle;
-	handle.id 			= id;
-	handle.type 		= type;
+	handle.id 	= id;
+	handle.type = type;
 
 	switch(type){
 

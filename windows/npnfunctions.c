@@ -1,7 +1,7 @@
 #include "pluginloader.h"
 #include <iostream>
 
-char strUserAgent[1024] 			= {0};
+char strUserAgent[1024] = {0};
 
 extern HandleManager handlemanager;
 extern bool isWindowlessMode;

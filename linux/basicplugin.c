@@ -115,11 +115,20 @@ bool startWineProcess(){
 		dup2(PIPE_PLUGIN_WRITE, 1);	
 		
 		if (config.winePrefix != ""){
-			std::string prefix = "WINEPREFIX=" + config.winePrefix;
-			putenv((char*)prefix.c_str());
+			setenv("WINEPREFIX", (char*)config.winePrefix.c_str(), true);
 		}
 
-		//putenv("WINEDEBUG=+relay");
+		if(config.gccRuntimeDLLs != ""){
+			std::string runtime;
+
+			char *str = getenv("Path");
+			if (str)
+				runtime = std::string(str) + ";";
+
+			runtime += config.gccRuntimeDLLs;
+
+			setenv("Path", (char*)runtime.c_str(), true);
+		}
 
 		// Put together the flags
 		std::string windowMode = "";
