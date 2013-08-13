@@ -168,7 +168,7 @@ std::string replaceVariables(const std::map<std::string, std::string> &variables
 }
 
 
-bool loadConfig(PluginConfig &config, void *function){
+bool loadConfig(PluginConfig &config){
 
 	// Initialize config variables with default values
 	config.winePath 		= "wine";

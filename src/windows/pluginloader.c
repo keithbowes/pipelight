@@ -930,7 +930,7 @@ void dispatcher(int functionid, Stack &stack){
 
 				// These parameters currently are not required
 				UNREFERENCED_PARAMETER(x);
-				UNREFERENCED_PARAMETER(y)
+				UNREFERENCED_PARAMETER(y);
 			}
 			break;
 

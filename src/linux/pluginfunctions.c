@@ -373,7 +373,7 @@ NPP_Destroy(NPP instance, NPSavedData** save) {
 
 			// We have to reload the config file
 			if(config.forceReload){
-				if(!loadConfig(config, (void*) attach)){
+				if(!loadConfig(config)){
 					throw std::runtime_error("Could not reload config");
 				}
 			}

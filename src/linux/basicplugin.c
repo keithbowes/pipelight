@@ -101,7 +101,7 @@ void detach() __attribute__((destructor));
 void attach(){
 	std::cerr << "[PIPELIGHT] Attached to process, starting wine" << std::endl;
 
-	if(!loadConfig(config, (void*) attach))
+	if(!loadConfig(config))
 		throw std::runtime_error("Could not load config");
 
 	if(!startWineProcess())
