@@ -480,7 +480,10 @@ void objectKill(NPObject *obj){
 	}
 
 	// Set to some trash value! (not really necessary)
-	obj->referenceCount = 0xDEADBEEF;
+	obj->referenceCount = 0;
+
+	// Remove it in the handle manager
+	handlemanager.removeHandleByReal((uint64_t)obj, TYPE_NPObject);
 
 	// Remove the object locally
 	if(obj->_class->deallocate){
@@ -489,8 +492,6 @@ void objectKill(NPObject *obj){
 		free((char*)obj);
 	}
 
-	// Remove it in the handle manager
-	handlemanager.removeHandleByReal((uint64_t)obj, TYPE_NPObject);
 }
 
 

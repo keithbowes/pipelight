@@ -480,6 +480,11 @@ NPP_WriteReady(NPP instance, NPStream* stream) {
 	
 	int32_t result = readResultInt32();
 
+	// Ensure that the program doesn't want too much data at once - this might cause the communication to hang
+	if(result > 0xFFFFFF){
+		result = 0xFFFFFF;
+	}
+
 	return result;
 }
 
