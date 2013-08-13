@@ -87,13 +87,13 @@ pid_t winePid = -1;
 NPNetscapeFuncs* sBrowserFuncs = NULL;
 
 // Handlemanager
-HandleManager handlemanager;
+HandleManager handlemanager __attribute__((init_priority(101)));
 
 // Global plugin configuration
-PluginConfig config;
+PluginConfig config __attribute__((init_priority(101)));
 
 // Attach has to be called as a last step
-void attach() __attribute__((constructor));
+void attach() __attribute__((constructor(102)));
 void detach() __attribute__((destructor));
 
 /* END GLOBAL VARIABLES */
