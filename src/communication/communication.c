@@ -1,22 +1,24 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdexcept>
-#include <vector>
-#include <iostream>
-#include <sstream>
-#include "communication.h"
-#include "../handlemanager/handlemanager.h"
-#include <cstring>
-#include <fstream>
+#include <stdio.h>								// for fread, fwrite
+#include <stdlib.h>								// for malloc, ...
+#include <stdexcept>							// for std::runtime_error
+#include <iostream>								// for std::cerr
+#include <cstring>								// for memcpy, ...
+#include <memory>								// for shared_ptr
+#include <string>								// for std::string
+#include <vector>								// for std::vector<ParameterInfo>
 
-#ifndef __WIN32__
-#include "../npapi-headers/npfunctions.h"
-extern NPNetscapeFuncs *sBrowserFuncs;
+#include "communication.h"
+
+#ifdef __WIN32__
+	#include "../handlemanager/handlemanager.h"	// for handlemanager.findInstance
+	extern HandleManager handlemanager;
+
+#else
+	#include "../npapi-headers/npfunctions.h"	// for sBrowserFuncs->memalloc
+	extern NPNetscapeFuncs *sBrowserFuncs;
 #endif
 
-extern HandleManager handlemanager;
 extern void dispatcher(int functionid, Stack &stack);
-
 extern FILE * pipeOutF;
 extern FILE * pipeInF;
 
@@ -475,8 +477,10 @@ void readCommands(Stack &stack, bool allowReturn){
 					}else{
 						throw std::runtime_error("Unable to receive data");
 					}
+
 				#else
 					throw std::runtime_error("Unable to receive data");
+					
 				#endif
 			}
 
@@ -510,7 +514,7 @@ void readCommands(Stack &stack, bool allowReturn){
 			if(blockData) free(blockData);
 
 			if(function == 0){
-				throw std::runtime_error("Function ID 0 for BLOCKCMD_CALL_DIRECT not allowed");
+				throw std::runtime_error("FunctionID 0 for BLOCKCMD_CALL_DIRECT not allowed");
 			}
 
 			// Here the dispatcher routine - depending on the command number call the specific function

@@ -1,8 +1,8 @@
-#include "pluginloader.h"
 #include <iostream>
 
-char strUserAgent[1024] = {0};
+#include "pluginloader.h"
 
+extern char strUserAgent[1024];
 extern HandleManager handlemanager;
 extern bool isWindowlessMode;
 
@@ -418,10 +418,20 @@ NPObject* NP_LOADDS NPN_CreateObject(NPP npp, NPClass *aClass){
 NPObject* NP_LOADDS NPN_RetainObject(NPObject *obj){
 	EnterFunction();
 
+	#ifdef DEBUG_LOG_HANDLES
+		std::cerr << "[PIPELIGHT:WINDOWS] NPN_RetainObject(" << (void*)obj << ")" << std::endl;
+	#endif
+
 	if (obj){
 
-		if(obj->referenceCount != REFCOUNT_UNDEFINED)
+		if(obj->referenceCount != REFCOUNT_UNDEFINED){
 			obj->referenceCount++;
+
+		}
+
+		// Required to check if the reference counting is still appropriate
+		// (only used when DEBUG_LOG_HANDLES is on)
+		writeInt32(obj->referenceCount);
 
 		writeHandleObj(obj, HANDLE_SHOULD_EXIST);
 		callFunction(FUNCTION_NPN_RETAINOBJECT);
@@ -435,7 +445,12 @@ NPObject* NP_LOADDS NPN_RetainObject(NPObject *obj){
 void NP_LOADDS NPN_ReleaseObject(NPObject *obj){
 	EnterFunction();
 
-	if (obj){	
+	#ifdef DEBUG_LOG_HANDLES
+		std::cerr << "[PIPELIGHT:WINDOWS] NPN_ReleaseObject(" << (void*)obj << ")" << std::endl;
+	#endif
+
+	if (obj){
+
 		writeHandleObjDecRef(obj, HANDLE_SHOULD_EXIST);
 		callFunction(FUNCTION_NPN_RELEASEOBJECT);
 		waitReturn();

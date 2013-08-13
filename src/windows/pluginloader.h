@@ -1,11 +1,16 @@
-#include "../npapi-headers/npapi.h"
-#include "../npapi-headers/npruntime.h"
-#include "../npapi-headers/npfunctions.h"
-#include "../handlemanager/handlemanager.h"
-#include "../communication/communication.h"
+#ifndef PluginLoader_h_
+#define PluginLoader_h_
+
 #include <fstream>
 #include <cstdlib>
 #include <windows.h>
+
+#include "../npapi-headers/npapi.h"
+#include "../npapi-headers/npruntime.h"
+#include "../npapi-headers/npfunctions.h"
+
+#include "../communication/communication.h"
+#include "../handlemanager/handlemanager.h"
 
 /*
 	NP Class functions
@@ -88,15 +93,9 @@ void NP_LOADDS NPN_SetCurrentAsyncSurface(NPP instance, NPAsyncSurface *surface,
 
 extern NPNetscapeFuncs browserFuncs;
 
-/*
-	Plugin loader functions
-*/
-LRESULT CALLBACK WndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
-void freeDataPointer(void *data);
-std::string createLinuxCompatibleMimeType();
-bool InitDLL();
-
 struct NetscapeData{
 	HWND 		hWnd;
 	NPWindow* 	window;
 };
+
+#endif // PluginLoader_h_

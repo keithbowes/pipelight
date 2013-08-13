@@ -48,51 +48,89 @@
  *
  */
  
-#include "basicplugin.h"
+#include <stdlib.h>								// for getenv, ...
+#include <iostream>								// for std::cerr
+#include <unistd.h>								// for POSIX api
+#include <string>								// for std::string
+#include <stdexcept>							// for std::runtime_error
 
-#include <signal.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <iostream>
-#include <fstream>
-#include <cstring>
-#include <unistd.h>
-#include <string>
+#include "basicplugin.h"
 #include "configloader.h"
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 
-NPNetscapeFuncs* sBrowserFuncs = NULL;
+/* BEGIN GLOBAL VARIABLES
 
-HandleManager handlemanager;
+	Note: As global variables should be initialized properly BEFORE the attach function is called.
+	Otherwise there might be some uninitialized variables...
 
+*/
+
+// Description etc.
+char strMimeType[2048] 			= {0};
+char strPluginversion[100]		= {0};
+char strPluginName[256] 		= {0};
+char strPluginDescription[1024]	= {0};
+
+// Instance responsible for triggering the timer
+uint32_t  	EventTimerID 			= 0;
+NPP 		EventTimerInstance 		= NULL;
+
+// Pipes to communicate with the wine process
 int pipeOut[2] 	= {0, 0};
 int pipeIn[2] 	= {0, 0};
-
 FILE * pipeOutF = NULL;
 FILE * pipeInF	= NULL;
 
-pid_t pid = -1;
+// winePid if wine has already been started
+pid_t winePid = -1;
+bool initOkay = false;
 
-PluginConfig config;
+// Browser functions
+NPNetscapeFuncs* sBrowserFuncs = NULL;
 
-void attach() __attribute__((constructor));
-void dettach() __attribute__((destructor));
+// Handlemanager
+HandleManager handlemanager __attribute__((init_priority(101)));
+
+// Global plugin configuration
+PluginConfig config __attribute__((init_priority(101)));
+
+// Attach has to be called as a last step
+void attach() __attribute__((constructor(102)));
+void detach() __attribute__((destructor));
+
+/* END GLOBAL VARIABLES */
 
 void attach(){
 	std::cerr << "[PIPELIGHT] Attached to process, starting wine" << std::endl;
 
-	if(!loadConfig(config, (void*) attach))
-		throw std::runtime_error("Could not load config");
+	if(!loadConfig(config)){
+		std::cerr << "[PIPELIGHT] Could not load config" << std::endl;
+		initOkay = false;
+		return;
+	}
 
-	if(!startWineProcess())
-		throw std::runtime_error("Could not start wine process");
+	if(!startWineProcess()){
+		std::cerr << "[PIPELIGHT] Could not start wine process" << std::endl;
+		initOkay = false;
+		return;
+	}
 
+	try {
+		callFunction(INIT_OKAY);
+		waitReturn();
+	} catch(std::runtime_error error){
+		std::cerr << "[PIPELIGHT] Error during the initialization of the wine process" << std::endl;
+		initOkay = false;
+		return;
+	}
+ 
+	initOkay = true;
 }
 
-void dettach(){
-
+void detach(){
+	// TODO: Deinitialize pointers etc.
 }
 
 bool checkIfExists(std::string path){
@@ -116,8 +154,8 @@ bool startWineProcess(){
 		return false;
 	}
 
-	pid = fork();
-	if (pid == 0){
+	winePid = fork();
+	if (winePid == 0){
 		// The child process will be replaced with wine
 
 		close(PIPE_BROWSER_READ);
@@ -178,7 +216,7 @@ bool startWineProcess(){
 		execlp(config.winePath.c_str(), "wine", config.pluginLoaderPath.c_str(), config.dllPath.c_str(), config.dllName.c_str(), windowMode.c_str(), embedMode.c_str(), NULL);	
 		throw std::runtime_error("Error in execlp command - probably wrong filename?");
 
-	}else if (pid != -1){
+	}else if (winePid != -1){
 		// The parent process will return normally and use the pipes to communicate with the child process
 
 		close(PIPE_PLUGIN_READ);
@@ -258,6 +296,10 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPObject* obj = sBrowserFuncs->createobject(readHandleInstance(stack), &myClass);
 
+				#ifdef DEBUG_LOG_HANDLES
+					std::cerr << "[PIPELIGHT:LINUX] FUNCTION_NPN_CREATE_OBJECT created " << (void*)obj << std::endl;
+				#endif
+
 				writeHandleObj(obj); // refcounter is hopefully 1
 				returnCommand();
 			}
@@ -300,25 +342,23 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPN_RELEASEOBJECT: // Verified, everything okay
 			{
 				NPObject* obj 		= readHandleObj(stack);
-				//bool killObject 	= readInt32(stack);
 
-				// TODO: Comment this out in the final version - acessing the referenceCount variable directly is not a very nice way ;-)
-				/*if(obj->referenceCount == 1 && !killObject){
+				#ifdef DEBUG_LOG_HANDLES
+					std::cerr << "[PIPELIGHT:LINUX] FUNCTION_NPN_RELEASEOBJECT(" << (void*)obj << ")" << std::endl;
 
-					writeHandleObj(obj);
-					callFunction(OBJECT_IS_CUSTOM);
+					if(obj->referenceCount == 1 && handlemanager.existsHandleByReal( (uint64_t)obj, TYPE_NPObject) ){
 
-					if( !(bool)readResultInt32() ){
-						throw std::runtime_error("Forgot to set killObject?");
+						writeHandleObj(obj);
+						callFunction(OBJECT_IS_CUSTOM);
+
+						if( !(bool)readResultInt32() ){
+							throw std::runtime_error("Forgot to set killObject?");
+						}
+						
 					}
-					
-				} */
+				#endif
 
 				sBrowserFuncs->releaseobject(obj);
-
-				/*if(killObject){
-					handlemanager.removeHandleByReal((uint64_t)obj, TYPE_NPObject);
-				}*/
 
 				returnCommand();
 			}
@@ -326,9 +366,24 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_RETAINOBJECT: // Verified, everything okay
 			{
-				NPObject* obj = readHandleObj(stack);
+				NPObject* obj 				= readHandleObj(stack);
+				uint32_t minReferenceCount 	= readInt32(stack);
+
+
+				#ifdef DEBUG_LOG_HANDLES
+					std::cerr << "[PIPELIGHT:LINUX] FUNCTION_NPN_RETAINOBJECT(" << (void*)obj << ")" << std::endl;
+				#endif
 
 				sBrowserFuncs->retainobject(obj);
+
+				#ifdef DEBUG_LOG_HANDLES
+					if( minReferenceCount != REFCOUNT_UNDEFINED && obj->referenceCount < minReferenceCount ){
+						throw std::runtime_error("Object referencecount smaller than expected?");
+					}
+
+				#else
+					(void)minReferenceCount; // UNUSED
+				#endif
 
 				returnCommand();
 			}

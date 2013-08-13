@@ -1,6 +1,8 @@
-#pragma once
-#include <string>
-#include <map>
+#ifndef ConfigLoader_h_
+#define ConfigLoader_h_
+
+#include <string>								// for std::string
+#include <map>									// for std::map
 
 struct PluginConfig{
 	std::string 	winePath;
@@ -10,8 +12,6 @@ struct PluginConfig{
 	std::string 	pluginLoaderPath;
 	bool 			windowlessMode;
 	bool			embed;
-	bool			forceReload;
-	bool			killPlugin;
 	std::string 	fakeVersion;
 	std::string 	gccRuntimeDLLs;
 	std::string		silverlightInstaller;
@@ -23,6 +23,8 @@ struct PluginConfig{
 std::string getFileName(const std::string &path);
 std::string getHomeDirectory();
 std::string trim(std::string str);
-bool loadConfig(PluginConfig &config, void *function);
+bool loadConfig(PluginConfig &config);
 
 #define DEFAULT_GCC_RUNTIME_DLL_SEARCH_PATH "/usr/lib/gcc/i686-w64-mingw32/4.6/"
+
+#endif // ConfigLoader_h_

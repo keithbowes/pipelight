@@ -1,4 +1,10 @@
+#include <string.h> 							// for memcpy
+
 #include "basicplugin.h"
+
+#ifdef DEBUG_LOG_HANDLES
+	#include <iostream>							// for std::cerr
+#endif
 
 void NPInvalidateFunction(NPObject *npobj){
 	EnterFunction();
@@ -180,11 +186,19 @@ NPObject * NPAllocateFunction(NPP npp, NPClass *aClass){
 void NPDeallocateFunction(NPObject *npobj){
 	EnterFunction();
 
+	#ifdef DEBUG_LOG_HANDLES
+		std::cerr << "[PIPELIGHT:LINUX] NPDeallocateFunction(" << (void*)npobj << ")" << std::endl;
+	#endif
+
 	if(npobj){
 		bool exists = handlemanager.existsHandleByReal((uint64_t)npobj, TYPE_NPObject);
 
 		if( exists ){
 			// This has to be a user-created object which has to be freed via a KILL_OBJECT message
+
+			#ifdef DEBUG_LOG_HANDLES
+				std::cerr << "[PIPELIGHT:LINUX] Seems to be a user created handle, calling OBJECT_KILL(" << (void*)npobj << ")" << std::endl;
+			#endif
 
 			// Kill the object on the other side
 			writeHandleObj(npobj);

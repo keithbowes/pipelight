@@ -1,15 +1,18 @@
-#pragma once
-#include <memory>
-#include <string>
-#include <vector>
+#ifndef Communication_h_
+#define Communication_h_
 
+#include <memory>								// for shared_ptr
+#include <string>								// for std::string
+#include <vector>								// for std::vector<ParameterInfo>
 
 enum FunctionIDs{
 
 	// ------- Special -------
+	//Check if Init was okay
+	INIT_OKAY = 1,
 
 	// Tells the windows side that the given object should be freed
-	OBJECT_KILL = 1,
+	OBJECT_KILL,
 	OBJECT_IS_CUSTOM,
 
 	// Used to request stream details
@@ -168,6 +171,7 @@ void debugNotImplemented( std::string name );
 #define STRINGIZE(x) STRINGIZE_DETAIL(x)
 
 //#define DEBUG_FUNCTION_ENTER
+//#define DEBUG_LOG_HANDLES
 
 #ifdef DEBUG_FUNCTION_ENTER
 	#define EnterFunction() \
@@ -178,3 +182,5 @@ void debugNotImplemented( std::string name );
 
 #define NotImplemented() \
 	debugNotImplemented(std::string(__func__) + " (" + std::string(__FILE__) + ":" + std::string(STRINGIZE(__LINE__)) + ")" );
+
+#endif // Communication_h_
