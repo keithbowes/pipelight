@@ -196,7 +196,7 @@ bool loadConfig(PluginConfig &config, void *function){
 	configFile.open(configPath);
 	if(!configFile.is_open()){
 
-		configPath = PREFIX "/share/pipelight/pipelight";
+		configPath = PREFIX "share/pipelight/pipelight";
 		std::cerr << "[PIPELIGHT] Trying to load config file from " << configPath << std::endl;
 
 		configFile.open(configPath);
