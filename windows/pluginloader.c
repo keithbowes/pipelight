@@ -1,31 +1,50 @@
-#include <iostream>
-#include <cstdlib>
-#include <stdexcept>
-#include <memory>
-#include <string>
-#include <fstream>
-#include <vector>
-#include <algorithm>
-#include <io.h>
+#include <iostream>								// for std::cerr
+#include <cstdlib>								// for malloc, ...
+#include <stdexcept>							// for std::runtime_error
+#include <memory>								// for std::shared_ptr
+#include <string>								// for std::string
+//#include <fstream>
+#include <vector>								// for std::vector
+#include <algorithm>							// for std::transform
+#include <stdio.h>								// for _fdopen
+#include <io.h>									// for _dup
+#include <objbase.h>							// for CoInitializeEx
+
 #include "pluginloader.h"
 
-#include <objbase.h>
+/* BEGIN GLOBAL VARIABLES */
 
+// Pipes to communicate with the linux process
 FILE * pipeOutF = stdout;
 FILE * pipeInF 	= stdin;
 
+// Windows Classname for CreateWindowEx
 LPCTSTR ClsName = "VirtualBrowser";
 
-//Global Variables
-HandleManager handlemanager;
-//std::ofstream output(PLUGIN_LOG, std::ios::out | std::ios::app);
+// hWnd -> Instance
+std::map<HWND, NPP> hwndToInstance;
 
-NPPluginFuncs pluginFuncs = {sizeof(pluginFuncs), NP_VERSION_MINOR};
-
+// Global plugin configuration (only required fields)
 bool isWindowlessMode	= false;
 bool isEmbeddedMode		= false;
 
-std::map<HWND, NPP> hwndToInstance;
+// Used by NPN_UserAgent
+char strUserAgent[1024] = {0};
+
+std::string np_MimeType;
+std::string np_FileExtents;
+std::string np_FileOpenName;
+std::string np_ProductName;
+std::string np_FileDescription;
+std::string np_Language;
+
+// Handlemanager
+HandleManager handlemanager;
+
+// The plugin itself
+NPPluginFuncs pluginFuncs = {sizeof(pluginFuncs), NP_VERSION_MINOR};
+
+/* END GLOBAL VARIABLES */
 
 LRESULT CALLBACK WndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
@@ -179,13 +198,6 @@ void freeSharedPtrMemory(void *memory){
 		free(memory);
 	}
 }
-
-std::string np_MimeType;
-std::string np_FileExtents;
-std::string np_FileOpenName;
-std::string np_ProductName;
-std::string np_FileDescription;
-std::string np_Language;
 
 std::vector<std::string> splitMimeType(std::string input){
 	
@@ -915,6 +927,10 @@ void dispatcher(int functionid, Stack &stack){
 
 				writeInt32(windowIDX11);
 				returnCommand();
+
+				// These parameters currently are not required
+				UNREFERENCED_PARAMETER(x);
+				UNREFERENCED_PARAMETER(y)
 			}
 			break;
 

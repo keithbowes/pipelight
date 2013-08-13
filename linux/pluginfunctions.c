@@ -1,20 +1,25 @@
-#include "basicplugin.h"
-#include "configloader.h"
-#include <iostream>
-#include <algorithm>
-#include <X11/Xlib.h>
-#include <signal.h>
+
+#include <iostream>								// for std::cerr
+#include <algorithm>							// for std::transform
+#include <X11/Xlib.h>							// for XSendEvent, ...
+#include <stdexcept>							// for std::runtime_error
+#include <string.h>								// for memcpy, ...
+
+#include <signal.h>								// waitpid, kill, ...
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <unistd.h>
 
-char strMimeType[2048] 			= {0};
-char strPluginversion[100]		= {0};
-char strPluginName[256] 		= {0};
-char strPluginDescription[1024]	= {0};
+#include "basicplugin.h"
+#include "configloader.h"
 
-// Instance responsible for triggering the timer
-uint32_t  	EventTimerID 			= 0;
-NPP 		EventTimerInstance 		= NULL;
+extern char strMimeType[2048];
+extern char strPluginversion[100];
+extern char strPluginName[256];
+extern char strPluginDescription[1024];
+
+extern uint32_t  	EventTimerID;
+extern NPP 			EventTimerInstance;
 
 extern PluginConfig config;
 
@@ -106,6 +111,7 @@ NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 		!sBrowserFuncs->setproperty ||
 		!sBrowserFuncs->removeproperty ||
 		!sBrowserFuncs->hasproperty ||
+		!sBrowserFuncs->releasevariantvalue ||
 		!sBrowserFuncs->setexception ||
 		!sBrowserFuncs->enumerate ||
 		!sBrowserFuncs->scheduletimer ||
@@ -235,12 +241,6 @@ NPError
 NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* argn[], char* argv[], NPSavedData* saved) {
 	EnterFunction();
 
-	if(config.forceReload){
-		if(!loadConfig(config, (void*) attach)){
-			throw std::runtime_error("Could not reload config");
-		}
-	}
-
 	// TODO: For Chrome this should be ~0, for Firefox a value of 5-10 is better.
 
 	if( EventTimerInstance == NULL ){
@@ -367,13 +367,20 @@ NPP_Destroy(NPP instance, NPSavedData** save) {
 			// Check if the child exited and kill it otherwise
 			int status;
 
-			if(pid > 0 && !waitpid(pid, &status, WNOHANG)){
-				kill(pid, SIGTERM);
+			if(winePid > 0 && !waitpid(winePid, &status, WNOHANG)){
+				kill(winePid, SIGTERM);
+			}
+
+			// We have to reload the config file
+			if(config.forceReload){
+				if(!loadConfig(config, (void*) attach)){
+					throw std::runtime_error("Could not reload config");
+				}
 			}
 
 			// Start new Plugin and replace pipes
 			if(!startWineProcess())
-				throw std::runtime_error("Could not restart Wine process");
+				throw std::runtime_error("Could not restart wine process");
 
 			// We can now safely remove all handle translations
 			handlemanager.clear();

@@ -51,17 +51,28 @@
 #ifndef BasicPlugin_h_
 #define BasicPlugin_h_
 
-// This just needs to include NPAPI headers, change the path to whatever works
-// for you. Note that "XP_UNIX=1" is defined in the makefile so that the NPAPI
-// headers know we're compiling for unix.
-#include <fstream>
 #include "../npapi-headers/npapi.h"
 #include "../npapi-headers/npruntime.h"
 #include "../npapi-headers/npfunctions.h"
+
 #include "../communication/communication.h"
 #include "../handlemanager/handlemanager.h"
-#include <cstdlib>
-#include <cstring>
+
+// Public exports
+extern NPClass myClass;
+
+extern NPNetscapeFuncs* sBrowserFuncs;
+extern HandleManager handlemanager;
+
+extern int pipeOut[2];
+extern int pipeIn[2];
+
+#define PIPE_BROWSER_READ   pipeIn[0]
+#define PIPE_PLUGIN_WRITE   pipeIn[1]
+#define PIPE_BROWSER_WRITE  pipeOut[1]
+#define PIPE_PLUGIN_READ    pipeOut[0]
+
+extern pid_t winePid;
 
 
 /* 
@@ -100,21 +111,6 @@ bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *coun
 bool NPConstructFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result);
 NPObject * NPAllocateFunction(NPP npp, NPClass *aClass);
 void NPDeallocateFunction(NPObject *npobj);
-
-extern NPClass myClass;
-
-extern NPNetscapeFuncs* sBrowserFuncs;
-extern HandleManager handlemanager;
-
-extern int pipeOut[2];
-extern int pipeIn[2];
-
-#define PIPE_BROWSER_READ   pipeIn[0]
-#define PIPE_PLUGIN_WRITE   pipeIn[1]
-#define PIPE_BROWSER_WRITE  pipeOut[1]
-#define PIPE_PLUGIN_READ    pipeOut[0]
-
-extern pid_t pid;
 
 void attach();
 bool startWineProcess();

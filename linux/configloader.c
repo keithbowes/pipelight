@@ -1,13 +1,19 @@
+
+#include <algorithm>							// for std::transform
+#include <iostream>								// for std::cerr
+#include <map>									// for std::map
+#include <stdexcept>							// for std::runtime_error
+#include <fstream>								// for std::ifstream
+#include <string>								// for std::string
+#include <map>									// for std::map
+
+#include <pwd.h>								// for getpwuid
+#include <sys/types.h>
+#include <unistd.h>								// for dladdr
+#include <dlfcn.h>
+
 #include "configloader.h"
 #include "basicplugin.h"
-#include <algorithm>
-#include <pwd.h>
-#include <sys/types.h>
-#include <dlfcn.h>
-#include <iostream>
-#include <unistd.h>
-#include <map>
-#include <queue>
 
 std::string getFileName(const std::string &path){
 
@@ -97,7 +103,7 @@ bool splitConfigValue(std::string line, std::string &key, std::string &value){
 	return true;
 }
 
-// If abort != 0 then this reads until the specific character occurs or the string is empty
+// If abort != 0 then this reads until the specific character occurs or the string terminates
 // If abort == 0 then the function aborts on the first non-variable character
 std::string readUntil(const char* &str, char abort = 0){
 	const char *start = str;

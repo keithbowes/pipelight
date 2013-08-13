@@ -1,3 +1,5 @@
+#include <string.h> 							// for memcpy
+
 #include "basicplugin.h"
 
 void NPInvalidateFunction(NPObject *npobj){

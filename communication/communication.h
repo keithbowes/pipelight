@@ -1,8 +1,9 @@
-#pragma once
-#include <memory>
-#include <string>
-#include <vector>
+#ifndef Communication_h_
+#define Communication_h_
 
+#include <memory>								// for shared_ptr
+#include <string>								// for std::string
+#include <vector>								// for std::vector<ParameterInfo>
 
 enum FunctionIDs{
 
@@ -178,3 +179,5 @@ void debugNotImplemented( std::string name );
 
 #define NotImplemented() \
 	debugNotImplemented(std::string(__func__) + " (" + std::string(__FILE__) + ":" + std::string(STRINGIZE(__LINE__)) + ")" );
+
+#endif // Communication_h_

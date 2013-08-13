@@ -1,4 +1,7 @@
-#include "pluginloader.h"
+#include "../npapi-headers/npapi.h"
+#include "../npapi-headers/npruntime.h"
+
+#include "../communication/communication.h"
 
 /*
 	NP Class

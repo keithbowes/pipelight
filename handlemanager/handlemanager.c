@@ -1,16 +1,20 @@
-#include <cstring>
-#include <cstdlib>
-#include "handlemanager.h"
+#include <cstring>								// for memset, ...
+#include <cstdlib>								// for malloc, ...
+#include <map>									// for std::map
+#include <stdexcept>							// for std::runtime_error
+
 #include "../communication/communication.h"
+#include "handlemanager.h"
 
-extern NPClass myClass;
-extern HandleManager handlemanager;
+#ifdef __WIN32__
+	extern NPClass myClass;						// required for implementation of createNPObject
 
-#ifndef __WIN32__
-extern NPNetscapeFuncs *sBrowserFuncs;
+#else
+	#include "../npapi-headers/npfunctions.h"	// for sBrowserFuncs->{memfree, retain, releasevariant}
+	extern NPNetscapeFuncs *sBrowserFuncs;
 #endif
 
-#include <fstream>
+extern HandleManager handlemanager;				// global handlemanager object
 
 // TODO: Improve this method - allow using low handles again
 uint64_t HandleManager::getFreeID(){

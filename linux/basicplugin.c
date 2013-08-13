@@ -48,34 +48,55 @@
  *
  */
  
-#include "basicplugin.h"
+#include <stdlib.h>								// for getenv, ...
+#include <iostream>								// for std::cerr
+#include <unistd.h>								// for POSIX api
+#include <string>								// for std::string
+#include <stdexcept>							// for std::runtime_error
 
-#include <signal.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <iostream>
-#include <fstream>
-#include <cstring>
-#include <unistd.h>
-#include <string>
+#include "basicplugin.h"
 #include "configloader.h"
 
-void attach() __attribute__((constructor));
-void dettach() __attribute__((destructor));
+/* BEGIN GLOBAL VARIABLES
 
-NPNetscapeFuncs* sBrowserFuncs = NULL;
+	Note: As global variables should be initialized properly BEFORE the attach function is called.
+	Otherwise there might be some uninitialized variables...
 
-HandleManager handlemanager;
+*/
 
+// Description etc.
+char strMimeType[2048] 			= {0};
+char strPluginversion[100]		= {0};
+char strPluginName[256] 		= {0};
+char strPluginDescription[1024]	= {0};
+
+// Instance responsible for triggering the timer
+uint32_t  	EventTimerID 			= 0;
+NPP 		EventTimerInstance 		= NULL;
+
+// Pipes to communicate with the wine process
 int pipeOut[2] 	= {0, 0};
 int pipeIn[2] 	= {0, 0};
-
 FILE * pipeOutF = NULL;
 FILE * pipeInF	= NULL;
 
-pid_t pid = -1;
+// winePid if wine has already been started
+pid_t winePid = -1;
 
+// Browser functions
+NPNetscapeFuncs* sBrowserFuncs = NULL;
+
+// Handlemanager
+HandleManager handlemanager;
+
+// Global plugin configuration
 PluginConfig config;
+
+// Attach has to be called as a last step
+void attach() __attribute__((constructor));
+void detach() __attribute__((destructor));
+
+/* END GLOBAL VARIABLES */
 
 void attach(){
 	std::cerr << "[PIPELIGHT] Attached to process, starting wine" << std::endl;
@@ -88,8 +109,8 @@ void attach(){
 
 }
 
-void dettach(){
-
+void detach(){
+	// TODO: Deinitialize pointers etc.
 }
 
 bool startWineProcess(){
@@ -104,8 +125,8 @@ bool startWineProcess(){
 		return false;
 	}
 
-	pid = fork();
-	if (pid == 0){
+	winePid = fork();
+	if (winePid == 0){
 		// The child process will be replaced with wine
 
 		close(PIPE_BROWSER_READ);
@@ -143,7 +164,7 @@ bool startWineProcess(){
 		execlp(config.winePath.c_str(), "wine", config.pluginLoaderPath.c_str(), config.dllPath.c_str(), config.dllName.c_str(), windowMode.c_str(), embedMode.c_str(), NULL);	
 		throw std::runtime_error("Error in execlp command - probably wrong filename?");
 
-	}else if (pid != -1){
+	}else if (winePid != -1){
 		// The parent process will return normally and use the pipes to communicate with the child process
 
 		close(PIPE_PLUGIN_READ);

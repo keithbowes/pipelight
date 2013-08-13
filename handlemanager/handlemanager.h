@@ -1,12 +1,12 @@
-#pragma once
-#include <map>
-#include <cstdint>
-#include <stdexcept>
+#ifndef HandleManager_h_
+#define HandleManager_h_
+
+#include <map>									// for std::map
+#include <cstdint>								// for uint32_t, uint64_t, ...
 
 #include "../npapi-headers/npapi.h"
 #include "../npapi-headers/npruntime.h"
 #include "../npapi-headers/npfunctions.h"
-#include "../communication/communication.h"
 
 typedef enum { PR_FALSE = 0, PR_TRUE = 1 } PRBool;
 
@@ -127,3 +127,5 @@ std::vector<NPIdentifier> readIdentifierArray(Stack &stack, int count);
 
 void writeNPBool(NPBool value);
 NPBool readNPBool(Stack &stack);
+
+#endif // HandleManager_h_
