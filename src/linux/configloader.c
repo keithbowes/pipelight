@@ -10,7 +10,6 @@
 #include <pwd.h>								// for getpwuid
 #include <sys/types.h>
 #include <unistd.h>								// for dladdr
-#include <dlfcn.h>
 
 #include "configloader.h"
 #include "basicplugin.h"
@@ -186,18 +185,6 @@ bool loadConfig(PluginConfig &config, void *function){
 
 	std::map<std::string, std::string> variables;
 
-	Dl_info dl_info;
-	if(!dladdr(function, &dl_info))
-		return false;
-
-	if(!dl_info.dli_fname)
-		return false;
-
-	std::string filename = getFileName(std::string(dl_info.dli_fname));
-	
-	if(filename == "")
-		return false;
-
 	std::string homeDir = getHomeDirectory();
 
 	if(homeDir == "")
@@ -205,15 +192,26 @@ bool loadConfig(PluginConfig &config, void *function){
 
 	variables["$home"] = homeDir;
 
-	std::string configPath = homeDir + "/.pipelight/" + filename;
+	std::string configPath = homeDir + "/.config/pipelight";
+
+	std::ifstream configFile;
 
 	// Print some debug message
 	std::cerr << "[PIPELIGHT] Trying to load config file from " << configPath << std::endl;
 
-	std::ifstream configFile(configPath);
+	configFile.open(configPath);
+	if(!configFile.is_open()){
 
-	if(!configFile.is_open())
-		return false;
+		configPath = PREFIX "share/pipelight/pipelight";
+		std::cerr << "[PIPELIGHT] Trying to load config file from " << configPath << std::endl;
+
+		configFile.open(configPath);
+		if(!configFile.is_open()){
+			std::cerr << "[PIPELIGHT] Couldn't find any configuration file. Exiting..." << std::endl;
+			return false;
+		}
+
+	}
 
 	while (configFile.good()){
 		std::string line;

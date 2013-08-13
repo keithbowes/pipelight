@@ -1,0 +1,26 @@
+CXX 		:= i686-w64-mingw32-g++
+CXXFLAGS	:= -Wall -DXP_WIN=1 -std=c++0x $(CXXFLAGS)
+LDFLAGS 	:= -lversion -lgdi32 -lole32 #$(LDFLAGS)
+OBJECTS 	:= communication.o handlemanager.o npclass.o npnfunctions.o
+
+pluginloader.exe: pluginloader.c pluginloader.h $(OBJECTS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) pluginloader.c $(OBJECTS) $(LDFLAGS) -o pluginloader.exe
+
+communication.o: ../communication/communication.c ../communication/communication.h ../handlemanager/handlemanager.h
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c ../communication/communication.c -o communication.o
+
+handlemanager.o: ../handlemanager/handlemanager.c ../communication/communication.h ../handlemanager/handlemanager.h ../npapi-headers/npapi.h ../npapi-headers/npruntime.h ../npapi-headers/npfunctions.h
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c ../handlemanager/handlemanager.c -o handlemanager.o
+
+npclass.o: npclass.c ../npapi-headers/npapi.h ../npapi-headers/npruntime.h ../communication/communication.h
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c npclass.c -o npclass.o
+
+npnfunctions.o: npnfunctions.c pluginloader.h ../npapi-headers/npapi.h ../npapi-headers/npruntime.h ../npapi-headers/npfunctions.h ../communication/communication.h ../handlemanager/handlemanager.h ../npapi-headers/npapi.h ../npapi-headers/npruntime.h ../npapi-headers/npfunctions.h
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c npnfunctions.c -o npnfunctions.o
+
+.PHONY: all
+all: pluginloader.exe
+
+.PHONY: clean
+clean:
+	rm -f pluginloader.exe *.o
