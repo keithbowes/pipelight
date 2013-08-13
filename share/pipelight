@@ -6,7 +6,7 @@ winePath			= /opt/wine-compholio/bin/wine
 #
 # Path to the wine prefix containing Silverlight
 #
-winePrefix			= $HOME/.wine-browser/
+winePrefix			= $HOME/.wine-pipelight/
 
 #
 # Path to the plugin loader executable
@@ -17,8 +17,10 @@ pluginLoaderPath	= PLUGIN_LOADER_PATH
 #
 # Path to the Silverlight directory
 # Must be changed if a different version should be used.
+# The standard installation Path is:
+# c:\Program Files\Microsoft Silverlight\5.1.20513.0\
 #
-dllPath				= c:\Program Files\Microsoft Silverlight\5.1.20513.0\
+dllPath				= c:\Program Files\Silverlight\5.1.20513.0\
 
 #
 # Name of the Silverlight library to load (relative to the path specified above)
@@ -79,3 +81,15 @@ windowlessmode 		= false
 # inside the browser (true) or an external window (false).
 #
 embed				= true
+
+#
+# Path to the Silverlight installer script provided by the compholio
+# package. (optional)
+#
+silverlightInstaller = /usr/share/wine-browser-installer/wine-silverlight5.1-installer.install-script
+
+#
+# Path to the Wine Browser installer script provided by the compholio
+# package. (optional)
+#
+wineBrowserInstaller = /var/lib/wine-browser-installer

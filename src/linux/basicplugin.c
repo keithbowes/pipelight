@@ -59,6 +59,9 @@
 #include <unistd.h>
 #include <string>
 #include "configloader.h"
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
 
 NPNetscapeFuncs* sBrowserFuncs = NULL;
 
@@ -92,6 +95,15 @@ void dettach(){
 
 }
 
+bool checkIfExists(std::string path){
+
+	struct stat info;
+	if(stat(path.c_str(), &info) == 0){
+		return true;
+	}
+	return false;
+}
+
 bool startWineProcess(){
 
 	if( pipe(pipeOut) == -1 ){
@@ -117,6 +129,29 @@ bool startWineProcess(){
 		
 		if (config.winePrefix != ""){
 			setenv("WINEPREFIX", config.winePrefix.c_str(), true);
+		}
+
+		// Check if we need and are able to install Silverlight
+		if(	!checkIfExists(config.winePrefix) &&
+			config.silverlightInstaller != "" && config.wineBrowserInstaller != "" &&
+			checkIfExists(config.silverlightInstaller) && checkIfExists(config.wineBrowserInstaller)){
+
+			std::cerr << "[PIPELIGHT] Silverlight not installed. Starting installation." << std::endl;
+
+			pid_t pidInstall = fork();
+			if(pidInstall == 0){
+
+				setenv("WINE", config.winePath.c_str(), true);
+				setenv("INSTDIR", config.wineBrowserInstaller.c_str(), true);
+				execlp("/bin/sh", "sh", config.silverlightInstaller.c_str(), NULL);
+
+			}else if(pidInstall != -1){
+
+				int returnValue;
+				waitpid(pidInstall, &returnValue, 0);
+
+			}
+
 		}
 
 		if(config.gccRuntimeDLLs != ""){

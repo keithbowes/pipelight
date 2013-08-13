@@ -295,6 +295,12 @@ bool loadConfig(PluginConfig &config, void *function){
 
 			config.overwriteArgs[argKey] = argValue;
 
+		}else if(key == "silverlightinstaller"){
+			config.silverlightInstaller = value;
+
+		}else if(key == "winebrowserinstaller"){
+			config.wineBrowserInstaller = value;
+
 		}else{
 			std::cerr << "[PIPELIGHT] Unrecognized config key: " << key << std::endl;
 		}
