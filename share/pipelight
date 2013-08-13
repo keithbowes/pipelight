@@ -1,0 +1,81 @@
+#
+# Path to the wine executable
+#
+winePath			= /opt/wine-compholio/bin/wine
+
+#
+# Path to the wine prefix containing Silverlight
+#
+winePrefix			= $HOME/.wine-browser/
+
+#
+# Path to the plugin loader executable
+# (Should be set correctly by the make script)
+#
+pluginLoaderPath	= PLUGIN_LOADER_PATH
+
+#
+# Path to the Silverlight directory
+# Must be changed if a different version should be used.
+#
+dllPath				= c:\Program Files\Microsoft Silverlight\5.1.20513.0\
+
+#
+# Name of the Silverlight library to load (relative to the path specified above)
+#
+dllName				= npctrl.dll
+
+#
+# fakeVersion allows to fake the version string of Silverlight
+# Allows to get around some version checks done by some websites
+# when using an old version of Silverlight.
+#
+#fakeVersion 		= 5.1.20513.0
+
+#
+# overwriteArg allows to overwrite initialization arguments
+# passed by websites to Silverlight applications. You can
+# use this option as often as you want to overwrite multiple
+# parameters. You should always keep the deactivation of the
+# gpu acceleration otherwise Silverlight 5.* will crash on 
+# some video streaming websites.
+#
+# You may need to overwrite the minimum runtime version if
+# you use an old Silverlight version as some websites set
+# an artificial limit for the version number although it 
+# would work with older versions.
+#
+# overwriteArg		= minRuntimeVersion=5.0.61118.0
+#
+overwriteArg		= enableGPUAcceleration=false
+
+#
+# forceReload specifies if the configuration should be reloaded 
+# after all Silverlight instances are shut down.
+#
+forceReload 		= false
+
+#
+# killPlugin specifies whether the Wine process should be killed 
+# after all instances of Silverlight are shut down by the browser.
+# This may be necessary for some Silverlight application which
+# do not shutdown correctly. This also matches the default behavior
+# of browsers on Windows (but not on Linux) to workaround these bugs.
+#
+killPlugin			= false
+
+#
+# windowlessmode refers to a term of the Netscape Plugin API and 
+# defines a different mode of drawing and handling events.
+# On some desktop enviroments you may have problems using the
+# keyboard in windowless mode, on the other hand the drawing is
+# more efficient when this mode is enabled. Just choose what works
+# best for you. 
+#
+windowlessmode 		= false
+
+#
+# embed defines whether the Silverlight plugin should be shown 
+# inside the browser (true) or an external window (false).
+#
+embed				= true

@@ -60,9 +60,6 @@
 #include <string>
 #include "configloader.h"
 
-void attach() __attribute__((constructor));
-void dettach() __attribute__((destructor));
-
 NPNetscapeFuncs* sBrowserFuncs = NULL;
 
 HandleManager handlemanager;
@@ -76,6 +73,9 @@ FILE * pipeInF	= NULL;
 pid_t pid = -1;
 
 PluginConfig config;
+
+void attach() __attribute__((constructor));
+void dettach() __attribute__((destructor));
 
 void attach(){
 	
