@@ -445,10 +445,20 @@ int main(int argc, char *argv[]){
 
 void dispatcher(int functionid, Stack &stack){
 	switch (functionid){
+
+		case INIT_OKAY:
+			{
+				returnCommand();
+			}
+			break;
 		
 		case OBJECT_KILL:
 			{
 				NPObject 	*obj = readHandleObjIncRef(stack, NULL, 0, HANDLE_SHOULD_EXIST);
+
+				#ifdef DEBUG_LOG_HANDLES
+					std::cerr << "[PIPELIGHT:WINDOWS] OBJECT_KILL(" << (void*)obj << ")" << std::endl;
+				#endif
 
 				objectKill(obj);
 				returnCommand();
@@ -458,6 +468,10 @@ void dispatcher(int functionid, Stack &stack){
 		case OBJECT_IS_CUSTOM:
 			{
 				NPObject 	*obj = readHandleObjIncRef(stack, NULL, 0, HANDLE_SHOULD_EXIST);
+
+				#ifdef DEBUG_LOG_HANDLES
+					std::cerr << "[PIPELIGHT:WINDOWS] OBJECT_IS_CUSTOM(" << (void*)obj << ")" << std::endl;
+				#endif
 
 				writeInt32( (obj->referenceCount == REFCOUNT_UNDEFINED) );
 				returnCommand();

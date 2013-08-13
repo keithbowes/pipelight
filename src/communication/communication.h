@@ -8,9 +8,11 @@
 enum FunctionIDs{
 
 	// ------- Special -------
+	//Check if Init was okay
+	INIT_OKAY = 1,
 
 	// Tells the windows side that the given object should be freed
-	OBJECT_KILL = 1,
+	OBJECT_KILL,
 	OBJECT_IS_CUSTOM,
 
 	// Used to request stream details
@@ -169,6 +171,7 @@ void debugNotImplemented( std::string name );
 #define STRINGIZE(x) STRINGIZE_DETAIL(x)
 
 //#define DEBUG_FUNCTION_ENTER
+//#define DEBUG_LOG_HANDLES
 
 #ifdef DEBUG_FUNCTION_ENTER
 	#define EnterFunction() \

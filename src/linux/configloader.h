@@ -12,8 +12,6 @@ struct PluginConfig{
 	std::string 	pluginLoaderPath;
 	bool 			windowlessMode;
 	bool			embed;
-	bool			forceReload;
-	bool			killPlugin;
 	std::string 	fakeVersion;
 	std::string 	gccRuntimeDLLs;
 

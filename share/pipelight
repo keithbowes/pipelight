@@ -50,21 +50,6 @@ dllName				= npctrl.dll
 overwriteArg		= enableGPUAcceleration=false
 
 #
-# forceReload specifies if the configuration should be reloaded 
-# after all Silverlight instances are shut down.
-#
-forceReload 		= false
-
-#
-# killPlugin specifies whether the Wine process should be killed 
-# after all instances of Silverlight are shut down by the browser.
-# This may be necessary for some Silverlight application which
-# do not shutdown correctly. This also matches the default behavior
-# of browsers on Windows (but not on Linux) to workaround these bugs.
-#
-killPlugin			= false
-
-#
 # windowlessmode refers to a term of the Netscape Plugin API and 
 # defines a different mode of drawing and handling events.
 # On some desktop enviroments you may have problems using the

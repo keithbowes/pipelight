@@ -477,8 +477,10 @@ void readCommands(Stack &stack, bool allowReturn){
 					}else{
 						throw std::runtime_error("Unable to receive data");
 					}
+
 				#else
 					throw std::runtime_error("Unable to receive data");
+					
 				#endif
 			}
 

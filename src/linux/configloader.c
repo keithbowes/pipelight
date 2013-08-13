@@ -178,8 +178,6 @@ bool loadConfig(PluginConfig &config){
 	config.pluginLoaderPath = "";
 	config.windowlessMode 	= false; // Default is window mode, as windowless currently is still a bit buggy
 	config.embed 			= true;
-	config.forceReload		= false;
-	config.killPlugin		= false;
 	config.fakeVersion		= "";
 	config.gccRuntimeDLLs	= DEFAULT_GCC_RUNTIME_DLL_SEARCH_PATH;
 
@@ -277,14 +275,6 @@ bool loadConfig(PluginConfig &config){
 		}else if(key == "embed"){
 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 			config.embed = (value == "true" || value == "yes");
-
-		}else if(key == "forcereload"){
-			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
-			config.forceReload = (value == "true" || value == "yes");
-
-		}else if(key == "killplugin"){
-			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
-			config.killPlugin = (value == "true" || value == "yes");
 
 		}else if(key == "fakeversion"){
 			config.fakeVersion = value;

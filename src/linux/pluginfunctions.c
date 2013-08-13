@@ -22,6 +22,7 @@ extern uint32_t  	EventTimerID;
 extern NPP 			EventTimerInstance;
 
 extern PluginConfig config;
+extern bool 		initOkay;
 
 #define XEMBED_EMBEDDED_NOTIFY		0
 
@@ -153,6 +154,11 @@ NP_GetPluginVersion()
 {
 	EnterFunction();
 
+	if(!initOkay){
+		pokeString("0.0", strPluginversion, sizeof(strPluginversion));
+		return strPluginversion;
+	}
+
 	callFunction(FUNCTION_GET_VERSION);
 
 	std::string result = readResultString();
@@ -166,6 +172,11 @@ NP_EXPORT(const char*)
 NP_GetMIMEDescription()
 {
 	EnterFunction();
+
+	if(!initOkay){
+		pokeString("application/x-pipelight-error:pipelighterror:Error during initialization", strMimeType, sizeof(strMimeType));
+		return strMimeType;
+	}
 
 	callFunction(FUNCTION_GET_MIMETYPE);
 
@@ -186,10 +197,15 @@ NP_GetValue(void* future, NPPVariable aVariable, void* aValue) {
 	switch (aVariable) {
 
 		case NPPVpluginNameString:
-			callFunction(FUNCTION_GET_NAME);
 
-			resultStr = readResultString();
-			pokeString(resultStr, strPluginName, sizeof(strPluginName));		
+			if(!initOkay){
+				resultStr = "Pipelight Error!";
+			}else{
+				callFunction(FUNCTION_GET_NAME);
+				resultStr = readResultString();
+			}
+
+			pokeString(resultStr, strPluginName, sizeof(strPluginName));
 
 			*((char**)aValue) = strPluginName;
 			result = NPERR_NO_ERROR;
@@ -197,13 +213,15 @@ NP_GetValue(void* future, NPPVariable aVariable, void* aValue) {
 
 		case NPPVpluginDescriptionString:
 
-			if(config.fakeVersion != ""){
+			if(!initOkay){
+				resultStr = "Something went wrong, check the terminal output";
+			}else if(config.fakeVersion != ""){
 				resultStr = config.fakeVersion;
 			}else{
 				callFunction(FUNCTION_GET_DESCRIPTION);
-
 				resultStr = readResultString();
 			}
+
 			pokeString(resultStr, strPluginDescription, sizeof(strPluginDescription));		
 
 			*((char**)aValue) = strPluginDescription;
@@ -225,8 +243,10 @@ NP_EXPORT(NPError)
 NP_Shutdown() {
 	EnterFunction();
 
-	callFunction(NP_SHUTDOWN);
-	waitReturn();
+	if(initOkay){
+		callFunction(NP_SHUTDOWN);
+		waitReturn();
+	}
 
 	return NPERR_NO_ERROR;
 }
@@ -240,6 +260,9 @@ void timerFunc(NPP instance, uint32_t timerID){
 NPError
 NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* argn[], char* argv[], NPSavedData* saved) {
 	EnterFunction();
+
+	if(!initOkay)
+		return NPERR_GENERIC_ERROR;
 
 	// TODO: For Chrome this should be ~0, for Firefox a value of 5-10 is better.
 
@@ -354,39 +377,6 @@ NPP_Destroy(NPP instance, NPSavedData** save) {
 		}
 	}
 
-	if(config.killPlugin){
-
-		// Check if we still have a running instance of the plugin
-		NPP nextInstance = handlemanager.findInstance();
-		if(!nextInstance){
-
-			// This should also terminate the child process if it didn't freeze
-			close(PIPE_BROWSER_READ);
-			close(PIPE_BROWSER_WRITE);
-
-			// Check if the child exited and kill it otherwise
-			int status;
-
-			if(winePid > 0 && !waitpid(winePid, &status, WNOHANG)){
-				kill(winePid, SIGTERM);
-			}
-
-			// We have to reload the config file
-			if(config.forceReload){
-				if(!loadConfig(config)){
-					throw std::runtime_error("Could not reload config");
-				}
-			}
-
-			// Start new Plugin and replace pipes
-			if(!startWineProcess())
-				throw std::runtime_error("Could not restart wine process");
-
-			// We can now safely remove all handle translations
-			handlemanager.clear();
-		}
-	}
-
 	return result;
 }
 
@@ -481,7 +471,7 @@ NPP_WriteReady(NPP instance, NPStream* stream) {
 	
 	if( !handlemanager.existsHandleByReal((uint64_t)stream, TYPE_NPStream) ){
 		//std::cerr << "[PIPELIGHT] Browser Use-After-Free bug in NPP_WriteReady" << std::endl;
-		return 0;
+		return -1;
 	}
 
 	writeHandleStream(stream, HANDLE_SHOULD_EXIST);
@@ -497,6 +487,11 @@ NPP_WriteReady(NPP instance, NPStream* stream) {
 int32_t
 NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, void* buffer) {
 	EnterFunction();
+
+	if( !handlemanager.existsHandleByReal((uint64_t)stream, TYPE_NPStream) ){
+		//std::cerr << "[PIPELIGHT] Browser Use-After-Free bug in NPP_WriteReady" << std::endl;
+		return len;
+	}
 
 	writeMemory((char*)buffer, len);
 	writeInt32(offset);

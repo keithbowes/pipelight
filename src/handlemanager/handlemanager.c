@@ -6,6 +6,10 @@
 #include "../communication/communication.h"
 #include "handlemanager.h"
 
+#ifdef DEBUG_LOG_HANDLES
+	#include <iostream>							// for std::cerr
+#endif
+
 #ifdef __WIN32__
 	extern NPClass myClass;						// required for implementation of createNPObject
 
@@ -56,8 +60,17 @@ NPObject* createNPObject(uint64_t id, NPClass *aclass = NULL, NPP instance = 0){
 	if(customObject){
 		obj->referenceCount = REFCOUNT_UNDEFINED;
 
+		#ifdef DEBUG_LOG_HANDLES
+			std::cerr << "[PIPELIGHT:WINDOWS] createNPObject created custom object " << (void*)obj << std::endl;
+		#endif
+
 	}else{
 		obj->referenceCount	= 0; // Will be incremented via readHandleObjInc
+
+		#ifdef DEBUG_LOG_HANDLES
+			std::cerr << "[PIPELIGHT:WINDOWS] createNPObject created proxy object " << (void*)obj << std::endl;
+		#endif
+
 	}
 
 	return obj;
@@ -128,8 +141,8 @@ uint64_t HandleManager::translateFrom(uint64_t id, HandleType type, NPP instance
 	it = handlesID.find(id);
 	if(it != handlesID.end()){
 
-		// WHen an aclass is given, this is an error, as we expected a new object
-		if(aclass || shouldExist == HANDLE_SHOULD_NOT_EXIST){
+		// When an aclass is given, this is an error, as we expected a new object
+		if(aclass || shouldExist == HANDLE_SHOULD_NOT_EXIST){		
 			throw std::runtime_error("Expected a new handle, but I already got this one");
 		}
 
@@ -443,6 +456,10 @@ void objectDecRef(NPObject *obj){
 
 	// Remove the object locally
 	if(obj->referenceCount == 0){
+
+		#ifdef DEBUG_LOG_HANDLES
+			std::cerr << "[PIPELIGHT:WINDOWS] objectDecRef removed object " << (void*)obj << " from the handle manager" << std::endl;
+		#endif
 
 		if(obj->_class->deallocate){
 			throw std::runtime_error("Proxy object has a deallocate method set?");

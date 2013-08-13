@@ -82,6 +82,7 @@ FILE * pipeInF	= NULL;
 
 // winePid if wine has already been started
 pid_t winePid = -1;
+bool initOkay = false;
 
 // Browser functions
 NPNetscapeFuncs* sBrowserFuncs = NULL;
@@ -101,12 +102,28 @@ void detach() __attribute__((destructor));
 void attach(){
 	std::cerr << "[PIPELIGHT] Attached to process, starting wine" << std::endl;
 
-	if(!loadConfig(config))
-		throw std::runtime_error("Could not load config");
+	if(!loadConfig(config)){
+		std::cerr << "[PIPELIGHT] Could not load config" << std::endl;
+		initOkay = false;
+		return;
+	}
 
-	if(!startWineProcess())
-		throw std::runtime_error("Could not start wine process");
+	if(!startWineProcess()){
+		std::cerr << "[PIPELIGHT] Could not start wine process" << std::endl;
+		initOkay = false;
+		return;
+	}
 
+	try {
+		callFunction(INIT_OKAY);
+		waitReturn();
+	} catch(std::runtime_error error){
+		std::cerr << "[PIPELIGHT] Error during the initialization of the wine process" << std::endl;
+		initOkay = false;
+		return;
+	}
+ 
+	initOkay = true;
 }
 
 void detach(){
@@ -244,6 +261,10 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPObject* obj = sBrowserFuncs->createobject(readHandleInstance(stack), &myClass);
 
+				#ifdef DEBUG_LOG_HANDLES
+					std::cerr << "[PIPELIGHT:LINUX] FUNCTION_NPN_CREATE_OBJECT created " << (void*)obj << std::endl;
+				#endif
+
 				writeHandleObj(obj); // refcounter is hopefully 1
 				returnCommand();
 			}
@@ -286,25 +307,23 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPN_RELEASEOBJECT: // Verified, everything okay
 			{
 				NPObject* obj 		= readHandleObj(stack);
-				//bool killObject 	= readInt32(stack);
 
-				// TODO: Comment this out in the final version - acessing the referenceCount variable directly is not a very nice way ;-)
-				/*if(obj->referenceCount == 1 && !killObject){
+				#ifdef DEBUG_LOG_HANDLES
+					std::cerr << "[PIPELIGHT:LINUX] FUNCTION_NPN_RELEASEOBJECT(" << (void*)obj << ")" << std::endl;
 
-					writeHandleObj(obj);
-					callFunction(OBJECT_IS_CUSTOM);
+					if(obj->referenceCount == 1 && handlemanager.existsHandleByReal( (uint64_t)obj, TYPE_NPObject) ){
 
-					if( !(bool)readResultInt32() ){
-						throw std::runtime_error("Forgot to set killObject?");
+						writeHandleObj(obj);
+						callFunction(OBJECT_IS_CUSTOM);
+
+						if( !(bool)readResultInt32() ){
+							throw std::runtime_error("Forgot to set killObject?");
+						}
+						
 					}
-					
-				} */
+				#endif
 
 				sBrowserFuncs->releaseobject(obj);
-
-				/*if(killObject){
-					handlemanager.removeHandleByReal((uint64_t)obj, TYPE_NPObject);
-				}*/
 
 				returnCommand();
 			}
@@ -312,9 +331,24 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_RETAINOBJECT: // Verified, everything okay
 			{
-				NPObject* obj = readHandleObj(stack);
+				NPObject* obj 				= readHandleObj(stack);
+				uint32_t minReferenceCount 	= readInt32(stack);
+
+
+				#ifdef DEBUG_LOG_HANDLES
+					std::cerr << "[PIPELIGHT:LINUX] FUNCTION_NPN_RETAINOBJECT(" << (void*)obj << ")" << std::endl;
+				#endif
 
 				sBrowserFuncs->retainobject(obj);
+
+				#ifdef DEBUG_LOG_HANDLES
+					if( minReferenceCount != REFCOUNT_UNDEFINED && obj->referenceCount < minReferenceCount ){
+						throw std::runtime_error("Object referencecount smaller than expected?");
+					}
+
+				#else
+					(void)minReferenceCount; // UNUSED
+				#endif
 
 				returnCommand();
 			}
