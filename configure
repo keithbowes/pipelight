@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+prefix=/usr/local/
+
+usage ()
+{
+    echo ""
+    echo "Usage : configure [--prefix=PREFIX]"
+    echo ""
+}
+
+while [[ $# > 0 ]] ; do
+    case "$1" in
+        --prefix=*)
+            prefix=${1#*=}
+            ;;
+        --prefix)
+            shift
+            prefix=$1
+            ;;
+        --help)
+            usage
+            exit
+            ;;
+        *)
+            echo "Warning: unknown argument $1" >&2
+            usage
+            ;;
+    esac
+    shift
+done
+
+prefix=$(readlink -m "$prefix")
+
+echo "Configuration Summary"
+echo "---------------------"
+echo
+echo "Pipelight has been configured with"
+echo "    prefix = $prefix"
+echo
+
+echo "prefix=$prefix" > config.make

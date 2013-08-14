@@ -3,6 +3,6 @@
 		dh $@
 
 override_dh_auto_install:
-		$(MAKE) DESTDIR=$$(pwd)/debian/pipelight install prefix=/usr/
+		$(MAKE) DESTDIR=$$(pwd)/debian/pipelight install
 
 override_dh_usrlocal:
