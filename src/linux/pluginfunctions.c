@@ -18,11 +18,13 @@ extern char strPluginversion[100];
 extern char strPluginName[256];
 extern char strPluginDescription[1024];
 
-extern uint32_t  	EventTimerID;
-extern NPP 			EventTimerInstance;
+extern uint32_t  	eventTimerID;
+extern NPP 			eventTimerInstance;
+
+extern pid_t 		winePid;
+extern bool 		initOkay;
 
 extern PluginConfig config;
-extern bool 		initOkay;
 
 #define XEMBED_EMBEDDED_NOTIFY		0
 
@@ -266,9 +268,9 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 
 	// TODO: For Chrome this should be ~0, for Firefox a value of 5-10 is better.
 
-	if( EventTimerInstance == NULL ){
-		EventTimerID 		= sBrowserFuncs->scheduletimer(instance, 5, true, timerFunc);
-		EventTimerInstance 	= instance;
+	if( eventTimerInstance == NULL ){
+		eventTimerID 		= sBrowserFuncs->scheduletimer(instance, 5, true, timerFunc);
+		eventTimerInstance 	= instance;
 	}else{
 		std::cerr << "[PIPELIGHT] Already one running timer" << std::endl;
 	}
@@ -315,14 +317,16 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 	return result;
 }
 
+
+
 NPError
 NPP_Destroy(NPP instance, NPSavedData** save) {
 	EnterFunction();
 
-	if( EventTimerInstance && EventTimerInstance == instance ){
-		sBrowserFuncs->unscheduletimer(instance, EventTimerID);
-		EventTimerInstance 	= NULL;
-		EventTimerID 		= 0;
+	if( eventTimerInstance && eventTimerInstance == instance ){
+		sBrowserFuncs->unscheduletimer(instance, eventTimerID);
+		eventTimerInstance 	= NULL;
+		eventTimerID 		= 0;
 
 		std::cerr << "[PIPELIGHT] Unscheduled event timer" << std::endl;
 	}
@@ -331,7 +335,21 @@ NPP_Destroy(NPP instance, NPSavedData** save) {
 	callFunction(FUNCTION_NPP_DESTROY);
 
 	Stack stack;
-	readCommands(stack);	
+
+	try {
+		readCommands(stack, true, 5000);
+
+	} catch(std::runtime_error error){
+		std::cerr << "[PIPELIGHT] Plugin did not deinitialize properly, killing it!" << std::endl;
+
+		// Kill the wine process (if it still exists) ...
+		int status;
+		if(winePid > 0 && !waitpid(winePid, &status, WNOHANG)){
+			kill(winePid, SIGTERM);
+		}
+
+		throw std::runtime_error("Killed wine process");
+	}
 
 	NPError result 	= readInt32(stack);
 
@@ -364,11 +382,11 @@ NPP_Destroy(NPP instance, NPSavedData** save) {
 
 	handlemanager.removeHandleByReal((uint64_t)instance, TYPE_NPPInstance);
 
-	if( EventTimerInstance == NULL ){
+	if( eventTimerInstance == NULL ){
 		NPP nextInstance = handlemanager.findInstance();
 		if( nextInstance ){
-			EventTimerID 		= sBrowserFuncs->scheduletimer(nextInstance, 5, true, timerFunc);
-			EventTimerInstance 	= instance;
+			eventTimerID 		= sBrowserFuncs->scheduletimer(nextInstance, 5, true, timerFunc);
+			eventTimerInstance 	= instance;
 
 			std::cerr << "[PIPELIGHT] Started timer in instance " << (void*)nextInstance << std::endl;
 
