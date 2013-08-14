@@ -157,7 +157,7 @@ char* readMemoryBrowserAlloc(Stack &stack, size_t &resultLength);
 char* readMemoryBrowserAlloc(Stack &stack);
 #endif
 
-void readCommands(Stack &stack, bool allowReturn = true);
+void readCommands(Stack &stack, bool allowReturn = true, int abortTimeout = 0);
 
 int32_t readResultInt32();
 int64_t readResultInt64();

@@ -74,8 +74,8 @@ char strPluginName[256] 		= {0};
 char strPluginDescription[1024]	= {0};
 
 // Instance responsible for triggering the timer
-uint32_t  	EventTimerID 			= 0;
-NPP 		EventTimerInstance 		= NULL;
+uint32_t  	eventTimerID 			= 0;
+NPP 		eventTimerInstance 		= NULL;
 
 // Pipes to communicate with the wine process
 int pipeOut[2] 	= {0, 0};
@@ -223,7 +223,11 @@ bool startWineProcess(){
 		close(PIPE_PLUGIN_WRITE);		
 
 		pipeOutF 	= fdopen(PIPE_BROWSER_WRITE, 	"wb");
-		pipeInF		= fdopen(PIPE_BROWSER_READ, 	"rb");		
+		pipeInF		= fdopen(PIPE_BROWSER_READ, 	"rb");
+
+		// Disable buffering for input pipe
+		// (To allow waiting for a pipe)
+		setbuf(pipeInF, NULL);
 
 		//This does not neccesarilly mean that everything worked well as execlp can still fail
 		return true;

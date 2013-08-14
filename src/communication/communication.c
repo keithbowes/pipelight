@@ -16,6 +16,10 @@
 #else
 	#include "../npapi-headers/npfunctions.h"	// for sBrowserFuncs->memalloc
 	extern NPNetscapeFuncs *sBrowserFuncs;
+
+	#include <sys/time.h>						// for select etc.
+	#include <sys/types.h>
+	#include <unistd.h>
 #endif
 
 extern void dispatcher(int functionid, Stack &stack);
@@ -458,7 +462,11 @@ char* readMemoryBrowserAlloc(Stack &stack){
 #endif
 
 
-void readCommands(Stack &stack, bool allowReturn){
+void readCommands(Stack &stack, bool allowReturn, int abortTimeout){
+
+	#ifdef __WIN32__
+		if(abortTimeout) throw std::runtime_error("readCommands called with abortTimeout, but not allowed on Windows.");
+	#endif
 
 	while(true){
 		int32_t blockInfo 	= 0;
@@ -466,6 +474,37 @@ void readCommands(Stack &stack, bool allowReturn){
 
 		// Wait for initial command
 		while(pos < sizeof(int32_t)){
+
+			#ifndef __WIN32__
+				/* 	Note: We only check the timeout when waiting for the initial command, not for the embedded data
+					This relies on the assumption that the data is always transmitted correctly as this happens
+					immediately afterwards */
+
+				if(abortTimeout){
+					fd_set rfds;
+					struct timeval tv;
+
+					FD_ZERO(&rfds);
+					FD_SET( fileno(pipeInF), &rfds);
+
+					tv.tv_sec = abortTimeout / 1000;
+					tv.tv_usec = (abortTimeout % 1000) * 1000;
+
+					int retval = select( fileno(pipeInF) + 1, &rfds, NULL, NULL, &tv);
+
+					// Exception occured
+					if(retval == -1){
+						throw std::runtime_error("Unable to receive data");
+
+					// No data within the specified timeout
+					}else if(retval == 0){
+						throw std::runtime_error("No data received within the specified timeout");
+
+					}
+
+				}
+			#endif
+
 			size_t numBytes = fread( (char*)&blockInfo + pos, sizeof(char), sizeof(int32_t) - pos, pipeInF);
 			if( numBytes <= 0 ){
 				#ifdef __WIN32__
