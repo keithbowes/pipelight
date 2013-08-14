@@ -1,8 +1,8 @@
 SUBDIRS= src/linux src/windows
 .PHONY:	all $(SUBDIRS) clean install
 
-#prefix=/usr/local/
-include config.make
+prefix=/usr/local/
+-include config.make
 
 export
 all: $(SUBDIRS)	
