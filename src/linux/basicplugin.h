@@ -112,7 +112,7 @@ bool NPConstructFunction(NPObject *npobj, const NPVariant *args, uint32_t argCou
 NPObject * NPAllocateFunction(NPP npp, NPClass *aClass);
 void NPDeallocateFunction(NPObject *npobj);
 
-void attach();
+bool checkSilverlightInstallation();
 bool startWineProcess();
 
 #endif // BasicPlugin_h_

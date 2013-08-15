@@ -487,8 +487,8 @@ void readCommands(Stack &stack, bool allowReturn, int abortTimeout){
 					FD_ZERO(&rfds);
 					FD_SET( fileno(pipeInF), &rfds);
 
-					tv.tv_sec = abortTimeout / 1000;
-					tv.tv_usec = (abortTimeout % 1000) * 1000;
+					tv.tv_sec 	=  abortTimeout / 1000;
+					tv.tv_usec 	= (abortTimeout % 1000) * 1000;
 
 					int retval = select( fileno(pipeInF) + 1, &rfds, NULL, NULL, &tv);
 

@@ -108,13 +108,11 @@ std::string readUntil(const char* &str, char abort = 0){
 	const char *start = str;
 
 	while(*str){
-
 		if( *str == abort || (!abort && !( (*str >= 'A' && *str <= 'Z') || (*str >= 'a' && *str <= 'z') || (*str >= '0' && *str <= '9') || *str == '_' ) ) ){
 			break;
 		}
 
 		str++;
-
 	}
 
 	return std::string(start, str-start);
@@ -142,7 +140,7 @@ std::string replaceVariables(const std::map<std::string, std::string> &variables
 				varname = readUntil(str, '}');
 
 				if(*str != '}'){
-					throw std::runtime_error("Expected closing tag } in config file");
+					throw std::runtime_error("Expected closing tag } at end of line in config file");
 				}
 				str++; // Skip over it
 
@@ -170,6 +168,13 @@ std::string replaceVariables(const std::map<std::string, std::string> &variables
 
 bool loadConfig(PluginConfig &config){
 
+	// Variables which can be used inside the config file
+	std::map<std::string, std::string> variables;
+
+	// Add homedir to variables
+	std::string homeDir = getHomeDirectory();
+	if(homeDir != "") variables["$home"] = homeDir;
+
 	// Initialize config variables with default values
 	config.winePath 		= "wine";
 	config.winePrefix 		= "";
@@ -181,39 +186,29 @@ bool loadConfig(PluginConfig &config){
 	config.fakeVersion		= "";
 	config.gccRuntimeDLLs	= DEFAULT_GCC_RUNTIME_DLL_SEARCH_PATH;
 
-	std::map<std::string, std::string> variables;
-
-	std::string homeDir = getHomeDirectory();
-
-	if(homeDir == "")
-		return false;
-
-	variables["$home"] = homeDir;
-
-	std::string configPath = homeDir + "/.config/pipelight";
-
-	std::ifstream configFile;
+	std::string 	configPath;
+	std::ifstream 	configFile;
 
 	// Print some debug message
+	configPath = homeDir + "/.config/pipelight";
 	std::cerr << "[PIPELIGHT] Trying to load config file from " << configPath << std::endl;
-
 	configFile.open(configPath);
 	if(!configFile.is_open()){
 
 		configPath = PREFIX "/share/pipelight/pipelight";
-		std::cerr << "[PIPELIGHT] Trying to load config file from " << configPath << std::endl;
-
+		std::cerr << "[PIPELIGHT] Trying to load default config file from " << configPath << std::endl;
 		configFile.open(configPath);
 		if(!configFile.is_open()){
-			std::cerr << "[PIPELIGHT] Couldn't find any configuration file. Exiting..." << std::endl;
+
+			std::cerr << "[PIPELIGHT] Couldn't find any configuration file" << std::endl;
 			return false;
+
 		}
 
 	}
 
 	while (configFile.good()){
 		std::string line;
-
 		getline(configFile, line);
 
 		line = trim(line);
@@ -238,9 +233,10 @@ bool loadConfig(PluginConfig &config){
 		if(!splitConfigValue(line, key, value))
 			continue;
 
-		//convert key to lower case
+		// convert key to lower case
 		std::transform(key.begin(), key.end(), key.begin(), ::tolower);
 
+		// replace $var and ${var} inside of value
 		value = replaceVariables(variables, value.c_str());
 
 		// check for variables
@@ -288,7 +284,6 @@ bool loadConfig(PluginConfig &config){
 				continue;
 
 			std::transform(argKey.begin(), argKey.end(), argKey.begin(), ::tolower);
-
 			config.overwriteArgs[argKey] = argValue;
 
 		}else if(key == "silverlightinstaller"){

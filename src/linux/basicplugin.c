@@ -103,29 +103,47 @@ void detach() __attribute__((destructor));
 /* END GLOBAL VARIABLES */
 
 void attach(){
-	std::cerr << "[PIPELIGHT] Attached to process, starting wine" << std::endl;
+	std::cerr << "[PIPELIGHT] Attached to process" << std::endl;
+
+	initOkay = false;
 
 	if(!loadConfig(config)){
-		std::cerr << "[PIPELIGHT] Could not load config" << std::endl;
-		initOkay = false;
+		std::cerr << "[PIPELIGHT] Unable to load config file - aborting" << std::endl;
 		return;
 	}
 
+	if( config.winePath 		== "" ||	// We have to know where wine is installed (default: wine)
+		config.dllPath 			== "" ||	// We need the path and name of the plugin DLL
+		config.dllName 			== "" ||
+		config.pluginLoaderPath == "" ){	// Without pluginloader.exe this doesn't work
+
+		std::cerr << "[PIPELIGHT] Your configuration file doesn't contain all necessary keys - aborting" << std::endl;
+		std::cerr << "[PIPELIGHT] Please take a look at the original configuration file for more details." << std::endl;
+		return;
+	}
+
+	// Check for correct installation
+	if(!checkSilverlightInstallation()){
+		std::cerr << "[PIPELIGHT] Silverlight not correctly installed - aborting" << std::endl;
+		return;
+	}
+
+	// Start wine process
 	if(!startWineProcess()){
-		std::cerr << "[PIPELIGHT] Could not start wine process" << std::endl;
-		initOkay = false;
+		std::cerr << "[PIPELIGHT] Could not start wine process - aborting" << std::endl;
 		return;
 	}
 
+	// We want to be sure that wine is up and running until we return!
 	try {
 		callFunction(INIT_OKAY);
 		waitReturn();
 	} catch(std::runtime_error error){
-		std::cerr << "[PIPELIGHT] Error during the initialization of the wine process" << std::endl;
-		initOkay = false;
+		std::cerr << "[PIPELIGHT] Error during the initialization of the wine process - aborting" << std::endl;
 		return;
 	}
  
+ 	// Initialisation successful
 	initOkay = true;
 }
 
@@ -142,17 +160,74 @@ bool checkIfExists(std::string path){
 	return false;
 }
 
+bool checkSilverlightInstallation(){
+
+	// Checking the silverlight installation is only possible if the user has defined a winePrefix
+	if( config.winePrefix == "" ){
+		std::cerr << "[PIPELIGHT] No winePrefix defined - unable to check Silverlight installation" << std::endl;
+		return true;
+	}
+
+	// Output wine prefix
+	std::cerr << "[PIPELIGHT] Using wine prefix directory " << config.winePrefix << std::endl;
+
+	// Check if the prefix exists?
+	if( checkIfExists(config.winePrefix) ){
+		return true;
+	}
+
+	// If there is no installer provided we cannot fix this issue!
+	if( config.silverlightInstaller == "" || config.wineBrowserInstaller == "" ||
+		!checkIfExists(config.silverlightInstaller) || !checkIfExists(config.wineBrowserInstaller) ){
+		return false;
+	}
+
+	// Run the installer ...
+	std::cerr << "[PIPELIGHT] Silverlight not installed. Starting installation - this might take some time" << std::endl;
+
+	pid_t pidInstall = fork();
+	if(pidInstall == 0){
+
+		// Run the installer with the correct environment variables
+
+		if (config.winePrefix != "")
+			setenv("WINEPREFIX", config.winePrefix.c_str(), true);
+
+		setenv("WINE", 		config.winePath.c_str(), true);
+		setenv("INSTDIR", 	config.wineBrowserInstaller.c_str(), true);
+
+		execlp("/bin/sh", "sh", config.silverlightInstaller.c_str(), NULL);
+		throw std::runtime_error("Error in execlp command - probably /bin/sh not found?");
+
+	}else if(pidInstall != -1){
+
+		int status;
+		if(waitpid(pidInstall, &status, 0) == -1 || !WIFEXITED(status) ){
+			std::cerr << "[PIPELIGHT] Silverlight installer did not run correctly (error occured)" << std::endl;
+			return false;
+
+		}else if(WEXITSTATUS(status) != 0){
+			std::cerr << "[PIPELIGHT] Silverlight installer did not run correctly (exitcode = " << WEXITSTATUS(status) << ")" << std::endl;
+			return false;
+		}
+
+
+	}else{
+		std::cerr << "[PIPELIGHT] Unable to fork() - probably out of memory?" << std::endl;
+		return false;
+
+	}
+
+	return true;
+}
+
 bool startWineProcess(){
 
-	if( pipe(pipeOut) == -1 ){
-		std::cerr << "[PIPELIGHT] Could not create pipe 1" << std::endl;
+	if( pipe(pipeOut) == -1 || pipe(pipeIn) == -1 ){
+		std::cerr << "[PIPELIGHT] Could not create pipes to communicate with the plugin" << std::endl;
 		return false;
 	}
 
-	if( pipe(pipeIn) == -1 ){
-		std::cerr << "[PIPELIGHT] Could not create pipe 2" << std::endl;
-		return false;
-	}
 
 	winePid = fork();
 	if (winePid == 0){
@@ -163,58 +238,27 @@ bool startWineProcess(){
 
 		// Assign to stdin/stdout
 		dup2(PIPE_PLUGIN_READ,  0);
-		dup2(PIPE_PLUGIN_WRITE, 1);	
+		dup2(PIPE_PLUGIN_WRITE, 1);
 		
-		if (config.winePrefix != ""){
+		// Runt he pluginloader with the correct environment variables
+
+		if (config.winePrefix != "")
 			setenv("WINEPREFIX", config.winePrefix.c_str(), true);
-		}
-
-		// Check if we need and are able to install Silverlight
-		if(	!checkIfExists(config.winePrefix) &&
-			config.silverlightInstaller != "" && config.wineBrowserInstaller != "" &&
-			checkIfExists(config.silverlightInstaller) && checkIfExists(config.wineBrowserInstaller)){
-
-			std::cerr << "[PIPELIGHT] Silverlight not installed. Starting installation." << std::endl;
-
-			pid_t pidInstall = fork();
-			if(pidInstall == 0){
-
-				setenv("WINE", config.winePath.c_str(), true);
-				setenv("INSTDIR", config.wineBrowserInstaller.c_str(), true);
-				execlp("/bin/sh", "sh", config.silverlightInstaller.c_str(), NULL);
-
-			}else if(pidInstall != -1){
-
-				int returnValue;
-				waitpid(pidInstall, &returnValue, 0);
-
-			}
-
-		}
 
 		if(config.gccRuntimeDLLs != ""){
-			std::string runtime;
-
 			char *str = getenv("Path");
-			if (str)
-				runtime = std::string(str) + ";";
-
-			runtime += config.gccRuntimeDLLs;
+			std::string runtime = (str ? (std::string(str) + ";") : "") + config.gccRuntimeDLLs;
 
 			setenv("Path", runtime.c_str(), true);
 		}
 
 		// Put together the flags
-		std::string windowMode = "";
-		if(config.windowlessMode) windowMode = "--windowless";
-
-		// Put together the flags
-		std::string embedMode = "";
-		if(config.embed) embedMode = "--embed";
+		std::string windowMode 	= config.windowlessMode ? "--windowless" 	: "";
+		std::string embedMode 	= config.embed 			? "--embed" 		: "";
 
 		// Execute wine
 		execlp(config.winePath.c_str(), "wine", config.pluginLoaderPath.c_str(), config.dllPath.c_str(), config.dllName.c_str(), windowMode.c_str(), embedMode.c_str(), NULL);	
-		throw std::runtime_error("Error in execlp command - probably wrong filename?");
+		throw std::runtime_error("Error in execlp command - probably wine not found?");
 
 	}else if (winePid != -1){
 		// The parent process will return normally and use the pipes to communicate with the child process
@@ -229,14 +273,13 @@ bool startWineProcess(){
 		// (To allow waiting for a pipe)
 		setbuf(pipeInF, NULL);
 
-		//This does not neccesarilly mean that everything worked well as execlp can still fail
-		return true;
 
 	}else{
-		std::cerr << "[PIPELIGHT] Error while forking" << std::endl;
+		std::cerr << "[PIPELIGHT] Unable to fork() - probably out of memory?" << std::endl;
 		return false;
 	}
 
+	return true;
 }
 
 
