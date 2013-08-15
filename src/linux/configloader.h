@@ -14,8 +14,8 @@ struct PluginConfig{
 	bool			embed;
 	std::string 	fakeVersion;
 	std::string 	gccRuntimeDLLs;
-	std::string		silverlightInstaller;
-	std::string		wineBrowserInstaller;
+	std::string		dependencyInstaller;
+	std::string		silverlightVersion;
 
 	std::map<std::string, std::string> overwriteArgs;
 };

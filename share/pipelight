@@ -68,13 +68,20 @@ windowlessmode 		= false
 embed				= true
 
 #
-# Path to the Silverlight installer script provided by the compholio
+# Path to the dependency installer script provided by the compholio
 # package. (optional)
 #
-silverlightInstaller = /usr/share/wine-browser-installer/wine-silverlight5.1-installer.install-script
+dependencyInstaller = /usr/share/wine-browser-installer/install-dependency
 
 #
-# Path to the Wine Browser installer script provided by the compholio
-# package. (optional)
+# Silverlight version to install
 #
-wineBrowserInstaller = /var/lib/wine-browser-installer
+# Valid values are:
+#	silverlight5.1
+#	silverlight5.0
+#	silverlight4
+#
+# If you changes this value, you also need to adjust dllPath
+#
+
+silverlightVersion = silverlight5.1

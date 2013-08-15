@@ -177,8 +177,9 @@ bool checkSilverlightInstallation(){
 	}
 
 	// If there is no installer provided we cannot fix this issue!
-	if( config.silverlightInstaller == "" || config.wineBrowserInstaller == "" ||
-		!checkIfExists(config.silverlightInstaller) || !checkIfExists(config.wineBrowserInstaller) ){
+	if( config.dependencyInstaller == "" || config.silverlightVersion == "" || 
+		!checkIfExists(config.dependencyInstaller) ||
+		!checkIfExists("/usr/share/wine-browser-installer/wine-" + config.silverlightVersion + "-installer.install-script")){
 		return false;
 	}
 
@@ -190,13 +191,12 @@ bool checkSilverlightInstallation(){
 
 		// Run the installer with the correct environment variables
 
-		if (config.winePrefix != "")
-			setenv("WINEPREFIX", config.winePrefix.c_str(), true);
+		setenv("WINEPREFIX", 	config.winePrefix.c_str(), 	true);
+		setenv("WINE", 			config.winePath.c_str(), 	true);
 
-		setenv("WINE", 		config.winePath.c_str(), true);
-		setenv("INSTDIR", 	config.wineBrowserInstaller.c_str(), true);
+		std::string argument = "wine-" + config.silverlightVersion + "-installer";
 
-		execlp("/bin/sh", "sh", config.silverlightInstaller.c_str(), NULL);
+		execlp("/bin/sh", "sh", config.dependencyInstaller.c_str(), argument.c_str(), NULL);
 		throw std::runtime_error("Error in execlp command - probably /bin/sh not found?");
 
 	}else if(pidInstall != -1){

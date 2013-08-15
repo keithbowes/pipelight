@@ -176,15 +176,17 @@ bool loadConfig(PluginConfig &config){
 	if(homeDir != "") variables["$home"] = homeDir;
 
 	// Initialize config variables with default values
-	config.winePath 		= "wine";
-	config.winePrefix 		= "";
-	config.dllPath 			= "";
-	config.dllName 			= "";
-	config.pluginLoaderPath = "";
-	config.windowlessMode 	= false; // Default is window mode, as windowless currently is still a bit buggy
-	config.embed 			= true;
-	config.fakeVersion		= "";
-	config.gccRuntimeDLLs	= DEFAULT_GCC_RUNTIME_DLL_SEARCH_PATH;
+	config.winePath 			= "wine";
+	config.winePrefix 			= "";
+	config.dllPath 				= "";
+	config.dllName 				= "";
+	config.pluginLoaderPath 	= "";
+	config.windowlessMode 		= false; // Default is window mode, as windowless currently is still a bit buggy
+	config.embed 				= true;
+	config.fakeVersion			= "";
+	config.gccRuntimeDLLs		= DEFAULT_GCC_RUNTIME_DLL_SEARCH_PATH;
+	config.dependencyInstaller 	= "";
+	config.silverlightVersion 	= "";
 
 	std::string 	configPath;
 	std::ifstream 	configFile;
@@ -286,11 +288,11 @@ bool loadConfig(PluginConfig &config){
 			std::transform(argKey.begin(), argKey.end(), argKey.begin(), ::tolower);
 			config.overwriteArgs[argKey] = argValue;
 
-		}else if(key == "silverlightinstaller"){
-			config.silverlightInstaller = value;
+		}else if(key == "dependencyinstaller"){
+			config.dependencyInstaller = value;
 
-		}else if(key == "winebrowserinstaller"){
-			config.wineBrowserInstaller = value;
+		}else if(key == "silverlightversion"){
+			config.silverlightVersion = value;
 
 		}else{
 			std::cerr << "[PIPELIGHT] Unrecognized config key: " << key << std::endl;
