@@ -1,3 +1,12 @@
+From b64b90ff9d7fc8803d67bfea88816988e1f8f95d Mon Sep 17 00:00:00 2001
+From: Sebastian Lackner <sebastian@fds-team.de>
+Date: Thu, 15 Aug 2013 18:45:59 +0200
+Subject: winex11: Add minimal XEmbed client support
+
+---
+ dlls/winex11.drv/event.c |  118 +++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 116 insertions(+), 2 deletions(-)
+
 diff --git a/dlls/winex11.drv/event.c b/dlls/winex11.drv/event.c
 index 5e5b19e..e380e06 100644
 --- a/dlls/winex11.drv/event.c
@@ -165,3 +174,6 @@ index 5e5b19e..e380e06 100644
      default:
          TRACE( "win %p/%lx XEMBED message %lu(%lu)\n",
                 hwnd, event->window, event->data.l[1], event->data.l[2] );
+-- 
+1.7.9.5
+
