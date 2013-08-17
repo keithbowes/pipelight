@@ -253,11 +253,12 @@ bool startWineProcess(){
 		}
 
 		// Put together the flags
-		std::string windowMode 	= config.windowlessMode ? "--windowless" 	: "";
-		std::string embedMode 	= config.embed 			? "--embed" 		: "";
+		std::string windowMode 		= config.windowlessMode 			? "--windowless" 	: "";
+		std::string embedMode 		= config.embed 						? "--embed" 		: "";
+		std::string usermodeTimer	= config.experimental_usermodeTimer ? "--usermodetimer" : "";
 
 		// Execute wine
-		execlp(config.winePath.c_str(), "wine", config.pluginLoaderPath.c_str(), config.dllPath.c_str(), config.dllName.c_str(), windowMode.c_str(), embedMode.c_str(), NULL);	
+		execlp(config.winePath.c_str(), "wine", config.pluginLoaderPath.c_str(), config.dllPath.c_str(), config.dllName.c_str(), windowMode.c_str(), embedMode.c_str(), usermodeTimer.c_str(), NULL);	
 		throw std::runtime_error("Error in execlp command - probably wine not found?");
 
 	}else if (winePid != -1){

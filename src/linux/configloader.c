@@ -188,6 +188,8 @@ bool loadConfig(PluginConfig &config){
 	config.dependencyInstaller 	= "";
 	config.silverlightVersion 	= "";
 
+	config.experimental_usermodeTimer = false;
+
 	std::string 	configPath;
 	std::ifstream 	configFile;
 
@@ -293,6 +295,10 @@ bool loadConfig(PluginConfig &config){
 
 		}else if(key == "silverlightversion"){
 			config.silverlightVersion = value;
+
+		}else if(key == "experimental-usermodetimer"){
+			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+			config.experimental_usermodeTimer = (value == "true" || value == "yes");
 
 		}else{
 			std::cerr << "[PIPELIGHT] Unrecognized config key: " << key << std::endl;

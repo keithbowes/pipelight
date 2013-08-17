@@ -11,6 +11,7 @@
 #include <objbase.h>							// for CoInitializeEx
 
 #include "pluginloader.h"
+#include "apihook.h"
 
 /* BEGIN GLOBAL VARIABLES */
 
@@ -27,6 +28,7 @@ std::map<HWND, NPP> hwndToInstance;
 // Global plugin configuration (only required fields)
 bool isWindowlessMode	= false;
 bool isEmbeddedMode		= false;
+bool usermodeTimer      = false;
 
 // Used by NPN_UserAgent
 char strUserAgent[1024] = {0};
@@ -367,29 +369,24 @@ int main(int argc, char *argv[]){
 	std::string dllName 		= std::string(argv[2]);
 
 	for(int i = 3; i < argc; i++){
-
 		std::string arg = std::string(argv[i]);
 		std::transform(arg.begin(), arg.end(), arg.begin(), ::tolower);
 
-		if(arg == "--windowless"){
+		if(			arg == "--windowless"){
 			isWindowlessMode 	= true;
-		}else if(arg == "--embed"){
+
+		}else if(	arg == "--embed"){
 			isEmbeddedMode 		= true;
+
+		}else if(	arg == "--usermodetimer"){
+			usermodeTimer 		= true;
+
 		}
-
 	}
 
-	if(isWindowlessMode){
-		std::cerr << "[PIPELIGHT] Using WINDOWLESS mode" << std::endl;
-	}else{
-		std::cerr << "[PIPELIGHT] Using WINDOW mode" << std::endl;
-	}
-
-	if(isEmbeddedMode){
-		std::cerr << "[PIPELIGHT] Using EMBED mode" << std::endl;
-	}else{
-		std::cerr << "[PIPELIGHT] Using external window" << std::endl;
-	}
+	std::cerr << "[PIPELIGHT] Windowless mode is " << (isWindowlessMode ? "on" : "off") << std::endl;
+	std::cerr << "[PIPELIGHT] Embedded mode   is " << (isEmbeddedMode ? "on" : "off") << std::endl;
+	std::cerr << "[PIPELIGHT] Usermode Timer  is " << (usermodeTimer ? "on" : "off") << std::endl;
 
 	// Copy stdin and stdout
 	int stdoutF	= _dup(1);
@@ -421,6 +418,10 @@ int main(int argc, char *argv[]){
 
 	ATOM classAtom = RegisterClassEx(&WndClsEx);
 	if(classAtom){
+
+		// Install hooks
+		if(usermodeTimer) installTimerHook();
+
 
 		if (InitDLL(dllPath, dllName)){
 			std::cerr << "[PIPELIGHT] Init sucessfull!" << std::endl;
@@ -495,11 +496,20 @@ void dispatcher(int functionid, Stack &stack){
 				// Process window events
 				MSG msg;
 
-				DWORD abortTime = GetTickCount() + 100;
-				while (GetTickCount() < abortTime && PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) ){
-					TranslateMessage(&msg);
-					DispatchMessage(&msg);
+				DWORD abortTime = GetTickCount() + 20;
+				while (GetTickCount() < abortTime){
+					if( PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) ){
+						TranslateMessage(&msg);
+						DispatchMessage(&msg);
+
+					}else if(usermodeTimer && handleTimerEvents()){
+						// dummy
+
+					}else{
+						break;
+					}
 				}
+
 				returnCommand();
 			}
 			break;
