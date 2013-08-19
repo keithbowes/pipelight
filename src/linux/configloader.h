@@ -17,6 +17,8 @@ struct PluginConfig{
 	std::string		dependencyInstaller;
 	std::string		silverlightVersion;
 
+	bool 			experimental_usermodeTimer;
+
 	std::map<std::string, std::string> overwriteArgs;
 };
 
