@@ -1,5 +1,5 @@
 CXX 		:= i686-w64-mingw32-g++
-CXXFLAGS	:= -Wall -DXP_WIN=1 -std=c++0x $(CXXFLAGS)
+CXXFLAGS	:= -Wall -DXP_WIN=1 -std=gnu++0x -D_WIN32_WINNT=0x0502 $(CXXFLAGS)
 LDFLAGS 	:= -lversion -lgdi32 -lole32 #$(LDFLAGS)
 OBJECTS 	:= communication.o handlemanager.o npclass.o npnfunctions.o
 
