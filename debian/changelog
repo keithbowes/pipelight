@@ -1,8 +1,24 @@
 pipelight (0.1-2) UNRELEASED; urgency=low
 
-  * Added experimental usermode timer support
+  * Fixed build blags for wingw32. (fixes launchpad issue 1213725)
 
- -- Michael Mueller <michael@fds-team.de>  Mon, 18 Aug 2013 01:58:00 +0200
+  * Added undocumented option gccruntimedlls to the config file.
+
+  * Added experimental usermode timer support.
+  	(can be enabled via config file: experimental-usermodetimer)
+
+  * Added an alternative event handling method using async calls
+  	to make it work with browsers like Midori which don't support timers.
+
+  * Fixed the wine xembed patch such that it also should work on KDE
+    and probably other window mangers / desktop environments.
+    (hopefully fixes launchpad issue 1213784)
+
+  * Added support for a PIPELIGHT_CONFIG environment variable to overwrite
+    the config search path.
+
+ -- Michael Mueller <michael@fds-team.de>  Mon, 20 Aug 2013 00:35:00 +0200
+
 
 pipelight (0.1-1) RELEASED; urgency=low
 

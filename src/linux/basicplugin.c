@@ -172,6 +172,11 @@ bool checkIfExists(std::string path){
 	return false;
 }
 
+std::string getEnvironmentString(const char* variable){
+	char *str = getenv(variable);
+	return str ? std::string(str) : "";
+}
+
 bool checkSilverlightInstallation(){
 
 	// Checking the silverlight installation is only possible if the user has defined a winePrefix
@@ -258,9 +263,9 @@ bool startWineProcess(){
 			setenv("WINEPREFIX", config.winePrefix.c_str(), true);
 
 		if(config.gccRuntimeDLLs != ""){
-			char *str = getenv("Path");
-			std::string runtime = (str ? (std::string(str) + ";") : "") + config.gccRuntimeDLLs;
-
+			std::string runtime = getEnvironmentString("Path");
+			if(runtime != "") runtime += ";";
+			runtime += config.gccRuntimeDLLs;
 			setenv("Path", runtime.c_str(), true);
 		}
 

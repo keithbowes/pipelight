@@ -114,5 +114,6 @@ void NPDeallocateFunction(NPObject *npobj);
 
 bool checkSilverlightInstallation();
 bool startWineProcess();
+std::string getEnvironmentString(const char* variable);
 
 #endif // BasicPlugin_h_
