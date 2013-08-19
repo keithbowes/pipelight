@@ -1,5 +1,5 @@
 CXX 		:= g++
-CXXFLAGS 	:= -Wall -DXP_UNIX=1 -DMOZ_X11=1 -fPIC -std=c++0x $(CXXFLAGS)
+CXXFLAGS 	:= -Wall -DXP_UNIX=1 -DMOZ_X11=1 -fPIC -std=gnu++0x $(CXXFLAGS)
 LDFLAGS 	:= -lX11 -lpthread $(LDFLAGS)
 OBJECTS 	:= communication.o handlemanager.o npclass.o configloader.o pluginfunctions.o
 
