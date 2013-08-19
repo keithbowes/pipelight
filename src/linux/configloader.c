@@ -187,7 +187,7 @@ bool loadConfig(PluginConfig &config){
 	config.gccRuntimeDLLs		= DEFAULT_GCC_RUNTIME_DLL_SEARCH_PATH;
 	config.dependencyInstaller 	= "";
 	config.silverlightVersion 	= "";
-
+	config.eventAsyncCall		= false;
 	config.experimental_usermodeTimer = false;
 
 	std::string 	configPath;
@@ -295,6 +295,10 @@ bool loadConfig(PluginConfig &config){
 
 		}else if(key == "silverlightversion"){
 			config.silverlightVersion = value;
+
+		}else if(key == "eventasynccall"){
+			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+			config.eventAsyncCall = (value == "true" || value == "yes");
 
 		}else if(key == "experimental-usermodetimer"){
 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);

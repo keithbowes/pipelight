@@ -25,6 +25,9 @@ enum FunctionIDs{
 	// Get window rects
 	GET_WINDOW_RECT,
 
+	// Make the window visible
+	SHOW_UPDATE_WINDOW,
+
 	// ------- Plugin -------
 	FUNCTION_GET_VERSION,
 	FUNCTION_GET_MIMETYPE,

@@ -2,6 +2,7 @@
 #include <iostream>								// for std::cerr
 #include <algorithm>							// for std::transform
 #include <X11/Xlib.h>							// for XSendEvent, ...
+#include <X11/Xmd.h>							// for CARD32
 #include <stdexcept>							// for std::runtime_error
 #include <string.h>								// for memcpy, ...
 
@@ -9,6 +10,9 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
+#include <pthread.h>							// alternative to ScheduleTimer etc.
+#include <semaphore.h>
 
 #include "basicplugin.h"
 #include "configloader.h"
@@ -20,13 +24,38 @@ extern char strPluginDescription[1024];
 
 extern uint32_t  	eventTimerID;
 extern NPP 			eventTimerInstance;
+extern pthread_t 	eventThread;
+
+extern sem_t		eventThreadSemRequestAsyncCall;
+extern sem_t		eventThreadSemScheduledAsyncCall;
 
 extern pid_t 		winePid;
 extern bool 		initOkay;
 
 extern PluginConfig config;
 
-#define XEMBED_EMBEDDED_NOTIFY		0
+/* XEMBED messages */
+#define XEMBED_EMBEDDED_NOTIFY			0
+#define XEMBED_WINDOW_ACTIVATE  		1
+#define XEMBED_WINDOW_DEACTIVATE  		2
+#define XEMBED_REQUEST_FOCUS	 		3
+#define XEMBED_FOCUS_IN 	 			4
+#define XEMBED_FOCUS_OUT  				5
+#define XEMBED_FOCUS_NEXT 				6
+#define XEMBED_FOCUS_PREV 				7
+/* 8-9 were used for XEMBED_GRAB_KEY/XEMBED_UNGRAB_KEY */
+#define XEMBED_MODALITY_ON 				10
+#define XEMBED_MODALITY_OFF 			11
+#define XEMBED_REGISTER_ACCELERATOR     12
+#define XEMBED_UNREGISTER_ACCELERATOR   13
+#define XEMBED_ACTIVATE_ACCELERATOR     14
+
+/* Details for  XEMBED_FOCUS_IN: */
+#define XEMBED_FOCUS_CURRENT			0
+#define XEMBED_FOCUS_FIRST 				1
+#define XEMBED_FOCUS_LAST				2
+
+#define XEMBED_MAPPED          			(1 << 0)
 
 void sendXembedMessage(Display* display, Window win, long message, long detail, long data1, long data2){
 	XEvent ev;
@@ -45,6 +74,16 @@ void sendXembedMessage(Display* display, Window win, long message, long detail, 
 
 	XSendEvent(display, win, False, NoEventMask, &ev);
 	XSync(display, False);
+}
+
+void setXembedWindowInfo(Display* display, Window win, int flags){
+	CARD32 list[2];
+	list[0] = 0;
+	list[1] = flags;
+
+	Atom xembedInfo = XInternAtom(display, "_XEMBED_INFO", False);
+
+	XChangeProperty(display, win, xembedInfo, xembedInfo, 32, PropModeReplace, (unsigned char *)list, 2);
 }
 
 void pokeString(std::string str, char *dest, unsigned int maxLength){
@@ -116,12 +155,62 @@ NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 		!sBrowserFuncs->hasproperty ||
 		!sBrowserFuncs->releasevariantvalue ||
 		!sBrowserFuncs->setexception ||
-		!sBrowserFuncs->enumerate ||
-		!sBrowserFuncs->scheduletimer ||
-		!sBrowserFuncs->unscheduletimer ){
+		!sBrowserFuncs->enumerate ){
 		std::cerr << "[PIPELIGHT] Your browser doesn't support all required functions!" << std::endl;
+
+		/*
+		Uncomment this in order to debug missing browser functions ...
+
+		std::cerr << "sBrowserFuncs->geturl = " << (void*)sBrowserFuncs->geturl << std::endl;
+		std::cerr << "sBrowserFuncs->posturl = " << (void*)sBrowserFuncs->posturl << std::endl;
+		std::cerr << "sBrowserFuncs->requestread = " << (void*)sBrowserFuncs->requestread << std::endl;
+		std::cerr << "sBrowserFuncs->newstream = " << (void*)sBrowserFuncs->newstream << std::endl;
+		std::cerr << "sBrowserFuncs->write = " << (void*)sBrowserFuncs->write << std::endl;
+		std::cerr << "sBrowserFuncs->destroystream = " << (void*)sBrowserFuncs->destroystream << std::endl;
+		std::cerr << "sBrowserFuncs->status = " << (void*)sBrowserFuncs->status << std::endl;
+		std::cerr << "sBrowserFuncs->uagen = t" << (void*)sBrowserFuncs->uagent << std::endl;
+		std::cerr << "sBrowserFuncs->memalloc = " << (void*)sBrowserFuncs->memalloc << std::endl;
+		std::cerr << "sBrowserFuncs->memfree = " << (void*)sBrowserFuncs->memfree << std::endl;
+		std::cerr << "sBrowserFuncs->geturlnotify = " << (void*)sBrowserFuncs->geturlnotify << std::endl;
+		std::cerr << "sBrowserFuncs->posturlnotify = " << (void*)sBrowserFuncs->posturlnotify << std::endl;
+		std::cerr << "sBrowserFuncs->getvalue = " << (void*)sBrowserFuncs->getvalue << std::endl;
+		std::cerr << "sBrowserFuncs->getstringidentifier = " << (void*)sBrowserFuncs->getstringidentifier << std::endl;
+		std::cerr << "sBrowserFuncs->getintidentifier = " << (void*)sBrowserFuncs->getintidentifier << std::endl;
+		std::cerr << "sBrowserFuncs->identifierisstring = " << (void*)sBrowserFuncs->identifierisstring << std::endl;
+		std::cerr << "sBrowserFuncs->utf8fromidentifier = " << (void*)sBrowserFuncs->utf8fromidentifier << std::endl;
+		std::cerr << "sBrowserFuncs->intfromidentifier = " << (void*)sBrowserFuncs->intfromidentifier << std::endl;
+		std::cerr << "sBrowserFuncs->createobject = " << (void*)sBrowserFuncs->createobject << std::endl;
+		std::cerr << "sBrowserFuncs->retainobject = " << (void*)sBrowserFuncs->retainobject << std::endl;
+		std::cerr << "sBrowserFuncs->releaseobject = " << (void*)sBrowserFuncs->releaseobject << std::endl;
+		std::cerr << "sBrowserFuncs->invoke = " << (void*)sBrowserFuncs->invoke << std::endl;
+		std::cerr << "sBrowserFuncs->invokeDefault = " << (void*)sBrowserFuncs->invokeDefault << std::endl;
+		std::cerr << "sBrowserFuncs->evaluate = " << (void*)sBrowserFuncs->evaluate << std::endl;
+		std::cerr << "sBrowserFuncs->getproperty = " << (void*)sBrowserFuncs->getproperty << std::endl;
+		std::cerr << "sBrowserFuncs->setproperty = " << (void*)sBrowserFuncs->setproperty << std::endl;
+		std::cerr << "sBrowserFuncs->removeproperty = " << (void*)sBrowserFuncs->removeproperty << std::endl;
+		std::cerr << "sBrowserFuncs->hasproperty = " << (void*)sBrowserFuncs->hasproperty << std::endl;
+		std::cerr << "sBrowserFuncs->releasevariantvalue = " << (void*)sBrowserFuncs->releasevariantvalue << std::endl;
+		std::cerr << "sBrowserFuncs->setexception = " << (void*)sBrowserFuncs->setexception << std::endl;
+		std::cerr << "sBrowserFuncs->enumerate = " << (void*)sBrowserFuncs->enumerate << std::endl;
+		std::cerr << "sBrowserFuncs->scheduletimer = " << (void*)sBrowserFuncs->scheduletimer << std::endl;
+		std::cerr << "sBrowserFuncs->unscheduletimer = " << (void*)sBrowserFuncs->unscheduletimer << std::endl;
+		std::cerr << "sBrowserFuncs->pluginthreadasynccall = " << (void*)sBrowserFuncs->pluginthreadasynccall << std::endl;*/
+
 		return NPERR_INCOMPATIBLE_VERSION_ERROR;
 	}
+
+	if( !config.eventAsyncCall && sBrowserFuncs->scheduletimer && sBrowserFuncs->unscheduletimer ){
+		std::cerr << "[PIPELIGHT] Using timer based event handling" << std::endl;
+
+	}else if( sBrowserFuncs->pluginthreadasynccall ){
+		std::cerr << "[PIPELIGHT] Using thread asynccall event handling" << std::endl;
+		config.eventAsyncCall = true;
+
+	}else{
+		std::cerr << "[PIPELIGHT] No eventhandling compatible with your browser available" << std::endl;
+		return NPERR_INCOMPATIBLE_VERSION_ERROR;
+	}
+
 
 
 	if( pFuncs->size < (offsetof(NPPluginFuncs, setvalue) + sizeof(void*)) )
@@ -258,21 +347,74 @@ void timerFunc(NPP instance, uint32_t timerID){
 	waitReturn();
 }
 
+void timerThreadAsyncFunc(void* argument){
+
+	// Has been cancelled if we cannot acquire this lock
+	if( sem_trywait(&eventThreadSemScheduledAsyncCall) ) return;
+
+	// Update the window
+	callFunction(PROCESS_WINDOW_EVENTS);
+	waitReturn();
+
+	// Request event handling again
+	sem_post(&eventThreadSemRequestAsyncCall);
+}
+
+void* timerThread(void* argument){
+	while(true){
+		sem_wait(&eventThreadSemRequestAsyncCall);
+
+		// 10 ms of sleeping before requesting again
+		usleep(10000);
+
+		// If no instance is running, just terminate
+		if(!eventTimerInstance) break;
+
+		// Request an asynccall
+		sem_post(&eventThreadSemScheduledAsyncCall);
+		sBrowserFuncs->pluginthreadasynccall(eventTimerInstance, timerThreadAsyncFunc, 0);
+	}
+
+	return NULL;
+}
+
 // Verified, everything okay
 NPError
 NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* argn[], char* argv[], NPSavedData* saved) {
 	EnterFunction();
+	bool startAsyncCall = false;
 
 	if(!initOkay)
 		return NPERR_GENERIC_ERROR;
 
-	// TODO: For Chrome this should be ~0, for Firefox a value of 5-10 is better.
+	if( config.eventAsyncCall ){
 
-	if( eventTimerInstance == NULL ){
-		eventTimerID 		= sBrowserFuncs->scheduletimer(instance, 5, true, timerFunc);
-		eventTimerInstance 	= instance;
+		if(!eventThread){
+			eventTimerInstance = instance;
+
+			if(pthread_create(&eventThread, NULL, timerThread, NULL) == 0){ // failed
+				startAsyncCall = true;
+
+			}else{
+				eventThread = 0;
+				std::cerr << "[PIPELIGHT] Unable to start timer thread" << std::endl;
+			}
+
+		}else{
+			std::cerr << "[PIPELIGHT] Already one running timer" << std::endl;
+		}
+
 	}else{
-		std::cerr << "[PIPELIGHT] Already one running timer" << std::endl;
+
+		// TODO: For Chrome this should be ~0, for Firefox a value of 5-10 is better.
+
+		if( eventTimerInstance == NULL ){
+			eventTimerInstance 	= instance;
+			eventTimerID 		= sBrowserFuncs->scheduletimer(instance, 5, true, timerFunc);
+		}else{
+			std::cerr << "[PIPELIGHT] Already one running timer" << std::endl;
+		}
+
 	}
 
 	if(saved){
@@ -314,6 +456,9 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 		saved->len = 0;
 	}
 
+	// Begin scheduling events
+	if(startAsyncCall) sem_post(&eventThreadSemRequestAsyncCall);
+
 	return result;
 }
 
@@ -322,13 +467,31 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 NPError
 NPP_Destroy(NPP instance, NPSavedData** save) {
 	EnterFunction();
+	bool unscheduleCurrentTimer = (eventTimerInstance && eventTimerInstance == instance);
 
-	if( eventTimerInstance && eventTimerInstance == instance ){
-		sBrowserFuncs->unscheduletimer(instance, eventTimerID);
-		eventTimerInstance 	= NULL;
-		eventTimerID 		= 0;
+	if(unscheduleCurrentTimer){
+		if( config.eventAsyncCall ){
 
-		std::cerr << "[PIPELIGHT] Unscheduled event timer" << std::endl;
+			if(eventThread){
+
+				if(sem_trywait(&eventThreadSemRequestAsyncCall) != 0 ){
+					sem_wait(&eventThreadSemScheduledAsyncCall);
+				}
+
+				// If there was some other asynccalls scheduled from before we cancel them
+				while( sem_trywait(&eventThreadSemScheduledAsyncCall) == 0 ){ }
+
+			}
+
+		}else{
+
+			sBrowserFuncs->unscheduletimer(instance, eventTimerID);
+			eventTimerInstance 	= NULL;
+			eventTimerID 		= 0;
+
+			std::cerr << "[PIPELIGHT] Unscheduled event timer" << std::endl;
+
+		}
 	}
 
 	writeHandleInstance(instance);
@@ -382,17 +545,33 @@ NPP_Destroy(NPP instance, NPSavedData** save) {
 
 	handlemanager.removeHandleByReal((uint64_t)instance, TYPE_NPPInstance);
 
-	if( eventTimerInstance == NULL ){
+	if(unscheduleCurrentTimer){
 		NPP nextInstance = handlemanager.findInstance();
-		if( nextInstance ){
-			eventTimerID 		= sBrowserFuncs->scheduletimer(nextInstance, 5, true, timerFunc);
-			eventTimerInstance 	= instance;
 
-			std::cerr << "[PIPELIGHT] Started timer in instance " << (void*)nextInstance << std::endl;
+		if( config.eventAsyncCall ){
+
+			if(eventThread){
+				eventTimerInstance = nextInstance;
+				
+				// Start again requesting async calls
+				sem_post(&eventThreadSemRequestAsyncCall);
+
+				// If nextInstance == 0 then the thread will terminate itself as soon as it recognizes that eventTimerInstace == NULL
+				if(nextInstance == 0) eventThread = 0;
+			}
 
 		}else{
-			std::cerr << "[PIPELIGHT] No more instance found, timer stays stopped" << std::endl;
+			
+			// In this event handling model we explicitly schedule a new timer
+			if( nextInstance ){
+				eventTimerID 		= sBrowserFuncs->scheduletimer(nextInstance, 5, true, timerFunc);
+				eventTimerInstance 	= instance;
+
+				std::cerr << "[PIPELIGHT] Started timer in instance " << (void*)nextInstance << std::endl;
+			}
+
 		}
+
 	}
 
 	return result;
@@ -413,24 +592,39 @@ NPP_SetWindow(NPP instance, NPWindow* window) {
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_SET_WINDOW);
 
-	// Embed window if we get a valid window
+	// Embed window if we get a valid x11 window ID back
 	Window win = (Window)readResultInt32();
 
 	if(win){
-
 		if(window->window){
 
 			Display *display = XOpenDisplay(NULL);
 
 			if(display){
+				setXembedWindowInfo(display, win, XEMBED_MAPPED);
+
 				XReparentWindow(display, win, (Window)window->window, 0, 0);
 				sendXembedMessage(display, win, XEMBED_EMBEDDED_NOTIFY, 0, (Window)window->window, 0);
+
+				// Synchronize xembed state
+				/*sendXembedMessage(display, win, XEMBED_FOCUS_IN, 		XEMBED_FOCUS_CURRENT, 0, 0);
+				sendXembedMessage(display, win, XEMBED_WINDOW_ACTIVATE, 0, 0, 0);
+				sendXembedMessage(display, win, XEMBED_MODALITY_ON, 	0, 0, 0);*/
+
 				XCloseDisplay(display);
+
 			}else{
-				std::cerr << "[PIPELIGHT] Could not open Display" << std::endl;
+				std::cerr << "[PIPELIGHT] Could not open display" << std::endl;
 			}
+
+			// Show the window after it has been embedded
+			writeHandleInstance(instance);
+			callFunction(SHOW_UPDATE_WINDOW);
+			waitReturn();
+
 		}
 	}
+
 	return NPERR_NO_ERROR;
 }
 
@@ -595,8 +789,17 @@ NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 		case NPPVpluginNeedsXEmbed:
 			result 				= NPERR_NO_ERROR;
 			*((PRBool *)value) 	= PR_TRUE;
+			break;
 
-			/*writeInt32(variable);
+		// Requested by Midori, but unknown if Silverlight supports this variable
+		case NPPVpluginWantsAllNetworkStreams:
+			result 				= NPERR_NO_ERROR;
+			*((PRBool *)value) 	= PR_FALSE;
+			break;
+
+		// Boolean return value
+		/*
+			writeInt32(variable);
 			writeHandleInstance(instance);
 			callFunction(FUNCTION_NPP_GETVALUE_BOOL);
 			readCommands(stack);
@@ -604,9 +807,10 @@ NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 			result = (NPError)readInt32(stack);
 
 			if(result == NPERR_NO_ERROR)
-				*((PRBool *)value) = (PRBool)readInt32(stack);*/
-			break;
+				*((PRBool *)value) = (PRBool)readInt32(stack);
+			break;*/
 
+		// Object return value
 		case NPPVpluginScriptableNPObject:
 			writeInt32(variable);
 			writeHandleInstance(instance);

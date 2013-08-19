@@ -60,6 +60,9 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 
+#include <pthread.h>							// alternative to ScheduleTimer etc.
+#include <semaphore.h>
+
 /* BEGIN GLOBAL VARIABLES
 
 	Note: As global variables should be initialized properly BEFORE the attach function is called.
@@ -74,8 +77,13 @@ char strPluginName[256] 		= {0};
 char strPluginDescription[1024]	= {0};
 
 // Instance responsible for triggering the timer
-uint32_t  	eventTimerID 			= 0;
-NPP 		eventTimerInstance 		= NULL;
+uint32_t  			eventTimerID 			= 0;
+NPP 				eventTimerInstance 		= NULL;
+pthread_t 			eventThread				= 0;
+
+sem_t				eventThreadSemRequestAsyncCall;
+sem_t				eventThreadSemScheduledAsyncCall;
+
 
 // Pipes to communicate with the wine process
 int pipeOut[2] 	= {0, 0};
@@ -104,6 +112,10 @@ void detach() __attribute__((destructor));
 
 void attach(){
 	std::cerr << "[PIPELIGHT] Attached to process" << std::endl;
+
+	// Initialize semaphore
+	sem_init(&eventThreadSemRequestAsyncCall, 0, 0);
+	sem_init(&eventThreadSemScheduledAsyncCall, 0, 0);
 
 	initOkay = false;
 

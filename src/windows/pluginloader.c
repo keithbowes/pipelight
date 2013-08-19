@@ -139,7 +139,7 @@ LRESULT CALLBACK WndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 								/*int32_t width 		= readInt32(stack);
 								int32_t height 		= readInt32(stack);*/
 
-								SetWindowPos(ndata->hWnd, HWND_TOP, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+								SetWindowPos(hWnd, HWND_TOP, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
 							}
 						}
 					}
@@ -183,8 +183,8 @@ LRESULT CALLBACK WndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	}else if(Msg == WM_CLOSE){
 		return 0;
 
-	}else if(Msg == WM_ERASEBKGND){
-    	return 0; // TODO: Correct return value?
+	/*}else if(Msg == WM_ERASEBKGND){
+    	return 0;*/ // TODO: Correct return value?
 
 	}else if( Msg == WM_SIZE ){
 		InvalidateRect(hWnd, NULL, false);
@@ -496,7 +496,7 @@ void dispatcher(int functionid, Stack &stack){
 				// Process window events
 				MSG msg;
 
-				DWORD abortTime = GetTickCount() + 20;
+				DWORD abortTime = GetTickCount() + 80;
 				while (GetTickCount() < abortTime){
 					if( PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) ){
 						TranslateMessage(&msg);
@@ -507,6 +507,25 @@ void dispatcher(int functionid, Stack &stack){
 
 					}else{
 						break;
+					}
+				}
+
+				returnCommand();
+			}
+			break;
+
+		case SHOW_UPDATE_WINDOW:
+			{
+				NPP instance = readHandleInstance(stack);
+
+				// Only used when isEmbeddedMode is set
+				if(isEmbeddedMode){
+					NetscapeData* ndata = (NetscapeData*)instance->ndata;
+					if(ndata){
+						if(ndata->hWnd){
+							ShowWindow(ndata->hWnd, SW_SHOW);
+							UpdateWindow(ndata->hWnd);
+						}
 					}
 				}
 
@@ -869,8 +888,11 @@ void dispatcher(int functionid, Stack &stack){
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
 				if(ndata){
 
-					if(! ndata->hWnd){
+					// Note: It breaks input event handling when calling
+					// SetWindowPos(ndata->hWnd, HWND_TOP, 0, 0, width, height, SWP_NOMOVE | SWP_SHOWWINDOW);
+					// here ... although we don't call it the window seems to resize properly
 
+					if(! ndata->hWnd){
 						RECT rect;
 						rect.left 	= 0;
 						rect.top	= 0;
@@ -898,15 +920,18 @@ void dispatcher(int functionid, Stack &stack){
 
 						ndata->hWnd = CreateWindowEx(extStyle, ClsName, "Plugin", style, posX, posY, rect.right - rect.left, rect.bottom - rect.top, 0, 0, 0, 0);
 						if(ndata->hWnd){
+							hwndToInstance.insert( std::pair<HWND, NPP>(ndata->hWnd, instance) );
 
 							if(isEmbeddedMode){
 								windowIDX11 = (int32_t) GetPropA(ndata->hWnd, "__wine_x11_whole_window");
+								// Its better not to show the window until its at the final position
+
+							}else{
+
+								ShowWindow(ndata->hWnd, SW_SHOW);
+								UpdateWindow (ndata->hWnd);
 							}
 
-							ShowWindow(ndata->hWnd, SW_SHOW);
-							UpdateWindow (ndata->hWnd);
-
-							hwndToInstance.insert( std::pair<HWND, NPP>(ndata->hWnd, instance) );
 						}
 					}
 
