@@ -15,6 +15,13 @@ winePrefix			= $HOME/.wine-pipelight/
 pluginLoaderPath	= PLUGIN_LOADER_PATH
 
 #
+# Path to the runtime DLLs (libgcc_s_sjlj-1.dll, libspp-0.dll,
+# libstdc++-6.dll). Only necessary when these DLLs are not in the same
+# directory as the pluginloader executable.
+#
+gccruntimedlls 		= /usr/lib/gcc/i686-w64-mingw32/4.6/
+
+#
 # Path to the Silverlight directory
 # Must be changed if a different version should be used.
 # The standard installation Path is:
@@ -23,7 +30,8 @@ pluginLoaderPath	= PLUGIN_LOADER_PATH
 dllPath				= c:\Program Files\Silverlight\5.1.20513.0\
 
 #
-# Name of the Silverlight library to load (relative to the path specified above)
+# Name of the Silverlight library to load
+# (relative to the path specified above)
 #
 dllName				= npctrl.dll
 
@@ -74,7 +82,8 @@ embed				= true
 dependencyInstaller = /usr/share/wine-browser-installer/install-dependency
 
 #
-# Silverlight version to install
+# Silverlight version to install using the dependencyInstaller
+# (optional)
 #
 # Valid values are:
 #	silverlight5.1
@@ -83,5 +92,31 @@ dependencyInstaller = /usr/share/wine-browser-installer/install-dependency
 #
 # If you changes this value, you also need to adjust dllPath
 #
-
 silverlightVersion = silverlight5.1
+
+#
+# In order to support browsers without NPAPI timer support
+# (like Midori) we've implemented a fallback to
+# NPN_PluginThreadAsyncCall. In the default configuration 
+# a timer based approach is preffered over async calls and the
+# plugin decides by itself which method to use depending on the
+# browser capabilities. Setting the following option to true
+# forces the plugin to use async calls. This might be mainly
+# useful for testing the difference between both event handling
+# approaches.
+#
+# eventasynccall = true
+
+#------------------------- EXPERIMENTAL -------------------------
+# Watch out: The following section contains highly experimental
+# stuff! These functions are likely not working properly yet and
+# might be removed at any time.
+
+#
+# Silverlight uses a lot of timer stuff do to the window redrawing
+# . In order to speed this up a bit the following switch enables
+# some API hooks to do most of timer stuff in user mode (without
+# having to call wine-server each time). It is still unclear
+# if this option has any significant effent on the performance.
+#
+# experimental-usermodetimer = true

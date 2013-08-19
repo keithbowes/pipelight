@@ -184,7 +184,7 @@ bool loadConfig(PluginConfig &config){
 	config.windowlessMode 		= false; // Default is window mode, as windowless currently is still a bit buggy
 	config.embed 				= true;
 	config.fakeVersion			= "";
-	config.gccRuntimeDLLs		= DEFAULT_GCC_RUNTIME_DLL_SEARCH_PATH;
+	config.gccRuntimeDLLs		= "";
 	config.dependencyInstaller 	= "";
 	config.silverlightVersion 	= "";
 	config.eventAsyncCall		= false;
