@@ -271,6 +271,7 @@ bool loadConfig(PluginConfig &config){
 
 		}else if(key == "winearch") {
 			config.wineArch = value;
+
 		}else if(key == "wineprefix"){
 			config.winePrefix = value;
 

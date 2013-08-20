@@ -5,8 +5,8 @@
 #include <map>									// for std::map
 
 struct PluginConfig{
-	std::string	wineArch;
 	std::string 	winePath;
+	std::string		wineArch;
 	std::string 	winePrefix;
 	std::string 	dllPath; //we may need to extend this to a vector in the future
 	std::string 	dllName;

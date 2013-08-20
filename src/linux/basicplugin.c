@@ -209,8 +209,10 @@ bool checkSilverlightInstallation(){
 		// Run the installer with the correct environment variables
 
 		setenv("WINEPREFIX", 	config.winePrefix.c_str(), 	true);
-		setenv("WINEARCH", 	config.wineArch.c_str(), 	true);
 		setenv("WINE", 			config.winePath.c_str(), 	true);
+
+		if(config.wineArch != "")
+			setenv("WINEARCH", 	config.wineArch.c_str(), 	true);
 
 		std::string argument = "wine-" + config.silverlightVersion + "-installer";
 
