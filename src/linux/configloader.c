@@ -204,6 +204,7 @@ bool loadConfig(PluginConfig &config){
 	if(homeDir != "") variables["$home"] = homeDir;
 
 	// Initialize config variables with default values
+	config.wineArch 			= "win32";
 	config.winePath 			= "wine";
 	config.winePrefix 			= "";
 	config.dllPath 				= "";
@@ -268,6 +269,8 @@ bool loadConfig(PluginConfig &config){
 		if(key == "winepath"){
 			config.winePath = value;
 
+		}else if(key == "winearch") {
+			config.wineArch = value;
 		}else if(key == "wineprefix"){
 			config.winePrefix = value;
 
@@ -326,6 +329,7 @@ bool loadConfig(PluginConfig &config){
 	}
 
 	/*
+	std::cerr << "[PIPELIGHT] wineArch: " << config.wineArch << std::endl;
 	std::cerr << "[PIPELIGHT] winePath: " << config.winePath << std::endl;
 	std::cerr << "[PIPELIGHT] winePrefix: " << config.winePrefix << std::endl;
 	std::cerr << "[PIPELIGHT] dllPath: " << config.dllPath << std::endl;

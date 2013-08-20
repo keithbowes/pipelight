@@ -9,6 +9,10 @@ winePath			= /opt/wine-compholio/bin/wine
 winePrefix			= $HOME/.wine-pipelight/
 
 #
+# The wine architecture for the wine prefix containing Silverlight
+wineArch			= win32
+
+#
 # Path to the plugin loader executable
 # (Should be set correctly by the make script)
 #
