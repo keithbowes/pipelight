@@ -111,6 +111,10 @@ void detach() __attribute__((destructor));
 /* END GLOBAL VARIABLES */
 
 void attach(){
+
+	// Fix for Opera: Dont sync stdio
+	std::ios_base::sync_with_stdio(false);
+
 	std::cerr << "[PIPELIGHT] Attached to process" << std::endl;
 
 	// Initialize semaphore
