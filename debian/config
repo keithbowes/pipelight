@@ -1,0 +1,10 @@
+#!/bin/sh -e
+
+# Source debconf library.
+. /usr/share/debconf/confmodule
+
+db_input high pipelight/system-wide-installation || true
+db_go
+
+exit 0
+

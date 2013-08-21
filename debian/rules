@@ -3,6 +3,4 @@
 		dh $@
 
 override_dh_auto_install:
-		$(MAKE) DESTDIR=$$(pwd)/debian/pipelight install
-
-override_dh_usrlocal:
+		$(MAKE) DESTDIR=$$(pwd)/debian/pipelight PLUGIN_DIR=/usr/lib/pipelight install

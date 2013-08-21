@@ -1,6 +1,7 @@
 SUBDIRS= src/linux src/windows
 .PHONY:	all $(SUBDIRS) clean install
 
+PLUGIN_DIR=/usr/lib/mozilla/plugins
 prefix=/usr/local/
 -include config.make
 
@@ -16,8 +17,8 @@ install: all
 	sed 's|PLUGIN_LOADER_PATH|$(prefix)/share/pipelight/pluginloader.exe|g' share/pipelight > pipelight.tmp
 	install -m 0644 pipelight.tmp $(DESTDIR)$(prefix)/share/pipelight/pipelight
 	rm pipelight.tmp
-	test -d $(DESTDIR)/usr/lib/mozilla/plugins/ || mkdir -p $(DESTDIR)/usr/lib/mozilla/plugins/
-	install -m 0644 src/linux/libpipelight.so $(DESTDIR)/usr/lib/mozilla/plugins/
+	test -d $(DESTDIR)$(PLUGIN_DIR) || mkdir -p $(DESTDIR)$(PLUGIN_DIR)
+	install -m 0644 src/linux/libpipelight.so $(DESTDIR)$(PLUGIN_DIR)/
 
 clean:
 	for dir in $(SUBDIRS); do \
