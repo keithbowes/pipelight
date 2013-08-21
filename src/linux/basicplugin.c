@@ -168,7 +168,6 @@ void detach(){
 }
 
 bool checkIfExists(std::string path){
-
 	struct stat info;
 	if(stat(path.c_str(), &info) == 0){
 		return true;
@@ -212,8 +211,10 @@ bool checkSilverlightInstallation(){
 
 		// Run the installer with the correct environment variables
 
+		std::string wineBinary		= config.winePathIsDeprecated ? config.winePath : (config.winePath + "/bin/wine");
+
 		setenv("WINEPREFIX", 	config.winePrefix.c_str(), 	true);
-		setenv("WINE", 			config.winePath.c_str(), 	true);
+		setenv("WINE", 			wineBinary.c_str(), 		true);
 
 		if(config.wineArch != "")
 			setenv("WINEARCH", 	config.wineArch.c_str(), 	true);
@@ -284,8 +285,10 @@ bool startWineProcess(){
 		std::string embedMode 		= config.embed 						? "--embed" 		: "";
 		std::string usermodeTimer	= config.experimental_usermodeTimer ? "--usermodetimer" : "";
 
+		std::string wineBinary		= config.winePathIsDeprecated ? config.winePath : (config.winePath + "/bin/wine");
+
 		// Execute wine
-		execlp(config.winePath.c_str(), "wine", config.pluginLoaderPath.c_str(), config.dllPath.c_str(), config.dllName.c_str(), windowMode.c_str(), embedMode.c_str(), usermodeTimer.c_str(), NULL);	
+		execlp(wineBinary.c_str(), "wine", config.pluginLoaderPath.c_str(), config.dllPath.c_str(), config.dllName.c_str(), windowMode.c_str(), embedMode.c_str(), usermodeTimer.c_str(), NULL);	
 		throw std::runtime_error("Error in execlp command - probably wine not found?");
 
 	}else if (winePid != -1){

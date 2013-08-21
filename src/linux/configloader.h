@@ -6,6 +6,8 @@
 
 struct PluginConfig{
 	std::string 	winePath;
+	bool			winePathIsDeprecated;
+
 	std::string		wineArch;
 	std::string 	winePrefix;
 	std::string 	dllPath; //we may need to extend this to a vector in the future

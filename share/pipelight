@@ -1,7 +1,14 @@
 #
-# Path to the wine executable
+# Path to the wine directory
+# * the wine executable itself should be at: winePath/bin/wine
+# * the winepath executable should be at:    winePath/bin/winepath
 #
-winePath			= /opt/wine-compholio/bin/wine
+# Please note:
+# If you provide some file instead of a directory the /bin/wine
+# will be stripped in order to stay compatible with previous
+# configurations
+#
+winePath			= /opt/wine-compholio/
 
 #
 # Path to the wine prefix containing Silverlight
@@ -24,7 +31,7 @@ pluginLoaderPath	= PLUGIN_LOADER_PATH
 # libstdc++-6.dll). Only necessary when these DLLs are not in the same
 # directory as the pluginloader executable.
 #
-gccruntimedlls 		= /usr/lib/gcc/i686-w64-mingw32/4.6/
+gccRuntimeDlls 		= /usr/lib/gcc/i686-w64-mingw32/4.6/
 
 #
 # Path to the Silverlight directory
@@ -72,7 +79,7 @@ overwriteArg		= enableGPUAcceleration=false
 # more efficient when this mode is enabled. Just choose what works
 # best for you. 
 #
-windowlessmode 		= false
+windowlessMode 		= false
 
 #
 # embed defines whether the Silverlight plugin should be shown 
@@ -103,14 +110,14 @@ silverlightVersion = silverlight5.1
 # In order to support browsers without NPAPI timer support
 # (like Midori) we've implemented a fallback to
 # NPN_PluginThreadAsyncCall. In the default configuration 
-# a timer based approach is preffered over async calls and the
+# a timer based approach is preferred over async calls and the
 # plugin decides by itself which method to use depending on the
 # browser capabilities. Setting the following option to true
 # forces the plugin to use async calls. This might be mainly
 # useful for testing the difference between both event handling
 # approaches.
 #
-# eventasynccall = true
+# eventAsyncCall = true
 
 #------------------------- EXPERIMENTAL -------------------------
 # Watch out: The following section contains highly experimental
@@ -124,4 +131,4 @@ silverlightVersion = silverlight5.1
 # having to call wine-server each time). It is still unclear
 # if this option has any significant effent on the performance.
 #
-# experimental-usermodetimer = true
+# experimental-userModeTimer = true

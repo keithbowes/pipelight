@@ -10,6 +10,7 @@
 #include <pwd.h>								// for getpwuid
 #include <sys/types.h>
 #include <unistd.h>								// for dladdr
+#include <sys/stat.h>							// for stat
 
 #include "configloader.h"
 #include "basicplugin.h"
@@ -193,6 +194,15 @@ bool openConfig(std::ifstream &configFile){
 	return false;
 }
 
+
+bool checkIfFile(std::string path){
+	struct stat info;
+	if(stat(path.c_str(), &info) == 0){
+		return (bool)S_ISREG(info.st_mode);
+	}
+	return false;
+}
+
 // Does the actual parsing stuff
 bool loadConfig(PluginConfig &config){
 
@@ -204,8 +214,9 @@ bool loadConfig(PluginConfig &config){
 	if(homeDir != "") variables["$home"] = homeDir;
 
 	// Initialize config variables with default values
-	config.wineArch 			= "win32";
 	config.winePath 			= "wine";
+	config.winePathIsDeprecated = false;
+	config.wineArch 			= "win32";
 	config.winePrefix 			= "";
 	config.dllPath 				= "";
 	config.dllName 				= "";
@@ -267,7 +278,14 @@ bool loadConfig(PluginConfig &config){
 		}
 
 		if(key == "winepath"){
-			config.winePath = value;
+			// In previous versions winePath correspondeds to a direct path to /bin/wine, but now it
+			// just contains a path to the main wine directory instead
+			config.winePath 			= value;
+			config.winePathIsDeprecated = checkIfFile(value);
+
+			if(config.winePathIsDeprecated){
+				std::cerr << "[PIPELIGHT] Your config entry 'winePath' is deprecated" << std::endl;
+			}
 
 		}else if(key == "winearch") {
 			config.wineArch = value;
