@@ -111,6 +111,10 @@ void detach() __attribute__((destructor));
 /* END GLOBAL VARIABLES */
 
 void attach(){
+
+	// Fix for Opera: Dont sync stdio
+	std::ios_base::sync_with_stdio(false);
+
 	std::cerr << "[PIPELIGHT] Attached to process" << std::endl;
 
 	// Initialize semaphore
@@ -172,6 +176,11 @@ bool checkIfExists(std::string path){
 	return false;
 }
 
+std::string getEnvironmentString(const char* variable){
+	char *str = getenv(variable);
+	return str ? std::string(str) : "";
+}
+
 bool checkSilverlightInstallation(){
 
 	// Checking the silverlight installation is only possible if the user has defined a winePrefix
@@ -205,6 +214,9 @@ bool checkSilverlightInstallation(){
 
 		setenv("WINEPREFIX", 	config.winePrefix.c_str(), 	true);
 		setenv("WINE", 			config.winePath.c_str(), 	true);
+
+		if(config.wineArch != "")
+			setenv("WINEARCH", 	config.wineArch.c_str(), 	true);
 
 		std::string argument = "wine-" + config.silverlightVersion + "-installer";
 
@@ -257,10 +269,13 @@ bool startWineProcess(){
 		if (config.winePrefix != "")
 			setenv("WINEPREFIX", config.winePrefix.c_str(), true);
 
-		if(config.gccRuntimeDLLs != ""){
-			char *str = getenv("Path");
-			std::string runtime = (str ? (std::string(str) + ";") : "") + config.gccRuntimeDLLs;
+		if (config.wineArch != "")
+			setenv("WINEARCH", config.wineArch.c_str(), true);
 
+		if(config.gccRuntimeDLLs != ""){
+			std::string runtime = getEnvironmentString("Path");
+			if(runtime != "") runtime += ";";
+			runtime += config.gccRuntimeDLLs;
 			setenv("Path", runtime.c_str(), true);
 		}
 

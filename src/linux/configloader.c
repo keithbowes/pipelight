@@ -165,7 +165,35 @@ std::string replaceVariables(const std::map<std::string, std::string> &variables
 	return output;
 }
 
+// Tries to open the config and returns true on success
+bool openConfig(std::ifstream &configFile){
+	std::string configPath;
+	std::string homeDir = getHomeDirectory();
 
+	configPath = getEnvironmentString("PIPELIGHT_CONFIG");
+	if(configPath != ""){
+		std::cerr << "[PIPELIGHT] Trying to load config file from " << configPath << std::endl;
+		configFile.open(configPath);
+		if(configFile.is_open()) return true;
+	}
+
+	if(homeDir != ""){
+		configPath = homeDir + "/.config/pipelight";
+		std::cerr << "[PIPELIGHT] Trying to load config file from " << configPath << std::endl;
+		configFile.open(configPath);
+		if(configFile.is_open()) return true;
+	}
+
+
+	configPath = PREFIX "/share/pipelight/pipelight";
+	std::cerr << "[PIPELIGHT] Trying to load default config file from " << configPath << std::endl;
+	configFile.open(configPath);
+	if(configFile.is_open()) return true;
+
+	return false;
+}
+
+// Does the actual parsing stuff
 bool loadConfig(PluginConfig &config){
 
 	// Variables which can be used inside the config file
@@ -176,6 +204,7 @@ bool loadConfig(PluginConfig &config){
 	if(homeDir != "") variables["$home"] = homeDir;
 
 	// Initialize config variables with default values
+	config.wineArch 			= "win32";
 	config.winePath 			= "wine";
 	config.winePrefix 			= "";
 	config.dllPath 				= "";
@@ -190,26 +219,13 @@ bool loadConfig(PluginConfig &config){
 	config.eventAsyncCall		= false;
 	config.experimental_usermodeTimer = false;
 
-	std::string 	configPath;
 	std::ifstream 	configFile;
 
-	// Print some debug message
-	configPath = homeDir + "/.config/pipelight";
-	std::cerr << "[PIPELIGHT] Trying to load config file from " << configPath << std::endl;
-	configFile.open(configPath);
-	if(!configFile.is_open()){
-
-		configPath = PREFIX "/share/pipelight/pipelight";
-		std::cerr << "[PIPELIGHT] Trying to load default config file from " << configPath << std::endl;
-		configFile.open(configPath);
-		if(!configFile.is_open()){
-
-			std::cerr << "[PIPELIGHT] Couldn't find any configuration file" << std::endl;
-			return false;
-
-		}
-
+	if(!openConfig(configFile)){
+		std::cerr << "[PIPELIGHT] Couldn't find any configuration file" << std::endl;
+		return false;
 	}
+
 
 	while (configFile.good()){
 		std::string line;
@@ -252,6 +268,9 @@ bool loadConfig(PluginConfig &config){
 
 		if(key == "winepath"){
 			config.winePath = value;
+
+		}else if(key == "winearch") {
+			config.wineArch = value;
 
 		}else if(key == "wineprefix"){
 			config.winePrefix = value;
@@ -310,11 +329,8 @@ bool loadConfig(PluginConfig &config){
 
 	}
 
-	//Check for required arguments
-	if (config.dllPath == "" || config.dllName == "" || config.pluginLoaderPath == "")
-		return false;
-
 	/*
+	std::cerr << "[PIPELIGHT] wineArch: " << config.wineArch << std::endl;
 	std::cerr << "[PIPELIGHT] winePath: " << config.winePath << std::endl;
 	std::cerr << "[PIPELIGHT] winePrefix: " << config.winePrefix << std::endl;
 	std::cerr << "[PIPELIGHT] dllPath: " << config.dllPath << std::endl;
