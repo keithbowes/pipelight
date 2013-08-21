@@ -39,7 +39,7 @@ extern PluginConfig config;
 #define XEMBED_WINDOW_ACTIVATE  		1
 #define XEMBED_WINDOW_DEACTIVATE  		2
 #define XEMBED_REQUEST_FOCUS	 		3
-#define XEMBED_FOCUS_IN 	 			4
+#define XEMBED_FOCUS_IN 				4
 #define XEMBED_FOCUS_OUT  				5
 #define XEMBED_FOCUS_NEXT 				6
 #define XEMBED_FOCUS_PREV 				7
@@ -55,7 +55,7 @@ extern PluginConfig config;
 #define XEMBED_FOCUS_FIRST 				1
 #define XEMBED_FOCUS_LAST				2
 
-#define XEMBED_MAPPED          			(1 << 0)
+#define XEMBED_MAPPED 					(1 << 0)
 
 void sendXembedMessage(Display* display, Window win, long message, long detail, long data1, long data2){
 	XEvent ev;

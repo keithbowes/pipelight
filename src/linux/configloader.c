@@ -207,6 +207,7 @@ bool loadConfig(PluginConfig &config){
 	config.wineArch 			= "win32";
 	config.winePath 			= "wine";
 	config.winePrefix 			= "";
+	config.wineDLLOverrides		= "mscoree,mshtml="; //Prevent Installation of Geck & Mono by default
 	config.dllPath 				= "";
 	config.dllName 				= "";
 	config.pluginLoaderPath 	= "";
@@ -274,6 +275,9 @@ bool loadConfig(PluginConfig &config){
 
 		}else if(key == "wineprefix"){
 			config.winePrefix = value;
+
+		}else if(key == "winedlloverrides"){
+			config.wineDLLOverrides = value;
 
 		}else if(key == "dllpath"){
 			config.dllPath = value;	

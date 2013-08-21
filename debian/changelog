@@ -1,6 +1,6 @@
 pipelight (0.1-2) UNRELEASED; urgency=low
 
-  * Fixed build blags for wingw32. (fixes launchpad issue 1213725)
+  * Fixed build flags for wingw32. (fixes launchpad issue 1213725)
 
   * Added undocumented option gccruntimedlls to the config file.
 
@@ -16,6 +16,18 @@ pipelight (0.1-2) UNRELEASED; urgency=low
 
   * Added support for a PIPELIGHT_CONFIG environment variable to overwrite
     the config search path.
+
+  * Merged with changes by Joseph Yasi (merge 180968)
+    Allows to define WINEARCH via the config.
+
+  * Added fix to make Pipelight working with Opera (fixes launchpad issue 1214447)
+
+  * Added the possibility to enable/disable Wine system-wide
+
+  * Changed meaning of winePath variable in config file - its now the path to
+    the wine directory, not the wine executable (see default config)
+
+  * Prevent Wine from asking for Gecko or Mono
 
  -- Michael Mueller <michael@fds-team.de>  Mon, 20 Aug 2013 00:35:00 +0200
 

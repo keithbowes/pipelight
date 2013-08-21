@@ -218,6 +218,9 @@ bool checkSilverlightInstallation(){
 		if(config.wineArch != "")
 			setenv("WINEARCH", 	config.wineArch.c_str(), 	true);
 
+		if(config.wineDLLOverrides != "")
+			setenv("WINEDLLOVERRIDES", config.wineDLLOverrides.c_str(), true);
+
 		std::string argument = "wine-" + config.silverlightVersion + "-installer";
 
 		execlp("/bin/sh", "sh", config.dependencyInstaller.c_str(), argument.c_str(), NULL);
@@ -271,6 +274,9 @@ bool startWineProcess(){
 
 		if (config.wineArch != "")
 			setenv("WINEARCH", config.wineArch.c_str(), true);
+
+		if(config.wineDLLOverrides != "")
+			setenv("WINEDLLOVERRIDES", config.wineDLLOverrides.c_str(), true);
 
 		if(config.gccRuntimeDLLs != ""){
 			std::string runtime = getEnvironmentString("Path");
