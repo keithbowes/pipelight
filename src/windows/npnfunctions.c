@@ -283,8 +283,6 @@ NPError NPN_SetValue(NPP instance, NPPVariable variable, void *value){
 		case NPPVpluginWindowBool:
 			{
 
-				std::cerr << "hello" << std::endl;
-
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
 				if(ndata){
 

@@ -341,14 +341,14 @@ bool InitDLL(std::string dllPath, std::string dllName){
 							std::cerr << "[PIPELIGHT] Failed to initialize" << std::endl;
 						}
 					}else{
-						std::cerr << "[PIPELIGHT] Could not load Entry Points from DLL" << std::endl;
+						std::cerr << "[PIPELIGHT] Could not load entry points from DLL" << std::endl;
 					}
 
 				}else{
-					std::cerr << "[PIPELIGHT] Failed to get File Version" << std::endl;
+					std::cerr << "[PIPELIGHT] Failed to get file version" << std::endl;
 				}
 			}else{
-				std::cerr << "[PIPELIGHT] Failed to allocate Memory" << std::endl;
+				std::cerr << "[PIPELIGHT] Failed to allocate memory" << std::endl;
 			}
 		}else{
 			std::cerr << "[PIPELIGHT] Could not load version information" << std::endl;
