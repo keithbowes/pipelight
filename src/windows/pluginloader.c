@@ -51,10 +51,10 @@ NPPluginFuncs pluginFuncs = {sizeof(pluginFuncs), NP_VERSION_MINOR};
 LRESULT CALLBACK WndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 {
 
-	// Handle events in windowless mode
-	if(isWindowlessMode && hWnd){
+	// Only messages with a hwnd can be relevant in windowlessmode mode
+	if(hWnd){
 
-		// Get instance
+		// Find the specific instance
 		std::map<HWND, NPP>::iterator it = hwndToInstance.find(hWnd);
 		if(it != hwndToInstance.end()){
 			NPP instance = it->second;
@@ -62,116 +62,122 @@ LRESULT CALLBACK WndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 			// Get netscape data
 			NetscapeData* ndata = (NetscapeData*)instance->ndata;
 			if(ndata && ndata->window){
-				NPWindow* window = ndata->window;
 
-				// Paint event
-				if( Msg == WM_PAINT ){
+				// Handle events in windowless mode
+				if(ndata->windowlessMode && ndata->window){
+					NPWindow* window = ndata->window;
 
-					RECT rect;
-					PAINTSTRUCT paint;
-					HDC hDC;
+					// Paint event
+					if( Msg == WM_PAINT ){
 
-					if( GetClientRect(hWnd, &rect) ) {
-						
-						hDC = BeginPaint(hWnd, &paint);
-						if(hDC != NULL){
+						RECT rect;
+						PAINTSTRUCT paint;
+						HDC hDC;
 
-							// Save the previous DC (or allocate a new one)
-							HDC previousDC;
-							if(window->type == NPWindowTypeDrawable){
-								previousDC = (HDC)window->window;
-							}else{
-								previousDC = GetDC(hWnd);
+						if( GetClientRect(hWnd, &rect) ) {
+							
+							hDC = BeginPaint(hWnd, &paint);
+							if(hDC != NULL){
+
+								// Save the previous DC (or allocate a new one)
+								HDC previousDC;
+								if(window->type == NPWindowTypeDrawable){
+									previousDC = (HDC)window->window;
+								}else{
+									previousDC = GetDC(hWnd);
+								}
+
+								window->window 				= hDC;
+								window->x 					= 0;
+								window->y 					= 0;
+								window->width 				= rect.right;
+								window->height 				= rect.bottom;
+								window->clipRect.top 		= 0;
+								window->clipRect.left 		= 0;
+								window->clipRect.right 		= rect.right;
+								window->clipRect.bottom 	= rect.bottom;
+								window->type 				= NPWindowTypeDrawable;
+								pluginFuncs.setwindow(instance, window);
+
+								NPRect nRect;
+								nRect.top 		= paint.rcPaint.top;
+								nRect.left 		= paint.rcPaint.left;
+								nRect.bottom 	= paint.rcPaint.bottom;
+								nRect.right 	= paint.rcPaint.right;
+
+								NPEvent event;
+								event.event 	= Msg;
+								event.wParam 	= (uintptr_t)hDC;
+								event.lParam 	= (uintptr_t)&nRect;
+								pluginFuncs.event(instance, &event);
+
+								EndPaint(hWnd, &paint);
+
+								// Restore the previous DC
+								window->window = previousDC;
+								pluginFuncs.setwindow(instance, window);
+
 							}
 
-							window->window 				= hDC;
-							window->x 					= 0;
-							window->y 					= 0;
-							window->width 				= rect.right;
-							window->height 				= rect.bottom;
-							window->clipRect.top 		= 0;
-							window->clipRect.left 		= 0;
-							window->clipRect.right 		= rect.right;
-							window->clipRect.bottom 	= rect.bottom;
-							window->type 				= NPWindowTypeDrawable;
-							pluginFuncs.setwindow(instance, window);
+							return 0;
+						}
 
-							NPRect nRect;
-							nRect.top 		= paint.rcPaint.top;
-							nRect.left 		= paint.rcPaint.left;
-							nRect.bottom 	= paint.rcPaint.bottom;
-							nRect.right 	= paint.rcPaint.right;
+					// All other events
+					}else{
 
-							NPEvent event;
-							event.event 	= Msg;
-							event.wParam 	= (uintptr_t)hDC;
-							event.lParam 	= (uintptr_t)&nRect;
-							pluginFuncs.event(instance, &event);
+						// Workaround for Contextmenu in embedded mode
+						if(Msg == WM_RBUTTONDOWN && isEmbeddedMode){
+							int32_t windowIDX11 = (int32_t) GetPropA(hWnd, "__wine_x11_whole_window");
+							if(windowIDX11){
+								Stack stack;
 
-							EndPaint(hWnd, &paint);
+								writeInt32(windowIDX11);
+								callFunction(GET_WINDOW_RECT);
 
-							// Restore the previous DC
+								readCommands(stack);
+
+								if( (bool)readInt32(stack) ){
+									int32_t x 			= readInt32(stack);
+									int32_t y 			= readInt32(stack);
+									/*int32_t width 		= readInt32(stack);
+									int32_t height 		= readInt32(stack);*/
+
+									SetWindowPos(hWnd, HWND_TOP, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
+								}
+							}
+						}
+
+
+						// Workaround for Silverlight - the events are not correctly handled if
+						// window->window is nonzero
+						// Set it to zero before calling the event handler in this case
+
+						HDC previousDC = NULL;
+
+						if(	window->type == NPWindowTypeDrawable &&
+							((Msg >= WM_KEYFIRST && Msg <= WM_KEYLAST) ||
+							 (Msg >= WM_MOUSEFIRST && Msg <= WM_MOUSELAST )) ){
+
+							previousDC = (HDC)window->window;
+							window->window = NULL;
+						}
+
+						NPEvent event;
+						event.event 	= Msg;
+						event.wParam 	= wParam;
+						event.lParam 	= lParam;
+						int16_t result = pluginFuncs.event(instance, &event);
+
+						if(previousDC){
 							window->window = previousDC;
-							pluginFuncs.setwindow(instance, window);
-
 						}
 
-						return 0;
+						if(result == kNPEventHandled) return 0;
+
 					}
-
-				// All other events
-				}else{
-
-					// Workaround for Contextmenu in embedded mode
-					if(Msg == WM_RBUTTONDOWN && isEmbeddedMode){
-						int32_t windowIDX11 = (int32_t) GetPropA(hWnd, "__wine_x11_whole_window");
-						if(windowIDX11){
-							Stack stack;
-
-							writeInt32(windowIDX11);
-							callFunction(GET_WINDOW_RECT);
-
-							readCommands(stack);
-
-							if( (bool)readInt32(stack) ){
-								int32_t x 			= readInt32(stack);
-								int32_t y 			= readInt32(stack);
-								/*int32_t width 		= readInt32(stack);
-								int32_t height 		= readInt32(stack);*/
-
-								SetWindowPos(hWnd, HWND_TOP, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
-							}
-						}
-					}
-
-
-					// Workaround for Silverlight - the events are not correctly handled if
-					// window->window is nonzero
-					// Set it to zero before calling the event handler in this case
-
-					HDC previousDC = NULL;
-
-					if(	window->type == NPWindowTypeDrawable &&
-						((Msg >= WM_KEYFIRST && Msg <= WM_KEYLAST) ||
-						 (Msg >= WM_MOUSEFIRST && Msg <= WM_MOUSELAST )) ){
-
-						previousDC = (HDC)window->window;
-						window->window = NULL;
-					}
-
-					NPEvent event;
-					event.event 	= Msg;
-					event.wParam 	= wParam;
-					event.lParam 	= lParam;
-					int16_t result = pluginFuncs.event(instance, &event);
-
-					if(previousDC){
-						window->window = previousDC;
-					}
-
-					if(result == kNPEventHandled) return 0;
 
 				}
+
 			}
 		}
 	}
@@ -758,22 +764,23 @@ void dispatcher(int functionid, Stack &stack){
 				// Most plugins only support windowlessMode in combination with NP_EMBED
 				if(isWindowlessMode)	mode = NP_EMBED;
 
+				// Set privata data before calling the plugin, it might already use some commands
+				NetscapeData* ndata = (NetscapeData*)malloc(sizeof(NetscapeData));
+				if(ndata){
+					instance->ndata = ndata;
+
+					ndata->windowlessMode 	= isWindowlessMode;
+					ndata->hWnd 			= NULL;
+					ndata->window 			= NULL;
+
+				}else{
+					instance->ndata = NULL;
+					std::cerr << "[PIPELIGHT] Unable to allocate memory for private data" << std::endl;
+				}
+
 				NPError result = pluginFuncs.newp(mimeType.get(), instance, mode, argc, argn.data(), argv.data(), savedPtr);
 
-				// Allocate structure!
-				if(result == NPERR_NO_ERROR){
-					NetscapeData* ndata = (NetscapeData*)malloc(sizeof(NetscapeData));
-					if(ndata){
-						instance->ndata = ndata;
-
-						ndata->hWnd 	= NULL;
-						ndata->window 	= NULL;
-
-					}else{
-						instance->ndata = NULL;
-						std::cerr << "Unable to allocate memory for private data" << std::endl;
-					}
-				}
+				// TODO: Do we have to deallocate the privata data or does NPP_DESTROY get called?
 
 				// Free the arrays before returning
 				freeStringArray(argn);
@@ -943,7 +950,7 @@ void dispatcher(int functionid, Stack &stack){
 							window 			= (NPWindow*)malloc(sizeof(NPWindow));
 							ndata->window 	= window;
 							// Only do this once to prevent leaking DCs
-							if(isWindowlessMode){
+							if(ndata->windowlessMode){
 								window->window 			= GetDC(ndata->hWnd);
 								window->type 			= NPWindowTypeDrawable;
 							}else{

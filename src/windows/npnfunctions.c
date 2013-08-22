@@ -4,7 +4,8 @@
 
 extern char strUserAgent[1024];
 extern HandleManager handlemanager;
-extern bool isWindowlessMode;
+
+extern NPPluginFuncs pluginFuncs;
 
 void pokeString(std::string str, char *dest, unsigned int maxLength){
 	if(maxLength > 0){
@@ -273,8 +274,58 @@ NPError NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 
 // So far we dont allow overwriting these values
 NPError NPN_SetValue(NPP instance, NPPVariable variable, void *value){
-	NotImplemented();
-	return NPERR_NO_ERROR;		
+	EnterFunction();
+
+	NPError result = NPERR_GENERIC_ERROR;
+
+	switch(variable){
+
+		case NPPVpluginWindowBool:
+			{
+
+				std::cerr << "hello" << std::endl;
+
+				NetscapeData* ndata = (NetscapeData*)instance->ndata;
+				if(ndata){
+
+					// Update windowless mode
+					ndata->windowlessMode 	= ( value == NULL );
+					result 					= NPERR_NO_ERROR;
+
+					std::cerr << "[PIPELIGHT] Plugin instance switched windowless mode to " << (ndata->windowlessMode ? "on" : "off") << std::endl;
+
+					// Update existing plugin window
+					if(ndata->hWnd && ndata->window){
+						NPWindow* window = ndata->window;
+
+						if(window->type == NPWindowTypeDrawable){
+							ReleaseDC(ndata->hWnd, (HDC)ndata->window->window);
+						}
+
+						if(ndata->windowlessMode){
+							window->window 			= GetDC(ndata->hWnd);
+							window->type 			= NPWindowTypeDrawable;
+						}else{
+							window->window 			= ndata->hWnd;
+							window->type 			= NPWindowTypeWindow;
+						}
+
+						pluginFuncs.setwindow(instance, window);
+
+					}
+				}
+
+
+			}
+			break;
+
+		default:
+			NotImplemented();
+			break;
+
+	}
+
+	return result;		
 }
 
 void NP_LOADDS NPN_InvalidateRect(NPP instance, NPRect *rect){
@@ -283,7 +334,7 @@ void NP_LOADDS NPN_InvalidateRect(NPP instance, NPRect *rect){
 	NetscapeData* ndata = (NetscapeData*)instance->ndata;
 	if(ndata){
 		if(ndata->hWnd){
-			if(isWindowlessMode){
+			if(ndata->windowlessMode){
 				RECT r;
 				r.left 		= rect->left;
 				r.top 		= rect->top;

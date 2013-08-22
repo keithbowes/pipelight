@@ -3,10 +3,8 @@
 # * the wine executable itself should be at: winePath/bin/wine
 # * the winepath executable should be at:    winePath/bin/winepath
 #
-# Please note:
-# If you provide some file instead of a directory the /bin/wine
-# will be stripped in order to stay compatible with previous
-# configurations
+# Please note: In older versions this was a path to the wine
+# executable instead (deprecated, but should still work).
 #
 winePath			= /opt/wine-compholio/
 

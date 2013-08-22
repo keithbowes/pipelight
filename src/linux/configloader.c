@@ -285,7 +285,7 @@ bool loadConfig(PluginConfig &config){
 			config.winePathIsDeprecated = checkIfFile(value);
 
 			if(config.winePathIsDeprecated){
-				std::cerr << "[PIPELIGHT] Your config entry 'winePath' is deprecated" << std::endl;
+				std::cerr << "[PIPELIGHT] The meaning of your config entry 'winePath' is deprecated" << std::endl;
 			}
 
 		}else if(key == "winearch") {
