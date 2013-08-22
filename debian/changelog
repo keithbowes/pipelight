@@ -11,12 +11,12 @@ pipelight (0.1-2) UNRELEASED; urgency=low
   * Merged with changes by Joseph Yasi (merge 180968)
     Allows to define WINEARCH via the config variable wineArch.
   * Added fix to make Pipelight working with Opera (fixes lp issue 1214447)
-    [Note: Opera still requires setting eventAsyncCall to true manually]
   * Added the possibility to enable/disable pipelight system-wide
   * Changed meaning of winePath variable in config file - its now the path to
     the wine directory, not the wine executable (see default config)
   * Prevent Wine from asking for Gecko or Mono
   * Automatically enable/disable windowlessMode when required
+  * Detect Opera browser automatically to set eventAsyncCall to true
 
  -- Michael Mueller <michael@fds-team.de>  Mon, 20 Aug 2013 00:35:00 +0200
 
