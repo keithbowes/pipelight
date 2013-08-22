@@ -198,8 +198,8 @@ bool checkSilverlightInstallation(){
 
 	// If there is no installer provided we cannot fix this issue!
 	if( config.dependencyInstaller == "" || config.silverlightVersion == "" || 
-		!checkIfExists(config.dependencyInstaller) ||
-		!checkIfExists("/usr/share/wine-browser-installer/wine-" + config.silverlightVersion + "-installer.install-script")){
+		!checkIfExists(config.dependencyInstaller) /* ||
+		!checkIfExists("/usr/share/wine-browser-installer/wine-" + config.silverlightVersion + "-installer.install-script") */ ){
 		return false;
 	}
 
