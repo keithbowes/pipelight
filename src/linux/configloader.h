@@ -22,6 +22,7 @@ struct PluginConfig{
 	std::string		silverlightVersion;
 
 	bool 			eventAsyncCall;
+	bool			operaDetection;
 
 	bool 			experimental_usermodeTimer;
 

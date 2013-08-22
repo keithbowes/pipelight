@@ -387,6 +387,17 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 	if(!initOkay)
 		return NPERR_GENERIC_ERROR;
 
+	// Detect opera browsers and set eventAsyncCall to true in this case
+	if( !config.eventAsyncCall && config.operaDetection ){
+		if( std::string(sBrowserFuncs->uagent(instance)).find("Opera") != std::string::npos ){
+			config.eventAsyncCall = true;
+
+			std::cerr << "[PIPELIGHT] Opera browser detect, changed eventAsyncCall to true" << std::endl;
+			
+		}
+	}
+
+	// Setup eventhandling
 	if( config.eventAsyncCall ){
 
 		if(!eventThread){

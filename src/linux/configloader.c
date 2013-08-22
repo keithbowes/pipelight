@@ -222,13 +222,14 @@ bool loadConfig(PluginConfig &config){
 	config.dllPath 				= "";
 	config.dllName 				= "";
 	config.pluginLoaderPath 	= "";
-	config.windowlessMode 		= false; // Default is window mode, as windowless currently is still a bit buggy
+	config.windowlessMode 		= false;
 	config.embed 				= true;
 	config.fakeVersion			= "";
 	config.gccRuntimeDLLs		= "";
 	config.dependencyInstaller 	= "";
 	config.silverlightVersion 	= "";
 	config.eventAsyncCall		= false;
+	config.operaDetection 		= true;
 	config.experimental_usermodeTimer = false;
 
 	std::ifstream 	configFile;
@@ -340,6 +341,10 @@ bool loadConfig(PluginConfig &config){
 		}else if(key == "eventasynccall"){
 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 			config.eventAsyncCall = (value == "true" || value == "yes");
+
+		}else if(key == "operadetection"){
+			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+			config.operaDetection = (value == "true" || value == "yes");
 
 		}else if(key == "experimental-usermodetimer"){
 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);

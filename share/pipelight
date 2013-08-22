@@ -81,13 +81,14 @@ overwriteArg		= enableGPUAcceleration=false
 # On some desktop enviroments you may have problems using the
 # keyboard in windowless mode, on the other hand the drawing is
 # more efficient when this mode is enabled. Just choose what works
-# best for you. 
+# best for you. [default: false]
 #
 windowlessMode 		= false
 
 #
 # embed defines whether the Silverlight plugin should be shown 
 # inside the browser (true) or an external window (false).
+# [default: true]
 #
 embed				= true
 
@@ -119,9 +120,17 @@ silverlightVersion = silverlight5.1
 # browser capabilities. Setting the following option to true
 # forces the plugin to use async calls. This might be mainly
 # useful for testing the difference between both event handling
-# approaches.
+# approaches. [default: false]
 #
-# eventAsyncCall = true
+# eventAsyncCall	= true
+
+#
+# The opera browser claims to provide timer functions, but they
+# don't seem to work properly. When the opera detection is
+# enabled Pipelight will switch to eventAsyncCall automatically
+# based on the user agent string. [default: true]
+#
+operaDetection		= true
 
 #------------------------- EXPERIMENTAL -------------------------
 # Watch out: The following section contains highly experimental
@@ -134,5 +143,6 @@ silverlightVersion = silverlight5.1
 # some API hooks to do most of timer stuff in user mode (without
 # having to call wine-server each time). It is still unclear
 # if this option has any significant effent on the performance.
+# [default: false]
 #
 # experimental-userModeTimer = true
