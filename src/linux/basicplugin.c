@@ -199,6 +199,7 @@ std::string convertWinePath(std::string path, bool direction){
 	pid_t pidWinePath = fork();
 	if(pidWinePath == 0){
 
+		close(0);
 		close(tempPipeIn[0]);
 		dup2(tempPipeIn[1], 1);
 
