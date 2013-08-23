@@ -180,6 +180,83 @@ std::string getEnvironmentString(const char* variable){
 	return str ? std::string(str) : "";
 }
 
+std::string convertWinePath(std::string path, bool direction){
+
+	// Not possible to call /bin/winepath if the path is deprecated
+	if( config.winePathIsDeprecated ){
+		std::cerr << "[PIPELIGHT] Don't know where /bin/winepath is" << std::endl;
+		return "";
+	}
+
+	int tempPipeIn[2];
+	std::string resultPath;
+
+	if( pipe(tempPipeIn) == -1 ){
+		std::cerr << "[PIPELIGHT] Could not create pipes to communicate with /bin/winepath" << std::endl;
+		return "";
+	}
+
+	pid_t pidWinePath = fork();
+	if(pidWinePath == 0){
+
+		close(tempPipeIn[0]);
+		dup2(tempPipeIn[1], 1);
+
+		// Run winePath with the correct environment variables
+
+		std::string winePathBinary		= config.winePath + "/bin/winepath";
+
+		setenv("WINEPREFIX", 	config.winePrefix.c_str(), 	true);
+
+		if(config.wineArch != "")
+			setenv("WINEARCH", 	config.wineArch.c_str(), 	true);
+
+		if(config.wineDLLOverrides != "")
+			setenv("WINEDLLOVERRIDES", config.wineDLLOverrides.c_str(), true);
+
+		std::string argument = direction ? "--windows" : "--unix";
+
+		execlp("/bin/sh", "sh", winePathBinary.c_str(), argument.c_str(), path.c_str(), NULL);
+		throw std::runtime_error("Error in execlp command - probably /bin/sh not found?");
+
+	}else if(pidWinePath != -1){
+		char resultPathBuffer[4096+1];
+
+		close(tempPipeIn[1]);
+		FILE * tempPipeInF = fdopen(tempPipeIn[0], "rb");
+
+		if(tempPipeInF != NULL){
+
+			if( fgets( (char*)&resultPathBuffer, sizeof(resultPathBuffer), tempPipeInF) ){
+				resultPath = trim( std::string( (char*)&resultPathBuffer) );
+			}
+
+			fclose(tempPipeInF);
+		}
+
+		int status;
+		if(waitpid(pidWinePath, &status, 0) == -1 || !WIFEXITED(status) ){
+			std::cerr << "[PIPELIGHT] /bin/winepath did not run correctly (error occured)" << std::endl;
+			return "";
+
+		}else if(WEXITSTATUS(status) != 0){
+			std::cerr << "[PIPELIGHT] /bin/winepath did not run correctly (exitcode = " << WEXITSTATUS(status) << ")" << std::endl;
+			return "";
+		}
+
+	}else{
+
+		close(tempPipeIn[0]);
+		close(tempPipeIn[1]);	
+
+		std::cerr << "[PIPELIGHT] Unable to fork() - probably out of memory?" << std::endl;
+		return "";
+
+	}
+
+	return resultPath;
+}
+
 bool checkSilverlightInstallation(){
 
 	// Checking the silverlight installation is only possible if the user has defined a winePrefix
@@ -198,8 +275,7 @@ bool checkSilverlightInstallation(){
 
 	// If there is no installer provided we cannot fix this issue!
 	if( config.dependencyInstaller == "" || config.silverlightVersion == "" || 
-		!checkIfExists(config.dependencyInstaller) /* ||
-		!checkIfExists("/usr/share/wine-browser-installer/wine-" + config.silverlightVersion + "-installer.install-script") */ ){
+		!checkIfExists(config.dependencyInstaller) ){
 		return false;
 	}
 
@@ -305,6 +381,14 @@ bool startWineProcess(){
 
 		pipeOutF 	= fdopen(PIPE_BROWSER_WRITE, 	"wb");
 		pipeInF		= fdopen(PIPE_BROWSER_READ, 	"rb");
+
+		// In case something goes wrong ...
+		if(pipeOutF == NULL || pipeInF == NULL){
+			if(pipeOutF) fclose(pipeOutF);
+			if(pipeInF) fclose(pipeInF);
+
+			return false;
+		}
 
 		// Disable buffering for input pipe
 		// (To allow waiting for a pipe)
