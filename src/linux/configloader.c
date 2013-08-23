@@ -231,6 +231,7 @@ bool loadConfig(PluginConfig &config){
 	config.eventAsyncCall		= false;
 	config.operaDetection 		= true;
 	config.experimental_usermodeTimer = false;
+	config.executeJavascript 	= "";
 
 	std::ifstream 	configFile;
 
@@ -331,6 +332,9 @@ bool loadConfig(PluginConfig &config){
 
 			std::transform(argKey.begin(), argKey.end(), argKey.begin(), ::tolower);
 			config.overwriteArgs[argKey] = argValue;
+
+		}else if(key == "executejavascript"){
+			config.executeJavascript += value + "\n";
 
 		}else if(key == "dependencyinstaller"){
 			config.dependencyInstaller = value;

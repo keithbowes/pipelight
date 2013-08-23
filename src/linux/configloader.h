@@ -29,6 +29,7 @@ struct PluginConfig{
 	bool 			experimental_usermodeTimer;
 
 	std::map<std::string, std::string> overwriteArgs;
+	std::string 	executeJavascript;
 };
 
 std::string getFileName(const std::string &path);

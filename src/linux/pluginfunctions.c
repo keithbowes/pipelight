@@ -407,6 +407,31 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 		}
 	}
 
+	// Execute javascript if defined
+	if( config.executeJavascript != "" ){
+		NPObject 		*windowObj;
+		NPString		script;
+		script.UTF8Characters 	= config.executeJavascript.c_str();
+		script.UTF8Length		= config.executeJavascript.size();
+
+		NPVariant resultVariant;
+		resultVariant.type = NPVariantType_Null;
+
+		if( sBrowserFuncs->getvalue(instance, NPNVWindowNPObject, &windowObj) == NPERR_NO_ERROR ){
+			
+			if( sBrowserFuncs->evaluate(instance, windowObj, &script, &resultVariant) ){
+				sBrowserFuncs->releasevariantvalue(&resultVariant);
+				std::cerr << "[PIPELIGHT] Successfully executed JavaScript" << std::endl;
+
+			}else{
+				std::cerr << "[PIPELIGHT] Failed to execute JavaScript, take a look at the JS console" << std::endl;
+			
+			}
+
+			sBrowserFuncs->releaseobject(windowObj);
+		}
+	}
+
 	// Setup eventhandling
 	if( config.eventAsyncCall ){
 
