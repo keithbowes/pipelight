@@ -5,6 +5,8 @@
 #include <map>									// for std::map
 
 struct PluginConfig{
+	std::string		configPath;
+
 	std::string 	winePath;
 	bool			winePathIsDeprecated;
 

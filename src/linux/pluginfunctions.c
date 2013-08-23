@@ -16,6 +16,7 @@
 
 #include "basicplugin.h"
 #include "configloader.h"
+#include "debug.h"
 
 extern char strMimeType[2048];
 extern char strPluginversion[100];
@@ -386,6 +387,12 @@ NPError
 NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* argn[], char* argv[], NPSavedData* saved) {
 	EnterFunction();
 	bool startAsyncCall = false;
+
+	// Run diagnostic stuff if its the wrong mimetype
+	if( strcmp(pluginType, "application/x-pipelight-error") == 0 ){
+		runDiagnostic(instance);
+		return NPERR_GENERIC_ERROR;
+	}
 
 	if(!initOkay)
 		return NPERR_GENERIC_ERROR;

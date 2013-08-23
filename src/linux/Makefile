@@ -1,7 +1,7 @@
 CXX 		:= g++
 CXXFLAGS 	:= -Wall -DXP_UNIX=1 -DMOZ_X11=1 -fPIC -std=gnu++0x $(CXXFLAGS)
 LDFLAGS 	:= -lX11 -lpthread $(LDFLAGS)
-OBJECTS 	:= communication.o handlemanager.o npclass.o configloader.o pluginfunctions.o
+OBJECTS 	:= communication.o handlemanager.o npclass.o configloader.o pluginfunctions.o debug.o
 
 libpipelight.so: basicplugin.c basicplugin.h configloader.h ../npapi-headers/npapi.h ../npapi-headers/npruntime.h ../npapi-headers/npfunctions.h ../communication/communication.h ../handlemanager/handlemanager.h $(OBJECTS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -z defs -shared basicplugin.c $(OBJECTS) $(LDFLAGS) -o libpipelight.so
@@ -18,8 +18,11 @@ npclass.o: npclass.c basicplugin.h ../npapi-headers/npapi.h ../npapi-headers/npr
 configloader.o: configloader.c configloader.h basicplugin.h ../npapi-headers/npapi.h ../npapi-headers/npruntime.h ../npapi-headers/npfunctions.h ../communication/communication.h ../handlemanager/handlemanager.h
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -DPREFIX='"$(prefix)"' -c configloader.c -o configloader.o
 
-pluginfunctions.o: pluginfunctions.c basicplugin.h configloader.h ../npapi-headers/npapi.h ../npapi-headers/npruntime.h ../npapi-headers/npfunctions.h ../communication/communication.h ../handlemanager/handlemanager.h
+pluginfunctions.o: pluginfunctions.c basicplugin.h configloader.h debug.h ../npapi-headers/npapi.h ../npapi-headers/npruntime.h ../npapi-headers/npfunctions.h ../communication/communication.h ../handlemanager/handlemanager.h
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c pluginfunctions.c -o pluginfunctions.o
+
+debug.o: debug.c basicplugin.h configloader.h ../npapi-headers/npapi.h ../npapi-headers/npruntime.h ../npapi-headers/npfunctions.h ../communication/communication.h ../handlemanager/handlemanager.h
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c debug.c -o debug.o
 
 .PHONY: all
 all: libpipelight.so

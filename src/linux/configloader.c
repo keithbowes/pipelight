@@ -167,8 +167,7 @@ std::string replaceVariables(const std::map<std::string, std::string> &variables
 }
 
 // Tries to open the config and returns true on success
-bool openConfig(std::ifstream &configFile){
-	std::string configPath;
+bool openConfig(std::ifstream &configFile, std::string &configPath){
 	std::string homeDir = getHomeDirectory();
 
 	configPath = getEnvironmentString("PIPELIGHT_CONFIG");
@@ -214,6 +213,7 @@ bool loadConfig(PluginConfig &config){
 	if(homeDir != "") variables["$home"] = homeDir;
 
 	// Initialize config variables with default values
+	config.configPath			= "";
 	config.winePath 			= "wine";
 	config.winePathIsDeprecated = false;
 	config.wineArch 			= "win32";
@@ -234,7 +234,7 @@ bool loadConfig(PluginConfig &config){
 
 	std::ifstream 	configFile;
 
-	if(!openConfig(configFile)){
+	if(!openConfig(configFile, config.configPath)){
 		std::cerr << "[PIPELIGHT] Couldn't find any configuration file" << std::endl;
 		return false;
 	}
