@@ -94,6 +94,7 @@ void NP_LOADDS NPN_SetCurrentAsyncSurface(NPP instance, NPAsyncSurface *surface,
 extern NPNetscapeFuncs browserFuncs;
 
 struct NetscapeData{
+	bool		windowlessMode;
 	HWND 		hWnd;
 	NPWindow* 	window;
 };

@@ -368,7 +368,10 @@ void* timerThread(void* argument){
 		usleep(10000);
 
 		// If no instance is running, just terminate
-		if(!eventTimerInstance) break;
+		if(!eventTimerInstance){
+			sem_wait(&eventThreadSemRequestAsyncCall);
+			if(!eventTimerInstance)	break;
+		}
 
 		// Request an asynccall
 		sem_post(&eventThreadSemScheduledAsyncCall);
@@ -387,6 +390,17 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 	if(!initOkay)
 		return NPERR_GENERIC_ERROR;
 
+	// Detect opera browsers and set eventAsyncCall to true in this case
+	if( !config.eventAsyncCall && config.operaDetection ){
+		if( std::string(sBrowserFuncs->uagent(instance)).find("Opera") != std::string::npos ){
+			config.eventAsyncCall = true;
+
+			std::cerr << "[PIPELIGHT] Opera browser detect, changed eventAsyncCall to true" << std::endl;
+
+		}
+	}
+
+	// Setup eventhandling
 	if( config.eventAsyncCall ){
 
 		if(!eventThread){
@@ -473,14 +487,13 @@ NPP_Destroy(NPP instance, NPSavedData** save) {
 		if( config.eventAsyncCall ){
 
 			if(eventThread){
+				
+				// Do synchronization with the main thread
+				sem_wait(&eventThreadSemScheduledAsyncCall);
+				eventTimerInstance = NULL;
+				sem_post(&eventThreadSemRequestAsyncCall);
 
-				if(sem_trywait(&eventThreadSemRequestAsyncCall) != 0 ){
-					sem_wait(&eventThreadSemScheduledAsyncCall);
-				}
-
-				// If there was some other asynccalls scheduled from before we cancel them
-				while( sem_trywait(&eventThreadSemScheduledAsyncCall) == 0 ){ }
-
+				std::cerr << "[PIPELIGHT] Unscheduled event asynccall" << std::endl;
 			}
 
 		}else{
@@ -557,8 +570,13 @@ NPP_Destroy(NPP instance, NPSavedData** save) {
 				sem_post(&eventThreadSemRequestAsyncCall);
 
 				// If nextInstance == 0 then the thread will terminate itself as soon as it recognizes that eventTimerInstace == NULL
-				if(nextInstance == 0) eventThread = 0;
+				if(nextInstance == 0){
+					eventThread = 0;
+				}else{
+					std::cerr << "[PIPELIGHT] Started asynccall using instance " << (void*)nextInstance << std::endl;
+				}
 			}
+
 
 		}else{
 			
@@ -661,6 +679,12 @@ NPError
 NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
 	EnterFunction();
 
+	if( !handlemanager.existsHandleByReal((uint64_t)stream, TYPE_NPStream) ){
+		// Affects Opera
+		//std::cerr << "[PIPELIGHT] Browser Use-After-Free bug in NPP_DestroyStream" << std::endl;
+		return NPERR_NO_ERROR;
+	}
+
 	writeInt32(reason);
 	writeHandleStream(stream, HANDLE_SHOULD_EXIST);
 	writeHandleInstance(instance);
@@ -680,8 +704,9 @@ NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
 int32_t
 NPP_WriteReady(NPP instance, NPStream* stream) {
 	EnterFunction();
-	
+
 	if( !handlemanager.existsHandleByReal((uint64_t)stream, TYPE_NPStream) ){
+		// Affects Chrome
 		//std::cerr << "[PIPELIGHT] Browser Use-After-Free bug in NPP_WriteReady" << std::endl;
 		return -1;
 	}
@@ -706,6 +731,7 @@ NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, void* buf
 	EnterFunction();
 
 	if( !handlemanager.existsHandleByReal((uint64_t)stream, TYPE_NPStream) ){
+		// Affects Chrome
 		//std::cerr << "[PIPELIGHT] Browser Use-After-Free bug in NPP_WriteReady" << std::endl;
 		return len;
 	}
