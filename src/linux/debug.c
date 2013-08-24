@@ -155,6 +155,12 @@ void runDiagnostic(NPP instance){
 		"okay", \
 		config.configPath );
 
+	// Check pluginLoaderPath
+	debugStatusMessage(instance, \
+		"Checking if pluginLoaderPath is set and exists", \
+		(config.pluginLoaderPath != "" && checkIfExists(config.pluginLoaderPath)) ? "okay" : "failed", \
+		(config.pluginLoaderPath != "") ? config.pluginLoaderPath : "not set" );
+
 	// Check winePath
 	debugStatusMessage(instance, \
 		"Checking if winePath is set and exists", \
@@ -185,33 +191,7 @@ void runDiagnostic(NPP instance){
 		winePrefixFound ? "okay" : "failed", \
 		(config.winePrefix != "") ? config.winePrefix : "not set");
 
-	if(!winePrefixFound){
-		bool dependencyInstallerFound = (config.dependencyInstaller != "" && checkIfExists(config.dependencyInstaller));
-
-		debugStatusMessage(instance, "Checking if dependencyInstaller is set and exists", \
-			dependencyInstallerFound ? "okay" : "failed", \
-			(config.dependencyInstaller != "") ? config.dependencyInstaller : "not set");
-
-		if(dependencyInstallerFound){
-			bool silverlightVersionOkay = ( config.silverlightVersion == "silverlight4.0" || \
-											config.silverlightVersion == "silverlight5.0" || \
-											config.silverlightVersion == "silverlight5.1" );
-
-			debugStatusMessage(instance, \
-				"Checking if silverlightVersion is correct", \
-				silverlightVersionOkay ? "okay" : "failed", \
-				config.silverlightVersion );
-
-			if(!silverlightVersionOkay){
-				debugSimpleMessage(instance, "The version you have specified is none of the default ones!");
-			}
-
-		}else{
-			debugSimpleMessage(instance, "You either have to install the dependencyInstaller script or setup your wine prefix manually.");
-			debugSimpleMessage(instance, "Depending on the distribution you probably will have to execute some post-installation script to do that.");
-		}
-
-	}else if(config.winePrefix == ""){
+	if(config.winePrefix == ""){
 		debugSimpleMessage(instance, "As you have no winePrefix defined the environment variable WINEPREFIX will be used.");
 		debugSimpleMessage(instance, "This script is not able to check if everything is okay with your wine prefix!");	
 	}
@@ -238,11 +218,32 @@ void runDiagnostic(NPP instance){
 	debugSimpleMessage(instance, "(dllPath = " + config.dllPath + ")");
 	debugSimpleMessage(instance, "(dllName = " + config.dllName + ")");
 
-	// Check pluginLoaderPath
-	debugStatusMessage(instance, \
-		"Checking if pluginLoaderPath is set and exists", \
-		(config.pluginLoaderPath != "" && checkIfExists(config.pluginLoaderPath)) ? "okay" : "failed", \
-		(config.pluginLoaderPath != "") ? config.pluginLoaderPath : "not set" );
+	if(!winePrefixFound || !dllPathFound){
+		bool dependencyInstallerFound = (config.dependencyInstaller != "" && checkIfExists(config.dependencyInstaller));
+
+		debugStatusMessage(instance, "Checking if dependencyInstaller is set and exists", \
+			dependencyInstallerFound ? "okay" : "failed", \
+			(config.dependencyInstaller != "") ? config.dependencyInstaller : "not set");
+
+		if(dependencyInstallerFound){
+			bool silverlightVersionOkay = ( config.silverlightVersion == "silverlight4.0" || \
+											config.silverlightVersion == "silverlight5.0" || \
+											config.silverlightVersion == "silverlight5.1" );
+
+			debugStatusMessage(instance, \
+				"Checking if silverlightVersion is correct", \
+				silverlightVersionOkay ? "okay" : "failed", \
+				config.silverlightVersion );
+
+			if(!silverlightVersionOkay){
+				debugSimpleMessage(instance, "The version you have specified is none of the default ones!");
+			}
+
+		}else{
+			debugSimpleMessage(instance, "You either have to install the dependencyInstaller script or setup your wine prefix manually.");
+			debugSimpleMessage(instance, "Depending on the distribution you probably will have to execute some post-installation script to do that.");
+		}
+	}
 
 	debugSection(instance, "Distribution");
 	debugFile(instance, "/etc/issue");
