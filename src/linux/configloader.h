@@ -6,7 +6,8 @@
 
 struct PluginConfig{
 	std::string		configPath;
-
+	bool 			diagnosticMode;
+	
 	std::string 	winePath;
 	bool			winePathIsDeprecated;
 
@@ -22,14 +23,13 @@ struct PluginConfig{
 	std::string 	gccRuntimeDLLs;
 	std::string		dependencyInstaller;
 	std::string		silverlightVersion;
-
 	bool 			eventAsyncCall;
 	bool			operaDetection;
+	std::string 	executeJavascript;
 
 	bool 			experimental_usermodeTimer;
 
 	std::map<std::string, std::string> overwriteArgs;
-	std::string 	executeJavascript;
 };
 
 std::string getFileName(const std::string &path);

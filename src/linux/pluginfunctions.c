@@ -387,16 +387,17 @@ NPError
 NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* argn[], char* argv[], NPSavedData* saved) {
 	EnterFunction();
 
-	bool diagnosticMode = (strcmp(pluginType, "application/x-pipelight-error") == 0);
-	instance->pdata 	= (void*)diagnosticMode;
+	// Remember if this was an error, in this case we shouldn't call the original destroy function
+	bool pipelightError = (strcmp(pluginType, "application/x-pipelight-error") == 0);
+	instance->pdata 	= (void*)pipelightError;
 
 	// Run diagnostic stuff if its the wrong mimetype
-	if( diagnosticMode ){
+	if( config.diagnosticMode && pipelightError ){
 		runDiagnostic(instance);
 		return NPERR_GENERIC_ERROR;
 	}
 
-	if(!initOkay)
+	if(!initOkay || pipelightError)
 		return NPERR_GENERIC_ERROR;
 
 	bool startAsyncCall = false;
@@ -519,8 +520,8 @@ NPP_Destroy(NPP instance, NPSavedData** save) {
 	EnterFunction();
 
 	// Initialization failed or diagnostic mode
-	bool diagnosticMode = (bool)instance->pdata;
-	if( !initOkay || diagnosticMode )
+	bool pipelightError = (bool)instance->pdata;
+	if( !initOkay || pipelightError )
 		return NPERR_GENERIC_ERROR;
 
 	bool unscheduleCurrentTimer = (eventTimerInstance && eventTimerInstance == instance);

@@ -1,4 +1,20 @@
 #
+# Enables a diagnostic mode which might be helpful to find an
+# error in the configuration or installation.
+# To get the error messages go to: http://fds-team.de/pipelight
+#
+# Information for advanced users: The diagnostic page embeds the plugin
+# of type "application/x-pipelight-error" to trigger the output of some
+# debug information. The plugin cannot be triggered if everything is
+# working, so this only affects users with a broken installation.
+# The debug output will include paths on the local filesystem and the
+# linux distribution used. If you don't want to leak this information
+# accidentially in case of a broken installation please either uninstall
+# Pipelight or disable the diagnosticMode. [default: false]
+#
+diagnosticMode 	= true
+
+#
 # Path to the wine directory
 # * the wine executable itself should be at: winePath/bin/wine
 # * the winepath executable should be at:    winePath/bin/winepath

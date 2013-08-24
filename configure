@@ -4,7 +4,7 @@ prefix=/usr/local/
 usage ()
 {
     echo ""
-    echo "Usage : configure [--prefix=PREFIX]"
+    echo "Usage : ./configure [--prefix=PREFIX]"
     echo ""
 }
 
@@ -23,7 +23,6 @@ while [[ $# > 0 ]] ; do
             ;;
         *)
             echo "Warning: unknown argument $1" >&2
-            usage
             ;;
     esac
     shift

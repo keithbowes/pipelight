@@ -127,113 +127,122 @@ void debugFile(NPP instance,std::string filename){
 void runDiagnostic(NPP instance){
 	std::cerr << "[PIPELIGHT] Running diagnostic checks" << std::endl;
 
+	// Initialization okay, but plugin cache still contains an error
 	if(initOkay){
 		debugStatusMessage(instance, \
-			"Checking for correct plugin description", \
+			"Valid browser plugin cache", \
 			"failed", \
-			"Pipelight is working, but you still need to clear the plugin cache!");
+			"Pipelight is correctly installed, but you still need to clear the plugin cache!" );
 
-		debugSimpleMessage(instance, "Take a look in the FAQ on how to do that.");
+		debugSimpleMessage(instance, "Take a look at the FAQ section on how to do that.");
 		return;
 	}
 
 	debugSection(instance, "Configuration of Pipelight");
+
+	// No configuration found
 	if(config.configPath == "" || !checkIfExists(config.configPath)){
-		debugStatusMessage(instance, "Checking if config exists", \
+		debugStatusMessage(instance, \
+			"Checking if config exists", \
 			"failed", \
-			(config.configPath != "") ? ("Please install a default configuration file at " + config.configPath) : "");
+			(config.configPath != "") ? ("Please install a default configuration file at " + config.configPath) : "" );
+
 		return;
 	}
 
-	debugStatusMessage(instance, "Checking if config exists", "okay", config.configPath);
+	debugStatusMessage(instance, \
+		"Checking if config exists", \
+		"okay", \
+		config.configPath );
 
 	// Check winePath
-	debugStatusMessage(instance, "Checking if winePath is set and exists", \
+	debugStatusMessage(instance, \
+		"Checking if winePath is set and exists", \
 		(config.winePath != "" && checkIfExists(config.winePath)) ? "okay" : "failed", \
-		(config.winePath != "") ? config.winePath : "not set");
+		(config.winePath != "") ? config.winePath : "not set" );
 
 	// Check if winePath/bin/wine and winePath/bin/winepath exists
 	if(config.winePath != "" && !config.winePathIsDeprecated){
 		std::string wineBinary 		= config.winePath + "/bin/wine";
 		std::string winePathBinary	= config.winePath + "/bin/winepath";
 
-		debugStatusMessage(instance, "Checking if winePath/bin/wine exists", \
+		debugStatusMessage(instance, \
+			"Checking if winePath/bin/wine exists", \
 			checkIfExists(wineBinary) ? "okay" : "failed", \
-			wineBinary);
+			wineBinary );
 
-		debugStatusMessage(instance, "Checking if winePath/bin/winepath exists", \
+		debugStatusMessage(instance, \
+			"Checking if winePath/bin/winepath exists", \
 			checkIfExists(winePathBinary) ? "okay" : "failed", \
-			winePathBinary);
+			winePathBinary );
 	}
 
 	// Check winePrefix
-	debugStatusMessage(instance, "Checking if winePrefix is set", \
-		(config.winePrefix != "") ? "okay" : "not set", \
-		config.winePrefix );
+	bool winePrefixFound = (config.winePrefix != "" && checkIfExists(config.winePrefix));
 
-	if(config.winePrefix != ""){
-		bool winePrefixFound = checkIfExists(config.winePrefix);
+	debugStatusMessage(instance, \
+		"Checking if winePrefix is set and exists", \
+		winePrefixFound ? "okay" : "failed", \
+		(config.winePrefix != "") ? config.winePrefix : "not set");
 
-		debugStatusMessage(instance, "Checking if winePrefix exists", \
-			winePrefixFound ? "okay" : "failed");
+	if(!winePrefixFound){
+		bool dependencyInstallerFound = (config.dependencyInstaller != "" && checkIfExists(config.dependencyInstaller));
 
-		if(!winePrefixFound){
-			bool dependencyInstallerFound = (config.dependencyInstaller != "" && checkIfExists(config.dependencyInstaller));
+		debugStatusMessage(instance, "Checking if dependencyInstaller is set and exists", \
+			dependencyInstallerFound ? "okay" : "failed", \
+			(config.dependencyInstaller != "") ? config.dependencyInstaller : "not set");
 
-			debugStatusMessage(instance, "Checking if dependencyInstaller is set and exists", \
-				dependencyInstallerFound ? "okay" : "failed", \
-				(config.dependencyInstaller != "") ? config.dependencyInstaller : "not set");
+		if(dependencyInstallerFound){
+			bool silverlightVersionOkay = ( config.silverlightVersion == "silverlight4.0" || \
+											config.silverlightVersion == "silverlight5.0" || \
+											config.silverlightVersion == "silverlight5.1" );
 
-			if(dependencyInstallerFound){
-				bool silverlightVersionOkay = ( config.silverlightVersion == "silverlight4.0" || \
-												config.silverlightVersion == "silverlight5.0" || \
-												config.silverlightVersion == "silverlight5.1" );
+			debugStatusMessage(instance, \
+				"Checking for silverlightVersion is correct", \
+				silverlightVersionOkay ? "okay" : "failed", \
+				config.silverlightVersion );
 
-				debugStatusMessage(instance, "Checking for silverlightVersion is correct", \
-					silverlightVersionOkay ? "okay" : "failed", \
-					config.silverlightVersion
-					);
-
-				if(!silverlightVersionOkay){
-					debugSimpleMessage(instance, "The version you have specified is none of the default ones!");
-				}
-
-			}else{
-				debugSimpleMessage(instance, "You either have to install the dependency installer script or setup the wine prefix manually.");
-				debugSimpleMessage(instance, "Depending on your distribution you probably will have to execute some post-installation script to do that.");
+			if(!silverlightVersionOkay){
+				debugSimpleMessage(instance, "The version you have specified is none of the default ones!");
 			}
+
+		}else{
+			debugSimpleMessage(instance, "You either have to install the dependencyInstaller script or setup your wine prefix manually.");
+			debugSimpleMessage(instance, "Depending on the distribution you probably will have to execute some post-installation script to do that.");
 		}
 
-	}else{
+	}else if(config.winePrefix == ""){
 		debugSimpleMessage(instance, "As you have no winePrefix defined the environment variable WINEPREFIX will be used.");
 		debugSimpleMessage(instance, "This script is not able to check if everything is okay with your wine prefix!");	
 	}
 
 	// Check dllPath / dllname
+	std::string unixPath 	= "";
 	bool dllPathSet 		= (config.dllPath != "" && config.dllName != "");
-	std::string unixPath = "";
 	if(dllPathSet) unixPath	= convertWinePath(config.dllPath + "\\" + config.dllName);
 	bool dllPathFound 		= (unixPath != "" && checkIfExists(unixPath));
 
 	debugStatusMessage(instance, "Checking if dllPath/dllname is set and exists", \
 		dllPathFound ? "okay" : "failed");
 
-	debugSimpleMessage(instance, "dllPath = " + config.dllPath);
-	debugSimpleMessage(instance, "dllName = " + config.dllName);
+	if( config.winePrefix != "" && !checkIfExists(config.winePrefix) ){
+		debugSimpleMessage(instance, "The whole wine prefix " + config.winePrefix + " doesn't exist");
 
-	if(unixPath == ""){
-		debugSimpleMessage(instance, "Unable to verify if this DLL exists, please check this manually!");
-		if(config.winePathIsDeprecated){
-			debugSimpleMessage(instance, "(This check requires winePath to be a directory in your config)");
-		}
+	}else if(unixPath == ""){ // includes config.winePathIsDeprecated == true
+		debugSimpleMessage(instance, "Unable to verify if the DLL exists, please check this manually!");
+
 	}else{
 		debugSimpleMessage(instance, unixPath);
 	}
 
+	debugSimpleMessage(instance, "(dllPath = " + config.dllPath + ")");
+	debugSimpleMessage(instance, "(dllName = " + config.dllName + ")");
+
 	// Check pluginLoaderPath
-	debugStatusMessage(instance, "Checking if pluginLoaderPath is set and exists", \
+	debugStatusMessage(instance, \
+		"Checking if pluginLoaderPath is set and exists", \
 		(config.pluginLoaderPath != "" && checkIfExists(config.pluginLoaderPath)) ? "okay" : "failed", \
-		(config.pluginLoaderPath != "") ? config.pluginLoaderPath : "not set");
+		(config.pluginLoaderPath != "") ? config.pluginLoaderPath : "not set" );
 
 	debugSection(instance, "Distribution");
 	debugFile(instance, "/etc/issue");

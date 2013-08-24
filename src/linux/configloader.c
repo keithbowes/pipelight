@@ -214,6 +214,7 @@ bool loadConfig(PluginConfig &config){
 
 	// Initialize config variables with default values
 	config.configPath			= "";
+	config.diagnosticMode 		= false;
 	config.winePath 			= "wine";
 	config.winePathIsDeprecated = false;
 	config.wineArch 			= "win32";
@@ -230,8 +231,9 @@ bool loadConfig(PluginConfig &config){
 	config.silverlightVersion 	= "";
 	config.eventAsyncCall		= false;
 	config.operaDetection 		= true;
-	config.experimental_usermodeTimer = false;
 	config.executeJavascript 	= "";
+	config.experimental_usermodeTimer = false;
+
 
 	std::ifstream 	configFile;
 
@@ -280,7 +282,11 @@ bool loadConfig(PluginConfig &config){
 			continue;
 		}
 
-		if(key == "winepath"){
+		if(		key == "diagnosticmode"){
+			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+			config.diagnosticMode = (value == "true" || value == "yes");
+
+		}else if(key == "winepath"){
 			// In previous versions winePath correspondeds to a direct path to /bin/wine, but now it
 			// just contains a path to the main wine directory instead
 			config.winePath 			= value;
@@ -333,9 +339,6 @@ bool loadConfig(PluginConfig &config){
 			std::transform(argKey.begin(), argKey.end(), argKey.begin(), ::tolower);
 			config.overwriteArgs[argKey] = argValue;
 
-		}else if(key == "executejavascript"){
-			config.executeJavascript += value + "\n";
-
 		}else if(key == "dependencyinstaller"){
 			config.dependencyInstaller = value;
 
@@ -349,6 +352,9 @@ bool loadConfig(PluginConfig &config){
 		}else if(key == "operadetection"){
 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 			config.operaDetection = (value == "true" || value == "yes");
+
+		}else if(key == "executejavascript"){
+			config.executeJavascript += value + "\n";
 
 		}else if(key == "experimental-usermodetimer"){
 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
