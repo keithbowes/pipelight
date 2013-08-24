@@ -1,5 +1,5 @@
 SUBDIRS= src/linux src/windows
-.PHONY:	all $(SUBDIRS) clean install
+.PHONY:	all $(SUBDIRS) clean install uninstall
 
 PLUGIN_DIR=/usr/lib/mozilla/plugins
 prefix=/usr/local/
@@ -19,6 +19,12 @@ install: all
 	rm pipelight.tmp
 	test -d $(DESTDIR)$(PLUGIN_DIR) || mkdir -p $(DESTDIR)$(PLUGIN_DIR)
 	install -m 0644 src/linux/libpipelight.so $(DESTDIR)$(PLUGIN_DIR)/
+
+uninstall:
+	rm -f $(DESTDIR)$(prefix)/share/pipelight/pluginloader.exe
+	rm -f $(DESTDIR)$(prefix)/share/pipelight/pipelight
+	rmdir --ignore-fail-on-non-empty $(DESTDIR)$(prefix)/share/pipelight
+	rm -f $(DESTDIR)$(PLUGIN_DIR)/libpipelight.so
 
 clean:
 	for dir in $(SUBDIRS); do \
