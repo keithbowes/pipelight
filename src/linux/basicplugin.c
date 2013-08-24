@@ -186,6 +186,10 @@ std::string convertWinePath(std::string path, bool direction){
 	if( config.winePathIsDeprecated ){
 		std::cerr << "[PIPELIGHT] Don't know where /bin/winepath is" << std::endl;
 		return "";
+
+	}else if( config.winePrefix != "" && !checkIfExists(config.winePrefix) ){
+		std::cerr << "[PIPELIGHT] Wine prefix doesn't exist" << std::endl;
+		return "";
 	}
 
 	int tempPipeIn[2];
@@ -203,11 +207,12 @@ std::string convertWinePath(std::string path, bool direction){
 		close(tempPipeIn[0]);
 		dup2(tempPipeIn[1], 1);
 
-		// Run winePath with the correct environment variables
+		// Run winepath with the correct environment variables
 
 		std::string winePathBinary		= config.winePath + "/bin/winepath";
 
-		setenv("WINEPREFIX", 	config.winePrefix.c_str(), 	true);
+		if (config.winePrefix != "")
+			setenv("WINEPREFIX", 	config.winePrefix.c_str(), 	true);
 
 		if(config.wineArch != "")
 			setenv("WINEARCH", 	config.wineArch.c_str(), 	true);

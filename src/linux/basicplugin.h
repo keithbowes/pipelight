@@ -116,5 +116,6 @@ bool checkSilverlightInstallation();
 bool startWineProcess();
 std::string getEnvironmentString(const char* variable);
 std::string convertWinePath(std::string path, bool direction = false);
+bool checkIfExists(std::string path);
 
 #endif // BasicPlugin_h_

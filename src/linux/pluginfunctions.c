@@ -386,16 +386,20 @@ void* timerThread(void* argument){
 NPError
 NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* argn[], char* argv[], NPSavedData* saved) {
 	EnterFunction();
-	bool startAsyncCall = false;
+
+	bool diagnosticMode = (strcmp(pluginType, "application/x-pipelight-error") == 0);
+	instance->pdata 	= (void*)diagnosticMode;
 
 	// Run diagnostic stuff if its the wrong mimetype
-	if( strcmp(pluginType, "application/x-pipelight-error") == 0 ){
+	if( diagnosticMode ){
 		runDiagnostic(instance);
 		return NPERR_GENERIC_ERROR;
 	}
 
 	if(!initOkay)
 		return NPERR_GENERIC_ERROR;
+
+	bool startAsyncCall = false;
 
 	// Detect opera browsers and set eventAsyncCall to true in this case
 	if( !config.eventAsyncCall && config.operaDetection ){
@@ -488,6 +492,12 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 NPError
 NPP_Destroy(NPP instance, NPSavedData** save) {
 	EnterFunction();
+
+	// Initialization failed or diagnostic mode
+	bool diagnosticMode = (bool)instance->pdata;
+	if( !initOkay || diagnosticMode )
+		return NPERR_GENERIC_ERROR;
+
 	bool unscheduleCurrentTimer = (eventTimerInstance && eventTimerInstance == instance);
 
 	if(unscheduleCurrentTimer){
