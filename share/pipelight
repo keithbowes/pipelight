@@ -132,6 +132,18 @@ silverlightVersion = silverlight5.1
 #
 operaDetection		= true
 
+#
+# Minimal JavaScript user agent switcher. If your page doesn't check
+# the user agent before loading a Silverlight instance, you can use
+# this trick to overwrite the useragent or execute any other Java-
+# Script you want. You can use this command multiple times.
+# Uncomment the following 4 lines for FF15 spoofing.
+#
+# executejavascript = var __originalNavigator = navigator;
+# executejavascript = navigator = new Object();
+# executejavascript = navigator.__proto__ = __originalNavigator;
+# executejavascript = navigator.__defineGetter__('userAgent', function () { return 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:15.0) Gecko/20120427 Firefox/15.0a1'; });
+
 #------------------------- EXPERIMENTAL -------------------------
 # Watch out: The following section contains highly experimental
 # stuff! These functions are likely not working properly yet and

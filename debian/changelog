@@ -17,6 +17,8 @@ pipelight (0.1-2) UNRELEASED; urgency=low
   * Prevent Wine from asking for Gecko or Mono
   * Automatically enable/disable windowlessMode when required
   * Detect Opera browser automatically to set eventAsyncCall to true
+  * Added an config option to execute Javascript on instance creation,
+    this allows faking the user agent in some cases without external plugin
   * Added diagnostic debug output via JavaScript in case of an error
 
  -- Michael Mueller <michael@fds-team.de>  Mon, 20 Aug 2013 00:35:00 +0200
