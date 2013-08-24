@@ -89,18 +89,10 @@ bool splitConfigValue(std::string line, std::string &key, std::string &value){
 	if (pos == std::string::npos)
 		return false;
 
-	//no key found
-	if(pos == 0)
-		return false;
-
-	//no value found
-	if(pos >= line.length()-1)
-		return false;
-
 	key 	= trim(line.substr(0, pos));
 	value 	= trim(line.substr(pos+1, std::string::npos));
 
-	return true;
+	return (key != "");
 }
 
 // If abort != 0 then this reads until the specific character occurs or the string terminates
@@ -216,7 +208,7 @@ bool loadConfig(PluginConfig &config){
 	config.configPath			= "";
 	config.diagnosticMode 		= false;
 	config.winePath 			= "wine";
-	config.winePathIsDeprecated = false;
+	config.winePathIsDeprecated = true;
 	config.wineArch 			= "win32";
 	config.winePrefix 			= "";
 	config.wineDLLOverrides		= "mscoree,mshtml="; //Prevent Installation of Geck & Mono by default

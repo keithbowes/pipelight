@@ -198,7 +198,7 @@ void runDiagnostic(NPP instance){
 											config.silverlightVersion == "silverlight5.1" );
 
 			debugStatusMessage(instance, \
-				"Checking for silverlightVersion is correct", \
+				"Checking if silverlightVersion is correct", \
 				silverlightVersionOkay ? "okay" : "failed", \
 				config.silverlightVersion );
 
