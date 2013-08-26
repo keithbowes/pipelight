@@ -1,7 +1,7 @@
 pipelight (0.1-2) UNRELEASED; urgency=low
 
   * Fixed build flags for wingw32. (fixes lp issue 1213725)
-  * Added undocumented option gccRuntimeDlls to the config file
+  * Added documentation for option gccRuntimeDlls to the config file
   * Added experimental usermode timer support (experimental-userModeTimer)
   * Added an alternative event handling method using async calls
   	to make it work with browsers like Midori which don't support timers.
@@ -17,11 +17,16 @@ pipelight (0.1-2) UNRELEASED; urgency=low
   * Prevent Wine from asking for Gecko or Mono
   * Automatically enable/disable windowlessMode when required
   * Detect Opera browser automatically to set eventAsyncCall to true
-  * Added an config option to execute Javascript on instance creation,
+  * Added a config option to execute Javascript on instance creation,
     this allows faking the user agent in some cases without external plugin
   * Added diagnostic debug output via JavaScript in case of an error
+  * Changed the meaning of overwriteArg, which is now also able to add
+    arguments if they were not defined by the website
+  * Provide Wine patch which implements a part of the
+    IDirect3DSwapChain9Ex interface which is required to get hardware
+    acceleration with Silverlight
 
- -- Michael Mueller <michael@fds-team.de>  Mon, 20 Aug 2013 00:35:00 +0200
+ -- Michael Mueller <michael@fds-team.de>  Mon, 27 Aug 2013 01:10:00 +0200
 
 
 pipelight (0.1-1) RELEASED; urgency=low

@@ -475,23 +475,45 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 	}
 
 	// We can't use this function as we may need to fake some values
-	//writeStringArray(argv, argc);
-	for(int i = argc - 1; i >= 0; i--){
+	// writeStringArray(argv, argc);
+	// writeStringArray(argn, argc);
 
+	int realArgCount = 0;
+	std::map<std::string, std::string>::iterator it;
+
+	// argv
+	for(int i = argc - 1; i >= 0; i--){
 		std::string key(argn[i]);
 		std::transform(key.begin(), key.end(), key.begin(), ::tolower);
 
-		std::map<std::string, std::string>::iterator it = config.overwriteArgs.find(key);
-
-		if(it != config.overwriteArgs.end()){
-			writeString(it->second);
-		}else{
+		it = config.overwriteArgs.find(key);
+		if(it == config.overwriteArgs.end()){
+			realArgCount++;
 			writeString(argv[i]);
 		}
 	}
 
-	writeStringArray(argn, argc);
-	writeInt32(argc);
+	for(it = config.overwriteArgs.begin(); it != config.overwriteArgs.end(); it++){
+		realArgCount++;
+		writeString(it->second);
+	}
+
+	//argn
+	for(int i = argc - 1; i >= 0; i--){
+		std::string key(argn[i]);
+		std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+
+		it = config.overwriteArgs.find(key);
+		if(it == config.overwriteArgs.end()){
+			writeString(argn[i]);
+		}
+	}
+
+	for(it = config.overwriteArgs.begin(); it != config.overwriteArgs.end(); it++){
+		writeString(it->first);
+	}
+
+	writeInt32(realArgCount);
 	writeInt32(mode);
 	writeHandleInstance(instance);
 	writeString(pluginType);

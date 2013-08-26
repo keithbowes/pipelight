@@ -72,15 +72,18 @@ dllName				= npctrl.dll
 # Allows to get around some version checks done by some websites
 # when using an old version of Silverlight.
 #
-#fakeVersion 		= 5.1.20513.0
+# fakeVersion 		= 5.1.20513.0
 
 #
-# overwriteArg allows to overwrite initialization arguments
+# overwriteArg allows to overwrite/add initialization arguments
 # passed by websites to Silverlight applications. You can
 # use this option as often as you want to overwrite multiple
-# parameters. You should always keep the deactivation of the
-# gpu acceleration otherwise Silverlight 5.* will crash on 
-# some video streaming websites.
+# parameters. The GPU acceleration state of Silverlight can be controlled
+# by setting:
+#
+#	enableGPUAcceleration=false 	# disable GPU acceleration
+#	comment out						# let the application decide (default)
+#	enableGPUAcceleration=true		# force GPU acceleration
 #
 # You may need to overwrite the minimum runtime version if
 # you use an old Silverlight version as some websites set
@@ -88,8 +91,9 @@ dllName				= npctrl.dll
 # would work with older versions.
 #
 # overwriteArg		= minRuntimeVersion=5.0.61118.0
+# overwriteArg		= enableGPUAcceleration=false
+# overwriteArg		= enableGPUAcceleration=true
 #
-overwriteArg		= enableGPUAcceleration=false
 
 #
 # windowlessmode refers to a term of the Netscape Plugin API and 
