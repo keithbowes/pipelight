@@ -3,6 +3,13 @@
 
 #include <string>								// for std::string
 #include <map>									// for std::map
+#include <strings.h>							// for strcasecmp
+
+struct stringInsensitiveCompare { 
+	bool operator() (const std::string& a, const std::string& b) const{
+		return strcasecmp(a.c_str(), b.c_str()) < 0;
+	}
+};
 
 struct PluginConfig{
 	std::string		configPath;
@@ -28,8 +35,9 @@ struct PluginConfig{
 	std::string 	executeJavascript;
 
 	bool 			experimental_usermodeTimer;
+	std::string		graphicDriverCheck;
 
-	std::map<std::string, std::string> overwriteArgs;
+	std::map<std::string, std::string, stringInsensitiveCompare> overwriteArgs;
 };
 
 std::string getFileName(const std::string &path);

@@ -113,6 +113,7 @@ NPObject * NPAllocateFunction(NPP npp, NPClass *aClass);
 void NPDeallocateFunction(NPObject *npobj);
 
 bool checkSilverlightInstallation();
+bool checkGraphicDriver();
 bool startWineProcess();
 std::string getEnvironmentString(const char* variable);
 std::string convertWinePath(std::string path, bool direction = false);

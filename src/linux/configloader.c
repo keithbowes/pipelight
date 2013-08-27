@@ -225,6 +225,7 @@ bool loadConfig(PluginConfig &config){
 	config.operaDetection 		= true;
 	config.executeJavascript 	= "";
 	config.experimental_usermodeTimer = false;
+	config.graphicDriverCheck 	= "";
 
 
 	std::ifstream 	configFile;
@@ -321,14 +322,12 @@ bool loadConfig(PluginConfig &config){
 			config.fakeVersion = value;
 
 		}else if(key == "overwritearg"){
-
 			std::string argKey;
 			std::string argValue;
 
 			if(!splitConfigValue(value, argKey, argValue))
 				continue;
 
-			std::transform(argKey.begin(), argKey.end(), argKey.begin(), ::tolower);
 			config.overwriteArgs[argKey] = argValue;
 
 		}else if(key == "dependencyinstaller"){
@@ -351,6 +350,9 @@ bool loadConfig(PluginConfig &config){
 		}else if(key == "experimental-usermodetimer"){
 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 			config.experimental_usermodeTimer = (value == "true" || value == "yes");
+
+		}else if(key == "graphicdrivercheck"){
+			config.graphicDriverCheck = value;
 
 		}else{
 			std::cerr << "[PIPELIGHT] Unrecognized config key: " << key << std::endl;

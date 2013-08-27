@@ -484,7 +484,6 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 	// argv
 	for(int i = argc - 1; i >= 0; i--){
 		std::string key(argn[i]);
-		std::transform(key.begin(), key.end(), key.begin(), ::tolower);
 
 		it = config.overwriteArgs.find(key);
 		if(it == config.overwriteArgs.end()){
@@ -501,7 +500,6 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 	//argn
 	for(int i = argc - 1; i >= 0; i--){
 		std::string key(argn[i]);
-		std::transform(key.begin(), key.end(), key.begin(), ::tolower);
 
 		it = config.overwriteArgs.find(key);
 		if(it == config.overwriteArgs.end()){

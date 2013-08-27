@@ -4,7 +4,7 @@ pipelight (0.1-2) UNRELEASED; urgency=low
   * Added documentation for option gccRuntimeDlls to the config file
   * Added experimental usermode timer support (experimental-userModeTimer)
   * Added an alternative event handling method using async calls
-  	to make it work with browsers like Midori which don't support timers.
+    to make it work with browsers like Midori which don't support timers.
   * Fixed the wine xembed patch such that it also should work on KDE
     and others (fixes lp issue 1213784)
   * Added PIPELIGHT_CONFIG env. variable to overwrite the config search path.

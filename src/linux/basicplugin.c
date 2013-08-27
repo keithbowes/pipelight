@@ -138,6 +138,14 @@ void attach(){
 		return;
 	}
 
+	// Check if we should enable hardware acceleration
+	if(config.overwriteArgs.find("enableGPUAcceleration") == config.overwriteArgs.end()){
+		if(!checkGraphicDriver())
+			config.overwriteArgs["enableGPUAcceleration"] = "false";
+	}else{
+		std::cerr << "[PIPELIGHT] enableGPUAcceleration set manually - skipping compability check" << std::endl;
+	}
+
 	// Check for correct installation
 	if(!checkSilverlightInstallation()){
 		std::cerr << "[PIPELIGHT] Silverlight not correctly installed - aborting" << std::endl;
@@ -212,13 +220,13 @@ std::string convertWinePath(std::string path, bool direction){
 		std::string winePathBinary		= config.winePath + "/bin/winepath";
 
 		if (config.winePrefix != "")
-			setenv("WINEPREFIX", 	config.winePrefix.c_str(), 	true);
+			setenv("WINEPREFIX", 		config.winePrefix.c_str(), 	true);
 
 		if(config.wineArch != "")
-			setenv("WINEARCH", 	config.wineArch.c_str(), 	true);
+			setenv("WINEARCH", 			config.wineArch.c_str(), 	true);
 
 		if(config.wineDLLOverrides != "")
-			setenv("WINEDLLOVERRIDES", config.wineDLLOverrides.c_str(), true);
+			setenv("WINEDLLOVERRIDES", 	config.wineDLLOverrides.c_str(), true);
 
 		std::string argument = direction ? "--windows" : "--unix";
 
@@ -331,6 +339,68 @@ bool checkSilverlightInstallation(){
 	return true;
 }
 
+bool checkGraphicDriver(){
+
+	// Checking the silverlight installation is only possible if the user has defined a winePrefix
+	if( config.graphicDriverCheck == "" ){
+		std::cerr << "[PIPELIGHT] No GPU driver check script defined - treating test as failure" << std::endl;
+		return false;
+	}
+
+	if( !checkIfExists(config.graphicDriverCheck) ){
+		std::cerr << "[PIPELIGHT] GPU driver check script not found - treating test as failure" << std::endl;
+		return false;
+	}
+
+	pid_t pidCheck = fork();
+	if(pidCheck == 0){
+
+		// We set all enviroments variables for Wine although the GPU check script shouldn't need them
+
+		std::string wineBinary		= config.winePathIsDeprecated ? config.winePath : (config.winePath + "/bin/wine");
+
+		setenv("WINE", 					wineBinary.c_str(), 		true);
+
+		if (config.winePrefix != "")
+			setenv("WINEPREFIX", 		config.winePrefix.c_str(), 	true);
+
+		if(config.wineArch != "")
+			setenv("WINEARCH", 			config.wineArch.c_str(), 	true);
+
+		if(config.wineDLLOverrides != "")
+			setenv("WINEDLLOVERRIDES", 	config.wineDLLOverrides.c_str(), true);
+
+		execlp("/bin/sh", "sh", config.graphicDriverCheck.c_str(), NULL);
+		throw std::runtime_error("Error in execlp command - probably /bin/sh not found?");
+
+	}else if(pidCheck != -1){
+
+		int status;
+		if(waitpid(pidCheck, &status, 0) == -1 || !WIFEXITED(status) ){
+			std::cerr << "[PIPELIGHT] GPU driver check script failed to execute - treating test as failure" << std::endl;
+			return false;
+
+		}else if(WEXITSTATUS(status) == 0){
+			std::cerr << "[PIPELIGHT] GPU driver check - Your driver is supported, hardware acceleration enabled" << std::endl;
+			return true;
+
+		}else if(WEXITSTATUS(status) == 1){
+			std::cerr << "[PIPELIGHT] GPU driver check - Your driver is not in the whitelist, hardware acceleration disabled" << std::endl;
+			return false;
+
+		}else{
+			std::cerr << "[PIPELIGHT] GPU driver check did not run correctly (exitcode = " << WEXITSTATUS(status) << ")" << std::endl;
+			return false;
+		}
+
+	}else{
+		std::cerr << "[PIPELIGHT] Unable to fork() - probably out of memory?" << std::endl;
+		return false;
+	}
+
+	return false;
+}
+
 bool startWineProcess(){
 
 	if( pipe(pipeOut) == -1 || pipe(pipeIn) == -1 ){
@@ -353,13 +423,13 @@ bool startWineProcess(){
 		// Runt he pluginloader with the correct environment variables
 
 		if (config.winePrefix != "")
-			setenv("WINEPREFIX", config.winePrefix.c_str(), true);
+			setenv("WINEPREFIX", 		config.winePrefix.c_str(), 	true);
 
 		if (config.wineArch != "")
-			setenv("WINEARCH", config.wineArch.c_str(), true);
+			setenv("WINEARCH", 			config.wineArch.c_str(), 	true);
 
 		if(config.wineDLLOverrides != "")
-			setenv("WINEDLLOVERRIDES", config.wineDLLOverrides.c_str(), true);
+			setenv("WINEDLLOVERRIDES", 	config.wineDLLOverrides.c_str(), 	true);
 
 		if(config.gccRuntimeDLLs != ""){
 			std::string runtime = getEnvironmentString("Path");

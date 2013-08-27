@@ -178,3 +178,19 @@ operaDetection		= true
 # [default: false]
 #
 # experimental-userModeTimer = true
+
+#
+# We are currently implementing hardware acceleration support, which
+# can cause problems on some systems as especially specific open source
+# drivers render only garbage when hardware acceleration is enabled.
+# To prevent breaking any working solutions, we are currently
+# implementing a whitelist system, which will enable hardware
+# acceleration by default if the specified shell scripts returns 0.
+# Otherwise we will disable it. You can still use
+#
+# overwriteArg		= enableGPUAcceleration=false/true
+#
+# to overwrite the check results. If you really want to skip this test
+# you can use: graphicDriverCheck = /bin/true
+#
+# graphicDriverCheck = /bin/true
