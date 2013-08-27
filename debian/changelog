@@ -25,6 +25,8 @@ pipelight (0.1-2) UNRELEASED; urgency=low
   * Provide Wine patch which implements a part of the
     IDirect3DSwapChain9Ex interface which is required to get hardware
     acceleration with Silverlight
+  * Added GPU driver check script, which will check if the driver is known
+    to work with hardware acceleration and Silverlight
 
  -- Michael Mueller <michael@fds-team.de>  Mon, 27 Aug 2013 01:10:00 +0200
 
