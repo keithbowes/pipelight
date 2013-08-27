@@ -230,7 +230,7 @@ std::string convertWinePath(std::string path, bool direction){
 
 		std::string argument = direction ? "--windows" : "--unix";
 
-		execlp("/bin/sh", "sh", winePathBinary.c_str(), argument.c_str(), path.c_str(), NULL);
+		execlp(winePathBinary.c_str(), winePathBinary.c_str(), argument.c_str(), path.c_str(), NULL);
 		throw std::runtime_error("Error in execlp command - probably /bin/sh not found?");
 
 	}else if(pidWinePath != -1){
@@ -314,7 +314,7 @@ bool checkSilverlightInstallation(){
 
 		std::string argument = "wine-" + config.silverlightVersion + "-installer";
 
-		execlp("/bin/sh", "sh", config.dependencyInstaller.c_str(), argument.c_str(), NULL);
+		execlp(config.dependencyInstaller.c_str(), config.dependencyInstaller.c_str(), argument.c_str(), NULL);
 		throw std::runtime_error("Error in execlp command - probably /bin/sh not found?");
 
 	}else if(pidInstall != -1){
@@ -370,7 +370,7 @@ bool checkGraphicDriver(){
 		if(config.wineDLLOverrides != "")
 			setenv("WINEDLLOVERRIDES", 	config.wineDLLOverrides.c_str(), true);
 
-		execlp("/bin/sh", "sh", config.graphicDriverCheck.c_str(), NULL);
+		execlp(config.graphicDriverCheck.c_str(), config.graphicDriverCheck.c_str(), NULL);
 		throw std::runtime_error("Error in execlp command - probably /bin/sh not found?");
 
 	}else if(pidCheck != -1){
@@ -446,7 +446,7 @@ bool startWineProcess(){
 		std::string wineBinary		= config.winePathIsDeprecated ? config.winePath : (config.winePath + "/bin/wine");
 
 		// Execute wine
-		execlp(wineBinary.c_str(), "wine", config.pluginLoaderPath.c_str(), config.dllPath.c_str(), config.dllName.c_str(), windowMode.c_str(), embedMode.c_str(), usermodeTimer.c_str(), NULL);	
+		execlp(wineBinary.c_str(), wineBinary.c_str(), config.pluginLoaderPath.c_str(), config.dllPath.c_str(), config.dllName.c_str(), windowMode.c_str(), embedMode.c_str(), usermodeTimer.c_str(), NULL);	
 		throw std::runtime_error("Error in execlp command - probably wine not found?");
 
 	}else if (winePid != -1){
