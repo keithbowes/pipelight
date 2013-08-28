@@ -164,21 +164,6 @@ operaDetection		= true
 # executejavascript = navigator.__proto__ = __originalNavigator;
 # executejavascript = navigator.__defineGetter__('userAgent', function () { return 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:15.0) Gecko/20120427 Firefox/15.0a1'; });
 
-#------------------------- EXPERIMENTAL -------------------------
-# Watch out: The following section contains highly experimental
-# stuff! These functions are likely not working properly yet and
-# might be removed at any time.
-
-#
-# Silverlight uses a lot of timer stuff do to the window redrawing
-# . In order to speed this up a bit the following switch enables
-# some API hooks to do most of timer stuff in user mode (without
-# having to call wine-server each time). It is still unclear
-# if this option has any significant effent on the performance.
-# [default: false]
-#
-# experimental-userModeTimer = true
-
 #
 # We are currently implementing hardware acceleration support, which
 # can cause problems on some systems as especially specific open source
@@ -193,4 +178,19 @@ operaDetection		= true
 # to overwrite the check results. If you really want to skip this test
 # you can use: graphicDriverCheck = /bin/true
 #
-# graphicDriverCheck = /bin/true
+graphicDriverCheck = /usr/share/wine-browser-installer/hw-accel-default
+
+#------------------------- EXPERIMENTAL -------------------------
+# Watch out: The following section contains highly experimental
+# stuff! These functions are likely not working properly yet and
+# might be removed at any time.
+
+#
+# Silverlight uses a lot of timer stuff do to the window redrawing
+# . In order to speed this up a bit the following switch enables
+# some API hooks to do most of timer stuff in user mode (without
+# having to call wine-server each time). It is still unclear
+# if this option has any significant effent on the performance.
+# [default: false]
+#
+# experimental-userModeTimer = true
