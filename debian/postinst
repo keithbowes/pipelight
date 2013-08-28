@@ -7,6 +7,9 @@
 db_get pipelight/system-wide-installation
 if [ "$RET" = "true" ]; then
 	if [ ! -h "/usr/lib/mozilla/plugins/libpipelight.so" ]; then
+		if [ ! -d "/usr/lib/mozilla/plugins" ]; then
+			mkdir -p "/usr/lib/mozilla/plugins"
+		fi
 		ln -s /usr/lib/pipelight/libpipelight.so /usr/lib/mozilla/plugins/libpipelight.so
 	fi
 else
