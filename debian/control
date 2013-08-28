@@ -10,7 +10,7 @@ Package: pipelight
 Architecture: amd64 i386
 Depends: ${shlibs:Depends}, ${misc:Depends}, libx11-6,
 	g++-mingw-w64-i686
-Recommends: wine-silverlight5.1-installer (>> 0.8.2), wine-compholio (>= 1.7.0-3)
+Recommends: wine-silverlight5.1-installer (>> 0.8.1), wine-compholio (>= 1.7.0-3)
 Description: allows usage of Silverlight through Wine
 	Pipelight allows one to use Silverlight inside a Linux browser 
 	with the help of Wine.
