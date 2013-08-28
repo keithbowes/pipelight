@@ -1,3 +1,10 @@
+pipelight (0.1-2-1) RELEASED; urgency=low
+
+  * Fixed bug that a symlink can not be created if the /usr/lib/mozilla/plugins
+    directory does not exist
+
+ -- Michael Mueller <michael@fds-team.de>  Mon, 28 Aug 2013 17:35:00 +0200
+
 pipelight (0.1-2) RELEASED; urgency=low
 
   * Fixed build flags for wingw32. (fixes lp issue 1213725)
