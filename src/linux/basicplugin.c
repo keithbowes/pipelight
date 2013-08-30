@@ -299,6 +299,8 @@ bool checkSilverlightInstallation(){
 	pid_t pidInstall = fork();
 	if(pidInstall == 0){
 
+		close(0);
+
 		// Run the installer with the correct environment variables
 
 		std::string wineBinary		= config.winePathIsDeprecated ? config.winePath : (config.winePath + "/bin/wine");
@@ -354,6 +356,8 @@ bool checkGraphicDriver(){
 
 	pid_t pidCheck = fork();
 	if(pidCheck == 0){
+
+		close(0);
 
 		// We set all enviroments variables for Wine although the GPU check script shouldn't need them
 
