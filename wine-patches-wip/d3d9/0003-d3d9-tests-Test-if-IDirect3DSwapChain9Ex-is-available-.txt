@@ -1,6 +1,6 @@
-From f88eb68107b7c9930adcc6f97726caeaf382eec9 Mon Sep 17 00:00:00 2001
+From 700b8853334120a4fe3a827460b4a3cd0e8b50c2 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Michael=20M=C3=BCller?= <michael@fds-team.de>
-Date: Fri, 30 Aug 2013 14:50:54 +0200
+Date: Fri, 30 Aug 2013 15:38:37 +0200
 Subject: d3d9/tests: Test if IDirect3DSwapChain9Ex is available without
  IDirect3D9Ex
 
@@ -9,14 +9,14 @@ Subject: d3d9/tests: Test if IDirect3DSwapChain9Ex is available without
  1 file changed, 16 insertions(+)
 
 diff --git a/dlls/d3d9/tests/d3d9ex.c b/dlls/d3d9/tests/d3d9ex.c
-index 2deef76..0d9ec02 100644
+index 2deef76..138de14 100644
 --- a/dlls/d3d9/tests/d3d9ex.c
 +++ b/dlls/d3d9/tests/d3d9ex.c
 @@ -120,6 +120,8 @@ static void test_qi_base_to_ex(void)
      IDirect3D9Ex *d3d9ex = (void *) 0xdeadbeef;
      IDirect3DDevice9 *device;
      IDirect3DDevice9Ex *deviceEx = (void *) 0xdeadbeef;
-+    IDirect3DSwapChain9 *swapchain;
++    IDirect3DSwapChain9 *swapchain = NULL;
 +    IDirect3DSwapChain9Ex *swapchainEx = (void *) 0xdeadbeef;
      HRESULT hr;
      HWND window = create_window();
@@ -28,7 +28,7 @@ index 2deef76..0d9ec02 100644
 +    /* Get the implicit swapchain */
 +    hr = IDirect3DDevice9_GetSwapChain(device, 0, &swapchain);
 +    ok(SUCCEEDED(hr), "Failed to get the implicit swapchain (%08x)\n", hr);
-+    if(SUCCEEDED(hr))
++    if (SUCCEEDED(hr))
 +    {
 +        hr = IDirect3DSwapChain9_QueryInterface(swapchain, &IID_IDirect3DSwapChain9Ex, (void **) &swapchainEx);
 +        ok(hr == E_NOINTERFACE,
