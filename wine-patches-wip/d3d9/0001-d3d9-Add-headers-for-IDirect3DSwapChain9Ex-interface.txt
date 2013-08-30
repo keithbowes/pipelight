@@ -1,17 +1,43 @@
-From a0d651730a5836da7d9314860cb761050105e4b7 Mon Sep 17 00:00:00 2001
+From 792f3a34df7c56e9217e73dd3cbf989597d4bb54 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Michael=20M=C3=BCller?= <michael@fds-team.de>
-Date: Fri, 30 Aug 2013 12:09:38 +0200
+Date: Fri, 30 Aug 2013 14:45:51 +0200
 Subject: d3d9: Add headers for IDirect3DSwapChain9Ex interface
 
 ---
- include/d3d9.h      |   61 +++++++++++++++++++++++++++++++++++++++++++++++++++
- include/d3d9types.h |    8 +++++++
- 2 files changed, 69 insertions(+)
+ include/d3d9.h      |   77 +++++++++++++++++++++++++++++++++++++++++++++------
+ include/d3d9types.h |   10 +++++++
+ 2 files changed, 79 insertions(+), 8 deletions(-)
 
 diff --git a/include/d3d9.h b/include/d3d9.h
-index 382b241..3034460 100644
+index 382b241..ce39c10 100644
 --- a/include/d3d9.h
 +++ b/include/d3d9.h
+@@ -394,17 +394,17 @@ DECLARE_INTERFACE_(IDirect3DVolume9,IUnknown)
+ DECLARE_INTERFACE_(IDirect3DSwapChain9,IUnknown)
+ {
+     /*** IUnknown methods ***/
+-    STDMETHOD_(HRESULT,QueryInterface)(THIS_ REFIID riid, void** ppvObject) PURE;
++    STDMETHOD_(HRESULT,QueryInterface)(THIS_ REFIID riid, void **ppvObject) PURE;
+     STDMETHOD_(ULONG,AddRef)(THIS) PURE;
+     STDMETHOD_(ULONG,Release)(THIS) PURE;
+     /*** IDirect3DSwapChain9 methods ***/
+-    STDMETHOD(Present)(THIS_ CONST RECT* pSourceRect, CONST RECT* pDestRect, HWND hDestWindowOverride, CONST RGNDATA* pDirtyRegion, DWORD dwFlags) PURE;
+-    STDMETHOD(GetFrontBufferData)(THIS_ struct IDirect3DSurface9* pDestSurface) PURE;
+-    STDMETHOD(GetBackBuffer)(THIS_ UINT iBackBuffer, D3DBACKBUFFER_TYPE Type, struct IDirect3DSurface9** ppBackBuffer) PURE;
+-    STDMETHOD(GetRasterStatus)(THIS_ D3DRASTER_STATUS* pRasterStatus) PURE;
+-    STDMETHOD(GetDisplayMode)(THIS_ D3DDISPLAYMODE* pMode) PURE;
+-    STDMETHOD(GetDevice)(THIS_ struct IDirect3DDevice9** ppDevice) PURE;
+-    STDMETHOD(GetPresentParameters)(THIS_ D3DPRESENT_PARAMETERS* pPresentationParameters) PURE;
++    STDMETHOD(Present)(THIS_ CONST RECT *pSourceRect, CONST RECT *pDestRect, HWND hDestWindowOverride, CONST RGNDATA *pDirtyRegion, DWORD dwFlags) PURE;
++    STDMETHOD(GetFrontBufferData)(THIS_ struct IDirect3DSurface9 *pDestSurface) PURE;
++    STDMETHOD(GetBackBuffer)(THIS_ UINT iBackBuffer, D3DBACKBUFFER_TYPE Type, struct IDirect3DSurface9 **ppBackBuffer) PURE;
++    STDMETHOD(GetRasterStatus)(THIS_ D3DRASTER_STATUS *pRasterStatus) PURE;
++    STDMETHOD(GetDisplayMode)(THIS_ D3DDISPLAYMODE *pMode) PURE;
++    STDMETHOD(GetDevice)(THIS_ struct IDirect3DDevice9 **ppDevice) PURE;
++    STDMETHOD(GetPresentParameters)(THIS_ D3DPRESENT_PARAMETERS *pPresentationParameters) PURE;
+ };
+ #undef INTERFACE
+ 
 @@ -437,6 +437,67 @@ DECLARE_INTERFACE_(IDirect3DSwapChain9,IUnknown)
  #endif
  
@@ -22,21 +48,21 @@ index 382b241..3034460 100644
 +DECLARE_INTERFACE_(IDirect3DSwapChain9Ex,IDirect3DSwapChain9)
 +{
 +    /*** IUnknown methods ***/
-+    STDMETHOD_(HRESULT,QueryInterface)(THIS_ REFIID riid, void** ppvObject) PURE;
++    STDMETHOD_(HRESULT,QueryInterface)(THIS_ REFIID riid, void **ppvObject) PURE;
 +    STDMETHOD_(ULONG,AddRef)(THIS) PURE;
 +    STDMETHOD_(ULONG,Release)(THIS) PURE;
 +    /*** IDirect3DSwapChain9 methods ***/
-+    STDMETHOD(Present)(THIS_ CONST RECT* pSourceRect, CONST RECT* pDestRect, HWND hDestWindowOverride, CONST RGNDATA* pDirtyRegion, DWORD dwFlags) PURE;
-+    STDMETHOD(GetFrontBufferData)(THIS_ struct IDirect3DSurface9* pDestSurface) PURE;
-+    STDMETHOD(GetBackBuffer)(THIS_ UINT iBackBuffer, D3DBACKBUFFER_TYPE Type, struct IDirect3DSurface9** ppBackBuffer) PURE;
-+    STDMETHOD(GetRasterStatus)(THIS_ D3DRASTER_STATUS* pRasterStatus) PURE;
-+    STDMETHOD(GetDisplayMode)(THIS_ D3DDISPLAYMODE* pMode) PURE;
-+    STDMETHOD(GetDevice)(THIS_ struct IDirect3DDevice9** ppDevice) PURE;
-+    STDMETHOD(GetPresentParameters)(THIS_ D3DPRESENT_PARAMETERS* pPresentationParameters) PURE;
++    STDMETHOD(Present)(THIS_ CONST RECT *pSourceRect, CONST RECT *pDestRect, HWND hDestWindowOverride, CONST RGNDATA *pDirtyRegion, DWORD dwFlags) PURE;
++    STDMETHOD(GetFrontBufferData)(THIS_ struct IDirect3DSurface9 *pDestSurface) PURE;
++    STDMETHOD(GetBackBuffer)(THIS_ UINT iBackBuffer, D3DBACKBUFFER_TYPE Type, struct IDirect3DSurface9 **ppBackBuffer) PURE;
++    STDMETHOD(GetRasterStatus)(THIS_ D3DRASTER_STATUS *pRasterStatus) PURE;
++    STDMETHOD(GetDisplayMode)(THIS_ D3DDISPLAYMODE *pMode) PURE;
++    STDMETHOD(GetDevice)(THIS_ struct IDirect3DDevice9 **ppDevice) PURE;
++    STDMETHOD(GetPresentParameters)(THIS_ D3DPRESENT_PARAMETERS *pPresentationParameters) PURE;
 +    /*** IDirect3DSwapChain9Ex methods ***/
-+    STDMETHOD(GetLastPresentCount)(THIS_ UINT* pLastPresentCount) PURE;
-+    STDMETHOD(GetPresentStats)(THIS_ D3DPRESENTSTATS* pPresentationStatistics) PURE;
-+    STDMETHOD(GetDisplayModeEx)(THIS_ D3DDISPLAYMODEEX* pMode,D3DDISPLAYROTATION* pRotation) PURE;
++    STDMETHOD(GetLastPresentCount)(THIS_ UINT *pLastPresentCount) PURE;
++    STDMETHOD(GetPresentStats)(THIS_ D3DPRESENTSTATS *pPresentationStatistics) PURE;
++    STDMETHOD(GetDisplayModeEx)(THIS_ D3DDISPLAYMODEEX *pMode, D3DDISPLAYROTATION *pRotation) PURE;
 +};
 +#undef INTERFACE
 +
@@ -81,14 +107,16 @@ index 382b241..3034460 100644
   */
  #define INTERFACE IDirect3DResource9
 diff --git a/include/d3d9types.h b/include/d3d9types.h
-index cdd3ada..a28d384 100644
+index cdd3ada..4cc1195 100644
 --- a/include/d3d9types.h
 +++ b/include/d3d9types.h
-@@ -1517,6 +1517,14 @@ typedef struct _D3DVOLUME_DESC {
-     UINT                Depth;
- } D3DVOLUME_DESC;
- 
-+typedef struct _D3DPRESENTSTATS {
+@@ -1559,6 +1559,16 @@ typedef enum _D3DCOMPOSERECTSOP{
+     D3DCOMPOSERECTS_NEG,
+     D3DCOMPOSERECTS_FORCE_DWORD = 0x7fffffff
+ } D3DCOMPOSERECTSOP;
++
++typedef struct _D3DPRESENTSTATS
++{
 +    UINT          PresentCount;
 +    UINT          PresentRefreshCount;
 +    UINT          SyncRefreshCount;
@@ -96,9 +124,9 @@ index cdd3ada..a28d384 100644
 +    LARGE_INTEGER SyncGPUTime;
 +} D3DPRESENTSTATS;
 +
- /* Parts added with d3d9ex */
- #if !defined(D3D_DISABLE_9EX)
- typedef enum D3DSCANLINEORDERING
+ #endif /* D3D_DISABLE_9EX */
+ 
+ typedef enum _D3DSHADER_COMPARISON
 -- 
 1.7.9.5
 
