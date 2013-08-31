@@ -1,6 +1,6 @@
-From 73728f8afa131009a05fab9d2ae5db57e1368258 Mon Sep 17 00:00:00 2001
+From f0f711936283956a95b960f916fbd5dd6377a2b5 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Michael=20M=C3=BCller?= <michael@fds-team.de>
-Date: Sat, 31 Aug 2013 06:18:39 +0200
+Date: Sat, 31 Aug 2013 07:03:23 +0200
 Subject: quartz: Implement IVMRMonitorConfig interface with stubs
 
 ---
@@ -8,7 +8,7 @@ Subject: quartz: Implement IVMRMonitorConfig interface with stubs
  1 file changed, 209 insertions(+)
 
 diff --git a/dlls/quartz/vmr9.c b/dlls/quartz/vmr9.c
-index 5a837dd..493f2ef 100644
+index 5a837dd..095ea50 100644
 --- a/dlls/quartz/vmr9.c
 +++ b/dlls/quartz/vmr9.c
 @@ -170,7 +170,19 @@ static inline VMR9DefaultAllocatorPresenterImpl *impl_from_IVMRSurfaceAllocatorE
@@ -50,7 +50,7 @@ index 5a837dd..493f2ef 100644
  };
  
 +
-+static HRESULT WINAPI VMR7_IVMRMonitorConfig_QueryInterface(IVMRMonitorConfig *iface, REFIID riid, LPVOID * ppv)
++static HRESULT WINAPI VMR7_IVMRMonitorConfig_QueryInterface(IVMRMonitorConfig *iface, REFIID riid, LPVOID *ppv)
 +{
 +    IVMRMonitorConfigImpl *This = impl_from_IVMRMonitorConfig(iface);
 +    TRACE("(%p/%p)->(%s, %p)\n", This, iface, qzdebugstr_guid(riid), ppv);
@@ -119,7 +119,7 @@ index 5a837dd..493f2ef 100644
 +}
 +
 +
-+static HRESULT WINAPI VMR7_IVMRMonitorConfig_SetDefaultMonitor(IVMRMonitorConfig *iface,  const VMRGUID *pGUID)
++static HRESULT WINAPI VMR7_IVMRMonitorConfig_SetDefaultMonitor(IVMRMonitorConfig *iface, const VMRGUID *pGUID)
 +{
 +    IVMRMonitorConfigImpl *This = impl_from_IVMRMonitorConfig(iface);
 +
@@ -127,7 +127,7 @@ index 5a837dd..493f2ef 100644
 +    return S_OK;
 +}
 +
-+static HRESULT WINAPI VMR7_IVMRMonitorConfig_GetDefaultMonitor(IVMRMonitorConfig *iface,  VMRGUID *pGUID)
++static HRESULT WINAPI VMR7_IVMRMonitorConfig_GetDefaultMonitor(IVMRMonitorConfig *iface, VMRGUID *pGUID)
 +{
 +    IVMRMonitorConfigImpl *This = impl_from_IVMRMonitorConfig(iface);
 +
@@ -222,7 +222,7 @@ index 5a837dd..493f2ef 100644
 +    VMR7_IVMRMonitorConfig_GetAvailableMonitors
 +};
 +
-+static HRESULT IVMRMonitorConfigImpl_create(LPVOID * ppv)
++static HRESULT IVMRMonitorConfigImpl_create(LPVOID *ppv)
 +{
 +    IVMRMonitorConfigImpl* This;
 +

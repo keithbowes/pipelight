@@ -1,6 +1,6 @@
-From df03a2f64f9ac11129828e770d2e971c8813cd04 Mon Sep 17 00:00:00 2001
+From 852f8bb5fbf83f919371da55b4996739bf65044d Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Michael=20M=C3=BCller?= <michael@fds-team.de>
-Date: Sat, 31 Aug 2013 06:34:25 +0200
+Date: Sat, 31 Aug 2013 07:04:05 +0200
 Subject: quartz: Pass correct interface to IBaseFilter::JoinFilterGraph in
  function FilterGraph2_AddFilter
 

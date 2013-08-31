@@ -1,6 +1,6 @@
-From 7e5044ffa1c72e305ad65b4a7e2385c2e2ff9364 Mon Sep 17 00:00:00 2001
+From 0bc1f85938325657c8237df3758bd145e27c2148 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Michael=20M=C3=BCller?= <michael@fds-team.de>
-Date: Sat, 31 Aug 2013 06:53:21 +0200
+Date: Sat, 31 Aug 2013 07:05:12 +0200
 Subject: quartz: Implements stubs for IAMCertifiedOutputProtection
 
 ---
@@ -10,7 +10,7 @@ Subject: quartz: Implements stubs for IAMCertifiedOutputProtection
  3 files changed, 169 insertions(+)
 
 diff --git a/dlls/quartz/vmr9.c b/dlls/quartz/vmr9.c
-index 493f2ef..dbba4d1 100644
+index 095ea50..d154a28 100644
 --- a/dlls/quartz/vmr9.c
 +++ b/dlls/quartz/vmr9.c
 @@ -181,8 +181,20 @@ static inline IVMRMonitorConfigImpl *impl_from_IVMRMonitorConfig( IVMRMonitorCon
@@ -48,11 +48,11 @@ index 493f2ef..dbba4d1 100644
      else if (IsEqualIID(riid, &IID_IVMRMixerControl9))
          FIXME("No interface for IID_IVMRMixerControl9\n");
      else
-@@ -2447,6 +2466,114 @@ static HRESULT IVMRMonitorConfigImpl_create(LPVOID * ppv)
+@@ -2447,6 +2466,114 @@ static HRESULT IVMRMonitorConfigImpl_create(LPVOID *ppv)
      return S_OK;
  }
  
-+static HRESULT WINAPI VMR_IAMCertifiedOutputProtection_QueryInterface(IAMCertifiedOutputProtection *iface, REFIID riid, LPVOID * ppv)
++static HRESULT WINAPI VMR_IAMCertifiedOutputProtection_QueryInterface(IAMCertifiedOutputProtection *iface, REFIID riid, LPVOID *ppv)
 +{
 +    IAMCertifiedOutputProtectionImpl *This = impl_from_IAMCertifiedOutputProtection(iface);
 +    TRACE("(%p/%p)->(%s, %p)\n", This, iface, qzdebugstr_guid(riid), ppv);
@@ -144,7 +144,7 @@ index 493f2ef..dbba4d1 100644
 +    VMR_IAMCertifiedOutputProtection_ProtectionStatus,
 +};
 +
-+static HRESULT IAMCertifiedOutputProtection_create(LPVOID * ppv)
++static HRESULT IAMCertifiedOutputProtection_create(LPVOID *ppv)
 +{
 +    IAMCertifiedOutputProtectionImpl* This;
 +
