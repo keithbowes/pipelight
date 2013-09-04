@@ -1,9 +1,15 @@
 #ifndef PluginLoader_h_
 #define PluginLoader_h_
 
-#include <fstream>
 #include <cstdlib>
 #include <windows.h>
+
+#ifdef __WINE__
+	#undef max
+	#undef min
+#endif
+
+#include <fstream>
 
 #include "../npapi-headers/npapi.h"
 #include "../npapi-headers/npruntime.h"

@@ -7,7 +7,9 @@
 #include <vector>								// for std::vector
 #include <algorithm>							// for std::transform
 #include <stdio.h>								// for _fdopen
-#include <io.h>									// for _dup
+#ifndef __WINE__
+	#include <io.h>									// for _dup
+#endif
 #include <objbase.h>							// for CoInitializeEx
 
 #include "pluginloader.h"
@@ -395,11 +397,19 @@ int main(int argc, char *argv[]){
 	std::cerr << "[PIPELIGHT] Usermode Timer  is " << (usermodeTimer ? "on" : "off") << std::endl;
 
 	// Copy stdin and stdout
-	int stdoutF	= _dup(1);
-	pipeOutF 	= _fdopen(stdoutF, 	"wb");
+	#ifdef __WINE__
+		int stdoutF	= dup(1);
+		pipeOutF 	= fdopen(stdoutF, 	"wb");
 
-	int stdinF	= _dup(0);
-	pipeInF 	= _fdopen(stdinF, 	"rb");
+		int stdinF	= dup(0);
+		pipeInF 	= fdopen(stdinF, 	"rb");
+	#else
+		int stdoutF	= _dup(1);
+		pipeOutF 	= _fdopen(stdoutF, 	"wb");
+
+		int stdinF	= _dup(0);
+		pipeInF 	= _fdopen(stdinF, 	"rb");
+	#endif
 	
 	// Disable buffering not necessary here
 	//setbuf(pipeInF, NULL);
