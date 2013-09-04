@@ -7,6 +7,10 @@
 #include "handlemanager.h"
 
 #ifdef DEBUG_LOG_HANDLES
+	#ifdef __WINE__
+		#undef min
+		#undef max
+	#endif
 	#include <iostream>							// for std::cerr
 #endif
 
