@@ -28,8 +28,10 @@ struct PluginConfig{
 	bool			embed;
 	std::string 	fakeVersion;
 	std::string 	gccRuntimeDLLs;
+
 	std::string		dependencyInstaller;
-	std::string		silverlightVersion;
+	std::vector<std::string> dependencies;
+
 	bool 			eventAsyncCall;
 	bool			operaDetection;
 	std::string 	executeJavascript;

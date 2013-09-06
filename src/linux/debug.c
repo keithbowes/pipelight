@@ -229,15 +229,20 @@ void runDiagnostic(NPP instance){
 			dependencyInstallerFound ? "okay" : "failed", \
 			(config.dependencyInstaller != "") ? config.dependencyInstaller : "not set");
 
-		if(dependencyInstallerFound){
-			bool silverlightVersionOkay = ( config.silverlightVersion == "silverlight4.0" || \
-											config.silverlightVersion == "silverlight5.0" || \
-											config.silverlightVersion == "silverlight5.1" );
+		if(!dependencyInstallerFound){
+			bool silverlightVersionOkay = false;
+
+			for(std::string &dep: config.dependencies){
+				if( 	dep == "wine-silverlight4-installer" 	|| \
+						dep == "wine-silverlight5.0-installer" 	|| \
+						dep == "wine-silverlight5.1-installer" ){
+					silverlightVersionOkay = true;
+				}
+			}
 
 			debugStatusMessage(instance, \
 				"Checking if silverlightVersion is correct", \
-				silverlightVersionOkay ? "okay" : "failed", \
-				config.silverlightVersion );
+				silverlightVersionOkay ? "okay" : "failed");
 
 			if(!silverlightVersionOkay){
 				debugSimpleMessage(instance, "The version you have specified is none of the default ones!");

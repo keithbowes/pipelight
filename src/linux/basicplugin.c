@@ -282,19 +282,15 @@ bool checkSilverlightInstallation(){
 	// Output wine prefix
 	std::cerr << "[PIPELIGHT] Using wine prefix directory " << config.winePrefix << std::endl;
 
-	// Check if the prefix exists?
-	if( checkIfExists(config.winePrefix) ){
-		return true;
-	}
-
-	// If there is no installer provided we cannot fix this issue!
-	if( config.dependencyInstaller == "" || config.silverlightVersion == "" || 
+	// If there is no installer provided we cannot check the installation
+	if( config.dependencyInstaller == "" || config.dependencies.size() == 0 || 
 		!checkIfExists(config.dependencyInstaller) ){
-		return false;
+
+		return checkIfExists(config.winePrefix);
 	}
 
 	// Run the installer ...
-	std::cerr << "[PIPELIGHT] Silverlight not installed. Starting installation - this might take some time" << std::endl;
+	std::cerr << "[PIPELIGHT] Checking Silverlight installation - this might take some time" << std::endl;
 
 	pid_t pidInstall = fork();
 	if(pidInstall == 0){
@@ -314,9 +310,17 @@ bool checkSilverlightInstallation(){
 		if(config.wineDLLOverrides != "")
 			setenv("WINEDLLOVERRIDES", config.wineDLLOverrides.c_str(), true);
 
-		std::string argument = "wine-" + config.silverlightVersion + "-installer";
+		// Generate argv array
+		std::vector<char*> argv;
+		argv.push_back( (char*)config.dependencyInstaller.c_str());
 
-		execlp(config.dependencyInstaller.c_str(), config.dependencyInstaller.c_str(), argument.c_str(), NULL);
+		for(std::string &dep: config.dependencies){
+			argv.push_back( (char*)dep.c_str());
+		}
+
+		argv.push_back(NULL);
+
+		execvp(config.dependencyInstaller.c_str(), argv.data() );
 		throw std::runtime_error("Error in execlp command - probably /bin/sh not found?");
 
 	}else if(pidInstall != -1){

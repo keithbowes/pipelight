@@ -220,7 +220,6 @@ bool loadConfig(PluginConfig &config){
 	config.fakeVersion			= "";
 	config.gccRuntimeDLLs		= "";
 	config.dependencyInstaller 	= "";
-	config.silverlightVersion 	= "";
 	config.eventAsyncCall		= false;
 	config.operaDetection 		= true;
 	config.executeJavascript 	= "";
@@ -334,7 +333,10 @@ bool loadConfig(PluginConfig &config){
 			config.dependencyInstaller = value;
 
 		}else if(key == "silverlightversion"){
-			config.silverlightVersion = value;
+			config.dependencies.insert(config.dependencies.begin(), "wine-" + value + "-installer");
+
+		}else if(key == "dependency"){
+			if(value != "") config.dependencies.push_back(value);
 
 		}else if(key == "eventasynccall"){
 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
