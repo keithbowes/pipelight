@@ -45,7 +45,8 @@ bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args,
 	if(resultBool){
 		readVariant(stack, *result); // Dont increment refcount, this has already been done by invoke()
 	}else{
-		result->type = NPVariantType_Null;
+		result->type 				= NPVariantType_Void;
+		result->value.objectValue 	= NULL;
 	}	
 
 	// The caller has to call NPN_ReleaseVariant if this should be freed
@@ -69,7 +70,8 @@ bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t ar
 	if(resultBool){
 		readVariant(stack, *result); // Dont increment refcount, this has already been done by invoke()
 	}else{
-		result->type = NPVariantType_Null;
+		result->type 				= NPVariantType_Void;
+		result->value.objectValue 	= NULL;
 	}	
 
 	// The caller has to call NPN_ReleaseVariant if this should be freed
@@ -105,7 +107,8 @@ bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result
 	if(resultBool){
 		readVariant(stack, *result);
 	}else{
-		result->type = NPVariantType_Null;
+		result->type 				= NPVariantType_Void;
+		result->value.objectValue 	= NULL;
 	}	
 
 	return resultBool;
@@ -149,6 +152,13 @@ bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *coun
 	}
 
 	uint32_t identifierCount 				= readInt32(stack);
+
+	if(identifierCount == 0){
+		*value = NULL;
+		*count = 0;
+		return result;
+	}
+
 	std::vector<NPIdentifier> identifiers 	= readIdentifierArray(stack, identifierCount);
 
 	NPIdentifier* identifierTable = (NPIdentifier*)sBrowserFuncs->memalloc(identifierCount * sizeof(NPIdentifier));

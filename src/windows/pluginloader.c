@@ -8,9 +8,10 @@
 #include <algorithm>							// for std::transform
 #include <stdio.h>								// for _fdopen
 #ifndef __WINE__
-	#include <io.h>									// for _dup
+	#include <io.h>								// for _dup
 #endif
 #include <objbase.h>							// for CoInitializeEx
+#include <float.h>								// _controlfp_s
 
 #include "pluginloader.h"
 #include "apihook.h"
@@ -370,6 +371,9 @@ bool InitDLL(std::string dllPath, std::string dllName){
 
 int main(int argc, char *argv[]){
 
+	unsigned int control_word;
+	_controlfp_s(&control_word, _CW_DEFAULT, MCW_PC);
+
 	if(argc < 3)
 		throw std::runtime_error("Not enough arguments supplied");
 
@@ -491,6 +495,8 @@ void dispatcher(int functionid, Stack &stack){
 				#endif
 
 				writeInt32( (obj->referenceCount == REFCOUNT_UNDEFINED) );
+
+				objectDecRef(obj); // not really required, but looks better ;-)
 				returnCommand();
 			}
 			break;
@@ -586,7 +592,8 @@ void dispatcher(int functionid, Stack &stack){
 				std::vector<NPVariant> args = readVariantArrayIncRef(stack, argCount);
 
 				NPVariant resultVariant;
-				resultVariant.type = NPVariantType_Null;
+				resultVariant.type 				= NPVariantType_Void;
+				resultVariant.value.objectValue = NULL;
 
 				bool result = npobj->_class->invoke(npobj, name, args.data(), argCount, &resultVariant);
 
@@ -612,7 +619,8 @@ void dispatcher(int functionid, Stack &stack){
 				std::vector<NPVariant> args = readVariantArrayIncRef(stack, argCount);
 
 				NPVariant resultVariant;
-				resultVariant.type = NPVariantType_Null;
+				resultVariant.type 				= NPVariantType_Void;
+				resultVariant.value.objectValue = NULL;
 
 				bool result = npobj->_class->invokeDefault(npobj, args.data(), argCount, &resultVariant);
 
@@ -665,7 +673,8 @@ void dispatcher(int functionid, Stack &stack){
 				NPIdentifier name 	= readHandleIdentifier(stack);	
 
 				NPVariant resultVariant;
-				resultVariant.type = NPVariantType_Null;
+				resultVariant.type 				= NPVariantType_Void;
+				resultVariant.value.objectValue = NULL;
 
 				bool result = obj->_class->getProperty(obj, name, &resultVariant);
 
@@ -719,10 +728,11 @@ void dispatcher(int functionid, Stack &stack){
 				NPIdentifier*   identifierTable  = NULL;
 				uint32_t 		identifierCount  = 0;
 
-				bool result = obj->_class->enumerate(obj, &identifierTable, &identifierCount);
+				bool result = obj->_class->enumerate && obj->_class->enumerate(obj, &identifierTable, &identifierCount);
 
 				if(result){
 					writeIdentifierArray(identifierTable, identifierCount);
+					writeInt32(identifierCount);
 
 					// Free the memory for the table
 					if(identifierTable)

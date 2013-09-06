@@ -234,7 +234,7 @@ NPError NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 
 			if(result == NPERR_NO_ERROR)
 				*((NPObject**)value) 	= readHandleObjIncRef(stack);
-			
+
 			break;
 
 		case NPNVprivateModeBool:
@@ -391,9 +391,8 @@ void NP_LOADDS NPN_GetStringIdentifiers(const NPUTF8** names, int32_t nameCount,
 
 	// Lazy implementation ;-)
 	for(int i = 0; i < nameCount; i++){
-		identifiers[i] = NPN_GetStringIdentifier(names[i]);
+		identifiers[i] = names[i] ? NPN_GetStringIdentifier(names[i]) : NULL;
 	}
-
 }
 
 NPIdentifier NP_LOADDS NPN_GetIntIdentifier(int32_t intid){
@@ -525,7 +524,8 @@ bool NP_LOADDS NPN_Invoke(NPP npp, NPObject* obj, NPIdentifier methodName, const
 	if(resultBool){
 		readVariantIncRef(stack, *result); // no incref, as linux is responsible for refcounting!
 	}else{
-		result->type = NPVariantType_Null;
+		result->type 				= NPVariantType_Void;
+		result->value.objectValue 	= NULL;
 	}	
 
 	return resultBool;
@@ -548,7 +548,8 @@ bool NP_LOADDS NPN_InvokeDefault(NPP npp, NPObject* obj, const NPVariant *args, 
 	if(resultBool){
 		readVariantIncRef(stack, *result); // no incref, as linux is responsible for refcounting!
 	}else{
-		result->type = NPVariantType_Null;
+		result->type 				= NPVariantType_Void;
+		result->value.objectValue 	= NULL;
 	}	
 
 	return resultBool;
@@ -571,7 +572,8 @@ bool NP_LOADDS NPN_Evaluate(NPP npp, NPObject *obj, NPString *script, NPVariant 
 	if(resultBool){
 		readVariantIncRef(stack, *result); // no incref, as linux is responsible for refcounting!
 	}else{
-		result->type = NPVariantType_Null;
+		result->type 				= NPVariantType_Void;
+		result->value.objectValue 	= NULL;
 	}	
 
 	return resultBool;
@@ -594,7 +596,8 @@ bool NP_LOADDS NPN_GetProperty(NPP npp, NPObject *obj, NPIdentifier propertyName
 	if(resultBool){
 		readVariantIncRef(stack, *result); // no incref, as linux is responsible for refcounting!
 	}else{
-		result->type = NPVariantType_Null;
+		result->type 				= NPVariantType_Void;
+		result->value.objectValue 	= NULL;
 	}
 
 	return resultBool;
@@ -663,14 +666,15 @@ void NP_LOADDS NPN_ReleaseVariantValue(NPVariant *variant){
 
 		case NPVariantType_Object:
 			NPN_ReleaseObject(variant->value.objectValue);
-			break;	
+			break;
 
 		default:
-			break;		
+			break;
 	}
 
 	// Ensure that noone is reading that stuff again!
-	variant->type = NPVariantType_Null;
+	variant->type 				= NPVariantType_Void;
+	variant->value.objectValue 	= NULL;
 }
 
 void NP_LOADDS NPN_SetException(NPObject *obj, const NPUTF8 *message){
@@ -680,7 +684,6 @@ void NP_LOADDS NPN_SetException(NPObject *obj, const NPUTF8 *message){
 	writeHandleObj(obj);
 	callFunction(FUNCTION_NPN_SET_EXCEPTION);
 	waitReturn();
-
 }
 
 // Not documented, doesnt seem to be important
@@ -710,6 +713,13 @@ bool NP_LOADDS NPN_Enumerate(NPP npp, NPObject *obj, NPIdentifier **identifier, 
 	}
 
 	uint32_t identifierCount 				= readInt32(stack);
+
+	if(identifierCount == 0){
+		*identifier = NULL;
+		*count 		= 0;
+		return result;
+	}
+
 	std::vector<NPIdentifier> identifiers 	= readIdentifierArray(stack, identifierCount);
 
 	NPIdentifier* identifierTable = (NPIdentifier*)malloc(identifierCount * sizeof(NPIdentifier));

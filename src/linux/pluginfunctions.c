@@ -420,7 +420,9 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 		script.UTF8Length		= config.executeJavascript.size();
 
 		NPVariant resultVariant;
-		resultVariant.type = NPVariantType_Null;
+		resultVariant.type 				= NPVariantType_Void;
+		resultVariant.value.objectValue = NULL;
+
 
 		if( sBrowserFuncs->getvalue(instance, NPNVWindowNPObject, &windowObj) == NPERR_NO_ERROR ){
 			

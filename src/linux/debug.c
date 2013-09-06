@@ -19,7 +19,8 @@ bool debugSection(NPP instance, std::string name){
 	arg.value.stringValue.UTF8Length		= name.size();
 
 	NPVariant resultVariant;
-	resultVariant.type = NPVariantType_Null;
+	resultVariant.type 					= NPVariantType_Null;
+	resultVariant.value.objectValue 	= NULL;
 
 	bool resultBool = false;
 
@@ -48,7 +49,8 @@ bool debugSimpleMessage(NPP instance, std::string message){
 	arg.value.stringValue.UTF8Length		= message.size();
 
 	NPVariant resultVariant;
-	resultVariant.type = NPVariantType_Null;
+	resultVariant.type 					= NPVariantType_Null;
+	resultVariant.value.objectValue 	= NULL;
 
 	bool resultBool = false;
 
@@ -85,11 +87,13 @@ bool debugStatusMessage(NPP instance, std::string name, std::string result, std:
 		args[2].value.stringValue.UTF8Characters 	= additionalMessage.c_str();
 		args[2].value.stringValue.UTF8Length		= additionalMessage.size();
 	}else{
-		args[2].type = NPVariantType_Null;
+		args[2].type 				= NPVariantType_Null;
+		args[2].value.objectValue 	= NULL;
 	}
 
 	NPVariant resultVariant;
-	resultVariant.type = NPVariantType_Null;
+	resultVariant.type 					= NPVariantType_Null;
+	resultVariant.value.objectValue 	= NULL;
 
 	bool resultBool = false;
 

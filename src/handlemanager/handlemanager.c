@@ -2,6 +2,7 @@
 #include <cstdlib>								// for malloc, ...
 #include <map>									// for std::map
 #include <stdexcept>							// for std::runtime_error
+#include <iomanip>								// std::setprecision
 
 #include "../communication/communication.h"
 #include "handlemanager.h"
@@ -16,7 +17,6 @@
 
 #ifdef __WIN32__
 	extern NPClass myClass;						// required for implementation of createNPObject
-
 #else
 	#include "../npapi-headers/npfunctions.h"	// for sBrowserFuncs->{memfree, retain, releasevariant}
 	extern NPNetscapeFuncs *sBrowserFuncs;
@@ -163,52 +163,25 @@ uint64_t HandleManager::translateFrom(uint64_t id, HandleType type, NPP instance
 	handle.id 	= id;
 	handle.type = type;
 
-	switch(type){
-
-		case TYPE_NPObject:
-			#ifdef __WIN32__
-				handle.real = (uint64_t) createNPObject(id, aclass, instance);
-			#else
-				throw std::runtime_error("Error in handle manager: Cannot create remote NPObject");
-			#endif
-			break;
-
-		case TYPE_NPIdentifier:
-			// These are just some identifiers for strings we can simply use our internal id for them
+	#ifdef __WIN32__
+		if(type == TYPE_NPObject){
+			handle.real = (uint64_t) createNPObject(id, aclass, instance);
+		}else if(type == TYPE_NPIdentifier){
 			handle.real = id;
-			break;
-
-		case TYPE_NPPInstance:
-			#ifdef __WIN32__
-				handle.real = (uint64_t) createNPPInstance(id);
-			#else
-				throw std::runtime_error("Error in handle manager: Cannot create remote TYPE_NPPInstance");
-			#endif
-			break;
-
-		case TYPE_NPStream:
-			#ifdef __WIN32__
-				handle.real = (uint64_t) createNPStream(id);
-			#else
-				throw std::runtime_error("Error in handle manager: Cannot create remote NPStream");
-			#endif
-
-			break;
-
-		case TYPE_NotifyData:
-			#ifdef __WIN32__
-				//handle.real = 0; 	// If something is new for the plugin side, there is no notifyData assigned
-				throw std::runtime_error("Error in handle manager: Cannot create local NotifyData");
-
-			#else
-				handle.real = (uint64_t) createNotifyDataRefCount(id); 	// But on the other side we have to set notifyData!
-			#endif
-			break;
-
-		default:
-			throw std::runtime_error("Unknown handle type");
-			break;
-	}	
+		}else if(type == TYPE_NPPInstance){
+			handle.real = (uint64_t) createNPPInstance(id);
+		}else if(type == TYPE_NPStream){
+			handle.real = (uint64_t) createNPStream(id);
+		}else{
+			throw std::runtime_error("Error in handle manager: Cannot create remote object of this type");
+		}
+	#else
+		if(type == TYPE_NotifyData){
+			handle.real = (uint64_t) createNotifyDataRefCount(id);
+		}else{
+			throw std::runtime_error("Error in handle manager: Cannot create local object of this type");
+		}
+	#endif
 
 	handlesID[id] 														= handle;
 	handlesReal[std::pair<HandleType, uint64_t>(type, handle.real)] 	= handle;
@@ -241,6 +214,16 @@ uint64_t HandleManager::translateTo(uint64_t real, HandleType type, HandleExists
 	if(shouldExist == HANDLE_SHOULD_EXIST){
 		throw std::runtime_error("Got real handle which should exist, but it doesnt!");
 	}
+
+	#ifdef __WIN32__
+		if(type != TYPE_NotifyData){
+			throw std::runtime_error("Error in handle manager: Cannot create remote object of this type");
+		}
+	#else
+		if(type == TYPE_NotifyData){
+			throw std::runtime_error("Error in handle manager: Cannot create local object of this type");
+		}
+	#endif
 
 	Handle handle;
 	handle.id 			= getFreeID();
@@ -465,7 +448,7 @@ void objectDecRef(NPObject *obj){
 			std::cerr << "[PIPELIGHT:WINDOWS] objectDecRef removed object " << (void*)obj << " from the handle manager" << std::endl;
 		#endif
 
-		if(obj->_class->deallocate){
+		if( obj->_class->deallocate){
 			throw std::runtime_error("Proxy object has a deallocate method set?");
 		}
 
@@ -513,7 +496,8 @@ void writeVariantReleaseDecRef(NPVariant &variant){
 
 	}
 	
-	variant.type = NPVariantType_Null;
+	variant.type 				= NPVariantType_Void;
+	variant.value.objectValue 	= NULL;
 }
 
 void writeVariantArrayReleaseDecRef(NPVariant *variant, int count){
@@ -554,7 +538,7 @@ void writeVariantConst(const NPVariant &variant){
 			break;
 
 		case NPVariantType_Bool:
-			writeInt32(variant.value.boolValue );
+			writeInt32(variant.value.boolValue);
 			break;
 
 		case NPVariantType_Int32:
@@ -598,9 +582,11 @@ void readVariantIncRef(Stack &stack, NPVariant &variant){
 	switch(variant.type){
 		
 		case NPVariantType_Null:
+			variant.value.objectValue = NULL;
 			break;
 
 		case NPVariantType_Void:
+			variant.value.objectValue = NULL;
 			break;
 
 		case NPVariantType_Bool:
@@ -661,8 +647,8 @@ void freeVariantDecRef(NPVariant &variant){
 
 	}
 	
-	variant.type = NPVariantType_Null;
-
+	variant.type 				= NPVariantType_Void;
+	variant.value.objectValue 	= NULL;
 }
 
 void freeVariantArrayDecRef(std::vector<NPVariant> args){
@@ -683,9 +669,11 @@ void readVariant(Stack &stack, NPVariant &variant){
 	switch(variant.type){
 		
 		case NPVariantType_Null:
+			variant.value.objectValue = NULL;
 			break;
 
 		case NPVariantType_Void:
+			variant.value.objectValue = NULL;
 			break;
 
 		case NPVariantType_Bool:
@@ -742,7 +730,8 @@ void freeVariant(NPVariant &variant){
 
 	} // Objects dont have to be freed
 
-	variant.type = NPVariantType_Null;
+	variant.type 				= NPVariantType_Void;
+	variant.value.objectValue 	= NULL;
 }
 
 void freeVariantArray(std::vector<NPVariant> args){

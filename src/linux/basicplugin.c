@@ -648,7 +648,8 @@ void dispatcher(int functionid, Stack &stack){
 
 				// Reset variant type
 				NPVariant resultVariant;
-				resultVariant.type = NPVariantType_Null;
+				resultVariant.type 					= NPVariantType_Void;
+				resultVariant.value.objectValue 	= NULL;
 
 				bool result = sBrowserFuncs->evaluate(instance, obj, &script, &resultVariant);	
 				
@@ -673,7 +674,8 @@ void dispatcher(int functionid, Stack &stack){
 				// refcount is not incremented here!
 
 				NPVariant resultVariant;
-				resultVariant.type = NPVariantType_Null;
+				resultVariant.type 					= NPVariantType_Void;
+				resultVariant.value.objectValue 	= NULL;
 				
 				bool result = sBrowserFuncs->invoke(instance, obj, identifier, args.data(), argCount, &resultVariant);
 
@@ -698,7 +700,8 @@ void dispatcher(int functionid, Stack &stack){
 				// refcount is not incremented here!
 
 				NPVariant resultVariant;
-				resultVariant.type = NPVariantType_Null;
+				resultVariant.type 					= NPVariantType_Void;
+				resultVariant.value.objectValue 	= NULL;
 				
 				bool result = sBrowserFuncs->invokeDefault(instance, obj, args.data(), argCount, &resultVariant);
 
@@ -747,7 +750,8 @@ void dispatcher(int functionid, Stack &stack){
 				NPIdentifier propertyName	= readHandleIdentifier(stack);
 
 				NPVariant resultVariant;
-				resultVariant.type = NPVariantType_Null;
+				resultVariant.type 					= NPVariantType_Void;
+				resultVariant.value.objectValue 	= NULL;
 
 				bool result = sBrowserFuncs->getproperty(instance, obj, propertyName, &resultVariant);
 
@@ -802,7 +806,8 @@ void dispatcher(int functionid, Stack &stack){
 
 				if(result){
 					writeIdentifierArray(identifierTable, identifierCount);
-
+					writeInt32(identifierCount);
+					
 					// Free the memory for the table
 					if(identifierTable)
 						sBrowserFuncs->memfree(identifierTable);
