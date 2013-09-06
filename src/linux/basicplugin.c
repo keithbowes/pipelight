@@ -143,7 +143,7 @@ void attach(){
 		if(!checkGraphicDriver())
 			config.overwriteArgs["enableGPUAcceleration"] = "false";
 	}else{
-		std::cerr << "[PIPELIGHT] enableGPUAcceleration set manually - skipping compability check" << std::endl;
+		std::cerr << "[PIPELIGHT] enableGPUAcceleration set manually - skipping compatibility check" << std::endl;
 	}
 
 	// Check for correct installation
