@@ -35,6 +35,9 @@ echo "---------------------"
 echo
 echo "Pipelight has been configured with"
 echo "    prefix = $prefix"
+echo ""
+echo "IMPORTANT: Please ensure you have XATTR support enabled for both wine and"
+echo "           your file system (required to watch DRM protected content)!"
 echo
 
 echo "prefix=$prefix" > config.make
