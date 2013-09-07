@@ -1,0 +1,32 @@
+From 31cb9207393c4d1bcfd911b926034c2a04f29e06 Mon Sep 17 00:00:00 2001
+From: Andreas Loibl <andreas@andreas-loibl.de>
+Date: Sat, 7 Sep 2013 14:44:35 +0200
+Subject: [PATCH] oleaut32: Implementation of VarDecRound
+
+---
+ dlls/oleaut32/vartype.c |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/dlls/oleaut32/vartype.c b/dlls/oleaut32/vartype.c
+index 74f66de..9e1c085 100644
+--- a/dlls/oleaut32/vartype.c
++++ b/dlls/oleaut32/vartype.c
+@@ -5774,9 +5774,13 @@ HRESULT WINAPI VarDecRound(const DECIMAL* pDecIn, int cDecimals, DECIMAL* pDecOu
+     return S_OK;
+   }
+ 
+-  FIXME("semi-stub!\n");
++  /* Multiply with 10^cDecimals, round to Int, divide by 10^cDecimals */
++  *pDecOut = *pDecIn;
++  DEC_SCALE(pDecOut) += cDecimals;
++  VarDecInt(pDecOut, pDecOut);
++  DEC_SCALE(pDecOut) -= cDecimals;
+ 
+-  return DISP_E_OVERFLOW;
++  return S_OK;
+ }
+ 
+ /************************************************************************
+-- 
+1.7.2.5
+
