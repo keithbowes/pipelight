@@ -599,14 +599,9 @@ void readVariantIncRef(Stack &stack, NPVariant &variant){
 			break;		
 
 		case NPVariantType_String:
-			#ifdef __WIN32__
-				variant.value.stringValue.UTF8Characters = readStringMalloc(stack, stringLength);
-			#else
-				variant.value.stringValue.UTF8Characters = readStringBrowserAlloc(stack, stringLength);
-			#endif
-			variant.value.stringValue.UTF8Length = stringLength;
+			variant.value.stringValue.UTF8Characters 	= readStringMalloc(stack, stringLength);
+			variant.value.stringValue.UTF8Length 		= stringLength;
 			break;
-
 
 		case NPVariantType_Object:
 			variant.value.objectValue 	= readHandleObjIncRef(stack);
@@ -616,7 +611,6 @@ void readVariantIncRef(Stack &stack, NPVariant &variant){
 			throw std::runtime_error("Unsupported variant type");
 
 	}
-
 }
 
 std::vector<NPVariant> readVariantArrayIncRef(Stack &stack, int count){
@@ -653,7 +647,6 @@ void freeVariantArrayDecRef(std::vector<NPVariant> args){
 	}
 }
 
-
 #else
 
 void readVariant(Stack &stack, NPVariant &variant){
@@ -685,14 +678,9 @@ void readVariant(Stack &stack, NPVariant &variant){
 			break;		
 
 		case NPVariantType_String:
-			#ifdef __WIN32__
-				variant.value.stringValue.UTF8Characters = readStringMalloc(stack, stringLength);
-			#else
-				variant.value.stringValue.UTF8Characters = readStringBrowserAlloc(stack, stringLength);
-			#endif
-			variant.value.stringValue.UTF8Length = stringLength;
+			variant.value.stringValue.UTF8Characters 	= readStringBrowserAlloc(stack, stringLength);
+			variant.value.stringValue.UTF8Length 		= stringLength;
 			break;
-
 
 		case NPVariantType_Object:
 			variant.value.objectValue 	= readHandleObj(stack);
@@ -702,7 +690,6 @@ void readVariant(Stack &stack, NPVariant &variant){
 			throw std::runtime_error("Unsupported variant type");
 
 	}
-
 }
 
 std::vector<NPVariant> readVariantArray(Stack &stack, int count){
