@@ -17,29 +17,30 @@ struct PluginConfig{
 	
 	std::string 	winePath;
 	bool			winePathIsDeprecated;
-
 	std::string		wineArch;
 	std::string 	winePrefix;
 	std::string		wineDLLOverrides;
+
 	std::string 	dllPath; //we may need to extend this to a vector in the future
 	std::string 	dllName;
 	std::string 	pluginLoaderPath;
+	std::string 	gccRuntimeDLLs;
+
 	bool 			windowlessMode;
 	bool			embed;
 	std::string 	fakeVersion;
-	std::string 	gccRuntimeDLLs;
+	std::map<std::string, std::string, stringInsensitiveCompare> overwriteArgs;
 
 	std::string		dependencyInstaller;
 	std::vector<std::string> dependencies;
+
+	std::string		graphicDriverCheck;
 
 	bool 			eventAsyncCall;
 	bool			operaDetection;
 	std::string 	executeJavascript;
 
 	bool 			experimental_usermodeTimer;
-	std::string		graphicDriverCheck;
-
-	std::map<std::string, std::string, stringInsensitiveCompare> overwriteArgs;
 };
 
 std::string getFileName(const std::string &path);

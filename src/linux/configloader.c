@@ -21,20 +21,20 @@ std::string getFileName(const std::string &path){
 
 	size_t pos;
 
-	pos = result.find_last_of("/"); 
+	pos = result.find_last_of("/");
 	if (pos != std::string::npos){
 		
-		//Check if this ends with "/" i.e. a directory
+		// Check if this ends with "/" i.e. a directory
 		if(++pos >= result.length())
 			return "";
 
 		result = result.substr(pos, std::string::npos);
 	}
 
-	pos = result.find_last_of("."); 
+	pos = result.find_last_of(".");
 	if (pos != std::string::npos){
 
-		//Check if it starts with "." i.e. only an extension or hidden file
+		// Check if it starts with "." i.e. only an extension or hidden file
 		if(pos == 0)
 			return "";
 
@@ -45,25 +45,19 @@ std::string getFileName(const std::string &path){
 }
 
 std::string getHomeDirectory(){
-
 	char *homeDir = getenv("HOME");
 	if(homeDir)
 		return std::string(homeDir);
 	
 	// Do we need getpwuid_r() here ?
 	struct passwd* info = getpwuid(getuid());
-	if(!info)
+	if(!info || !info->pw_dir)
 		return "";
 	
-	if(!info->pw_dir)
-		return "";
-
 	return std::string(info->pw_dir);
-
 }
 
 std::string trim(std::string str){
-
 	size_t pos;
 	pos = str.find_first_not_of(" \f\n\r\t\v");
 	if (pos != std::string::npos){
@@ -79,12 +73,10 @@ std::string trim(std::string str){
 }
 
 bool splitConfigValue(std::string line, std::string &key, std::string &value){
-
 	size_t pos;
-
 	line = trim(line);
 
-	//find delimiter
+	// find delimiter
 	pos = line.find_first_of("=");
 	if (pos == std::string::npos)
 		return false;
@@ -112,7 +104,6 @@ std::string readUntil(const char* &str, char abort = 0){
 }
 
 std::string replaceVariables(const std::map<std::string, std::string> &variables, const char* str){
-
 	std::string output 	= "";
 	std::string varname = "";
 	std::map<std::string, std::string>::const_iterator it;
@@ -207,24 +198,33 @@ bool loadConfig(PluginConfig &config){
 	// Initialize config variables with default values
 	config.configPath			= "";
 	config.diagnosticMode 		= false;
+
 	config.winePath 			= "wine";
 	config.winePathIsDeprecated = true;
 	config.wineArch 			= "win32";
 	config.winePrefix 			= "";
-	config.wineDLLOverrides		= "mscoree,mshtml="; //Prevent Installation of Geck & Mono by default
+	config.wineDLLOverrides		= "mscoree,mshtml="; // prevent Installation of Geck & Mono by default
+
 	config.dllPath 				= "";
 	config.dllName 				= "";
 	config.pluginLoaderPath 	= "";
+	config.gccRuntimeDLLs		= "";
+
 	config.windowlessMode 		= false;
 	config.embed 				= true;
 	config.fakeVersion			= "";
-	config.gccRuntimeDLLs		= "";
+	config.overwriteArgs.clear();
+	
 	config.dependencyInstaller 	= "";
+	config.dependencies.clear();
+
+	config.graphicDriverCheck 	= "";
+
 	config.eventAsyncCall		= false;
 	config.operaDetection 		= true;
 	config.executeJavascript 	= "";
+
 	config.experimental_usermodeTimer = false;
-	config.graphicDriverCheck 	= "";
 
 
 	std::ifstream 	configFile;
@@ -303,11 +303,11 @@ bool loadConfig(PluginConfig &config){
 		}else if(key == "dllname"){
 			config.dllName = value;
 
-		}else if(key == "gccruntimedlls"){
-			config.gccRuntimeDLLs = value;
-
 		}else if(key == "pluginloaderpath"){
 			config.pluginLoaderPath = value;
+
+		}else if(key == "gccruntimedlls"){
+			config.gccRuntimeDLLs = value;
 
 		}else if(key == "windowlessmode"){
 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
@@ -338,6 +338,9 @@ bool loadConfig(PluginConfig &config){
 		}else if(key == "dependency"){
 			if(value != "") config.dependencies.push_back(value);
 
+		}else if(key == "graphicdrivercheck"){
+			config.graphicDriverCheck = value;
+
 		}else if(key == "eventasynccall"){
 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 			config.eventAsyncCall = (value == "true" || value == "yes");
@@ -352,9 +355,6 @@ bool loadConfig(PluginConfig &config){
 		}else if(key == "experimental-usermodetimer"){
 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 			config.experimental_usermodeTimer = (value == "true" || value == "yes");
-
-		}else if(key == "graphicdrivercheck"){
-			config.graphicDriverCheck = value;
 
 		}else{
 			std::cerr << "[PIPELIGHT] Unrecognized config key: " << key << std::endl;

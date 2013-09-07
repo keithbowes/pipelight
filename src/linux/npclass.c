@@ -14,7 +14,6 @@ void NPInvalidateFunction(NPObject *npobj){
 	waitReturn();
 }
 
-// Verified, everything okay
 bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name){
 	EnterFunction();
 
@@ -26,7 +25,6 @@ bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name){
 
 }
 
-// Verified, everything okay
 bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args, uint32_t argCount, NPVariant *result){
 	EnterFunction();
 
@@ -43,18 +41,16 @@ bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args,
 	bool resultBool = (bool)readInt32(stack);
 
 	if(resultBool){
-		readVariant(stack, *result); // Dont increment refcount, this has already been done by invoke()
+		readVariant(stack, *result); // Refcount already incremented by invoke()
 	}else{
 		result->type 				= NPVariantType_Void;
 		result->value.objectValue 	= NULL;
-	}	
-
-	// The caller has to call NPN_ReleaseVariant if this should be freed
+	}
 
 	return resultBool;
 }
 
-bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result){ // UNTESTED!
+bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result){
 	EnterFunction();
 
 	writeVariantArrayConst(args, argCount);
@@ -68,18 +64,15 @@ bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t ar
 	bool resultBool = (bool)readInt32(stack);
 
 	if(resultBool){
-		readVariant(stack, *result); // Dont increment refcount, this has already been done by invoke()
+		readVariant(stack, *result); // Refcount already incremented by invoke()
 	}else{
 		result->type 				= NPVariantType_Void;
 		result->value.objectValue 	= NULL;
 	}	
 
-	// The caller has to call NPN_ReleaseVariant if this should be freed
-
 	return resultBool;
 }
 
-// Verified, everything okay
 bool NPHasPropertyFunction(NPObject *npobj, NPIdentifier name){
 	EnterFunction();
 
@@ -88,10 +81,8 @@ bool NPHasPropertyFunction(NPObject *npobj, NPIdentifier name){
 	callFunction(FUNCTION_NP_HAS_PROPERTY);
 
 	return (bool)readResultInt32();
-	
 }
 
-// Verified, everything okay
 bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result){
 	EnterFunction();
 
@@ -102,7 +93,7 @@ bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result
 	std::vector<ParameterInfo> stack;
 	readCommands(stack);
 
-	bool resultBool = readInt32(stack);
+	bool resultBool = readInt32(stack); // Refcount already incremented by getProperty()
 
 	if(resultBool){
 		readVariant(stack, *result);
@@ -123,10 +114,9 @@ bool NPSetPropertyFunction(NPObject *npobj, NPIdentifier name, const NPVariant *
 	callFunction(FUNCTION_NP_SET_PROPERTY);
 
 	return (bool)readResultInt32();
-
 }
 
-bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name){ // UNTESTED!
+bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name){
 	EnterFunction();
 
 	writeHandleIdentifier(name);
@@ -136,7 +126,7 @@ bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name){ // UNTESTED!
 	return (bool)readResultInt32();
 }
 
-bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *count){ // UNTESTED!
+bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *count){
 	EnterFunction();
 
 	writeHandleObj(npobj);
@@ -146,13 +136,11 @@ bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *coun
 	readCommands(stack);
 
 	bool 	 result                         = (bool)readInt32(stack);
-
 	if(!result){
 		return false;
 	}
 
 	uint32_t identifierCount 				= readInt32(stack);
-
 	if(identifierCount == 0){
 		*value = NULL;
 		*count = 0;
@@ -173,26 +161,22 @@ bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *coun
 	return true;
 }
 
-// Not implemented yet as this is not yet included in the official docs and its very unlikely that
-// an old plugin requires this function
 bool NPConstructFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result){
 	NotImplemented();
 	return false;
 }
 
-// Verified, everything okay
 NPObject * NPAllocateFunction(NPP npp, NPClass *aClass){
 	EnterFunction();
 
 	NPObject* obj = (NPObject*)malloc(sizeof(NPObject));
 	if(obj){
-		obj->_class = aClass; // Probably not required, just to be on the save side ;-)
+		obj->_class = aClass;
 	}
 
 	return obj;
 }
 
-// Verified, everything okay
 void NPDeallocateFunction(NPObject *npobj){
 	EnterFunction();
 
@@ -214,15 +198,13 @@ void NPDeallocateFunction(NPObject *npobj){
 			writeHandleObj(npobj);
 			callFunction(OBJECT_KILL);
 			waitReturn();
+
+			// Remove it in the handle manager
+			handlemanager.removeHandleByReal((uint64_t)npobj, TYPE_NPObject);
 		}
 
 		// Remove the object locally
 		free(npobj);
-
-		// Remove it in the handle manager
-		if( exists ){
-			handlemanager.removeHandleByReal((uint64_t)npobj, TYPE_NPObject);
-		}
 
 	}
 }

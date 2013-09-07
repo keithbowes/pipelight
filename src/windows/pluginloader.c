@@ -51,8 +51,7 @@ NPPluginFuncs pluginFuncs = {sizeof(pluginFuncs), NP_VERSION_MINOR};
 
 /* END GLOBAL VARIABLES */
 
-LRESULT CALLBACK WndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
-{
+LRESULT CALLBACK WndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam){
 
 	// Only messages with a hwnd can be relevant in windowlessmode mode
 	if(hWnd){
@@ -192,9 +191,6 @@ LRESULT CALLBACK WndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	}else if(Msg == WM_CLOSE){
 		return 0;
 
-	/*}else if(Msg == WM_ERASEBKGND){
-    	return 0;*/ // TODO: Correct return value?
-
 	}else if( Msg == WM_SIZE ){
 		InvalidateRect(hWnd, NULL, false);
 		return 0;
@@ -211,14 +207,12 @@ void freeSharedPtrMemory(void *memory){
 }
 
 std::vector<std::string> splitMimeType(std::string input){
-	
 	std::vector<std::string> result;
 
 	int start 			= 0;
 	unsigned int i 		= 0;
 
 	while (i < input.length()){
-
 		while (i < input.length() && input[i] != '|'){
 			i++;
 		}
@@ -232,11 +226,9 @@ std::vector<std::string> splitMimeType(std::string input){
 	}
 
 	return result;
-
 }
 
 std::string createLinuxCompatibleMimeType(){
-
 	std::vector<std::string> mimeTypes 		= splitMimeType(np_MimeType);
 	std::vector<std::string> fileExtensions = splitMimeType(np_FileExtents);
 	std::vector<std::string> extDescription = splitMimeType(np_FileOpenName);
@@ -260,7 +252,6 @@ std::string createLinuxCompatibleMimeType(){
 	}
 
 	return result;
-
 }
 
 bool InitDLL(std::string dllPath, std::string dllName){
@@ -365,7 +356,6 @@ bool InitDLL(std::string dllPath, std::string dllName){
 	}
 
 	return false;
-
 }
 
 
@@ -460,7 +450,6 @@ int main(int argc, char *argv[]){
 
 
 	return 1;
-	
 }
 
 
@@ -612,7 +601,7 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		case FUNCTION_NP_INVOKE_DEFAULT: // UNTESTED!
+		case FUNCTION_NP_INVOKE_DEFAULT:
 			{
 				NPObject 	*npobj 			= readHandleObjIncRef(stack);
 				uint32_t argCount 			= readInt32(stack);
@@ -707,7 +696,7 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		case FUNCTION_NP_REMOVE_PROPERTY: // UNTESTED!
+		case FUNCTION_NP_REMOVE_PROPERTY:
 			{
 				NPObject 		*obj 		= readHandleObjIncRef(stack);
 				NPIdentifier 	name 		= readHandleIdentifier(stack);	
@@ -721,7 +710,7 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		case FUNCTION_NP_ENUMERATE: // UNTESTED!
+		case FUNCTION_NP_ENUMERATE:
 			{
 				NPObject 		*obj 		= readHandleObjIncRef(stack);
 
@@ -888,11 +877,6 @@ void dispatcher(int functionid, Stack &stack){
 
 				NPError result = pluginFuncs.getvalue(instance, variable, &objectValue);
 
-				// Note: The refcounter of objectValue will be incremented when returing an objectValue!
-				// http://stackoverflow.com/questions/1955073/when-to-release-object-in-npapi-plugin
-				// The incrementing has to be done using NPN_RetainObject, so this will be already redirected
-				// to the linux side ...
-
 				if(result == NPERR_NO_ERROR)
 					writeHandleObjDecRef(objectValue);
 
@@ -919,7 +903,7 @@ void dispatcher(int functionid, Stack &stack){
 					// SetWindowPos(ndata->hWnd, HWND_TOP, 0, 0, width, height, SWP_NOMOVE | SWP_SHOWWINDOW);
 					// here ... although we don't call it the window seems to resize properly
 
-					if(! ndata->hWnd){
+					if(!ndata->hWnd){
 						RECT rect;
 						rect.left 	= 0;
 						rect.top	= 0;
@@ -1040,7 +1024,7 @@ void dispatcher(int functionid, Stack &stack){
 
 				NPError result = pluginFuncs.destroystream(instance, stream, reason);
 
-				// Free Data
+				// Free data
 				if(stream){
 					if(stream->url) 	free((char*)stream->url);
 					if(stream->headers) free((char*)stream->headers);

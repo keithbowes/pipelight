@@ -64,7 +64,7 @@ class HandleManager{
 		void clear();
 };
 
-void writeHandle(uint64_t real, HandleType type, HandleExists shouldExist = HANDLE_CAN_EXIST);
+void 			writeHandle(uint64_t real, HandleType type, HandleExists shouldExist = HANDLE_CAN_EXIST);
 uint64_t		readHandle(Stack &stack, int32_t &type, NPP instance = NULL, NPClass *aclass = 0, HandleExists shouldExist = HANDLE_CAN_EXIST);
 
 void writeHandleObj(NPObject *obj, HandleExists shouldExist = HANDLE_CAN_EXIST, bool deleteFromHandleManager = false);

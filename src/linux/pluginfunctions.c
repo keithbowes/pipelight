@@ -97,7 +97,6 @@ void pokeString(std::string str, char *dest, unsigned int maxLength){
 	}
 }
 
-// Verified, everything okay
 NP_EXPORT(NPError)
 NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 {
@@ -111,9 +110,7 @@ NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 		return NPERR_INCOMPATIBLE_VERSION_ERROR;
 	}
 
-	// sBrowserFuncs = bFuncs;
 	// Copy browser functions instead of saving the pointer
-
 	if(!sBrowserFuncs){
 		sBrowserFuncs = (NPNetscapeFuncs*)malloc( sizeof(NPNetscapeFuncs) );
 	}
@@ -200,6 +197,10 @@ NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 		return NPERR_INCOMPATIBLE_VERSION_ERROR;
 	}
 
+	if( pFuncs->size < (offsetof(NPPluginFuncs, setvalue) + sizeof(void*)) )
+		return NPERR_INVALID_FUNCTABLE_ERROR;
+
+	// Select which event handling method should be used
 	if( !config.eventAsyncCall && sBrowserFuncs->scheduletimer && sBrowserFuncs->unscheduletimer ){
 		std::cerr << "[PIPELIGHT] Using timer based event handling" << std::endl;
 
@@ -212,17 +213,10 @@ NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 		return NPERR_INCOMPATIBLE_VERSION_ERROR;
 	}
 
-
-
-	if( pFuncs->size < (offsetof(NPPluginFuncs, setvalue) + sizeof(void*)) )
-		return NPERR_INVALID_FUNCTABLE_ERROR;
-
 	// Return the plugin function table
 	pFuncs->version 		= (NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR;
 
-	// Dont overwrite the size of the function table, it might be smaller than usual
-	// pFuncs->size 		= sizeof(NPPluginFuncs);
-
+	// Dont overwrite the size of the function table, it might be smaller than sizeof(NPPluginFuncs)
 	pFuncs->newp 			= NPP_New;
 	pFuncs->destroy 		= NPP_Destroy;
 	pFuncs->setwindow 		= NPP_SetWindow;
@@ -240,7 +234,6 @@ NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 	return NPERR_NO_ERROR;
 }
 
-// Verified, everything okay
 NP_EXPORT(char*)
 NP_GetPluginVersion()
 {
@@ -259,7 +252,6 @@ NP_GetPluginVersion()
 	return strPluginversion;
 }
 
-// Verified, everything okay
 NP_EXPORT(const char*)
 NP_GetMIMEDescription()
 {
@@ -278,7 +270,6 @@ NP_GetMIMEDescription()
 	return strMimeType;
 }
 
-// Verified, everything okay
 NP_EXPORT(NPError)
 NP_GetValue(void* future, NPPVariable aVariable, void* aValue) {
 	EnterFunction();
@@ -299,8 +290,8 @@ NP_GetValue(void* future, NPPVariable aVariable, void* aValue) {
 
 			pokeString(resultStr, strPluginName, sizeof(strPluginName));
 
-			*((char**)aValue) = strPluginName;
-			result = NPERR_NO_ERROR;
+			*((char**)aValue) 	= strPluginName;
+			result 				= NPERR_NO_ERROR;
 			break;
 
 		case NPPVpluginDescriptionString:
@@ -316,8 +307,8 @@ NP_GetValue(void* future, NPPVariable aVariable, void* aValue) {
 
 			pokeString(resultStr, strPluginDescription, sizeof(strPluginDescription));		
 
-			*((char**)aValue) = strPluginDescription;
-			result = NPERR_NO_ERROR;
+			*((char**)aValue) 	= strPluginDescription;
+			result 				= NPERR_NO_ERROR;
 			break;
 
 		default:
@@ -330,7 +321,6 @@ NP_GetValue(void* future, NPPVariable aVariable, void* aValue) {
 	return result;
 }
 
-// TODO: Is this type correct? Does an errorcode make sense?
 NP_EXPORT(NPError)
 NP_Shutdown() {
 	EnterFunction();
@@ -382,7 +372,6 @@ void* timerThread(void* argument){
 	return NULL;
 }
 
-// Verified, everything okay
 NPError
 NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* argn[], char* argv[], NPSavedData* saved) {
 	EnterFunction();
@@ -408,7 +397,6 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 			config.eventAsyncCall = true;
 
 			std::cerr << "[PIPELIGHT] Opera browser detect, changed eventAsyncCall to true" << std::endl;
-
 		}
 	}
 
@@ -422,7 +410,6 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 		NPVariant resultVariant;
 		resultVariant.type 				= NPVariantType_Void;
 		resultVariant.value.objectValue = NULL;
-
 
 		if( sBrowserFuncs->getvalue(instance, NPNVWindowNPObject, &windowObj) == NPERR_NO_ERROR ){
 			
@@ -441,7 +428,6 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 
 	// Setup eventhandling
 	if( config.eventAsyncCall ){
-
 		if(!eventThread){
 			eventTimerInstance = instance;
 
@@ -458,9 +444,7 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 		}
 
 	}else{
-
 		// TODO: For Chrome this should be ~0, for Firefox a value of 5-10 is better.
-
 		if( eventTimerInstance == NULL ){
 			eventTimerInstance 	= instance;
 			eventTimerID 		= sBrowserFuncs->scheduletimer(instance, 5, true, timerFunc);
@@ -535,8 +519,6 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 	return result;
 }
 
-
-
 NPError
 NPP_Destroy(NPP instance, NPSavedData** save) {
 	EnterFunction();
@@ -550,7 +532,6 @@ NPP_Destroy(NPP instance, NPSavedData** save) {
 
 	if(unscheduleCurrentTimer){
 		if( config.eventAsyncCall ){
-
 			if(eventThread){
 				
 				// Do synchronization with the main thread
@@ -625,9 +606,7 @@ NPP_Destroy(NPP instance, NPSavedData** save) {
 
 	if(unscheduleCurrentTimer){
 		NPP nextInstance = handlemanager.findInstance();
-
 		if( config.eventAsyncCall ){
-
 			if(eventThread){
 				eventTimerInstance = nextInstance;
 				
@@ -644,7 +623,6 @@ NPP_Destroy(NPP instance, NPSavedData** save) {
 
 
 		}else{
-			
 			// In this event handling model we explicitly schedule a new timer
 			if( nextInstance ){
 				eventTimerID 		= sBrowserFuncs->scheduletimer(nextInstance, 5, true, timerFunc);
@@ -654,13 +632,11 @@ NPP_Destroy(NPP instance, NPSavedData** save) {
 			}
 
 		}
-
 	}
 
 	return result;
 }
 
-// Verified, everything okay
 NPError
 NPP_SetWindow(NPP instance, NPWindow* window) {
 	EnterFunction();
@@ -711,7 +687,6 @@ NPP_SetWindow(NPP instance, NPWindow* window) {
 	return NPERR_NO_ERROR;
 }
 
-// Verified, everything okay
 NPError
 NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool seekable, uint16_t* stype) {
 	EnterFunction();
@@ -739,14 +714,13 @@ NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool seekable, 
 	return result;
 }
 
-// Verified, everything okay
 NPError
 NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
 	EnterFunction();
 
 	if( !handlemanager.existsHandleByReal((uint64_t)stream, TYPE_NPStream) ){
 		// Affects Opera
-		//std::cerr << "[PIPELIGHT] Browser Use-After-Free bug in NPP_DestroyStream" << std::endl;
+		// std::cerr << "[PIPELIGHT] Browser Use-After-Free bug in NPP_DestroyStream" << std::endl;
 		return NPERR_NO_ERROR;
 	}
 
@@ -760,20 +734,17 @@ NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
 	// Remove the handle by the corresponding stream real object
 	handlemanager.removeHandleByReal((uint64_t)stream, TYPE_NPStream);
 
-	// We get another request using our notifyData after everything
-
 	return result;
 }
 
-// Verified, everything okay
 int32_t
 NPP_WriteReady(NPP instance, NPStream* stream) {
 	EnterFunction();
 
 	if( !handlemanager.existsHandleByReal((uint64_t)stream, TYPE_NPStream) ){
 		// Affects Chrome
-		//std::cerr << "[PIPELIGHT] Browser Use-After-Free bug in NPP_WriteReady" << std::endl;
-		return -1;
+		// std::cerr << "[PIPELIGHT] Browser Use-After-Free bug in NPP_WriteReady" << std::endl;
+		return 0x7FFFFFFF;
 	}
 
 	writeHandleStream(stream, HANDLE_SHOULD_EXIST);
@@ -790,14 +761,13 @@ NPP_WriteReady(NPP instance, NPStream* stream) {
 	return result;
 }
 
-// Verified, everything okay
 int32_t
 NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, void* buffer) {
 	EnterFunction();
 
 	if( !handlemanager.existsHandleByReal((uint64_t)stream, TYPE_NPStream) ){
 		// Affects Chrome
-		//std::cerr << "[PIPELIGHT] Browser Use-After-Free bug in NPP_WriteReady" << std::endl;
+		// std::cerr << "[PIPELIGHT] Browser Use-After-Free bug in NPP_WriteReady" << std::endl;
 		return len;
 	}
 
@@ -810,26 +780,22 @@ NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, void* buf
 	return readResultInt32();
 }
 
-// Not implemented as it doesnt make sense to pass filenames between both the windows and linux instances
 void
 NPP_StreamAsFile(NPP instance, NPStream* stream, const char* fname) {
 	NotImplemented();
 }
 
-// Platform-specific print operation also isn't well defined between two different platforma
 void
 NPP_Print(NPP instance, NPPrint* platformPrint) {
 	NotImplemented();
 }
 
-// Delivers platform-specific events.. but again this doesnt make much sense, as long as a translation function is missing
 int16_t
 NPP_HandleEvent(NPP instance, void* event) {
 	NotImplemented();
 	return 0;
 }
 
-// Verified, everything okay
 void
 NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyData) {
 	EnterFunction();
@@ -867,7 +833,6 @@ NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyData) 
 
 }
 
-// Verified, everything okay
 NPError
 NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 	EnterFunction();
@@ -878,14 +843,14 @@ NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 	switch(variable){
 
 		case NPPVpluginNeedsXEmbed:
-			result 				= NPERR_NO_ERROR;
-			*((PRBool *)value) 	= PR_TRUE;
+			result 						= NPERR_NO_ERROR;
+			*((PRBool *)value) 			= PR_TRUE;
 			break;
 
 		// Requested by Midori, but unknown if Silverlight supports this variable
 		case NPPVpluginWantsAllNetworkStreams:
-			result 				= NPERR_NO_ERROR;
-			*((PRBool *)value) 	= PR_FALSE;
+			result 						= NPERR_NO_ERROR;
+			*((PRBool *)value) 			= PR_FALSE;
 			break;
 
 		// Boolean return value
@@ -898,7 +863,7 @@ NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 			result = (NPError)readInt32(stack);
 
 			if(result == NPERR_NO_ERROR)
-				*((PRBool *)value) = (PRBool)readInt32(stack);
+				*((PRBool *)value) 		= (PRBool)readInt32(stack);
 			break;*/
 
 		// Object return value
@@ -908,7 +873,7 @@ NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 			callFunction(FUNCTION_NPP_GETVALUE_OBJECT);
 			readCommands(stack);
 
-			result 					= readInt32(stack);
+			result 						= readInt32(stack);
 
 			if(result == NPERR_NO_ERROR)
 				*((NPObject**)value) 	= readHandleObj(stack);
@@ -924,7 +889,6 @@ NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 	return result;
 }
 
-// As the size of the value depends on the specific variable, this also isn't easy to implement
 NPError
 NPP_SetValue(NPP instance, NPNVariable variable, void *value) {
 	NotImplemented();

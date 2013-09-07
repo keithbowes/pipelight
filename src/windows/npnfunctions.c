@@ -69,7 +69,6 @@ NPError NP_LOADDS NPN_RequestRead(NPStream* stream, NPByteRange* rangeList){
 	callFunction(FUNCTION_NPN_REQUEST_READ);
 
 	NPError result = readResultInt32();
-
 	return result;
 }
 
@@ -212,14 +211,11 @@ NPError NPN_PostURLNotify(NPP instance, const char* url, const char* target, uin
 
 }
 
-// Verified, everything okay
 NPError NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 	EnterFunction();
 
 	NPError result = NPERR_GENERIC_ERROR;
 	std::vector<ParameterInfo> stack;
-
-	// TODO: Deduplicate this code! One function for bool/obj is enough!
 
 	switch (variable){
 
@@ -272,7 +268,6 @@ NPError NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 	return result;		
 }
 
-// So far we dont allow overwriting these values
 NPError NPN_SetValue(NPP instance, NPPVariable variable, void *value){
 	EnterFunction();
 
@@ -282,7 +277,6 @@ NPError NPN_SetValue(NPP instance, NPPVariable variable, void *value){
 
 		case NPPVpluginWindowBool:
 			{
-
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
 				if(ndata){
 
@@ -309,11 +303,8 @@ NPError NPN_SetValue(NPP instance, NPPVariable variable, void *value){
 						}
 
 						pluginFuncs.setwindow(instance, window);
-
 					}
 				}
-
-
 			}
 			break;
 
@@ -341,7 +332,6 @@ void NP_LOADDS NPN_InvalidateRect(NPP instance, NPRect *rect){
 				InvalidateRect(ndata->hWnd, &r, false);
 
 			// As far as I have noticed the rect value is incorrect in windowed mode - invalidating the whole region necessary
-			// TODO: Completely disable this?
 			}else{
 				InvalidateRect(ndata->hWnd, NULL, false);
 
@@ -358,7 +348,6 @@ void NP_LOADDS NPN_InvalidateRegion(NPP instance, NPRegion region){
 		if(ndata->hWnd){
 			InvalidateRgn(ndata->hWnd, region, false);
 		}
-		//UpdateWindow(hwnd);
 	}
 }
 
@@ -373,7 +362,6 @@ void NP_LOADDS NPN_ForceRedraw(NPP instance){
 	}
 }
 
-// Verified, everything okay
 NPIdentifier NP_LOADDS NPN_GetStringIdentifier(const NPUTF8* name){
 	EnterFunction();
 
@@ -407,7 +395,6 @@ NPIdentifier NP_LOADDS NPN_GetIntIdentifier(int32_t intid){
 	return readHandleIdentifier(stack);
 }
 
-// Verified, everything okay
 bool NP_LOADDS NPN_IdentifierIsString(NPIdentifier identifier){
 	EnterFunction();
 
@@ -419,7 +406,6 @@ bool NP_LOADDS NPN_IdentifierIsString(NPIdentifier identifier){
 
 }
 
-// Verified, everything okay
 NPUTF8* NP_LOADDS NPN_UTF8FromIdentifier(NPIdentifier identifier){
 	EnterFunction();
 
@@ -433,7 +419,6 @@ NPUTF8* NP_LOADDS NPN_UTF8FromIdentifier(NPIdentifier identifier){
 	return readStringMalloc(stack);
 }
 
-// Verified, everything okay
 int32_t NP_LOADDS NPN_IntFromIdentifier(NPIdentifier identifier){
 	EnterFunction();
 
@@ -443,7 +428,6 @@ int32_t NP_LOADDS NPN_IntFromIdentifier(NPIdentifier identifier){
 	return readResultInt32();
 }
 
-// Verified, everything okay
 NPObject* NP_LOADDS NPN_CreateObject(NPP npp, NPClass *aClass){
 	EnterFunction();
 
@@ -455,14 +439,12 @@ NPObject* NP_LOADDS NPN_CreateObject(NPP npp, NPClass *aClass){
 	readCommands(stack);	
 
 	// When we get a object handle back, then allocate a local corresponding object
-	// and initialize the refcounter to one before returning it.
+	// and initialize the refcounter to 1 before returning it.
 	NPObject* result = readHandleObjIncRef(stack, npp, aClass);
 
 	return result;
-
 }
 
-// Verified, everything okay
 NPObject* NP_LOADDS NPN_RetainObject(NPObject *obj){
 	EnterFunction();
 
@@ -489,7 +471,6 @@ NPObject* NP_LOADDS NPN_RetainObject(NPObject *obj){
 	return obj;	
 }
 
-// Verified, everything okay
 void NP_LOADDS NPN_ReleaseObject(NPObject *obj){
 	EnterFunction();
 
@@ -505,7 +486,6 @@ void NP_LOADDS NPN_ReleaseObject(NPObject *obj){
 	}
 }
 
-// Verified, everything okay
 bool NP_LOADDS NPN_Invoke(NPP npp, NPObject* obj, NPIdentifier methodName, const NPVariant *args, uint32_t argCount, NPVariant *result){
 	EnterFunction();
 
@@ -522,7 +502,7 @@ bool NP_LOADDS NPN_Invoke(NPP npp, NPObject* obj, NPIdentifier methodName, const
 	bool resultBool = readInt32(stack);
 
 	if(resultBool){
-		readVariantIncRef(stack, *result); // no incref, as linux is responsible for refcounting!
+		readVariantIncRef(stack, *result); // Refcount already incremented by invoke()
 	}else{
 		result->type 				= NPVariantType_Void;
 		result->value.objectValue 	= NULL;
@@ -546,7 +526,7 @@ bool NP_LOADDS NPN_InvokeDefault(NPP npp, NPObject* obj, const NPVariant *args, 
 	bool resultBool = readInt32(stack);
 
 	if(resultBool){
-		readVariantIncRef(stack, *result); // no incref, as linux is responsible for refcounting!
+		readVariantIncRef(stack, *result); // Refcount already incremented by invoke()
 	}else{
 		result->type 				= NPVariantType_Void;
 		result->value.objectValue 	= NULL;
@@ -570,7 +550,7 @@ bool NP_LOADDS NPN_Evaluate(NPP npp, NPObject *obj, NPString *script, NPVariant 
 	bool resultBool = readInt32(stack);
 
 	if(resultBool){
-		readVariantIncRef(stack, *result); // no incref, as linux is responsible for refcounting!
+		readVariantIncRef(stack, *result); // Refcount already incremented by evaluate()
 	}else{
 		result->type 				= NPVariantType_Void;
 		result->value.objectValue 	= NULL;
@@ -594,7 +574,7 @@ bool NP_LOADDS NPN_GetProperty(NPP npp, NPObject *obj, NPIdentifier propertyName
 	bool resultBool = readInt32(stack);
 
 	if(resultBool){
-		readVariantIncRef(stack, *result); // no incref, as linux is responsible for refcounting!
+		readVariantIncRef(stack, *result); // Refcount already incremented by getProperty()
 	}else{
 		result->type 				= NPVariantType_Void;
 		result->value.objectValue 	= NULL;
@@ -653,7 +633,6 @@ bool NP_LOADDS NPN_HasMethod(NPP npp, NPObject *obj, NPIdentifier propertyName){
 	return result;
 }
 
-// Verified, everything okay
 void NP_LOADDS NPN_ReleaseVariantValue(NPVariant *variant){
 	EnterFunction();
 
@@ -672,7 +651,6 @@ void NP_LOADDS NPN_ReleaseVariantValue(NPVariant *variant){
 			break;
 	}
 
-	// Ensure that noone is reading that stuff again!
 	variant->type 				= NPVariantType_Void;
 	variant->value.objectValue 	= NULL;
 }
@@ -686,12 +664,10 @@ void NP_LOADDS NPN_SetException(NPObject *obj, const NPUTF8 *message){
 	waitReturn();
 }
 
-// Not documented, doesnt seem to be important
 void NP_LOADDS NPN_PushPopupsEnabledState(NPP npp, NPBool enabled){
 	NotImplemented();
 }
 
-// Not documented, doesnt seem to be important
 void NP_LOADDS NPN_PopPopupsEnabledState(NPP npp){
 	NotImplemented();
 }
@@ -707,13 +683,11 @@ bool NP_LOADDS NPN_Enumerate(NPP npp, NPObject *obj, NPIdentifier **identifier, 
 	readCommands(stack);
 
 	bool 	 result                         = (bool)readInt32(stack);
-
 	if(!result){
 		return false;
 	}
 
 	uint32_t identifierCount 				= readInt32(stack);
-
 	if(identifierCount == 0){
 		*identifier = NULL;
 		*count 		= 0;
@@ -734,12 +708,10 @@ bool NP_LOADDS NPN_Enumerate(NPP npp, NPObject *obj, NPIdentifier **identifier, 
 	return true;
 }
 
-// TODO: Global list with asynchronous calls executed when doing eventhandling?
 void NP_LOADDS NPN_PluginThreadAsyncCall(NPP instance, void (*func)(void *), void *userData){
 	NotImplemented();
 }
 
-// Hopefully not required
 bool NP_LOADDS NPN_Construct(NPP npp, NPObject* obj, const NPVariant *args, uint32_t argCount, NPVariant *result){
 	NotImplemented();
 	return false;
@@ -755,7 +727,6 @@ NPError NP_LOADDS NPN_SetValueForURL(NPP npp, NPNURLVariable variable, const cha
 	return NPERR_NO_ERROR;	
 }
 
-// This isn't implemented for security reasons
 NPError NPN_GetAuthenticationInfo(NPP npp, const char *protocol, const char *host, int32_t port, const char *scheme, const char *realm, char **username, uint32_t *ulen, char **password, uint32_t *plen){
 	NotImplemented();
 	return NPERR_NO_ERROR;	
@@ -770,55 +741,47 @@ void NP_LOADDS NPN_UnscheduleTimer(NPP instance, uint32_t timerID){
 	NotImplemented();
 }
 
-// I hope this one isn't important
 NPError NP_LOADDS NPN_PopUpContextMenu(NPP instance, NPMenu* menu){
 	NotImplemented();
 	return NPERR_NO_ERROR;
 }
 
-// I hope this one isn't important
 NPBool NP_LOADDS NPN_ConvertPoint(NPP instance, double sourceX, double sourceY, NPCoordinateSpace sourceSpace, double *destX, double *destY, NPCoordinateSpace destSpace){
 	NotImplemented();
 	return false;
 }
 
-// I hope this one isn't important
 NPBool NP_LOADDS NPN_HandleEvent(NPP instance, void *event, NPBool handled){
 	NotImplemented();
 	return false;
 }
 
-// I hope this one isn't important
 NPBool NP_LOADDS NPN_UnfocusInstance(NPP instance, NPFocusDirection direction){
 	NotImplemented();
 	return false;
 }
 
-// I hope this one isn't important
 void NP_LOADDS NPN_URLRedirectResponse(NPP instance, void* notifyData, NPBool allow){
 	NotImplemented();
 }
 
-// I hope this one isn't important
 NPError NP_LOADDS NPN_InitAsyncSurface(NPP instance, NPSize *size, NPImageFormat format, void *initData, NPAsyncSurface *surface){
 	NotImplemented();
 	return NPERR_NO_ERROR;	
 }
 
-// I hope this one isn't important
 NPError NP_LOADDS NPN_FinalizeAsyncSurface(NPP instance, NPAsyncSurface *surface){
 	NotImplemented();
 	return NPERR_NO_ERROR;	
 }
 
-// I hope this one isn't important
 void NP_LOADDS NPN_SetCurrentAsyncSurface(NPP instance, NPAsyncSurface *surface, NPRect *changed){
 	NotImplemented();
 }
 
 NPNetscapeFuncs browserFuncs = {
   sizeof(NPNetscapeFuncs),
-  (NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR, //must be below 9 when using Quicktime to prevent a crash
+  (NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR, // must be below 9 when using Quicktime to prevent a crash
   NPN_GetURL,
   NPN_PostURL,
   NPN_RequestRead,

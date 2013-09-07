@@ -414,9 +414,7 @@ NPObject * readHandleObjIncRef(Stack &stack, NPP instance, NPClass *aclass, Hand
 	if (type != TYPE_NPObject)
 		throw std::runtime_error("Wrong handle type, expected object");
 
-	//bool deleteFromHandleManager     = (bool)
-	readInt32(stack);
-	// This value is not possible on windows!
+	readInt32(stack); // deleteFromHandleManager not possible on Windows
 
 	if(obj->referenceCount != REFCOUNT_UNDEFINED)
 		obj->referenceCount++;
@@ -466,7 +464,7 @@ void objectKill(NPObject *obj){
 		throw std::runtime_error("objectKill for wrong object type");
 	}
 
-	// Set to some trash value! (not really necessary)
+	// Set the refcount to zero to ensure that Silverlight doesn't call releaseObject!
 	obj->referenceCount = 0;
 
 	// Remove it in the handle manager
@@ -490,7 +488,6 @@ void writeVariantReleaseDecRef(NPVariant &variant){
 			free((char*)variant.value.stringValue.UTF8Characters);
 
 	}else if(variant.type == NPVariantType_Object){
-
 		NPObject* obj = variant.value.objectValue;
 		objectDecRef(obj);
 
@@ -641,7 +638,6 @@ void freeVariantDecRef(NPVariant &variant){
 			free((char*)variant.value.stringValue.UTF8Characters);
 
 	}else if(variant.type == NPVariantType_Object){
-
 		NPObject* obj = variant.value.objectValue;
 		objectDecRef(obj);
 
@@ -710,7 +706,6 @@ void readVariant(Stack &stack, NPVariant &variant){
 }
 
 std::vector<NPVariant> readVariantArray(Stack &stack, int count){
-
 	NPVariant variant;
 	std::vector<NPVariant> result;
 
@@ -745,7 +740,6 @@ void freeVariantArray(std::vector<NPVariant> args){
 
 
 void writeNPString(NPString *string){
-	
 	if(!string)
 		throw std::runtime_error("Invalid String pointer!");
 

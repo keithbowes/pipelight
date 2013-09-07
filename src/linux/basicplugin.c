@@ -1,4 +1,3 @@
-/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -474,8 +473,7 @@ bool startWineProcess(){
 			return false;
 		}
 
-		// Disable buffering for input pipe
-		// (To allow waiting for a pipe)
+		// Disable buffering for input pipe (to allow waiting for a pipe)
 		setbuf(pipeInF, NULL);
 
 
@@ -544,7 +542,7 @@ void dispatcher(int functionid, Stack &stack){
 
 		// Plugin specific commands (_GET_, _NP_ and _NPP_) not implemented
 
-		case FUNCTION_NPN_CREATE_OBJECT: // Verified, everything okay
+		case FUNCTION_NPN_CREATE_OBJECT:
 			{
 				NPObject* obj = sBrowserFuncs->createobject(readHandleInstance(stack), &myClass);
 
@@ -558,7 +556,7 @@ void dispatcher(int functionid, Stack &stack){
 			break;
 
 
-		case FUNCTION_NPN_GETVALUE_BOOL: // Verified, everything okay
+		case FUNCTION_NPN_GETVALUE_BOOL:
 			{
 				NPP instance 			= readHandleInstance(stack);
 				NPNVariable variable 	= (NPNVariable)readInt32(stack);
@@ -575,7 +573,7 @@ void dispatcher(int functionid, Stack &stack){
 			break;
 
 
-		case FUNCTION_NPN_GETVALUE_OBJECT: // Verified, everything okay
+		case FUNCTION_NPN_GETVALUE_OBJECT:
 			{
 				NPP instance 			= readHandleInstance(stack);
 				NPNVariable variable 	= (NPNVariable)readInt32(stack);
@@ -591,7 +589,7 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		case FUNCTION_NPN_RELEASEOBJECT: // Verified, everything okay
+		case FUNCTION_NPN_RELEASEOBJECT:
 			{
 				NPObject* obj 		= readHandleObj(stack);
 
@@ -616,7 +614,7 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		case FUNCTION_NPN_RETAINOBJECT: // Verified, everything okay
+		case FUNCTION_NPN_RETAINOBJECT:
 			{
 				NPObject* obj 				= readHandleObj(stack);
 				uint32_t minReferenceCount 	= readInt32(stack);
@@ -642,7 +640,7 @@ void dispatcher(int functionid, Stack &stack){
 			break;
 
 
-		case FUNCTION_NPN_EVALUATE: // Verified, everything okay
+		case FUNCTION_NPN_EVALUATE:
 			{
 				NPString script;
 
@@ -650,7 +648,6 @@ void dispatcher(int functionid, Stack &stack){
 				NPObject* obj 		= readHandleObj(stack);	
 				readNPString(stack, script);
 
-				// Reset variant type
 				NPVariant resultVariant;
 				resultVariant.type 					= NPVariantType_Void;
 				resultVariant.value.objectValue 	= NULL;
@@ -695,7 +692,7 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		case FUNCTION_NPN_INVOKE_DEFAULT: // UNTESTED!
+		case FUNCTION_NPN_INVOKE_DEFAULT:
 			{
 				NPP instance 					= readHandleInstance(stack);
 				NPObject* obj 					= readHandleObj(stack);
@@ -721,7 +718,7 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		case FUNCTION_NPN_HAS_PROPERTY: // UNTESTED!
+		case FUNCTION_NPN_HAS_PROPERTY:
 			{
 				NPP instance 					= readHandleInstance(stack);
 				NPObject* obj 					= readHandleObj(stack);
@@ -734,7 +731,7 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		case FUNCTION_NPN_HAS_METHOD: // UNTESTED!
+		case FUNCTION_NPN_HAS_METHOD:
 			{
 				NPP instance 					= readHandleInstance(stack);
 				NPObject* obj 					= readHandleObj(stack);
@@ -747,7 +744,7 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		case FUNCTION_NPN_GET_PROPERTY: // Verified, everything okay
+		case FUNCTION_NPN_GET_PROPERTY:
 			{
 				NPP instance 				= readHandleInstance(stack);
 				NPObject*  obj 				= readHandleObj(stack);
@@ -760,14 +757,14 @@ void dispatcher(int functionid, Stack &stack){
 				bool result = sBrowserFuncs->getproperty(instance, obj, propertyName, &resultVariant);
 
 				if(result)
-					writeVariantRelease(resultVariant); // free variant (except contained objects)
+					writeVariantRelease(resultVariant);
 
 				writeInt32( result );
 				returnCommand();
 			}
 			break;
 
-		case FUNCTION_NPN_SET_PROPERTY: // UNTESTED!
+		case FUNCTION_NPN_SET_PROPERTY:
 			{
 				NPP instance 					= readHandleInstance(stack);
 				NPObject* obj 					= readHandleObj(stack);
@@ -785,7 +782,7 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		case FUNCTION_NPN_REMOVE_PROPERTY: // UNTESTED!
+		case FUNCTION_NPN_REMOVE_PROPERTY:
 			{
 				NPP instance 					= readHandleInstance(stack);
 				NPObject* obj 					= readHandleObj(stack);
@@ -798,7 +795,7 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		case FUNCTION_NPN_ENUMERATE: // UNTESTED!
+		case FUNCTION_NPN_ENUMERATE:
 			{
 				NPP instance 					= readHandleInstance(stack);
 				NPObject 		*obj 			= readHandleObj(stack);
@@ -822,7 +819,7 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		case FUNCTION_NPN_SET_EXCEPTION: // UNTESTED!
+		case FUNCTION_NPN_SET_EXCEPTION:
 			{
 				NPObject* obj 					= readHandleObj(stack);
 				std::shared_ptr<char> message 	= readStringAsMemory(stack);
@@ -909,34 +906,27 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPStream *stream 				= readHandleStream(stack);
 				uint32_t rangeCount				= readInt32(stack);
-
-				// TODO: Verify that this is correct!
-				std::vector<NPByteRange> rangeVector;
+				NPByteRange *byteRange 			= NULL;
 
 				for(unsigned int i = 0; i < rangeCount; i++){
-					NPByteRange range;
-					range.offset = readInt32(stack);
-					range.length = readInt32(stack);
-					range.next   = NULL;
-					rangeVector.push_back(range);
+					NPByteRange *newByteRange = (NPByteRange*)malloc(sizeof(NPByteRange));
+					if(!newByteRange) break; // Unable to send all requests, but shouldn't occur
+
+					newByteRange->offset = readInt32(stack);
+					newByteRange->length = readInt32(stack);
+					newByteRange->next   = byteRange;
+
+					byteRange = newByteRange;
 				}
 
-				// The last element is the latest one, we have to create the links between them...
-				std::vector<NPByteRange>::reverse_iterator lastObject = rangeVector.rend();
-				NPByteRange* rangeList = NULL;
+				NPError result = sBrowserFuncs->requestread(stream, byteRange);
 
-				for(std::vector<NPByteRange>::reverse_iterator it = rangeVector.rbegin(); it != rangeVector.rend(); it++){
-					if(lastObject != rangeVector.rend()){
-						lastObject->next = &(*it);
-					}else{
-						rangeList        = &(*it);
-					}
-					lastObject = it;
+				// Free the linked list
+				while(byteRange){
+					NPByteRange *nextByteRange = byteRange->next;
+					free(byteRange);
+					byteRange = nextByteRange;
 				}
-
-				NPError result = sBrowserFuncs->requestread(stream, rangeList);
-
-				// As soon as the vector is deallocated everything else is gone, too
 
 				writeInt32(result);
 				returnCommand();
@@ -983,10 +973,6 @@ void dispatcher(int functionid, Stack &stack){
 
 				NPError result = sBrowserFuncs->destroystream(instance, stream, reason);
 				
-				// Let the handlemanager remove this one
-				// TODO: Is this necessary?
-				//handlemanager.removeHandleByReal((uint64_t)stream, TYPE_NPStream);
-
 				writeInt32(result);
 				returnCommand();
 			}
@@ -1002,7 +988,7 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		case FUNCTION_NPN_USERAGENT: // Verified, everything okay
+		case FUNCTION_NPN_USERAGENT:
 			{
 				writeString( sBrowserFuncs->uagent(readHandleInstance(stack)) );
 				returnCommand();
@@ -1045,7 +1031,7 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		case FUNCTION_NPN_GET_STRINGIDENTIFIER: // Verified, everything okay
+		case FUNCTION_NPN_GET_STRINGIDENTIFIER:
 			{
 				std::shared_ptr<char> utf8name 	= readStringAsMemory(stack);
 				NPIdentifier identifier 		= sBrowserFuncs->getstringidentifier((NPUTF8*) utf8name.get());
