@@ -3,29 +3,29 @@ prefix=/usr/local/
 
 usage ()
 {
-    echo ""
-    echo "Usage : ./configure [--prefix=PREFIX]"
-    echo ""
+	echo ""
+	echo "Usage : ./configure [--prefix=PREFIX]"
+	echo ""
 }
 
 while [[ $# > 0 ]] ; do
-    case "$1" in
-        --prefix=*)
-            prefix=${1#*=}
-            ;;
-        --prefix)
-            shift
-            prefix=$1
-            ;;
-        --help)
-            usage
-            exit
-            ;;
-        *)
-            echo "Warning: unknown argument $1" >&2
-            ;;
-    esac
-    shift
+	case "$1" in
+		--prefix=*)
+			prefix=${1#*=}
+			;;
+		--prefix)
+			shift
+			prefix=$1
+			;;
+		--help)
+			usage
+			exit
+			;;
+		*)
+			echo "Warning: unknown argument $1" >&2
+			;;
+	esac
+	shift
 done
 
 prefix=$(readlink -m "$prefix")

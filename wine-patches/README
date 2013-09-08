@@ -1,0 +1,14 @@
+IMPORTANT NOTICE: the patches that used to be stored here have MOVED to a new bazaar branch.
+
+Bazaar Address:
+lp:netflix-desktop/wine-compholio
+ 
+Browsable URL:
+https://code.launchpad.net/~pipelight/netflix-desktop/wine-compholio
+
+Latest patches:
+http://bazaar.launchpad.net/~pipelight/netflix-desktop/wine-compholio/files/head:/patches/
+
+In order to download the patches of the last wine-compholio release, just execute
+	./get-wine-patches.sh
+inside the /wine-patches/ directory.
