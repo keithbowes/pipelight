@@ -128,10 +128,27 @@ while read FILENAME; do
 done < <(ls "$TEMPDIR/patches")
 echo ""
 
-# Verify checksums
+
 LATESTRELEASECLEAN=$(echo "$LATESTRELEASE" | cut -d"~" -f1)
-if [ -f "$OUTPUTDIR/SHA256SUMS-$LATESTRELEASECLEAN" ]; then
-	diff "$TEMPDIR/SHA256SUMS" "$OUTPUTDIR/SHA256SUMS-$LATESTRELEASECLEAN" &> /dev/null
+
+# Download checksum file if not available
+if [ ! -f "SHA256SUMS-$LATESTRELEASECLEAN" ]; then
+	echo -n " * Trying to download SHA256SUMS-$LATESTRELEASECLEAN ... "
+	wget -O "SHA256SUMS-$LATESTRELEASECLEAN" -o /dev/null -- "https://bitbucket.org/api/1.0/repositories/mmueller2012/pipelight/raw/master/wine-patches/SHA256SUMS-$LATESTRELEASECLEAN"
+	RET="$?"
+	if [ "$RET" -ne 0 ]; then
+		echo "failed!"
+		if [ -f "SHA256SUMS-$LATESTRELEASECLEAN" ]; then
+			rm "SHA256SUMS-$LATESTRELEASECLEAN"
+		fi
+	else
+		echo "done"
+	fi
+fi
+
+# Verify checksums
+if [ -f "SHA256SUMS-$LATESTRELEASECLEAN" ]; then
+	diff "$TEMPDIR/SHA256SUMS" "SHA256SUMS-$LATESTRELEASECLEAN" &> /dev/null
 	RET="$?"
 	if [ "$RET" -ne 0 ]; then
 		echo "Error: extracted patches don't match SHA256SUMS-$LATESTRELEASECLEAN file" >&2
