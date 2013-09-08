@@ -1,15 +1,15 @@
-From 700b8853334120a4fe3a827460b4a3cd0e8b50c2 Mon Sep 17 00:00:00 2001
+From f634de2884af860d156b3ad0b54130b9e83818e0 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Michael=20M=C3=BCller?= <michael@fds-team.de>
-Date: Fri, 30 Aug 2013 15:38:37 +0200
-Subject: d3d9/tests: Test if IDirect3DSwapChain9Ex is available without
- IDirect3D9Ex
+Date: Sun, 8 Sep 2013 12:25:12 +0200
+Subject: d3d9/tests: Test if IDirect3DSwapChain9Ex is available with
+ IDirect3D9(Ex)
 
 ---
- dlls/d3d9/tests/d3d9ex.c |   16 ++++++++++++++++
- 1 file changed, 16 insertions(+)
+ dlls/d3d9/tests/d3d9ex.c |   34 ++++++++++++++++++++++++++++++++++
+ 1 file changed, 34 insertions(+)
 
 diff --git a/dlls/d3d9/tests/d3d9ex.c b/dlls/d3d9/tests/d3d9ex.c
-index 2deef76..138de14 100644
+index 2deef76..6f54672 100644
 --- a/dlls/d3d9/tests/d3d9ex.c
 +++ b/dlls/d3d9/tests/d3d9ex.c
 @@ -120,6 +120,8 @@ static void test_qi_base_to_ex(void)
@@ -35,13 +35,45 @@ index 2deef76..138de14 100644
 +           "IDirect3DSwapChain9::QueryInterface for IID_IDirect3DSwapChain9Ex returned %08x, expected E_NOINTERFACE\n",
 +           hr);
 +        ok(swapchainEx == NULL, "QueryInterface returned interface %p, expected NULL\n", swapchainEx);
-+        if(swapchainEx) IDirect3DSwapChain9Ex_Release(swapchainEx);
++        if (swapchainEx) IDirect3DSwapChain9Ex_Release(swapchainEx);
 +    }
-+    if(swapchain) IDirect3DSwapChain9_Release(swapchain);
++    if (swapchain) IDirect3DSwapChain9_Release(swapchain);
 +
      IDirect3DDevice9_Release(device);
  
  out:
+@@ -171,6 +187,8 @@ static void test_qi_ex_to_base(void)
+     IDirect3D9Ex *d3d9ex;
+     IDirect3DDevice9 *device;
+     IDirect3DDevice9Ex *deviceEx = (void *) 0xdeadbeef;
++    IDirect3DSwapChain9 *swapchain = NULL;
++    IDirect3DSwapChain9Ex *swapchainEx = (void *) 0xdeadbeef;
+     HRESULT hr;
+     HWND window = create_window();
+     D3DPRESENT_PARAMETERS present_parameters;
+@@ -240,6 +258,22 @@ static void test_qi_ex_to_base(void)
+     ok(ref == 2, "IDirect3DDevice9 refcount is %d, expected 2\n", ref);
+     ref = getref((IUnknown *) deviceEx);
+     ok(ref == 2, "IDirect3DDevice9Ex refcount is %d, expected 2\n", ref);
++
++    /* Get the implicit swapchain */
++    hr = IDirect3DDevice9_GetSwapChain(device, 0, &swapchain);
++    ok(SUCCEEDED(hr), "Failed to get the implicit swapchain (%08x)\n", hr);
++    if (SUCCEEDED(hr))
++    {
++        hr = IDirect3DSwapChain9_QueryInterface(swapchain, &IID_IDirect3DSwapChain9Ex, (void **) &swapchainEx);
++        ok(hr == D3D_OK,
++           "IDirect3DSwapChain9::QueryInterface for IID_IDirect3DSwapChain9Ex returned %08x, expected D3D_OK\n",
++           hr);
++        ok(swapchainEx != NULL && swapchainEx != (void *) 0xdeadbeef,
++            "QueryInterface returned interface %p, expected != NULL && != 0xdeadbeef\n", swapchainEx);
++        if (swapchainEx) IDirect3DSwapChain9Ex_Release(swapchainEx);
++    }
++    if (swapchain) IDirect3DSwapChain9_Release(swapchain);
++
+     if(deviceEx) IDirect3DDevice9Ex_Release(deviceEx);
+     IDirect3DDevice9_Release(device);
+ 
 -- 
 1.7.9.5
 
