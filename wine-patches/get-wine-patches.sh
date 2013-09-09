@@ -8,7 +8,8 @@ usage ()
 	echo "Usage : ./get-wine-patches.sh [--out=DIRECTORY] [--force]"
 	echo ""
 	echo "This script downloads the wine-patches included in the last wine-compholio"
-	echo "release to the current working directory."
+	echo "release to the current working directory or alternatively to the directory"
+	echo "specified by --out."
 	echo ""
 }
 
@@ -45,7 +46,8 @@ fi
 # Ensure that there are no other patches in the output directory
 NUMPATCHES=$(find "$OUTPUTDIR" -type f -iname "*.patch" | wc -l)
 if [ "$NUMPATCHES" -ne 0 ] && [ "$FORCE" = "" ]; then
-	echo "Error: output directory already contains some patch files or specify --force" >&2
+	echo "Error: output directory already contains some patch files -" >&2
+	echo "       if you want to continue anyway use --force" >&2
 	exit 1
 fi
 
@@ -61,6 +63,8 @@ if [ "$RET" -ne 0 ] || [ "$LATESTRELEASE" = "" ]; then
 	exit 1
 fi
 echo "$LATESTRELEASE"
+
+LATESTRELEASECLEAN=$(echo "$LATESTRELEASE" | cut -d"~" -f1)
 
 # Create a temp directory for extracting the patch
 TEMPDIR=$(mktemp -d)
@@ -119,17 +123,6 @@ if [ "$RET" -ne 0 ]; then
 	exit 1
 fi
 echo "done"
-echo ""
-
-# Display the result o the user if everything was successful
-echo "The following patches have been installed to $OUTPUTDIR:"
-while read FILENAME; do
-	echo " - $FILENAME"
-done < <(ls "$TEMPDIR/patches")
-echo ""
-
-
-LATESTRELEASECLEAN=$(echo "$LATESTRELEASE" | cut -d"~" -f1)
 
 # Download checksum file if not available
 if [ ! -f "SHA256SUMS-$LATESTRELEASECLEAN" ]; then
@@ -145,6 +138,15 @@ if [ ! -f "SHA256SUMS-$LATESTRELEASECLEAN" ]; then
 		echo "done"
 	fi
 fi
+
+echo ""
+
+# Display the result to the user if everything was successful
+echo "The following patches have been installed to $OUTPUTDIR:"
+while read FILENAME; do
+	echo " - $FILENAME"
+done < <(ls "$TEMPDIR/patches")
+echo ""
 
 # Verify checksums
 if [ -f "SHA256SUMS-$LATESTRELEASECLEAN" ]; then
