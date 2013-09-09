@@ -1,0 +1,216 @@
+#!/bin/sh
+# This is a modified version of the script by Erich E. Hoover which does all the downloading
+# and installation during the runtime. Moreover it doesn't have any additional dependencies
+# as it contains everything hardcoded.
+
+# Original versions:
+# http://bazaar.launchpad.net/~ehoover/netflix-desktop/trunk/view/head:/wine-browser-installer/install-dependency
+# http://bazaar.launchpad.net/~ehoover/netflix-desktop/trunk/files/head:/debian/  (all *.install-script files)
+
+DEPENDENCIES="$@";
+
+# Environment variable check
+if [ "${WINE}" = "" ] || [ "${WINEPREFIX}" = "" ]; then
+	echo "Missing necessary environment variables.";
+	exit 1;
+fi
+
+# Generate a lock file based on the wine prefix
+LOCK_FILE=$(echo "${WINEPREFIX}" | md5sum | cut -d" " -f1);
+LOCK_FILE="/var/tmp/wine-${LOCK_FILE}.tmp";
+
+# Make sure that this installation is only occurring in one process at a time
+LOCK_FD=9; # must be less than 10 for dash
+eval "exec ${LOCK_FD}> "${LOCK_FILE}"";
+flock -x -w 360 ${LOCK_FD};
+if [ $? -ne 0 ]; then
+	echo "Failed to obtain an installation lock in 6 minutes.";
+	exit 1;
+fi
+
+# Initialize wine if not done yet
+if [ ! -d "${WINEPREFIX}" ]; then
+	DISPLAY="" "${WINE}" wineboot.exe 2>&1 | \
+		zenity --progress --title="Please wait ..." --text="Creating wine prefix" --pulsate --width=400 --auto-close --no-cancel;
+fi
+
+# Overall status of the installation
+RET="0";
+
+for DEP in $DEPENDENCIES; do
+	FILEEXT=""
+
+	if [ "$DEP" = "wine-silverlight4-installer" ]; then
+		INSTALLER="silverlight";
+		URL="http://silverlight.dlservice.microsoft.com/download/6/A/1/6A13C54D-3F35-4082-977A-27F30ECE0F34/10329.00/runtime/Silverlight.exe";
+		SHA256SUM="b0e476090206b2e61ba897de9151a31e0182c0e62e8abd528c35d3857ad6131c";
+		SILVERLIGHTVERSION="4.1.10329.0";
+
+	elif [ "$DEP" = "wine-silverlight5.0-installer" ]; then
+		INSTALLER="silverlight";
+		URL="http://silverlight.dlservice.microsoft.com/download/5/5/7/55748E53-D673-4225-8072-4C7A377BB513/runtime/Silverlight.exe"
+		SHA256SUM="dd45a55419026c592f8b6fc848dceface7e1ce98720bf13848a2e8ae366b29e8";
+		SILVERLIGHTVERSION="5.0.61118.0";
+
+	elif [ "$DEP" = "wine-silverlight5.1-installer" ]; then
+		INSTALLER="silverlight";
+		URL="http://silverlight.dlservice.microsoft.com/download/B/3/C/B3CF6815-40B1-4E36-8746-C4A0381AD260/20513.00/runtime/Silverlight.exe"
+		SHA256SUM="8c5d1ddaefd629670033841fb88188789f2f63170b2fe1aaddb2c9b33d4532ea";
+		SILVERLIGHTVERSION="5.1.20513.0";
+
+	elif [ "$DEP" = "wine-mpg2splt-installer" ]; then
+		INSTALLER="cablibrary";
+		URL="http://download.microsoft.com/download/8/0/D/80D7E79D-C0E4-415A-BCCA-E229EAFE2679/dshow_nt.cab";
+		SHA256SUM="984ed15e23a00a33113f0012277e1e680c95782ce2c44f414e7af14e28e3f1a2";
+		EXTRACTFILE="mpg2splt.ax";
+
+	elif [ "$DEP" = "wine-browser-installer" ]; then
+		INSTALLER="firefox";
+		URL="http://download.mozilla.org/?product=firefox-22.0&os=win&lang=en-US";
+		SHA256SUM="abb189f17e65e73d61843247ad1af7c997318b7854fa850a04e5f9d9a20cdd03";
+		FILEEXT="exe"
+
+	else
+		echo "No installer script found for ${DEP}.";
+		RET="1";
+		continue;
+	fi
+
+	if [ "$FILEEXT" = "" ]; then
+		FILEEXT=$(echo "$URL" | sed 's/.*\.//');
+	fi
+
+	FILEINSTALLED="${WINEPREFIX}/${DEP}.installed";
+	FILEDOWNLOAD="${WINEPREFIX}/${DEP}.${FILEEXT}";
+
+	# Check if its already installed
+	if [ -f "${FILEINSTALLED}" ]; then
+		INSTALL_SHA256SUM=$(cat "${FILEINSTALLED}")
+		if [ "${SHA256SUM}" = "${INSTALL_SHA256SUM}" ]; then
+			echo "${DEP} is already installed in ${WINEPREFIX}.";
+			continue;
+		fi
+	fi
+
+	# Do we still have the installation files in the right directory?
+	DOWNLOADOKAY="1";
+	if [ -f "${FILEDOWNLOAD}" ]; then
+		DOWNLOAD_SHA256SUM=$(sha256sum "${FILEDOWNLOAD}" | cut -d' ' -f1);
+		if [ "${SHA256SUM}" = "${DOWNLOAD_SHA256SUM}" ]; then
+			DOWNLOADOKAY="0";
+		fi
+	fi
+
+	TRYCOUNT=3
+
+	while [ "${DOWNLOADOKAY}" -ne "0" ]; do
+		if [ "${TRYCOUNT}" -le 0 ]; then
+			break;
+		fi
+
+		wget -O "${FILEDOWNLOAD}" "${URL}" 2>&1 | \
+			zenity --progress --title="Please wait, downloading ..." --text="Downloading $DEP" --pulsate --width=400 --auto-close --no-cancel;
+
+		# Check if it was successful this time
+		if [ $? -eq 0 ]; then
+			if [ -f "${FILEDOWNLOAD}" ]; then
+				DOWNLOAD_SHA256SUM=$(sha256sum "${FILEDOWNLOAD}" | cut -d' ' -f1);
+				if [ "${SHA256SUM}" = "${DOWNLOAD_SHA256SUM}" ]; then
+					DOWNLOADOKAY="0";
+					break
+				fi
+			fi
+		fi
+
+		((TRYCOUNT--));
+		sleep 2;
+	done
+
+	if [ "${DOWNLOADOKAY}" -ne "0" ]; then
+		echo "Downloading ${DEP} failed multiple times - please check your internet connection and if you're using the latest version of Pipelight.";
+		RET="1";
+		continue;	
+	fi
+
+
+	# Do the actual installation
+	if [ "$INSTALLER" = "silverlight" ]; then
+
+		# Remove the registry keys for Silverlight since other versions can prevent this one from installing
+		"${WINE}" msiexec /uninstall {89F4137D-6C26-4A84-BDB8-2E5A4BB71E00};
+
+		# Launch the installer
+		"${WINE}" "${FILEDOWNLOAD}" /q /doNotRequireDRMPrompt /noupdate 2>&1 | \
+			zenity --progress --title="Please wait, installing ..." --text="Installing $DEP" --pulsate --width=400 --auto-close --no-cancel;
+
+		# Move the installation to a version-specific folder that nothing will touch
+		PROGRAM_FILES="${WINEPREFIX}/drive_c/Program Files";
+		mkdir -p "${PROGRAM_FILES}/Silverlight"; # create the destination folder if necessary
+
+		mv "${PROGRAM_FILES}/Microsoft Silverlight/${SILVERLIGHTVERSION}" "${PROGRAM_FILES}/Silverlight/${SILVERLIGHTVERSION}";
+
+		# Wait for Wine to finish building the .desktop files
+		SERVERPID=$(ps aux | grep wineserver | grep -v -e 'grep' -e 'nano' | sed 's|[^ ]*[ ]*\([^ ]*\).*|\1|g');
+		TIMEOUT="10";
+
+		while [ ! $(kill -0 ${SERVERPID}; echo $?) -eq "0" ] && [ "${TIMEOUT}" -ne "0" ]; do
+			sleep 1;
+			TIMEOUT=$((${TIMEOUT}-1));
+		done
+
+		# Remove the Silverlight menu shortcut
+		USER_LINK_FILE="${WINEPREFIX}/drive_c/users/${USER}/Start Menu/Programs/Microsoft Silverlight/Microsoft Silverlight.lnk";
+		USER_DESKTOP_FILE="${HOME}/.local/share/applications/wine/Programs/Microsoft Silverlight/Microsoft Silverlight.desktop";
+		rm "${USER_LINK_FILE}" 2>/dev/null;
+		rm "${USER_DESKTOP_FILE}" 2>/dev/null;
+		xdg-desktop-menu uninstall "${USER_DESKTOP_FILE}" 2>/dev/null;
+
+	elif [ "$INSTALLER" = "cablibrary" ]; then
+
+		# Extract and register the libraries
+		SYSTEM32="${WINEPREFIX}/drive_c/windows/system32";
+		cabextract -d "${SYSTEM32}" "${FILEDOWNLOAD}" -F "${EXTRACTFILE}";
+		if [ ! -f "${SYSTEM32}/${EXTRACTFILE}" ]; then
+			echo "Failed to extract ${EXTRACTFILE} from cab file.";
+			RET="1";
+			continue;
+		fi
+
+		"${WINE}" regsvr32.exe "${EXTRACTFILE}";
+
+	elif [ "$INSTALLER" = "firefox" ]; then
+
+		TMPFILE=$(mktemp);
+		if [ ! -f "$TMPFILE" ]; then
+			echo "Failed to create tempfile.";
+			RET="1";
+			continue;
+		fi
+
+		# Note: We generate this file inplace, as we don't know the installation directory
+		# We have to update this if something changes in the original repository
+		echo "[Install]" 					>  "$TMPFILE";
+		echo "QuickLaunchShortcut=false" 	>> "$TMPFILE";
+		echo "DesktopShortcut=false"		>> "$TMPFILE";
+		echo "StartMenuShortcuts=false" 	>> "$TMPFILE";
+		echo "MaintenanceService=false" 	>> "$TMPFILE";
+
+		INIFILE=$("${WINE}" winepath --windows "$TMPFILE")
+
+		# Run the installer, as a dialog is displayed we don't need to use zenity
+		"${WINE}" "${FILEDOWNLOAD}" "/INI=$INIFILE" 2>&1 | \
+			zenity --progress --title="Please wait, installing ..." --text="Installing $DEP" --pulsate --width=400 --auto-close --no-cancel;
+
+		rm "$TMPFILE"
+
+	else
+		echo "Unable to process downloaded file for ${URL}.";
+		RET="1";
+		continue;
+	fi
+
+	# Mark it as installed
+	echo "${SHA256SUM}" > "${FILEINSTALLED}";
+done
+
+exit "${RET}";
