@@ -669,6 +669,7 @@ NPP_SetWindow(NPP instance, NPWindow* window) {
 				/*sendXembedMessage(display, win, XEMBED_FOCUS_IN, 		XEMBED_FOCUS_CURRENT, 0, 0);
 				sendXembedMessage(display, win, XEMBED_WINDOW_ACTIVATE, 0, 0, 0);
 				sendXembedMessage(display, win, XEMBED_MODALITY_ON, 	0, 0, 0);*/
+				sendXembedMessage(display, win, XEMBED_FOCUS_OUT, 		0, 0, 0);
 
 				XCloseDisplay(display);
 
