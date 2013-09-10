@@ -51,7 +51,7 @@ fi
 DEPENDENCIES="$@";
 
 # Environment variable check
-if [ "${WINE}" = "" ] || [ "${WINEPREFIX}" = "" ]; then
+if [ -z "${WINE}" ] || [ -z "${WINEPREFIX}" ]; then
 	echo "Missing necessary environment variables.";
 	exit 1;
 fi
@@ -117,7 +117,7 @@ for DEP in $DEPENDENCIES; do
 		continue;
 	fi
 
-	if [ "$FILEEXT" = "" ]; then
+	if [ -z "$FILEEXT" ]; then
 		FILEEXT=$(echo "$URL" | sed 's/.*\.//');
 	fi
 
@@ -191,7 +191,7 @@ for DEP in $DEPENDENCIES; do
 		mv "${PROGRAM_FILES}/Microsoft Silverlight/${SILVERLIGHTVERSION}" "${PROGRAM_FILES}/Silverlight/${SILVERLIGHTVERSION}";
 
 		# Wait for Wine to finish building the .desktop files
-		SERVERPID=$(ps aux | grep wineserver | grep -v -e 'grep' -e 'nano' | sed 's|[^ ]*[ ]*\([^ ]*\).*|\1|g');
+		SERVERPID=$(ps aux | grep "w[i]neserver" | grep -v 'nano' | sed 's|[^ ]*[ ]*\([^ ]*\).*|\1|g');
 		TIMEOUT="10";
 
 		while [ ! $(kill -0 ${SERVERPID}; echo $?) -eq "0" ] && [ "${TIMEOUT}" -ne "0" ]; do
@@ -202,8 +202,8 @@ for DEP in $DEPENDENCIES; do
 		# Remove the Silverlight menu shortcut
 		USER_LINK_FILE="${WINEPREFIX}/drive_c/users/${USER}/Start Menu/Programs/Microsoft Silverlight/Microsoft Silverlight.lnk";
 		USER_DESKTOP_FILE="${HOME}/.local/share/applications/wine/Programs/Microsoft Silverlight/Microsoft Silverlight.desktop";
-		rm "${USER_LINK_FILE}" 2>/dev/null;
-		rm "${USER_DESKTOP_FILE}" 2>/dev/null;
+		rm -f "${USER_LINK_FILE}";
+		rm -f "${USER_DESKTOP_FILE}";
 		xdg-desktop-menu uninstall "${USER_DESKTOP_FILE}" 2>/dev/null;
 
 	elif [ "$INSTALLER" = "cablibrary" ]; then
@@ -230,11 +230,13 @@ for DEP in $DEPENDENCIES; do
 
 		# Note: We generate this file inplace, as we don't know the installation directory
 		# We have to update this if something changes in the original repository
-		echo "[Install]" 					>  "$TMPFILE";
-		echo "QuickLaunchShortcut=false" 	>> "$TMPFILE";
-		echo "DesktopShortcut=false"		>> "$TMPFILE";
-		echo "StartMenuShortcuts=false" 	>> "$TMPFILE";
-		echo "MaintenanceService=false" 	>> "$TMPFILE";
+		( 	echo "[Install]";
+			echo "QuickLaunchShortcut=false";
+			echo "DesktopShortcut=false";
+			echo "StartMenuShortcuts=false";
+			echo "MaintenanceService=false";
+		) > "$TMPFILE";
+
 
 		INIFILE=$("${WINE}" winepath --windows "$TMPFILE")
 
