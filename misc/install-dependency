@@ -7,11 +7,44 @@
 # http://bazaar.launchpad.net/~ehoover/netflix-desktop/trunk/view/head:/wine-browser-installer/install-dependency
 # http://bazaar.launchpad.net/~ehoover/netflix-desktop/trunk/files/head:/debian/  (all *.install-script files)
 
-# In case no zenity is available ...
-if ! command -v zenity >/dev/null 2>&1; then
-	zenity ()
+# Check if some visual feedback is possible
+if command -v zenity >/dev/null 2>&1; then
+	progressbar ()
 	{
-		cat -
+		zenity --progress --title="$1" --text="$2" --pulsate --width=400 --auto-close --no-cancel;
+	}
+
+elif command -v kdialog >/dev/null 2>&1; then
+	progressbar ()
+	{
+		DCOPREF=$(kdialog --title "$1" --progressbar "$2" 10);
+		# Update the progress bar (not really the progress, but the user knows that something is going on)
+		(
+			PROGRESS=1;
+			while true; do
+				ERR=$(qdbus $DCOPREF org.freedesktop.DBus.Properties.Set org.kde.kdialog.ProgressDialog value "$PROGRESS" 2>&1);
+				if [ ! -z "$ERR" ]; then
+					break
+				fi
+				sleep 1;
+				PROGRESS=$((${PROGRESS}+1));
+				if [ "$PROGRESS" -gt 10 ]; then
+					PROGRESS=0;
+				fi
+			done
+		) &
+		DIALOGPID="$!"
+
+		cat - > /dev/null;
+		
+		kill "$DIALOGPID";
+		qdbus $DCOPREF org.kde.kdialog.ProgressDialog.close  &> /dev/null;
+	}
+
+else
+	progressbar ()
+	{
+		cat -;
 	}
 fi
 
@@ -39,7 +72,7 @@ fi
 # Initialize wine if not done yet
 if [ ! -d "${WINEPREFIX}" ]; then
 	DISPLAY="" "${WINE}" wineboot.exe 2>&1 | \
-		zenity --progress --title="Please wait ..." --text="Creating wine prefix" --pulsate --width=400 --auto-close --no-cancel;
+		progressbar "Please wait..." "Creating wine prefix";
 fi
 
 # Overall status of the installation
@@ -117,7 +150,7 @@ for DEP in $DEPENDENCIES; do
 		fi
 
 		wget -O "${FILEDOWNLOAD}" "${URL}" 2>&1 | \
-			zenity --progress --title="Please wait, downloading ..." --text="Downloading $DEP" --pulsate --width=400 --auto-close --no-cancel;
+			progressbar "Please wait, downloading ..." "Downloading $DEP";
 
 		# Check if it was successful this time
 		if [ $? -eq 0 ]; then
@@ -149,7 +182,7 @@ for DEP in $DEPENDENCIES; do
 
 		# Launch the installer
 		"${WINE}" "${FILEDOWNLOAD}" /q /doNotRequireDRMPrompt /noupdate 2>&1 | \
-			zenity --progress --title="Please wait, installing ..." --text="Installing $DEP" --pulsate --width=400 --auto-close --no-cancel;
+			progressbar "Please wait, installing ..." "Installing $DEP";
 
 		# Move the installation to a version-specific folder that nothing will touch
 		PROGRAM_FILES="${WINEPREFIX}/drive_c/Program Files";
@@ -206,7 +239,7 @@ for DEP in $DEPENDENCIES; do
 		INIFILE=$("${WINE}" winepath --windows "$TMPFILE")
 
 		"${WINE}" "${FILEDOWNLOAD}" "/INI=$INIFILE" 2>&1 | \
-			zenity --progress --title="Please wait, installing ..." --text="Installing $DEP" --pulsate --width=400 --auto-close --no-cancel;
+			progressbar "Please wait, installing ..." "Installing $DEP";
 
 		rm "$TMPFILE"
 
