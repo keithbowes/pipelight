@@ -167,6 +167,10 @@ bool openConfig(std::ifstream &configFile, std::string &configPath){
 		if(configFile.is_open()) return true;
 	}
 
+	configPath = "/etc/pipelight";
+	std::cerr << "[PIPELIGHT] Trying to load default config file from " << configPath << std::endl;
+	configFile.open(configPath);
+	if(configFile.is_open()) return true;
 
 	configPath = PREFIX "/share/pipelight/pipelight";
 	std::cerr << "[PIPELIGHT] Trying to load default config file from " << configPath << std::endl;

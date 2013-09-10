@@ -176,7 +176,7 @@ void* NP_LOADDS NPN_GetJavaPeer(NPP instance){
 }
 
 // Verified, everything okay
-NPError NPN_GetURLNotify(NPP instance, const  char* url, const char* target, void* notifyData){
+NPError NP_LOADDS NPN_GetURLNotify(NPP instance, const  char* url, const char* target, void* notifyData){
 	EnterFunction();
 
 	writeHandleNotify(notifyData);
@@ -189,7 +189,7 @@ NPError NPN_GetURLNotify(NPP instance, const  char* url, const char* target, voi
 	return result;
 }
 
-NPError NPN_PostURLNotify(NPP instance, const char* url, const char* target, uint32_t len, const char* buf, NPBool file, void* notifyData){
+NPError NP_LOADDS NPN_PostURLNotify(NPP instance, const char* url, const char* target, uint32_t len, const char* buf, NPBool file, void* notifyData){
 	EnterFunction();
 
 	// File upload would require to convert the wine path to a linux path - too complicated as this function isnt used in many plugins
@@ -211,7 +211,7 @@ NPError NPN_PostURLNotify(NPP instance, const char* url, const char* target, uin
 
 }
 
-NPError NPN_GetValue(NPP instance, NPNVariable variable, void *value){
+NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 	EnterFunction();
 
 	NPError result = NPERR_GENERIC_ERROR;
@@ -268,7 +268,7 @@ NPError NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 	return result;		
 }
 
-NPError NPN_SetValue(NPP instance, NPPVariable variable, void *value){
+NPError NP_LOADDS NPN_SetValue(NPP instance, NPPVariable variable, void *value){
 	EnterFunction();
 
 	NPError result = NPERR_GENERIC_ERROR;

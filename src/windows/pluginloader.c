@@ -7,7 +7,9 @@
 #include <vector>								// for std::vector
 #include <algorithm>							// for std::transform
 #include <stdio.h>								// for _fdopen
-#ifndef __WINE__
+#ifdef __WINE__
+	#include <unistd.h>							// for dup
+#else
 	#include <io.h>								// for _dup
 #endif
 #include <objbase.h>							// for CoInitializeEx
@@ -51,7 +53,7 @@ NPPluginFuncs pluginFuncs = {sizeof(pluginFuncs), NP_VERSION_MINOR};
 
 /* END GLOBAL VARIABLES */
 
-LRESULT CALLBACK WndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam){
+LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam){
 
 	// Only messages with a hwnd can be relevant in windowlessmode mode
 	if(hWnd){
@@ -254,7 +256,7 @@ std::string createLinuxCompatibleMimeType(){
 	return result;
 }
 
-bool InitDLL(std::string dllPath, std::string dllName){
+bool initDLL(std::string dllPath, std::string dllName){
 
 	// Thanks Microsoft - I searched a whole day to find this bug!
 	//CoInitialize(NULL);
@@ -415,7 +417,7 @@ int main(int argc, char *argv[]){
 	WNDCLASSEX WndClsEx;
 	WndClsEx.cbSize        = sizeof(WNDCLASSEX);
 	WndClsEx.style         = CS_HREDRAW | CS_VREDRAW;
-	WndClsEx.lpfnWndProc   = &WndProcedure;
+	WndClsEx.lpfnWndProc   = &wndProcedure;
 	WndClsEx.cbClsExtra    = 0;
 	WndClsEx.cbWndExtra    = 0;
 	WndClsEx.hIcon         = LoadIcon(NULL, IDI_APPLICATION);
@@ -433,7 +435,7 @@ int main(int argc, char *argv[]){
 		if(usermodeTimer) installTimerHook();
 
 
-		if (InitDLL(dllPath, dllName)){
+		if (initDLL(dllPath, dllName)){
 			std::cerr << "[PIPELIGHT] Init sucessfull!" << std::endl;
 
 			Stack stack;
