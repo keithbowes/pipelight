@@ -62,19 +62,12 @@ NPObject* createNPObject(uint64_t id, NPClass *aclass = NULL, NPP instance = 0){
 	// If its a custom created object then we can get the deallocate event and don't have to do manually refcounting.
 	// Otherwise its just a proxy object and can be destroyed when there is no pointer anymore in the Windows area
 	if(customObject){
+		DBG_TRACE("created custom object 0x%p with aclass 0x%p.", obj, aclass);
 		obj->referenceCount = REFCOUNT_UNDEFINED;
 
-		#ifdef DEBUG_LOG_HANDLES
-			std::cerr << "[PIPELIGHT:WINDOWS] createNPObject created custom object " << (void*)obj << std::endl;
-		#endif
-
 	}else{
+		DBG_TRACE("created proxy object 0x%p.", obj);
 		obj->referenceCount	= 0; // Will be incremented via readHandleObjInc
-
-		#ifdef DEBUG_LOG_HANDLES
-			std::cerr << "[PIPELIGHT:WINDOWS] createNPObject created proxy object " << (void*)obj << std::endl;
-		#endif
-
 	}
 
 	return obj;
@@ -441,10 +434,7 @@ void objectDecRef(NPObject *obj){
 
 	// Remove the object locally
 	if(obj->referenceCount == 0){
-
-		#ifdef DEBUG_LOG_HANDLES
-			std::cerr << "[PIPELIGHT:WINDOWS] objectDecRef removed object " << (void*)obj << " from the handle manager" << std::endl;
-		#endif
+		DBG_TRACE("removed object %p from handle manager.", obj);
 
 		if( obj->_class->deallocate){
 			throw std::runtime_error("Proxy object has a deallocate method set?");

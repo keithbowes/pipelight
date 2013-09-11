@@ -262,109 +262,113 @@ bool initDLL(std::string dllPath, std::string dllName){
 	//CoInitialize(NULL);
 	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 
-	if(!SetDllDirectory(dllPath.c_str())){
-		std::cerr << "[PIPELIGHT] Failed to set DLL directory" << std::endl;
+	if (!SetDllDirectory(dllPath.c_str())){
+		DBG_ERROR("failed to set DLL directory.");
 	}
 
 	HMODULE dll = LoadLibrary(dllName.c_str());
-
-	if(dll){
-
-		int requiredBytes = GetFileVersionInfoSize(dllName.c_str(), NULL);
-
-		if(requiredBytes){
-
-			std::unique_ptr<void, void (*)(void *)> data(malloc(requiredBytes), freeSharedPtrMemory);
-			if(data){
-
-				if (GetFileVersionInfo(dllName.c_str(), 0, requiredBytes, data.get())){
-
-					char *info = NULL;
-					UINT size = 0; 
-
-					if(VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\MIMEType", (void**)&info, &size)){
-						while( size > 0 && info[size-1] == 0) size--;
-						np_MimeType = std::string(info, size);
-					}
-
-					if(VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\FileExtents", (void**)&info, &size)){
-						while( size > 0 && info[size-1] == 0) size--;
-						np_FileExtents = std::string(info, size);
-					}
-
-					if(VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\FileOpenName", (void**)&info, &size)){
-						while( size > 0 && info[size-1] == 0) size--;
-						np_FileOpenName = std::string(info, size);
-					}
-
-					if(VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\ProductName", (void**)&info, &size)){
-						while( size > 0 && info[size-1] == 0) size--;
-						np_ProductName = std::string(info, size);
-					}
-
-					if(VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\FileDescription", (void**)&info, &size)){
-						while( size > 0 && info[size-1] == 0) size--;
-						np_FileDescription = std::string(info, size);
-					}
-					
-					if(VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\Language", (void**)&info, &size)){
-						while( size > 0 && info[size-1] == 0) size--;
-						np_Language = std::string(info, size);
-					}
-
-					/*
-					std::cerr << "[PIPELIGHT] mimeType: " << np_MimeType << std::endl;
-					std::cerr << "[PIPELIGHT] FileExtents: " << np_FileExtents << std::endl;
-					std::cerr << "[PIPELIGHT] FileOpenName" << np_FileOpenName << std::endl;
-					std::cerr << "[PIPELIGHT] ProductName" << np_ProductName << std::endl;
-					std::cerr << "[PIPELIGHT] FileDescription" << np_FileDescription << std::endl;
-					std::cerr << "[PIPELIGHT] Language:" << np_Language << std::endl;
-					*/
-
-					NP_GetEntryPointsFunc 	NP_GetEntryPoints 	= (NP_GetEntryPointsFunc) 	GetProcAddress(dll, "NP_GetEntryPoints");
-					NP_InitializeFunc 		NP_Initialize 		= (NP_InitializeFunc) 		GetProcAddress(dll, "NP_Initialize");
-
-					if(NP_GetEntryPoints && NP_Initialize){
-						if (NP_Initialize(&browserFuncs) == NPERR_NO_ERROR){
-
-							if(NP_GetEntryPoints(&pluginFuncs) == NPERR_NO_ERROR){
-								return true;
-
-							}else{
-								std::cerr << "[PIPELIGHT] Failed to get entry points for plugin functions" << std::endl;
-							}
-						}else{
-							std::cerr << "[PIPELIGHT] Failed to initialize" << std::endl;
-						}
-					}else{
-						std::cerr << "[PIPELIGHT] Could not load entry points from DLL" << std::endl;
-					}
-
-				}else{
-					std::cerr << "[PIPELIGHT] Failed to get file version" << std::endl;
-				}
-			}else{
-				std::cerr << "[PIPELIGHT] Failed to allocate memory" << std::endl;
-			}
-		}else{
-			std::cerr << "[PIPELIGHT] Could not load version information" << std::endl;
-		}
-
-		FreeLibrary(dll);
-
-	}else{
-		std::cerr << "[PIPELIGHT] Last error: " << GetLastError() << std::endl;
-		std::cerr << "[PIPELIGHT] Could not load library" << std::endl;
+	if (!dll){
+		DBG_ERROR("could not load library '%s' (last error = %lu).", dllName.c_str(), GetLastError());
+		return false;
 	}
 
+	int requiredBytes = GetFileVersionInfoSize(dllName.c_str(), NULL);
+	if (!requiredBytes){
+		DBG_ERROR("could not load version information.");
+		FreeLibrary(dll);
+		return false;
+	}
+
+	std::unique_ptr<void, void (*)(void *)> data(malloc(requiredBytes), freeSharedPtrMemory);
+	if (!data){
+		DBG_ERROR("failed to allocate memory.");
+		FreeLibrary(dll);
+		return false;
+	}
+
+	if (!GetFileVersionInfo(dllName.c_str(), 0, requiredBytes, data.get())){
+		DBG_ERROR("failed to get file version.");
+		FreeLibrary(dll);
+		return false;
+	}
+
+	char *info = NULL;
+	UINT size = 0; 
+
+	if(VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\MIMEType", (void**)&info, &size)){
+		while( size > 0 && info[size-1] == 0) size--;
+		np_MimeType = std::string(info, size);
+	}
+
+	if(VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\FileExtents", (void**)&info, &size)){
+		while( size > 0 && info[size-1] == 0) size--;
+		np_FileExtents = std::string(info, size);
+	}
+
+	if(VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\FileOpenName", (void**)&info, &size)){
+		while( size > 0 && info[size-1] == 0) size--;
+		np_FileOpenName = std::string(info, size);
+	}
+
+	if(VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\ProductName", (void**)&info, &size)){
+		while( size > 0 && info[size-1] == 0) size--;
+		np_ProductName = std::string(info, size);
+	}
+
+	if(VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\FileDescription", (void**)&info, &size)){
+		while( size > 0 && info[size-1] == 0) size--;
+		np_FileDescription = std::string(info, size);
+	}
+	
+	if(VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\Language", (void**)&info, &size)){
+		while( size > 0 && info[size-1] == 0) size--;
+		np_Language = std::string(info, size);
+	}
+
+	/*
+	std::cerr << "[PIPELIGHT] mimeType: " << np_MimeType << std::endl;
+	std::cerr << "[PIPELIGHT] FileExtents: " << np_FileExtents << std::endl;
+	std::cerr << "[PIPELIGHT] FileOpenName" << np_FileOpenName << std::endl;
+	std::cerr << "[PIPELIGHT] ProductName" << np_ProductName << std::endl;
+	std::cerr << "[PIPELIGHT] FileDescription" << np_FileDescription << std::endl;
+	std::cerr << "[PIPELIGHT] Language:" << np_Language << std::endl;
+	*/
+
+	NP_GetEntryPointsFunc 	NP_GetEntryPoints 	= (NP_GetEntryPointsFunc) 	GetProcAddress(dll, "NP_GetEntryPoints");
+	NP_InitializeFunc 		NP_Initialize 		= (NP_InitializeFunc) 		GetProcAddress(dll, "NP_Initialize");
+
+	if(NP_GetEntryPoints && NP_Initialize){
+
+		if (NP_Initialize(&browserFuncs) == NPERR_NO_ERROR){
+
+			if(NP_GetEntryPoints(&pluginFuncs) == NPERR_NO_ERROR){
+				return true;
+
+			}else{
+				DBG_ERROR("failed to get entry points for plugin functions.");
+			}
+
+		}else{
+			DBG_ERROR("failed to initialize plugin.");
+		}
+
+	}else{
+		DBG_ERROR("could not load entry points from DLL!");
+	}
+
+	FreeLibrary(dll);
 	return false;
 }
 
 
 int main(int argc, char *argv[]){
 
-	unsigned int control_word;
-	_controlfp_s(&control_word, _CW_DEFAULT, MCW_PC);
+	// When compiling with wineg++ the _controlfp_s isn't available
+	// We should find a workaround for this (asm implementation) as soon as wineg++ support works properly
+	#ifndef __WINE__
+		unsigned int control_word;
+		_controlfp_s(&control_word, _CW_DEFAULT, MCW_PC);
+	#endif
 
 	if(argc < 3)
 		throw std::runtime_error("Not enough arguments supplied");
@@ -388,9 +392,9 @@ int main(int argc, char *argv[]){
 		}
 	}
 
-	std::cerr << "[PIPELIGHT] Windowless mode is " << (isWindowlessMode ? "on" : "off") << std::endl;
-	std::cerr << "[PIPELIGHT] Embedded mode   is " << (isEmbeddedMode ? "on" : "off") << std::endl;
-	std::cerr << "[PIPELIGHT] Usermode Timer  is " << (usermodeTimer ? "on" : "off") << std::endl;
+	DBG_INFO("windowless mode is %s.", (isWindowlessMode ? "on" : "off"));
+	DBG_INFO("embedded mode   is %s.", (isEmbeddedMode ? "on" : "off"));
+	DBG_INFO("usermode Timer  is %s.", (usermodeTimer ? "on" : "off"));
 
 	// Copy stdin and stdout
 	#ifdef __WINE__
@@ -429,29 +433,26 @@ int main(int argc, char *argv[]){
 	WndClsEx.hIconSm       = LoadIcon(NULL, IDI_APPLICATION);
 
 	ATOM classAtom = RegisterClassEx(&WndClsEx);
-	if(classAtom){
-
-		// Install hooks
-		if(usermodeTimer) installTimerHook();
-
-
-		if (initDLL(dllPath, dllName)){
-			std::cerr << "[PIPELIGHT] Init sucessfull!" << std::endl;
-
-			Stack stack;
-			readCommands(stack, false);	
-
-		}else{
-			std::cerr << "[PIPELIGHT] Failed to initialize DLL" << std::endl;
-		}
-
-
-	}else{
-		std::cerr << "[PIPELIGHT] Failed to register class" << std::endl;
+	if(!classAtom){
+		DBG_ERROR("failed to register class.");
+		return 1;
 	}
 
+	// Install hooks
+	if (usermodeTimer) installTimerHook();
 
-	return 1;
+	// Load the DLL
+	if (!initDLL(dllPath, dllName)){
+		DBG_ERROR("failed to initialize DLL.");
+		return 1;
+	}
+
+	DBG_INFO("init successful!");
+
+	Stack stack;
+	readCommands(stack, false);	
+
+	return 0;
 }
 
 
@@ -460,6 +461,8 @@ void dispatcher(int functionid, Stack &stack){
 
 		case INIT_OKAY:
 			{
+				DBG_TRACE("INIT_OKAY()");
+				DBG_TRACE("INIT_OKAY -> void");
 				returnCommand();
 			}
 			break;
@@ -467,12 +470,11 @@ void dispatcher(int functionid, Stack &stack){
 		case OBJECT_KILL:
 			{
 				NPObject 	*obj = readHandleObjIncRef(stack, NULL, 0, HANDLE_SHOULD_EXIST);
-
-				#ifdef DEBUG_LOG_HANDLES
-					std::cerr << "[PIPELIGHT:WINDOWS] OBJECT_KILL(" << (void*)obj << ")" << std::endl;
-				#endif
+				DBG_TRACE("OBJECT_KILL( obj=0x%p )", obj);
 
 				objectKill(obj);
+
+				DBG_TRACE("OBJECT_KILL -> void");
 				returnCommand();
 			}
 			break;
@@ -480,13 +482,11 @@ void dispatcher(int functionid, Stack &stack){
 		case OBJECT_IS_CUSTOM:
 			{
 				NPObject 	*obj = readHandleObjIncRef(stack, NULL, 0, HANDLE_SHOULD_EXIST);
-
-				#ifdef DEBUG_LOG_HANDLES
-					std::cerr << "[PIPELIGHT:WINDOWS] OBJECT_IS_CUSTOM(" << (void*)obj << ")" << std::endl;
-				#endif
+				DBG_TRACE("OBJECT_IS_CUSTOM( obj=0x%p )", obj);
 
 				writeInt32( (obj->referenceCount == REFCOUNT_UNDEFINED) );
 
+				DBG_TRACE("OBJECT_IS_CUSTOM -> bool=%d", (obj->referenceCount == REFCOUNT_UNDEFINED));
 				objectDecRef(obj); // not really required, but looks better ;-)
 				returnCommand();
 			}
@@ -497,9 +497,11 @@ void dispatcher(int functionid, Stack &stack){
 		case HANDLE_MANAGER_FREE_NOTIFY_DATA:
 			{
 				void *notifyData 			= readHandleNotify(stack, HANDLE_SHOULD_EXIST);
+				DBG_TRACE("HANDLE_MANAGER_FREE_NOTIFY_DATA( notifyData=0x%p )", notifyData);
 
 				handlemanager.removeHandleByReal((uint64_t)notifyData, TYPE_NotifyData);
 
+				DBG_TRACE("HANDLE_MANAGER_FREE_NOTIFY_DATA -> void");
 				returnCommand();
 			}
 			break;
@@ -508,6 +510,7 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				// Process window events
 				MSG msg;
+				DBG_TRACE("PROCESS_WINDOW_EVENTS()");
 
 				DWORD abortTime = GetTickCount() + 80;
 				while (GetTickCount() < abortTime){
@@ -523,6 +526,7 @@ void dispatcher(int functionid, Stack &stack){
 					}
 				}
 
+				DBG_TRACE("PROCESS_WINDOW_EVENTS -> void");
 				returnCommand();
 			}
 			break;
@@ -530,6 +534,7 @@ void dispatcher(int functionid, Stack &stack){
 		case SHOW_UPDATE_WINDOW:
 			{
 				NPP instance = readHandleInstance(stack);
+				DBG_TRACE("SHOW_UPDATE_WINDOW( instance=0x%p )", instance);
 
 				// Only used when isEmbeddedMode is set
 				if(isEmbeddedMode){
@@ -542,34 +547,52 @@ void dispatcher(int functionid, Stack &stack){
 					}
 				}
 
+				DBG_TRACE("SHOW_UPDATE_WINDOW -> void");
 				returnCommand();
 			}
 			break;
 
 		case FUNCTION_GET_VERSION:
 			{
+				DBG_TRACE("FUNCTION_GET_VERSION()");
+
 				writeString(np_FileDescription);
+
+				DBG_TRACE("FUNCTION_GET_VERSION -> str='%s'", np_FileDescription.c_str());
 				returnCommand();
 			}
 			break;
 
 		case FUNCTION_GET_MIMETYPE:
 			{
-				writeString(createLinuxCompatibleMimeType());
+				DBG_TRACE("FUNCTION_GET_MIMETYPE()");
+
+				std::string mimeType = createLinuxCompatibleMimeType();
+				writeString(mimeType);
+
+				DBG_TRACE("FUNCTION_GET_MIMETYPE -> str='%s'", mimeType.c_str());
 				returnCommand();
 			}
 			break;
 
 		case FUNCTION_GET_NAME:
 			{
+				DBG_TRACE("FUNCTION_GET_NAME()");
+
 				writeString(np_ProductName);
+
+				DBG_TRACE("FUNCTION_GET_NAME -> str='%s'", np_ProductName.c_str());
 				returnCommand();
 			}
 			break;
 
 		case FUNCTION_GET_DESCRIPTION:
 			{
+				DBG_TRACE("FUNCTION_GET_DESCRIPTION()");
+
 				writeString(np_FileDescription);
+
+				DBG_TRACE("FUNCTION_GET_DESCRIPTION -> str='%s'", np_FileDescription.c_str());
 				returnCommand();
 			}
 			break;	
@@ -577,16 +600,16 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NP_INVOKE:
 			{
-				NPObject 	*npobj 			= readHandleObjIncRef(stack);
+				NPObject 	*obj 			= readHandleObjIncRef(stack);
 				NPIdentifier name 			= readHandleIdentifier(stack);
 				uint32_t argCount 			= readInt32(stack);
 				std::vector<NPVariant> args = readVariantArrayIncRef(stack, argCount);
-
 				NPVariant resultVariant;
 				resultVariant.type 				= NPVariantType_Void;
 				resultVariant.value.objectValue = NULL;
+				DBG_TRACE("FUNCTION_NP_INVOKE( obj=0x%p, name=0x%p, argCount=%d, args=0x%p )", obj, name, argCount, args.data());
 
-				bool result = npobj->_class->invoke(npobj, name, args.data(), argCount, &resultVariant);
+				bool result = obj->_class->invoke(obj, name, args.data(), argCount, &resultVariant);
 
 				// The objects refcount has been incremented by invoke
 				// Return the variant without modifying the objects refcount
@@ -596,24 +619,26 @@ void dispatcher(int functionid, Stack &stack){
 
 				// This frees ONLY all the strings!
 				freeVariantArrayDecRef(args);
-				objectDecRef(npobj);
+				objectDecRef(obj);
 
 				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NP_INVOKE -> ( result=%d, ... )", result);
 				returnCommand();
 			}
 			break;
 
 		case FUNCTION_NP_INVOKE_DEFAULT:
 			{
-				NPObject 	*npobj 			= readHandleObjIncRef(stack);
+				NPObject 	*obj 			= readHandleObjIncRef(stack);
 				uint32_t argCount 			= readInt32(stack);
 				std::vector<NPVariant> args = readVariantArrayIncRef(stack, argCount);
-
 				NPVariant resultVariant;
 				resultVariant.type 				= NPVariantType_Void;
 				resultVariant.value.objectValue = NULL;
+				DBG_TRACE("FUNCTION_NP_INVOKE_DEFAULT( obj=0x%p, argCount=%d, args=0x%p )", obj, argCount, args.data());
 
-				bool result = npobj->_class->invokeDefault(npobj, args.data(), argCount, &resultVariant);
+				bool result = obj->_class->invokeDefault(obj, args.data(), argCount, &resultVariant);
 
 				// The objects refcount has been incremented by invoke
 				// Return the variant without modifying the objects refcount
@@ -623,9 +648,10 @@ void dispatcher(int functionid, Stack &stack){
 
 				// This frees ONLY all the strings!
 				freeVariantArrayDecRef(args);
-				objectDecRef(npobj);
-
 				writeInt32(result);
+				objectDecRef(obj);
+
+				DBG_TRACE("FUNCTION_NP_INVOKE_DEFAULT -> ( result=%d, ... )", result);
 				returnCommand();
 			}
 			break;
@@ -634,12 +660,13 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPObject *obj 		= readHandleObjIncRef(stack);
 				NPIdentifier name 	= readHandleIdentifier(stack);	
+				DBG_TRACE("FUNCTION_NP_INVOKE_DEFAULT( obj=0x%p, name=0x%p )", obj, name);
 
 				bool result = obj->_class->hasProperty(obj, name);
-
-				objectDecRef(obj);
-
 				writeInt32(result);
+				objectDecRef(obj);
+			
+				DBG_TRACE("FUNCTION_NP_INVOKE_DEFAULT -> result=%d", result);
 				returnCommand();
 			}
 			break;		
@@ -648,12 +675,13 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPObject *obj 		= readHandleObjIncRef(stack);
 				NPIdentifier name 	= readHandleIdentifier(stack);	
+				DBG_TRACE("FUNCTION_NP_HAS_METHOD( obj=0x%p, name=0x%p )", obj, name);
 
 				bool result = obj->_class->hasMethod(obj, name);
-
+				writeInt32(result);
 				objectDecRef(obj);
 
-				writeInt32(result);
+				DBG_TRACE("FUNCTION_NP_HAS_METHOD -> result=%d", result);
 				returnCommand();
 			}
 			break;		
@@ -662,10 +690,10 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPObject *obj 		= readHandleObjIncRef(stack);
 				NPIdentifier name 	= readHandleIdentifier(stack);	
-
 				NPVariant resultVariant;
 				resultVariant.type 				= NPVariantType_Void;
 				resultVariant.value.objectValue = NULL;
+				DBG_TRACE("FUNCTION_NP_GET_PROPERTY( obj=0x%p, name=0x%p )", obj, name);
 
 				bool result = obj->_class->getProperty(obj, name, &resultVariant);
 
@@ -674,8 +702,9 @@ void dispatcher(int functionid, Stack &stack){
 				}
 
 				objectDecRef(obj);
-
 				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NP_GET_PROPERTY -> ( result=%d, ... )", result);
 				returnCommand();	
 			}
 			break;
@@ -685,15 +714,15 @@ void dispatcher(int functionid, Stack &stack){
 				NPObject 		*obj 		= readHandleObjIncRef(stack);
 				NPIdentifier 	name 		= readHandleIdentifier(stack);	
 				NPVariant 		variant;
-
 				readVariantIncRef(stack, variant);
+				DBG_TRACE("FUNCTION_NP_SET_PROPERTY( obj=0x%p, name=0x%p, variant=0x%p )", obj, name, &variant);
 
 				bool result = obj->_class->setProperty(obj, name, &variant);
-
 				freeVariantDecRef(variant);
+				writeInt32(result);
 				objectDecRef(obj);
 
-				writeInt32(result);
+				DBG_TRACE("FUNCTION_NP_SET_PROPERTY -> result=%d", result);
 				returnCommand();	
 			}
 			break;
@@ -702,12 +731,13 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPObject 		*obj 		= readHandleObjIncRef(stack);
 				NPIdentifier 	name 		= readHandleIdentifier(stack);	
+				DBG_TRACE("FUNCTION_NP_REMOVE_PROPERTY( obj=0x%p, name=0x%p )", obj, name);
 
 				bool result = obj->_class->removeProperty(obj, name);
-
+				writeInt32(result);
 				objectDecRef(obj);
 
-				writeInt32(result);
+				DBG_TRACE("FUNCTION_NP_REMOVE_PROPERTY -> result=%d", result);
 				returnCommand();	
 			}
 			break;
@@ -715,9 +745,9 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NP_ENUMERATE:
 			{
 				NPObject 		*obj 		= readHandleObjIncRef(stack);
-
 				NPIdentifier*   identifierTable  = NULL;
 				uint32_t 		identifierCount  = 0;
+				DBG_TRACE("FUNCTION_NP_ENUMERATE( obj=0x%p )", obj);
 
 				bool result = obj->_class->enumerate && obj->_class->enumerate(obj, &identifierTable, &identifierCount);
 
@@ -731,8 +761,9 @@ void dispatcher(int functionid, Stack &stack){
 				}
 
 				objectDecRef(obj);
-
 				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NP_ENUMERATE -> ( result=%d, ... )", result);
 				returnCommand();
 			}
 			break;
@@ -740,11 +771,12 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NP_INVALIDATE:
 			{
 				NPObject *obj = readHandleObjIncRef(stack);
+				DBG_TRACE("FUNCTION_NP_INVALIDATE( obj=0x%p )", obj);
 
 				obj->_class->invalidate(obj);
-
 				objectDecRef(obj);
 
+				DBG_TRACE("FUNCTION_NP_INVALIDATE -> void");
 				returnCommand();
 			}
 			break;
@@ -772,6 +804,9 @@ void dispatcher(int functionid, Stack &stack){
 					savedPtr 	= &saved;
 				}
 
+				DBG_TRACE("FUNCTION_NPP_NEW( mimeType='%s', instance=0x%p, mode=%d, argc=%d, argn=0x%p, argv=0x%p, saved=0x%p )", \
+						mimeType.get(), instance, mode, argc, argn.data(), argv.data(), savedPtr);
+
 				// Most plugins only support windowlessMode in combination with NP_EMBED
 				if(isWindowlessMode)	mode = NP_EMBED;
 
@@ -786,7 +821,7 @@ void dispatcher(int functionid, Stack &stack){
 
 				}else{
 					instance->ndata = NULL;
-					std::cerr << "[PIPELIGHT] Unable to allocate memory for private data" << std::endl;
+					DBG_ERROR("unable to allocate memory for private data.");
 				}
 
 				NPError result = pluginFuncs.newp(mimeType.get(), instance, mode, argc, argn.data(), argv.data(), savedPtr);
@@ -798,6 +833,8 @@ void dispatcher(int functionid, Stack &stack){
 				freeStringArray(argv);
 
 				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NPP_NEW -> result=%d", result);
 				returnCommand();
 			}
 			break;
@@ -806,7 +843,8 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPSavedData* saved 	= NULL;
 				NPP instance 		= readHandleInstance(stack);
-				
+				DBG_TRACE("FUNCTION_NPP_DESTROY( instance=0x%p )", instance);
+
 				NPError result 		= pluginFuncs.destroy(instance, &saved);
 
 				// Destroy the pointers
@@ -849,6 +887,8 @@ void dispatcher(int functionid, Stack &stack){
 				}
 
 				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NPP_DESTROY -> ( result=%d, ... )", result);
 				returnCommand();
 			}
 			break;
@@ -857,15 +897,15 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPP instance 			= readHandleInstance(stack);
 				NPPVariable variable 	= (NPPVariable)readInt32(stack);
+				DBG_TRACE("FUNCTION_NPP_GETVALUE_BOOL( instance=0x%p, variable=%d )", instance, variable);
 
 				PRBool boolValue;
-
 				NPError result = pluginFuncs.getvalue(instance, variable, &boolValue);
-
 				if(result == NPERR_NO_ERROR)
 					writeInt32(boolValue);
-
 				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NPP_GETVALUE_BOOL -> ( result=%d, ... )", result);
 				returnCommand();
 			}
 			break;
@@ -874,15 +914,15 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPP instance 			= readHandleInstance(stack);
 				NPPVariable variable 	= (NPPVariable)readInt32(stack);
+				DBG_TRACE("FUNCTION_NPP_GETVALUE_OBJECT( instance=0x%p, variable=%d )", instance, variable);
 
 				NPObject *objectValue;
-
 				NPError result = pluginFuncs.getvalue(instance, variable, &objectValue);
-
 				if(result == NPERR_NO_ERROR)
 					writeHandleObjDecRef(objectValue);
-
 				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NPP_GETVALUE_OBJECT -> ( result=%d, ... )", result);
 				returnCommand();
 			}
 			break;		
@@ -894,6 +934,7 @@ void dispatcher(int functionid, Stack &stack){
 				int32_t y 		= readInt32(stack);
 				int32_t width 	= readInt32(stack);
 				int32_t height 	= readInt32(stack);
+				DBG_TRACE("FUNCTION_NPP_SET_WINDOW( instance=0x%p, x=%d, y=%d, width=%d, height=%d )", instance, x, y, width, height);
 
 				// Only used in XEMBED mode
 				int32_t windowIDX11 = 0;
@@ -980,14 +1021,16 @@ void dispatcher(int functionid, Stack &stack){
 						}
 						
 					}else{
-						std::cerr << "[PIPELIGHT] Failed to create window!" << std::endl;
+						DBG_ERROR("failed to create window!");
 					}
 
 				}else{
-					std::cerr << "[PIPELIGHT] Unable to allocate window because of missing ndata" << std::endl;
+					DBG_ERROR("unable to allocate window because of missing ndata.");
 				}
 
 				writeInt32(windowIDX11);
+
+				DBG_TRACE("FUNCTION_NPP_SET_WINDOW -> windowIDX11=%d", windowIDX11);
 				returnCommand();
 
 				// These parameters currently are not required
@@ -1002,6 +1045,7 @@ void dispatcher(int functionid, Stack &stack){
 				std::shared_ptr<char> type 		= readStringAsMemory(stack);
 				NPStream *stream 				= readHandleStream(stack, HANDLE_SHOULD_NOT_EXIST);
 				NPBool seekable					= (NPBool) readInt32(stack); 
+				DBG_TRACE("FUNCTION_NPP_NEW_STREAM( instance=0x%p, type='%s', stream=0x%p, seekable=%d )", instance, type.get(), stream, seekable);
 
 				uint16_t stype = NP_NORMAL; // Fix for silverlight....
 				NPError result = pluginFuncs.newstream(instance, type.get(), stream, seekable, &stype);
@@ -1014,6 +1058,8 @@ void dispatcher(int functionid, Stack &stack){
 				}
 				
 				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NPP_NEW_STREAM -> result=%d", result);
 				returnCommand();
 			}
 			break;
@@ -1023,6 +1069,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 		= readHandleInstance(stack);
 				NPStream* stream 	= readHandleStream(stack, HANDLE_SHOULD_EXIST);
 				NPReason reason 	= (NPReason)readInt32(stack);
+				DBG_TRACE("FUNCTION_NPP_DESTROY_STREAM( instance=0x%p, stream=0x%p, reason=%d )", instance, stream, reason);
 
 				NPError result = pluginFuncs.destroystream(instance, stream, reason);
 
@@ -1037,6 +1084,8 @@ void dispatcher(int functionid, Stack &stack){
 				handlemanager.removeHandleByReal((uint64_t)stream, TYPE_NPStream);
 
 				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NPP_DESTROY_STREAM -> result=%d", result);
 				returnCommand();
 			}
 			break;
@@ -1046,9 +1095,12 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 		= readHandleInstance(stack);
 				NPStream* stream 	= readHandleStream(stack, HANDLE_SHOULD_EXIST);
 
-				int32_t result = pluginFuncs.writeready(instance, stream);
+				DBG_TRACE("FUNCTION_NPP_WRITE_READY( instance=0x%p, stream=0x%p )", instance, stream);
 
-				writeInt32(result);	
+				int32_t result = pluginFuncs.writeready(instance, stream);
+				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NPP_WRITE_READY -> result=%d", result);
 				returnCommand();
 			}
 			break;
@@ -1058,13 +1110,14 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 		= readHandleInstance(stack);
 				NPStream* stream 	= readHandleStream(stack, HANDLE_SHOULD_EXIST);
 				int32_t offset 		= readInt32(stack);
-
 				size_t length;
 				std::shared_ptr<char> data = readMemory(stack, length);
+				DBG_TRACE("FUNCTION_NPP_WRITE( instance=0x%p, stream=0x%p, offset=%d, length=%d, data=0x%p )", instance, stream, offset, length, data.get());
 
 				int32_t result = pluginFuncs.write(instance, stream, offset, length, data.get());
+				writeInt32(result);
 
-				writeInt32(result);	
+				DBG_TRACE("FUNCTION_NPP_WRITE -> result=%d", result);
 				returnCommand();
 			}
 			break;
@@ -1072,19 +1125,25 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPP_URL_NOTIFY:
 			{
 				NPP instance 				= readHandleInstance(stack);
-				std::shared_ptr<char> URL 	= readStringAsMemory(stack);
+				std::shared_ptr<char> url 	= readStringAsMemory(stack);
 				NPReason reason 			= (NPReason) readInt32(stack);
 				void *notifyData 			= readHandleNotify(stack, HANDLE_SHOULD_EXIST);
+				DBG_TRACE("FUNCTION_NPP_URL_NOTIFY( instance=0x%p, url='%s', reason=%d, notifyData=0x%p )", instance, url.get(), reason, notifyData);
 
-				pluginFuncs.urlnotify(instance, URL.get(), reason, notifyData);
+				pluginFuncs.urlnotify(instance, url.get(), reason, notifyData);
 
+				DBG_TRACE("FUNCTION_NPP_URL_NOTIFY -> void");
 				returnCommand();
 			}
 			break;
 
 		case NP_SHUTDOWN:
 			{
+				DBG_TRACE("NP_SHUTDOWN()");
+
 				// TODO: Implement deinitialization! We dont call Shutdown, as otherwise we would have to call Initialize again!
+
+				DBG_TRACE("NP_SHUTDOWN -> void");
 				returnCommand();
 			}
 			break;

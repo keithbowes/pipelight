@@ -603,25 +603,3 @@ void waitReturn(){
 	Stack stack;
 	readCommands(stack);
 }
-
-// Debug stuff
-
-void debugEnterFunction( std::string name ){
-	#ifdef __WIN32__
-		std::cerr << "[PIPELIGHT:WINDOWS] " << name << " entered" << std::endl;
-
-	#else
-		std::cerr << "[PIPELIGHT:LINUX] " << name << " entered" << std::endl;
-
-	#endif
-}
-
-void debugNotImplemented( std::string name ){
-	#ifdef __WIN32__
-		std::cerr << "[PIPELIGHT:WINDOWS] " << name << " not implemented!" << std::endl;
-
-	#else
-		std::cerr << "[PIPELIGHT:LINUX] " << name << " not implemented!" << std::endl;
-
-	#endif
-}

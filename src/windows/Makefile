@@ -24,7 +24,7 @@ npclass.o: npclass.c ../npapi-headers/npapi.h ../npapi-headers/npruntime.h ../co
 npnfunctions.o: npnfunctions.c pluginloader.h ../npapi-headers/npapi.h ../npapi-headers/npruntime.h ../npapi-headers/npfunctions.h ../communication/communication.h ../handlemanager/handlemanager.h ../npapi-headers/npapi.h ../npapi-headers/npruntime.h ../npapi-headers/npfunctions.h
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c npnfunctions.c -o npnfunctions.o
 
-apihook.o: apihook.c apihook.h
+apihook.o: apihook.c apihook.h ../communication/communication.h
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c apihook.c -o apihook.o
 
 .PHONY: all

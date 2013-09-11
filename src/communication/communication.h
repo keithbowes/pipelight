@@ -4,6 +4,7 @@
 #include <memory>								// for shared_ptr
 #include <string>								// for std::string
 #include <vector>								// for std::vector<ParameterInfo>
+#include <stdio.h>								// for fprintf
 
 enum FunctionIDs{
 
@@ -167,23 +168,47 @@ int64_t readResultInt64();
 std::string readResultString();
 void waitReturn();
 
-void debugEnterFunction( std::string name );
-void debugNotImplemented( std::string name );
 
-#define STRINGIZE_DETAIL(x) #x
-#define STRINGIZE(x) STRINGIZE_DETAIL(x)
-
-//#define DEBUG_FUNCTION_ENTER
-//#define DEBUG_LOG_HANDLES
-
-#ifdef DEBUG_FUNCTION_ENTER
-	#define EnterFunction() \
-		debugEnterFunction(std::string(__func__));
+#ifdef __WIN32__
+	#define PIPELIGHT_DEBUG_MSG "[PIPELIGHT:WIN]"
 #else
-	#define EnterFunction() 
+	#define PIPELIGHT_DEBUG_MSG "[PIPELIGHT:LIN]"
 #endif
 
-#define NotImplemented() \
-	debugNotImplemented(std::string(__func__) + " (" + std::string(__FILE__) + ":" + std::string(STRINGIZE(__LINE__)) + ")" );
+//#define PIPELIGHT_DEBUG
+
+#ifdef PIPELIGHT_DEBUG
+
+	#define DBG_TRACE(fmt, ...) \
+		do{ fprintf(stderr, PIPELIGHT_DEBUG_MSG " %s:%d:%s(): " fmt "\n", __FILE__, __LINE__, __func__, ##__VA_ARGS__); }while(0)
+
+	#define DBG_INFO \
+		DBG_TRACE
+
+	#define DBG_WARN \
+		DBG_TRACE
+
+	#define DBG_ERROR \
+		DBG_TRACE
+	
+#else
+
+	#define DBG_TRACE(fmt, ...) \
+		do{ }while(0)
+
+	#define DBG_INFO(fmt, ...) \
+		do{ fprintf(stderr, PIPELIGHT_DEBUG_MSG " " fmt "\n", ##__VA_ARGS__); }while(0)
+
+	#define DBG_WARN \
+		DBG_INFO
+
+	#define DBG_ERROR(fmt, ...) \
+		do{ fprintf(stderr, PIPELIGHT_DEBUG_MSG " %s:%d:%s(): " fmt "\n", __FILE__, __LINE__, __func__, ##__VA_ARGS__); }while(0)
+
+#endif
+
+#define NOTIMPLEMENTED(fmt, ...) \
+	do{ fprintf(stderr, PIPELIGHT_DEBUG_MSG " %s:%d:%s(): STUB! " fmt "\n", __FILE__, __LINE__, __func__, ##__VA_ARGS__); }while(0)
+
 
 #endif // Communication_h_

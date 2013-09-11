@@ -114,7 +114,7 @@ void attach(){
 	// Fix for Opera: Dont sync stdio
 	std::ios_base::sync_with_stdio(false);
 
-	std::cerr << "[PIPELIGHT] Attached to process" << std::endl;
+	DBG_INFO("attached to process.");
 
 	// Initialize semaphore
 	sem_init(&eventThreadSemRequestAsyncCall, 0, 0);
@@ -123,7 +123,7 @@ void attach(){
 	initOkay = false;
 
 	if(!loadConfig(config)){
-		std::cerr << "[PIPELIGHT] Unable to load config file - aborting" << std::endl;
+		DBG_ERROR("unable to load config file - aborting.");
 		return;
 	}
 
@@ -132,8 +132,8 @@ void attach(){
 		config.dllName 			== "" ||
 		config.pluginLoaderPath == "" ){	// Without pluginloader.exe this doesn't work
 
-		std::cerr << "[PIPELIGHT] Your configuration file doesn't contain all necessary keys - aborting" << std::endl;
-		std::cerr << "[PIPELIGHT] Please take a look at the original configuration file for more details." << std::endl;
+		DBG_ERROR("your configuration file doesn't contain all necessary keys - aborting.");
+		DBG_ERROR("please take a look at the original configuration file for more details.");
 		return;
 	}
 
@@ -142,18 +142,18 @@ void attach(){
 		if(!checkGraphicDriver())
 			config.overwriteArgs["enableGPUAcceleration"] = "false";
 	}else{
-		std::cerr << "[PIPELIGHT] enableGPUAcceleration set manually - skipping compatibility check" << std::endl;
+		DBG_INFO("enableGPUAcceleration set manually - skipping compatibility check.");
 	}
 
 	// Check for correct installation
 	if(!checkSilverlightInstallation()){
-		std::cerr << "[PIPELIGHT] Silverlight not correctly installed - aborting" << std::endl;
+		DBG_ERROR("Silverlight not correctly installed - aborting.");
 		return;
 	}
 
 	// Start wine process
 	if(!startWineProcess()){
-		std::cerr << "[PIPELIGHT] Could not start wine process - aborting" << std::endl;
+		DBG_ERROR("could not start wine process - aborting.");
 		return;
 	}
 
@@ -162,7 +162,7 @@ void attach(){
 		callFunction(INIT_OKAY);
 		waitReturn();
 	} catch(std::runtime_error error){
-		std::cerr << "[PIPELIGHT] Error during the initialization of the wine process - aborting" << std::endl;
+		DBG_ERROR("error during the initialization of the wine process - aborting.");
 		return;
 	}
  
@@ -191,11 +191,11 @@ std::string convertWinePath(std::string path, bool direction){
 
 	// Not possible to call /bin/winepath if the path is deprecated
 	if( config.winePathIsDeprecated ){
-		std::cerr << "[PIPELIGHT] Don't know where /bin/winepath is" << std::endl;
+		DBG_WARN("don't know where /bin/winepath is.");
 		return "";
 
 	}else if( config.winePrefix != "" && !checkIfExists(config.winePrefix) ){
-		std::cerr << "[PIPELIGHT] Wine prefix doesn't exist" << std::endl;
+		DBG_WARN("wine prefix doesn't exist.");
 		return "";
 	}
 
@@ -203,7 +203,7 @@ std::string convertWinePath(std::string path, bool direction){
 	std::string resultPath;
 
 	if( pipe(tempPipeIn) == -1 ){
-		std::cerr << "[PIPELIGHT] Could not create pipes to communicate with /bin/winepath" << std::endl;
+		DBG_ERROR("could not create pipes to communicate with /bin/winepath.");
 		return "";
 	}
 
@@ -249,11 +249,11 @@ std::string convertWinePath(std::string path, bool direction){
 
 		int status;
 		if(waitpid(pidWinePath, &status, 0) == -1 || !WIFEXITED(status) ){
-			std::cerr << "[PIPELIGHT] /bin/winepath did not run correctly (error occured)" << std::endl;
+			DBG_ERROR("/bin/winepath did not run correctly (error occured).");
 			return "";
 
 		}else if(WEXITSTATUS(status) != 0){
-			std::cerr << "[PIPELIGHT] /bin/winepath did not run correctly (exitcode = " << WEXITSTATUS(status) << ")" << std::endl;
+			DBG_ERROR("/bin/winepath did not run correctly (exitcode = %d).", WEXITSTATUS(status));
 			return "";
 		}
 
@@ -262,7 +262,7 @@ std::string convertWinePath(std::string path, bool direction){
 		close(tempPipeIn[0]);
 		close(tempPipeIn[1]);	
 
-		std::cerr << "[PIPELIGHT] Unable to fork() - probably out of memory?" << std::endl;
+		DBG_ERROR("unable to fork() - probably out of memory?");
 		return "";
 
 	}
@@ -274,12 +274,12 @@ bool checkSilverlightInstallation(){
 
 	// Checking the silverlight installation is only possible if the user has defined a winePrefix
 	if( config.winePrefix == "" ){
-		std::cerr << "[PIPELIGHT] No winePrefix defined - unable to check Silverlight installation" << std::endl;
+		DBG_WARN("no winePrefix defined - unable to check Silverlight installation.");
 		return true;
 	}
 
 	// Output wine prefix
-	std::cerr << "[PIPELIGHT] Using wine prefix directory " << config.winePrefix << std::endl;
+	DBG_INFO("using wine prefix directory %s.", config.winePrefix.c_str());
 
 	// If there is no installer provided we cannot check the installation
 	if( config.dependencyInstaller == "" || config.dependencies.size() == 0 || 
@@ -289,7 +289,7 @@ bool checkSilverlightInstallation(){
 	}
 
 	// Run the installer ...
-	std::cerr << "[PIPELIGHT] Checking Silverlight installation - this might take some time" << std::endl;
+	DBG_INFO("checking Silverlight installation - this might take some time.");
 
 	pid_t pidInstall = fork();
 	if(pidInstall == 0){
@@ -326,17 +326,17 @@ bool checkSilverlightInstallation(){
 
 		int status;
 		if(waitpid(pidInstall, &status, 0) == -1 || !WIFEXITED(status) ){
-			std::cerr << "[PIPELIGHT] Silverlight installer did not run correctly (error occured)" << std::endl;
+			DBG_ERROR("Silverlight installer did not run correctly (error occured).");
 			return false;
 
 		}else if(WEXITSTATUS(status) != 0){
-			std::cerr << "[PIPELIGHT] Silverlight installer did not run correctly (exitcode = " << WEXITSTATUS(status) << ")" << std::endl;
+			DBG_ERROR("Silverlight installer did not run correctly (exitcode = %d).", WEXITSTATUS(status));
 			return false;
 		}
 
 
 	}else{
-		std::cerr << "[PIPELIGHT] Unable to fork() - probably out of memory?" << std::endl;
+		DBG_ERROR("unable to fork() - probably out of memory?");
 		return false;
 
 	}
@@ -348,12 +348,12 @@ bool checkGraphicDriver(){
 
 	// Checking the silverlight installation is only possible if the user has defined a winePrefix
 	if( config.graphicDriverCheck == "" ){
-		std::cerr << "[PIPELIGHT] No GPU driver check script defined - treating test as failure" << std::endl;
+		DBG_ERROR("no GPU driver check script defined - treating test as failure.");
 		return false;
 	}
 
 	if( !checkIfExists(config.graphicDriverCheck) ){
-		std::cerr << "[PIPELIGHT] GPU driver check script not found - treating test as failure" << std::endl;
+		DBG_ERROR("GPU driver check script not found - treating test as failure.");
 		return false;
 	}
 
@@ -384,24 +384,24 @@ bool checkGraphicDriver(){
 
 		int status;
 		if(waitpid(pidCheck, &status, 0) == -1 || !WIFEXITED(status) ){
-			std::cerr << "[PIPELIGHT] GPU driver check script failed to execute - treating test as failure" << std::endl;
+			DBG_ERROR("GPU driver check did not run correctly (error occured).");
 			return false;
 
 		}else if(WEXITSTATUS(status) == 0){
-			std::cerr << "[PIPELIGHT] GPU driver check - Your driver is supported, hardware acceleration enabled" << std::endl;
+			DBG_ERROR("GPU driver check - Your driver is supported, hardware acceleration enabled.");
 			return true;
 
 		}else if(WEXITSTATUS(status) == 1){
-			std::cerr << "[PIPELIGHT] GPU driver check - Your driver is not in the whitelist, hardware acceleration disabled" << std::endl;
+			DBG_ERROR("GPU driver check - Your driver is not in the whitelist, hardware acceleration disabled.");
 			return false;
 
 		}else{
-			std::cerr << "[PIPELIGHT] GPU driver check did not run correctly (exitcode = " << WEXITSTATUS(status) << ")" << std::endl;
+			DBG_ERROR("GPU driver check did not run correctly (exitcode = %d).", WEXITSTATUS(status));
 			return false;
 		}
 
 	}else{
-		std::cerr << "[PIPELIGHT] Unable to fork() - probably out of memory?" << std::endl;
+		DBG_ERROR("unable to fork() - probably out of memory?");
 		return false;
 	}
 
@@ -411,7 +411,7 @@ bool checkGraphicDriver(){
 bool startWineProcess(){
 
 	if( pipe(pipeOut) == -1 || pipe(pipeIn) == -1 ){
-		std::cerr << "[PIPELIGHT] Could not create pipes to communicate with the plugin" << std::endl;
+		DBG_ERROR("could not create pipes to communicate with the plugin.");
 		return false;
 	}
 
@@ -478,7 +478,7 @@ bool startWineProcess(){
 
 
 	}else{
-		std::cerr << "[PIPELIGHT] Unable to fork() - probably out of memory?" << std::endl;
+		DBG_ERROR("unable to fork() - probably out of memory?");
 		return false;
 	}
 
@@ -496,12 +496,16 @@ void dispatcher(int functionid, Stack &stack){
 		case HANDLE_MANAGER_REQUEST_STREAM_INFO:
 			{
 				NPStream* stream = readHandleStream(stack); // shouldExist not necessary, Linux checks always
+				DBG_TRACE("HANDLE_MANAGER_REQUEST_STREAM_INFO( stream=0x%p )", stream);
 
 				writeString(stream->headers);
 				writeHandleNotify(stream->notifyData, HANDLE_SHOULD_EXIST);
 				writeInt32(stream->lastmodified);
 				writeInt32(stream->end);
 				writeString(stream->url);
+
+				DBG_TRACE("HANDLE_MANAGER_REQUEST_STREAM_INFO -> ( headers='%s', notifyData=0x%p, lastmodified=%d, end=%d, url='%s' )", \
+						stream->headers, stream->notifyData, stream->lastmodified, stream->end, stream->url);
 				returnCommand();
 			}
 			break;
@@ -514,6 +518,7 @@ void dispatcher(int functionid, Stack &stack){
 				XWindowAttributes winattr;
 				bool result         = false;
 				Window dummy;
+				DBG_TRACE("GET_WINDOW_RECT( win=%lu )", win);
 
 				Display *display 	= XOpenDisplay(NULL);
 
@@ -525,7 +530,7 @@ void dispatcher(int functionid, Stack &stack){
 					XCloseDisplay(display);
 
 				}else{
-					std::cerr << "[PIPELIGHT] Could not open Display" << std::endl;
+					DBG_ERROR("could not open Display!");
 				}
 
 				if(result){
@@ -536,6 +541,8 @@ void dispatcher(int functionid, Stack &stack){
 				}
 
 				writeInt32(result);
+
+				DBG_TRACE("GET_WINDOW_RECT -> ( result=%d, ... )", result);
 				returnCommand();
 			}
 			break;
@@ -544,13 +551,13 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_CREATE_OBJECT:
 			{
-				NPObject* obj = sBrowserFuncs->createobject(readHandleInstance(stack), &myClass);
+				NPP instance 			= readHandleInstance(stack);
+				DBG_TRACE("FUNCTION_NPN_CREATE_OBJECT( instance=0x%p )", instance);
 
-				#ifdef DEBUG_LOG_HANDLES
-					std::cerr << "[PIPELIGHT:LINUX] FUNCTION_NPN_CREATE_OBJECT created " << (void*)obj << std::endl;
-				#endif
-
+				NPObject* obj = sBrowserFuncs->createobject(instance, &myClass);
 				writeHandleObj(obj); // refcounter is hopefully 1
+
+				DBG_TRACE("FUNCTION_NPN_CREATE_OBJECT -> obj=0x%p", obj);
 				returnCommand();
 			}
 			break;
@@ -560,14 +567,17 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPP instance 			= readHandleInstance(stack);
 				NPNVariable variable 	= (NPNVariable)readInt32(stack);
+				DBG_TRACE("FUNCTION_NPN_GETVALUE_BOOL( instance=0x%p, variable=%d )", instance, variable);
 
-				NPBool resultBool;
+				NPBool resultBool = 0;
 				NPError result = sBrowserFuncs->getvalue(instance, variable, &resultBool);
 
 				if(result == NPERR_NO_ERROR)
 					writeInt32(resultBool);
 
 				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NPN_GETVALUE_BOOL -> ( result=%d, ... )", result);
 				returnCommand();
 			}
 			break;
@@ -577,6 +587,7 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPP instance 			= readHandleInstance(stack);
 				NPNVariable variable 	= (NPNVariable)readInt32(stack);
+				DBG_TRACE("FUNCTION_NPN_GETVALUE_OBJECT( instance=0x%p, variable=%d )", instance, variable);
 
 				NPObject* obj = NULL;
 				NPError result = sBrowserFuncs->getvalue(instance, variable, &obj);
@@ -585,6 +596,8 @@ void dispatcher(int functionid, Stack &stack){
 					writeHandleObj(obj); // Refcount was already incremented by getValue
 
 				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NPN_GETVALUE_OBJECT -> ( result=%d, ... )", result);
 				returnCommand();
 			}
 			break;
@@ -592,24 +605,21 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPN_RELEASEOBJECT:
 			{
 				NPObject* obj 		= readHandleObj(stack);
+				DBG_TRACE("FUNCTION_NPN_GETVALUE_OBJECT( obj=0x%p )", obj);
 
-				#ifdef DEBUG_LOG_HANDLES
-					std::cerr << "[PIPELIGHT:LINUX] FUNCTION_NPN_RELEASEOBJECT(" << (void*)obj << ")" << std::endl;
+				// We do this check always, although its not really required, but this makes it easier to find errors
+				if(obj->referenceCount == 1 && handlemanager.existsHandleByReal( (uint64_t)obj, TYPE_NPObject) ){
+					writeHandleObj(obj);
+					callFunction(OBJECT_IS_CUSTOM);
 
-					if(obj->referenceCount == 1 && handlemanager.existsHandleByReal( (uint64_t)obj, TYPE_NPObject) ){
-
-						writeHandleObj(obj);
-						callFunction(OBJECT_IS_CUSTOM);
-
-						if( !(bool)readResultInt32() ){
-							throw std::runtime_error("Forgot to set killObject?");
-						}
-						
+					if( !(bool)readResultInt32() ){
+						throw std::runtime_error("Forgot to set killObject?");
 					}
-				#endif
+				}
 
 				sBrowserFuncs->releaseobject(obj);
 
+				DBG_TRACE("FUNCTION_NPN_RELEASEOBJECT -> void");
 				returnCommand();
 			}
 			break;
@@ -618,23 +628,15 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPObject* obj 				= readHandleObj(stack);
 				uint32_t minReferenceCount 	= readInt32(stack);
-
-
-				#ifdef DEBUG_LOG_HANDLES
-					std::cerr << "[PIPELIGHT:LINUX] FUNCTION_NPN_RETAINOBJECT(" << (void*)obj << ")" << std::endl;
-				#endif
+				DBG_TRACE("FUNCTION_NPN_RETAINOBJECT( obj=0x%p, minReferenceCount=%d )", obj, minReferenceCount);
 
 				sBrowserFuncs->retainobject(obj);
 
-				#ifdef DEBUG_LOG_HANDLES
-					if( minReferenceCount != REFCOUNT_UNDEFINED && obj->referenceCount < minReferenceCount ){
-						throw std::runtime_error("Object referencecount smaller than expected?");
-					}
+				if( minReferenceCount != REFCOUNT_UNDEFINED && obj->referenceCount < minReferenceCount ){
+					throw std::runtime_error("Object referencecount smaller than expected?");
+				}
 
-				#else
-					(void)minReferenceCount; // UNUSED
-				#endif
-
+				DBG_TRACE("FUNCTION_NPN_RETAINOBJECT -> void");
 				returnCommand();
 			}
 			break;
@@ -647,10 +649,10 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 		= readHandleInstance(stack);
 				NPObject* obj 		= readHandleObj(stack);	
 				readNPString(stack, script);
-
 				NPVariant resultVariant;
 				resultVariant.type 					= NPVariantType_Void;
 				resultVariant.value.objectValue 	= NULL;
+				DBG_TRACE("FUNCTION_NPN_EVALUATE( instance=0x%p, obj=0x%p )", instance, obj);
 
 				bool result = sBrowserFuncs->evaluate(instance, obj, &script, &resultVariant);	
 				
@@ -661,6 +663,8 @@ void dispatcher(int functionid, Stack &stack){
 					writeVariantRelease(resultVariant);
 
 				writeInt32( result );
+
+				DBG_TRACE("FUNCTION_NPN_EVALUATE -> ( result=%d, ... )", result);
 				returnCommand();
 			}
 			break;
@@ -672,12 +676,11 @@ void dispatcher(int functionid, Stack &stack){
 				NPIdentifier identifier			= readHandleIdentifier(stack);
 				int32_t argCount				= readInt32(stack);
 				std::vector<NPVariant> args 	= readVariantArray(stack, argCount);
-				// refcount is not incremented here!
-
 				NPVariant resultVariant;
 				resultVariant.type 					= NPVariantType_Void;
 				resultVariant.value.objectValue 	= NULL;
-				
+				DBG_TRACE("FUNCTION_NPN_INVOKE( instance=0x%p, obj=0x%p, identifier=0x%p, argCount=%d, ... )", instance, obj, identifier, argCount);
+
 				bool result = sBrowserFuncs->invoke(instance, obj, identifier, args.data(), argCount, &resultVariant);
 
 				// Free the variant array
@@ -687,8 +690,9 @@ void dispatcher(int functionid, Stack &stack){
 					writeVariantRelease(resultVariant);
 
 				writeInt32( result );
-				returnCommand();	
 
+				DBG_TRACE("FUNCTION_NPN_INVOKE -> ( result=%d, ... )", result);
+				returnCommand();
 			}
 			break;
 
@@ -698,12 +702,11 @@ void dispatcher(int functionid, Stack &stack){
 				NPObject* obj 					= readHandleObj(stack);
 				int32_t argCount				= readInt32(stack);
 				std::vector<NPVariant> args 	= readVariantArray(stack, argCount);
-				// refcount is not incremented here!
-
 				NPVariant resultVariant;
 				resultVariant.type 					= NPVariantType_Void;
 				resultVariant.value.objectValue 	= NULL;
-				
+				DBG_TRACE("FUNCTION_NPN_INVOKE_DEFAULT( instance=0x%p, obj=0x%p, argCount=%d, ... )", instance, obj, argCount);
+
 				bool result = sBrowserFuncs->invokeDefault(instance, obj, args.data(), argCount, &resultVariant);
 
 				// Free the variant array
@@ -713,8 +716,9 @@ void dispatcher(int functionid, Stack &stack){
 					writeVariantRelease(resultVariant);
 
 				writeInt32( result );
-				returnCommand();	
 
+				DBG_TRACE("FUNCTION_NPN_INVOKE_DEFAULT -> ( result=%d, ... )", result);
+				returnCommand();
 			}
 			break;
 
@@ -723,10 +727,12 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 					= readHandleInstance(stack);
 				NPObject* obj 					= readHandleObj(stack);
 				NPIdentifier identifier			= readHandleIdentifier(stack);
+				DBG_TRACE("FUNCTION_NPN_HAS_PROPERTY( instance=0x%p, obj=0x%p, identifier=0x%p )", instance, obj, identifier);
 
 				bool result = sBrowserFuncs->hasproperty(instance, obj, identifier);
-
 				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NPN_HAS_PROPERTY -> result=%d", result);
 				returnCommand();	
 			}
 			break;
@@ -736,10 +742,12 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 					= readHandleInstance(stack);
 				NPObject* obj 					= readHandleObj(stack);
 				NPIdentifier identifier			= readHandleIdentifier(stack);
+				DBG_TRACE("FUNCTION_NPN_HAS_METHOD( instance=0x%p, obj=0x%p, identifier=0x%p )", instance, obj, identifier);
 
 				bool result = sBrowserFuncs->hasmethod(instance, obj, identifier);
-
 				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NPN_HAS_METHOD -> result=%d", result);
 				returnCommand();
 			}
 			break;
@@ -749,17 +757,17 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 				= readHandleInstance(stack);
 				NPObject*  obj 				= readHandleObj(stack);
 				NPIdentifier propertyName	= readHandleIdentifier(stack);
-
 				NPVariant resultVariant;
 				resultVariant.type 					= NPVariantType_Void;
 				resultVariant.value.objectValue 	= NULL;
+				DBG_TRACE("FUNCTION_NPN_GET_PROPERTY( instance=0x%p, obj=0x%p, propertyName=0x%p )", instance, obj, propertyName);
 
 				bool result = sBrowserFuncs->getproperty(instance, obj, propertyName, &resultVariant);
-
 				if(result)
 					writeVariantRelease(resultVariant);
-
 				writeInt32( result );
+
+				DBG_TRACE("FUNCTION_NPN_GET_PROPERTY -> ( result=%d, ... )", result);
 				returnCommand();
 			}
 			break;
@@ -768,16 +776,16 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPP instance 					= readHandleInstance(stack);
 				NPObject* obj 					= readHandleObj(stack);
-				NPIdentifier identifier			= readHandleIdentifier(stack);
-
+				NPIdentifier propertyName		= readHandleIdentifier(stack);
 				NPVariant value;
 				readVariant(stack, value);
+				DBG_TRACE("FUNCTION_NPN_SET_PROPERTY( instance=0x%p, obj=0x%p, propertyName=0x%p, value=0x%p )", instance, obj, propertyName, &value);
 
-				bool result = sBrowserFuncs->setproperty(instance, obj, identifier, &value);
-
+				bool result = sBrowserFuncs->setproperty(instance, obj, propertyName, &value);
+				writeInt32(result);
 				freeVariant(value);
 
-				writeInt32(result);
+				DBG_TRACE("FUNCTION_NPN_SET_PROPERTY -> result=%d", result);
 				returnCommand();
 			}
 			break;
@@ -786,11 +794,13 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPP instance 					= readHandleInstance(stack);
 				NPObject* obj 					= readHandleObj(stack);
-				NPIdentifier identifier			= readHandleIdentifier(stack);
+				NPIdentifier propertyName		= readHandleIdentifier(stack);
+				DBG_TRACE("FUNCTION_NPN_REMOVE_PROPERTY( instance=0x%p, obj=0x%p, propertyName=0x%p )", instance, obj, propertyName);
 
-				bool result = sBrowserFuncs->removeproperty(instance, obj, identifier);
-
+				bool result = sBrowserFuncs->removeproperty(instance, obj, propertyName);
 				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NPN_REMOVE_PROPERTY -> result=%d", result);
 				returnCommand();
 			}
 			break;
@@ -798,10 +808,10 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPN_ENUMERATE:
 			{
 				NPP instance 					= readHandleInstance(stack);
-				NPObject 		*obj 			= readHandleObj(stack);
-
+				NPObject *obj 					= readHandleObj(stack);
 				NPIdentifier*   identifierTable  = NULL;
 				uint32_t 		identifierCount  = 0;
+				DBG_TRACE("FUNCTION_NPN_ENUMERATE( instance=0x%p, obj=0x%p )", instance, obj);
 
 				bool result = sBrowserFuncs->enumerate(instance, obj, &identifierTable, &identifierCount);
 
@@ -815,6 +825,8 @@ void dispatcher(int functionid, Stack &stack){
 				}
 
 				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NPN_ENUMERATE -> ( result=%d, ... )", result);
 				returnCommand();
 			}
 			break;
@@ -823,9 +835,11 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPObject* obj 					= readHandleObj(stack);
 				std::shared_ptr<char> message 	= readStringAsMemory(stack);
+				DBG_TRACE("FUNCTION_NPN_SET_EXCEPTION( instance=0x%p, obj=0x%p )", obj, message.get());
 
 				sBrowserFuncs->setexception(obj, message.get());
 
+				DBG_TRACE("FUNCTION_NPN_SET_EXCEPTION -> void");
 				returnCommand();
 			}
 			break;
@@ -836,6 +850,7 @@ void dispatcher(int functionid, Stack &stack){
 				std::shared_ptr<char> url 		= readStringAsMemory(stack);
 				std::shared_ptr<char> target 	= readStringAsMemory(stack);
 				NotifyDataRefCount* notifyData 	= (NotifyDataRefCount*)readHandleNotify(stack);
+				DBG_TRACE("FUNCTION_NPN_GET_URL_NOTIFY( instance=0x%p, url='%s', target='%s', notifyData=0x%p )", instance, url.get(), target.get(), notifyData);
 
 				// Increase refcounter
 				if(notifyData){
@@ -843,8 +858,9 @@ void dispatcher(int functionid, Stack &stack){
 				}
 
 				NPError result = sBrowserFuncs->geturlnotify(instance, url.get(), target.get(), notifyData);
-
 				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NPN_GET_URL_NOTIFY -> result=%d", result);
 				returnCommand();
 			}
 			break;
@@ -854,11 +870,11 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 					= readHandleInstance(stack);
 				std::shared_ptr<char> url 		= readStringAsMemory(stack);
 				std::shared_ptr<char> target 	= readStringAsMemory(stack);
-
 				size_t len;
 				std::shared_ptr<char> buffer	= readMemory(stack, len);
 				bool file 						= (bool)readInt32(stack);
 				NotifyDataRefCount* notifyData 	= (NotifyDataRefCount*)readHandleNotify(stack);
+				DBG_TRACE("FUNCTION_NPN_POST_URL_NOTIFY( instance=0x%p, url='%s', target='%s', buffer=0x%p, len=%lu, file=%d, notifyData=0x%p )", instance, url.get(), target.get(), buffer.get(), len, file, notifyData);
 
 				// Increase refcounter
 				if(notifyData){
@@ -866,8 +882,9 @@ void dispatcher(int functionid, Stack &stack){
 				}
 
 				NPError result = sBrowserFuncs->posturlnotify(instance, url.get(), target.get(), len, buffer.get(), file, notifyData);
-
 				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NPN_POST_URL_NOTIFY -> result=%d", result);
 				returnCommand();
 			}
 			break;
@@ -877,10 +894,12 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 					= readHandleInstance(stack);
 				std::shared_ptr<char> url 		= readStringAsMemory(stack);
 				std::shared_ptr<char> target 	= readStringAsMemory(stack);
+				DBG_TRACE("FUNCTION_NPN_GET_URL( instance=0x%p, url='%s', target='%s' )", instance, url.get(), target.get());
 
 				NPError result = sBrowserFuncs->geturl(instance, url.get(), target.get());
-
 				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NPN_GET_URL -> result=%d", result);
 				returnCommand();
 			}
 			break;
@@ -890,14 +909,15 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 					= readHandleInstance(stack);
 				std::shared_ptr<char> url 		= readStringAsMemory(stack);
 				std::shared_ptr<char> target 	= readStringAsMemory(stack);
-
 				size_t len;
 				std::shared_ptr<char> buffer	= readMemory(stack, len);
 				bool file 						= (bool)readInt32(stack);
+				DBG_TRACE("FUNCTION_NPN_POST_URL( instance=0x%p, url='%s', target='%s', buffer=0x%p, len=%lu, file=%d )", instance, url.get(), target.get(), buffer.get(), len, file );
 
 				NPError result = sBrowserFuncs->posturl(instance, url.get(), target.get(), len, buffer.get(), file);
-
 				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NPN_POST_URL -> result=%d", result);
 				returnCommand();
 			}
 			break;
@@ -907,6 +927,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPStream *stream 				= readHandleStream(stack);
 				uint32_t rangeCount				= readInt32(stack);
 				NPByteRange *byteRange 			= NULL;
+				DBG_TRACE("FUNCTION_NPN_REQUEST_READ( stream=0x%p, rangeCount=%d, ... )", stream, rangeCount );
 
 				for(unsigned int i = 0; i < rangeCount; i++){
 					NPByteRange *newByteRange = (NPByteRange*)malloc(sizeof(NPByteRange));
@@ -929,6 +950,8 @@ void dispatcher(int functionid, Stack &stack){
 				}
 
 				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NPN_REQUEST_READ -> result=%d", result);
 				returnCommand();
 			}
 			break;
@@ -936,14 +959,15 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPN_WRITE:
 			{
 				size_t len;
-
 				NPP instance 					= readHandleInstance(stack);
 				NPStream *stream 				= readHandleStream(stack);
 				std::shared_ptr<char> buffer	= readMemory(stack, len);	
+				DBG_TRACE("FUNCTION_NPN_WRITE( instance=0x%p, stream=0x%p, buffer=0x%p, len=%lu )", instance, stream, buffer.get(), len );
 
 				int32_t result = sBrowserFuncs->write(instance, stream, len, buffer.get());
-				
 				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NPN_WRITE -> result=%d", result);
 				returnCommand();
 			}
 			break;
@@ -953,14 +977,15 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 					= readHandleInstance(stack);
 				std::shared_ptr<char> type 		= readStringAsMemory(stack);
 				std::shared_ptr<char> target 	= readStringAsMemory(stack);
+				DBG_TRACE("FUNCTION_NPN_NEW_STREAM( instance=0x%p, type='%s', target='%s' )", instance, type.get(), target.get() );
 
 				NPStream* stream = NULL;
 				NPError result = sBrowserFuncs->newstream(instance, type.get(), target.get(), &stream);
-
 				if(result == NPERR_NO_ERROR)
 					writeHandleStream(stream);
-
 				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NPN_NEW_STREAM -> ( result=%d, ... )", result);
 				returnCommand();
 			}
 			break;
@@ -970,10 +995,12 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 		= readHandleInstance(stack);
 				NPStream *stream 	= readHandleStream(stack, HANDLE_SHOULD_EXIST);
 				NPReason reason 	= (NPReason) readInt32(stack);
+				DBG_TRACE("FUNCTION_NPN_DESTROY_STREAM( instance=0x%p, stream=0x%p, reason=%d )", instance, stream, reason );
 
 				NPError result = sBrowserFuncs->destroystream(instance, stream, reason);
-				
 				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NPN_DESTROY_STREAM -> result=%d", result);
 				returnCommand();
 			}
 			break;		
@@ -983,14 +1010,23 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 					= readHandleInstance(stack);
 				std::shared_ptr<char> message	= readStringAsMemory(stack);
 
+				DBG_TRACE("FUNCTION_NPN_STATUS( instance=0x%p, message='%s' )", instance, message.get() );
 				sBrowserFuncs->status(instance, message.get());
+
+				DBG_TRACE("FUNCTION_NPN_DESTROY_STREAM -> void");
 				returnCommand();
 			}
 			break;
 
 		case FUNCTION_NPN_USERAGENT:
 			{
-				writeString( sBrowserFuncs->uagent(readHandleInstance(stack)) );
+				NPP instance 					= readHandleInstance(stack);
+				DBG_TRACE("FUNCTION_NPN_USERAGENT( instance=0x%p )", instance );
+
+				const char* uagent = sBrowserFuncs->uagent(instance);
+				writeString(uagent);
+
+				DBG_TRACE("FUNCTION_NPN_USERAGENT -> uagent='%s'", uagent);
 				returnCommand();
 			}
 			break;
@@ -998,9 +1034,12 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPN_IDENTIFIER_IS_STRING:
 			{
 				NPIdentifier identifier = readHandleIdentifier(stack);
-				bool result = sBrowserFuncs->identifierisstring(identifier);
+				DBG_TRACE("FUNCTION_NPN_IDENTIFIER_IS_STRING( identifier=0x%p )", identifier );
 
+				bool result = sBrowserFuncs->identifierisstring(identifier);
 				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NPN_IDENTIFIER_IS_STRING -> result=%d", result );
 				returnCommand();
 			}
 			break;
@@ -1008,9 +1047,12 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPN_UTF8_FROM_IDENTIFIER:
 			{
 				NPIdentifier identifier	= readHandleIdentifier(stack);
-				NPUTF8 *str = sBrowserFuncs->utf8fromidentifier(identifier);
+				DBG_TRACE("FUNCTION_NPN_UTF8_FROM_IDENTIFIER( identifier=0x%p )", identifier );
 
+				NPUTF8 *str = sBrowserFuncs->utf8fromidentifier(identifier);
 				writeString((char*) str);
+
+				DBG_TRACE("FUNCTION_NPN_UTF8_FROM_IDENTIFIER -> str='%s'", str );
 
 				// Free the string
 				if(str)
@@ -1024,9 +1066,12 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPN_INT_FROM_IDENTIFIER:
 			{
 				NPIdentifier identifier = readHandleIdentifier(stack);
+				DBG_TRACE("FUNCTION_NPN_IDENTIFIER_IS_STRING( identifier=0x%p )", identifier );
+
 				int32_t result = sBrowserFuncs->intfromidentifier(identifier);
-				
 				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NPN_IDENTIFIER_IS_STRING -> result=%d", result );
 				returnCommand();
 			}
 			break;
@@ -1034,9 +1079,12 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPN_GET_STRINGIDENTIFIER:
 			{
 				std::shared_ptr<char> utf8name 	= readStringAsMemory(stack);
-				NPIdentifier identifier 		= sBrowserFuncs->getstringidentifier((NPUTF8*) utf8name.get());
+				DBG_TRACE("FUNCTION_NPN_GET_STRINGIDENTIFIER( utf8name='%s' )", utf8name.get() );
 
+				NPIdentifier identifier 		= sBrowserFuncs->getstringidentifier((NPUTF8*) utf8name.get());
 				writeHandleIdentifier(identifier);
+
+				DBG_TRACE("FUNCTION_NPN_GET_STRINGIDENTIFIER -> identifier=0x%p", identifier );
 				returnCommand();
 			}
 			break;
@@ -1044,9 +1092,12 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPN_GET_INTIDENTIFIER:
 			{
 				int32_t intid 					= readInt32(stack);
-				NPIdentifier identifier 		= sBrowserFuncs->getintidentifier(intid);
+				DBG_TRACE("FUNCTION_NPN_GET_INTIDENTIFIER( intid='%d' )", intid );
 
+				NPIdentifier identifier 		= sBrowserFuncs->getintidentifier(intid);
 				writeHandleIdentifier(identifier);
+
+				DBG_TRACE("FUNCTION_NPN_GET_INTIDENTIFIER -> identifier=0x%p", identifier );
 				returnCommand();
 			}
 			break;

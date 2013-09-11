@@ -97,16 +97,15 @@ void pokeString(std::string str, char *dest, unsigned int maxLength){
 	}
 }
 
-NP_EXPORT(NPError)
-NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
+NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 {
-	EnterFunction();
+	DBG_TRACE("( bFuncs=0x%p, pFuncs=0x%p )", bFuncs, pFuncs);
 
 	if( bFuncs == NULL || pFuncs == NULL )
 		return NPERR_INVALID_PARAM;
 
 	if( (bFuncs->version >> 8) > NP_VERSION_MAJOR ){
-		std::cerr << "[PIPELIGHT] Incompatible browser version!" << std::endl;
+		DBG_ERROR("incompatible browser version!");
 		return NPERR_INCOMPATIBLE_VERSION_ERROR;
 	}
 
@@ -154,7 +153,7 @@ NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 		!sBrowserFuncs->releasevariantvalue ||
 		!sBrowserFuncs->setexception ||
 		!sBrowserFuncs->enumerate ){
-		std::cerr << "[PIPELIGHT] Your browser doesn't support all required functions!" << std::endl;
+		DBG_ERROR("your browser doesn't support all required functions!");
 
 		/*
 		Uncomment this in order to debug missing browser functions ...
@@ -202,14 +201,14 @@ NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 
 	// Select which event handling method should be used
 	if( !config.eventAsyncCall && sBrowserFuncs->scheduletimer && sBrowserFuncs->unscheduletimer ){
-		std::cerr << "[PIPELIGHT] Using timer based event handling" << std::endl;
+		DBG_INFO("using timer based event handling.");
 
 	}else if( sBrowserFuncs->pluginthreadasynccall ){
-		std::cerr << "[PIPELIGHT] Using thread asynccall event handling" << std::endl;
+		DBG_INFO("using thread asynccall event handling.");
 		config.eventAsyncCall = true;
 
 	}else{
-		std::cerr << "[PIPELIGHT] No eventhandling compatible with your browser available" << std::endl;
+		DBG_ERROR("no eventhandling compatible with your browser available.");
 		return NPERR_INCOMPATIBLE_VERSION_ERROR;
 	}
 
@@ -234,10 +233,9 @@ NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 	return NPERR_NO_ERROR;
 }
 
-NP_EXPORT(char*)
-NP_GetPluginVersion()
+NP_EXPORT(char*) NP_GetPluginVersion()
 {
-	EnterFunction();
+	DBG_TRACE("()");
 
 	if(!initOkay){
 		pokeString("0.0", strPluginversion, sizeof(strPluginversion));
@@ -252,10 +250,9 @@ NP_GetPluginVersion()
 	return strPluginversion;
 }
 
-NP_EXPORT(const char*)
-NP_GetMIMEDescription()
+NP_EXPORT(const char*) NP_GetMIMEDescription()
 {
-	EnterFunction();
+	DBG_TRACE("()");
 
 	if(!initOkay){
 		pokeString("application/x-pipelight-error:pipelighterror:Error during initialization", strMimeType, sizeof(strMimeType));
@@ -270,10 +267,9 @@ NP_GetMIMEDescription()
 	return strMimeType;
 }
 
-NP_EXPORT(NPError)
-NP_GetValue(void* future, NPPVariable aVariable, void* aValue) {
-	EnterFunction();
-	
+NP_EXPORT(NPError) NP_GetValue(void* future, NPPVariable aVariable, void* aValue) {
+	DBG_TRACE("( future=0x%p, aVariable=%d, aValue=0x%p )", future, aVariable, aValue);
+
 	NPError result = NPERR_GENERIC_ERROR;
 	std::string resultStr;
 
@@ -312,7 +308,7 @@ NP_GetValue(void* future, NPPVariable aVariable, void* aValue) {
 			break;
 
 		default:
-			NotImplemented();
+			NOTIMPLEMENTED("( aVariable=%d )", aVariable);
 			result = NPERR_INVALID_PARAM;
 			break;
 
@@ -321,9 +317,8 @@ NP_GetValue(void* future, NPPVariable aVariable, void* aValue) {
 	return result;
 }
 
-NP_EXPORT(NPError)
-NP_Shutdown() {
-	EnterFunction();
+NP_EXPORT(NPError) NP_Shutdown() {
+	DBG_TRACE("NP_Shutdown()");
 
 	if(initOkay){
 		callFunction(NP_SHUTDOWN);
@@ -372,9 +367,8 @@ void* timerThread(void* argument){
 	return NULL;
 }
 
-NPError
-NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* argn[], char* argv[], NPSavedData* saved) {
-	EnterFunction();
+NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* argn[], char* argv[], NPSavedData* saved) {
+	DBG_TRACE("( pluginType='%s', instance=0x%p, mode=%d, argc=%d, argn=0x%p, argv=0x%p, saved=0x%p )", pluginType, instance, mode, argc, argn, argv, saved);
 
 	// Remember if this was an error, in this case we shouldn't call the original destroy function
 	bool pipelightError = (strcmp(pluginType, "application/x-pipelight-error") == 0);
@@ -396,7 +390,7 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 		if( std::string(sBrowserFuncs->uagent(instance)).find("Opera") != std::string::npos ){
 			config.eventAsyncCall = true;
 
-			std::cerr << "[PIPELIGHT] Opera browser detect, changed eventAsyncCall to true" << std::endl;
+			DBG_INFO("Opera browser detected, changed eventAsyncCall to true.");
 		}
 	}
 
@@ -415,11 +409,11 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 			
 			if( sBrowserFuncs->evaluate(instance, windowObj, &script, &resultVariant) ){
 				sBrowserFuncs->releasevariantvalue(&resultVariant);
-				std::cerr << "[PIPELIGHT] Successfully executed JavaScript" << std::endl;
+
+				DBG_INFO("successfully executed JavaScript.");
 
 			}else{
-				std::cerr << "[PIPELIGHT] Failed to execute JavaScript, take a look at the JS console" << std::endl;
-			
+				DBG_ERROR("failed to execute JavaScript, take a look at the JS console.");
 			}
 
 			sBrowserFuncs->releaseobject(windowObj);
@@ -436,11 +430,11 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 
 			}else{
 				eventThread = 0;
-				std::cerr << "[PIPELIGHT] Unable to start timer thread" << std::endl;
+				DBG_ERROR("unable to start timer thread.");
 			}
 
 		}else{
-			std::cerr << "[PIPELIGHT] Already one running timer" << std::endl;
+			DBG_INFO("already one timer thread running.");
 		}
 
 	}else{
@@ -449,7 +443,7 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 			eventTimerInstance 	= instance;
 			eventTimerID 		= sBrowserFuncs->scheduletimer(instance, 5, true, timerFunc);
 		}else{
-			std::cerr << "[PIPELIGHT] Already one running timer" << std::endl;
+			DBG_INFO("already one timer running.");
 		}
 
 	}
@@ -519,9 +513,8 @@ NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* 
 	return result;
 }
 
-NPError
-NPP_Destroy(NPP instance, NPSavedData** save) {
-	EnterFunction();
+NPError NPP_Destroy(NPP instance, NPSavedData** save) {
+	DBG_TRACE("( instance=0x%p, save=0x%p )", instance, save);
 
 	// Initialization failed or diagnostic mode
 	bool pipelightError = (bool)instance->pdata;
@@ -539,7 +532,7 @@ NPP_Destroy(NPP instance, NPSavedData** save) {
 				eventTimerInstance = NULL;
 				sem_post(&eventThreadSemRequestAsyncCall);
 
-				std::cerr << "[PIPELIGHT] Unscheduled event asynccall" << std::endl;
+				DBG_INFO("unscheduled event timer thread.");
 			}
 
 		}else{
@@ -548,7 +541,7 @@ NPP_Destroy(NPP instance, NPSavedData** save) {
 			eventTimerInstance 	= NULL;
 			eventTimerID 		= 0;
 
-			std::cerr << "[PIPELIGHT] Unscheduled event timer" << std::endl;
+			DBG_INFO("unscheduled event timer.");
 
 		}
 	}
@@ -562,7 +555,7 @@ NPP_Destroy(NPP instance, NPSavedData** save) {
 		readCommands(stack, true, 5000);
 
 	} catch(std::runtime_error error){
-		std::cerr << "[PIPELIGHT] Plugin did not deinitialize properly, killing it!" << std::endl;
+		DBG_ERROR("plugin did not deinitialize properly, killing it!");
 
 		// Kill the wine process (if it still exists) ...
 		int status;
@@ -617,7 +610,7 @@ NPP_Destroy(NPP instance, NPSavedData** save) {
 				if(nextInstance == 0){
 					eventThread = 0;
 				}else{
-					std::cerr << "[PIPELIGHT] Started asynccall using instance " << (void*)nextInstance << std::endl;
+					DBG_INFO("started timer thread for instance 0x%p.", nextInstance);
 				}
 			}
 
@@ -628,7 +621,7 @@ NPP_Destroy(NPP instance, NPSavedData** save) {
 				eventTimerID 		= sBrowserFuncs->scheduletimer(nextInstance, 5, true, timerFunc);
 				eventTimerInstance 	= instance;
 
-				std::cerr << "[PIPELIGHT] Started timer in instance " << (void*)nextInstance << std::endl;
+				DBG_INFO("started timer for instance 0x%p.", nextInstance);
 			}
 
 		}
@@ -637,9 +630,8 @@ NPP_Destroy(NPP instance, NPSavedData** save) {
 	return result;
 }
 
-NPError
-NPP_SetWindow(NPP instance, NPWindow* window) {
-	EnterFunction();
+NPError NPP_SetWindow(NPP instance, NPWindow* window) {
+	DBG_TRACE("( instance=0x%p, window=0x%p )", instance, window);
 
 	// TODO: translate to Screen coordinates
 	// TODO: Use all parameters
@@ -674,7 +666,7 @@ NPP_SetWindow(NPP instance, NPWindow* window) {
 				XCloseDisplay(display);
 
 			}else{
-				std::cerr << "[PIPELIGHT] Could not open display" << std::endl;
+				DBG_ERROR("could not open Display!");
 			}
 
 			// Show the window after it has been embedded
@@ -688,9 +680,8 @@ NPP_SetWindow(NPP instance, NPWindow* window) {
 	return NPERR_NO_ERROR;
 }
 
-NPError
-NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool seekable, uint16_t* stype) {
-	EnterFunction();
+NPError NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool seekable, uint16_t* stype) {
+	DBG_TRACE("( instance=0x%p, type='%s', stream=0x%p, seekable=%d, stype=0x%p )", instance, type, stream, seekable, stype);
 
 	writeInt32(seekable);
 	writeHandleStream(stream);
@@ -715,9 +706,8 @@ NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool seekable, 
 	return result;
 }
 
-NPError
-NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
-	EnterFunction();
+NPError NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
+	DBG_TRACE("( instance=0x%p, stream=0x%p, reason=%d )", instance, stream, reason);
 
 	if( !handlemanager.existsHandleByReal((uint64_t)stream, TYPE_NPStream) ){
 		// Affects Opera
@@ -738,9 +728,8 @@ NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
 	return result;
 }
 
-int32_t
-NPP_WriteReady(NPP instance, NPStream* stream) {
-	EnterFunction();
+int32_t NPP_WriteReady(NPP instance, NPStream* stream) {
+	DBG_TRACE("( instance=0x%p, stream=0x%p )", instance, stream);
 
 	if( !handlemanager.existsHandleByReal((uint64_t)stream, TYPE_NPStream) ){
 		// Affects Chrome
@@ -762,9 +751,8 @@ NPP_WriteReady(NPP instance, NPStream* stream) {
 	return result;
 }
 
-int32_t
-NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, void* buffer) {
-	EnterFunction();
+int32_t NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, void* buffer) {
+	DBG_TRACE("( instance=0x%p, stream=0x%p, offset=%d, len=%d, buffer=0x%p )", instance, stream, offset, len, buffer);
 
 	if( !handlemanager.existsHandleByReal((uint64_t)stream, TYPE_NPStream) ){
 		// Affects Chrome
@@ -781,25 +769,24 @@ NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, void* buf
 	return readResultInt32();
 }
 
-void
-NPP_StreamAsFile(NPP instance, NPStream* stream, const char* fname) {
-	NotImplemented();
+void NPP_StreamAsFile(NPP instance, NPStream* stream, const char* fname) {
+	DBG_TRACE("( instance=0x%p, stream=0x%p, fname=0x%p )", instance, stream, fname);
+	NOTIMPLEMENTED();
 }
 
-void
-NPP_Print(NPP instance, NPPrint* platformPrint) {
-	NotImplemented();
+void NPP_Print(NPP instance, NPPrint* platformPrint) {
+	DBG_TRACE("( instance=0x%p, platformPrint=0x%p )", instance, platformPrint);
+	NOTIMPLEMENTED();
 }
 
-int16_t
-NPP_HandleEvent(NPP instance, void* event) {
-	NotImplemented();
+int16_t NPP_HandleEvent(NPP instance, void* event) {
+	DBG_TRACE("( instance=0x%p, event=0x%p )", instance, event);
+	NOTIMPLEMENTED();
 	return 0;
 }
 
-void
-NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyData) {
-	EnterFunction();
+void NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyData) {
+	DBG_TRACE("( instance=0x%p, URL='%s', reason=%d, notifyData=0x%p )", instance, URL, reason, notifyData);
 
 	writeHandleNotify(notifyData, HANDLE_SHOULD_EXIST);
 	writeInt32(reason);
@@ -834,9 +821,8 @@ NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyData) 
 
 }
 
-NPError
-NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
-	EnterFunction();
+NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
+	DBG_TRACE("( instance=0x%p, variable=%d, value=0x%p )", instance, variable, value);
 
 	NPError result = NPERR_GENERIC_ERROR;
 	std::vector<ParameterInfo> stack;
@@ -882,7 +868,7 @@ NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 
 
 		default:
-			NotImplemented();
+			NOTIMPLEMENTED("( variable=%d )", variable);
 			result = NPERR_INVALID_PARAM;
 			break;
 	}
@@ -890,8 +876,8 @@ NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 	return result;
 }
 
-NPError
-NPP_SetValue(NPP instance, NPNVariable variable, void *value) {
-	NotImplemented();
+NPError NPP_SetValue(NPP instance, NPNVariable variable, void *value) {
+	DBG_TRACE("( instance=0x%p, variable=%d, value=0x%p )", instance, variable, value);
+	NOTIMPLEMENTED();
 	return NPERR_GENERIC_ERROR;
 }

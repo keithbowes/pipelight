@@ -129,7 +129,7 @@ void debugFile(NPP instance,std::string filename){
 }
 
 void runDiagnostic(NPP instance){
-	std::cerr << "[PIPELIGHT] Running diagnostic checks" << std::endl;
+	DBG_INFO("running diagnostic checks.");
 
 	// Initialization okay, but plugin cache still contains an error
 	if(initOkay){

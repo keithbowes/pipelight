@@ -1,6 +1,8 @@
-#include <windows.h>                            // for PVOID and other types
-#include <iostream>                             // for std::cerr
-#include <vector>                               // for std::vector
+#include <windows.h>							// for PVOID and other types
+#include <iostream>								// for std::cerr
+#include <vector>								// for std::vector
+
+#include "../communication/communication.h"		// for DBG_INFO
 
 void* patchDLLExport(PVOID ModuleBase, const char* functionName, void* newFunctionPtr)
 {
@@ -30,7 +32,7 @@ void* patchDLLExport(PVOID ModuleBase, const char* functionName, void* newFuncti
 		}
 
 		if(strcmp( (PCHAR) ModuleBase + names[i], functionName ) == 0 ){
-			std::cerr << "[PIPELIGHT] Replaced API function " << functionName << std::endl;
+			DBG_INFO("replaced API function %s.", functionName);
 
 			void* oldFunctionPtr = (PVOID)((PCHAR) ModuleBase + functions[ord]);
 			functions[ord] = (ULONG)newFunctionPtr - (ULONG)ModuleBase;

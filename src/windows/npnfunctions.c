@@ -18,7 +18,7 @@ void pokeString(std::string str, char *dest, unsigned int maxLength){
 }
 
 NPError NP_LOADDS NPN_GetURL(NPP instance, const char* url, const char* window){
-	EnterFunction();
+	DBG_TRACE("( instance=0x%p, url='%s', window='%s' )", instance, url, window);
 
 	writeString(window);
 	writeString(url);
@@ -30,11 +30,11 @@ NPError NP_LOADDS NPN_GetURL(NPP instance, const char* url, const char* window){
 }
 
 NPError NP_LOADDS NPN_PostURL(NPP instance, const char* url, const char* window, uint32_t len, const char* buf, NPBool file){
-	EnterFunction();
+	DBG_TRACE("( instance=0x%p, url='%s', window='%s', len=%d, buf=0x%p, file=%d )", instance, url, window, len, buf, file);
 
 	// File upload would require to convert the wine path to a linux path - too complicated as this function isnt used in many plugins
 	if(file){
-		NotImplemented();
+		NOTIMPLEMENTED("file argument not supported.");
 		return NPERR_FILE_NOT_FOUND;
 	}
 
@@ -50,7 +50,7 @@ NPError NP_LOADDS NPN_PostURL(NPP instance, const char* url, const char* window,
 }
 
 NPError NP_LOADDS NPN_RequestRead(NPStream* stream, NPByteRange* rangeList){
-	EnterFunction();
+	DBG_TRACE("( stream=0x%p, rangeList=0x%p )", stream, rangeList);
 
 	// Count the number of elements in the linked list
 	uint32_t rangeCount = 0;
@@ -73,7 +73,7 @@ NPError NP_LOADDS NPN_RequestRead(NPStream* stream, NPByteRange* rangeList){
 }
 
 NPError NP_LOADDS NPN_NewStream(NPP instance, NPMIMEType type, const char* window, NPStream** stream){
-	EnterFunction();
+	DBG_TRACE("( instance=0x%p, type='%s', window='%s', stream=0x%p )", instance, type, window, stream);
 
 	writeString(window);
 	writeString(type);
@@ -92,7 +92,7 @@ NPError NP_LOADDS NPN_NewStream(NPP instance, NPMIMEType type, const char* windo
 }
 
 int32_t NP_LOADDS NPN_Write(NPP instance, NPStream* stream, int32_t len, void* buffer){
-	EnterFunction();
+	DBG_TRACE("( instance=0x%p, stream=0x%p, len=%d, buffer=0x%p )", instance, stream, len, buffer);
 
 	writeMemory((char*)buffer, len);
 	writeHandleStream(stream, HANDLE_SHOULD_EXIST);
@@ -104,7 +104,7 @@ int32_t NP_LOADDS NPN_Write(NPP instance, NPStream* stream, int32_t len, void* b
 }
 
 NPError NP_LOADDS NPN_DestroyStream(NPP instance, NPStream* stream, NPReason reason){
-	EnterFunction();
+	DBG_TRACE("( instance=0x%p, stream=0x%p, reason=%d )", instance, stream, reason);
 
 	writeInt32(reason);
 	writeHandleStream(stream, HANDLE_SHOULD_EXIST);
@@ -118,7 +118,7 @@ NPError NP_LOADDS NPN_DestroyStream(NPP instance, NPStream* stream, NPReason rea
 
 // Verified, everything okay
 void NP_LOADDS NPN_Status(NPP instance, const char* message){
-	EnterFunction();
+	DBG_TRACE("( instance=0x%p, message='%s' )", instance, message);
 
 	writeString(message);
 	writeHandleInstance(instance);
@@ -128,7 +128,7 @@ void NP_LOADDS NPN_Status(NPP instance, const char* message){
 
 // Verified, everything okay
 const char*  NP_LOADDS NPN_UserAgent(NPP instance){
-	EnterFunction();
+	DBG_TRACE("( instance=0x%p )", instance);
 
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_USERAGENT);
@@ -143,10 +143,14 @@ const char*  NP_LOADDS NPN_UserAgent(NPP instance){
 }
 
 void* NP_LOADDS NPN_MemAlloc(uint32_t size){
+	DBG_TRACE("( size=0x%d )", size);
+
 	return malloc(size);
 }
 
 void NP_LOADDS NPN_MemFree(void* ptr){
+	DBG_TRACE("( ptr=0x%p )", ptr);
+
 	if (ptr){
 		free(ptr);
 	}
@@ -154,30 +158,34 @@ void NP_LOADDS NPN_MemFree(void* ptr){
 
 // MacOS only, returns number of freed bytes
 uint32_t NP_LOADDS NPN_MemFlush(uint32_t size){
-	NotImplemented();
+	DBG_TRACE("( size=%d )", size);
+	NOTIMPLEMENTED();
 	return 0;
 }
 
 // Would allow to force the browser to reload plugins, not really necessary
 void NP_LOADDS NPN_ReloadPlugins(NPBool reloadPages){
-	NotImplemented();
+	DBG_TRACE("( reloadPages=%d )", reloadPages);
+	NOTIMPLEMENTED();
 }
 
 // Java is disabled of course!
 void* NP_LOADDS NPN_GetJavaEnv(void){
-	NotImplemented();
+	DBG_TRACE("()");
+	NOTIMPLEMENTED();
 	return NULL;		
 }
 
 // Java is disabled of course!
 void* NP_LOADDS NPN_GetJavaPeer(NPP instance){
-	NotImplemented();
+	DBG_TRACE("( instance=0x%p )", instance);
+	NOTIMPLEMENTED();
 	return NULL;		
 }
 
 // Verified, everything okay
 NPError NP_LOADDS NPN_GetURLNotify(NPP instance, const  char* url, const char* target, void* notifyData){
-	EnterFunction();
+	DBG_TRACE("( instance=0x%p, url='%s', target='%s', notifyData=0x%p )", instance, url, target, notifyData);
 
 	writeHandleNotify(notifyData);
 	writeString(target);
@@ -190,11 +198,11 @@ NPError NP_LOADDS NPN_GetURLNotify(NPP instance, const  char* url, const char* t
 }
 
 NPError NP_LOADDS NPN_PostURLNotify(NPP instance, const char* url, const char* target, uint32_t len, const char* buf, NPBool file, void* notifyData){
-	EnterFunction();
+	DBG_TRACE("( instance=0x%p, url='%s', target='%s', len=%d, buf=0x%p, file=%d, notifyData=0x%p )", instance, url, target, len, buf, file, notifyData);
 
 	// File upload would require to convert the wine path to a linux path - too complicated as this function isnt used in many plugins
 	if(file){
-		NotImplemented();
+		NOTIMPLEMENTED("file argument not supported.");
 		return NPERR_FILE_NOT_FOUND;
 	}
 
@@ -212,7 +220,7 @@ NPError NP_LOADDS NPN_PostURLNotify(NPP instance, const char* url, const char* t
 }
 
 NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
-	EnterFunction();
+	DBG_TRACE("( instance=0x%p, variable=%d, value=0x%p )", instance, variable, value);
 
 	NPError result = NPERR_GENERIC_ERROR;
 	std::vector<ParameterInfo> stack;
@@ -261,7 +269,7 @@ NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 			break;
 
 		default:
-			NotImplemented();
+			NOTIMPLEMENTED("( variable=%d )", variable);
 			break;
 	}
 
@@ -269,7 +277,7 @@ NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 }
 
 NPError NP_LOADDS NPN_SetValue(NPP instance, NPPVariable variable, void *value){
-	EnterFunction();
+	DBG_TRACE("( instance=0x%p, variable=%d, value=0x%p )", instance, variable, value);
 
 	NPError result = NPERR_GENERIC_ERROR;
 
@@ -284,7 +292,7 @@ NPError NP_LOADDS NPN_SetValue(NPP instance, NPPVariable variable, void *value){
 					ndata->windowlessMode 	= ( value == NULL );
 					result 					= NPERR_NO_ERROR;
 
-					std::cerr << "[PIPELIGHT] Plugin instance switched windowless mode to " << (ndata->windowlessMode ? "on" : "off") << std::endl;
+					DBG_INFO("plugin instance switched windowless mode to %s.", (ndata->windowlessMode ? "on" : "off"));
 
 					// Update existing plugin window
 					if(ndata->hWnd && ndata->window){
@@ -309,7 +317,7 @@ NPError NP_LOADDS NPN_SetValue(NPP instance, NPPVariable variable, void *value){
 			break;
 
 		default:
-			NotImplemented();
+			NOTIMPLEMENTED("( variable=%d )", variable);
 			break;
 
 	}
@@ -318,7 +326,7 @@ NPError NP_LOADDS NPN_SetValue(NPP instance, NPPVariable variable, void *value){
 }
 
 void NP_LOADDS NPN_InvalidateRect(NPP instance, NPRect *rect){
-	EnterFunction();
+	DBG_TRACE("( instance=0x%p, rect=0x%p )", instance, rect);
 
 	NetscapeData* ndata = (NetscapeData*)instance->ndata;
 	if(ndata){
@@ -341,7 +349,7 @@ void NP_LOADDS NPN_InvalidateRect(NPP instance, NPRect *rect){
 }
 
 void NP_LOADDS NPN_InvalidateRegion(NPP instance, NPRegion region){
-	EnterFunction();
+	DBG_TRACE("( instance=0x%p, region=0x%p )", instance, region);
 
 	NetscapeData* ndata = (NetscapeData*)instance->ndata;
 	if(ndata){
@@ -352,7 +360,7 @@ void NP_LOADDS NPN_InvalidateRegion(NPP instance, NPRegion region){
 }
 
 void NP_LOADDS NPN_ForceRedraw(NPP instance){
-	EnterFunction();
+	DBG_TRACE("( instance=0x%p )", instance);
 
 	NetscapeData* ndata = (NetscapeData*)instance->ndata;
 	if(ndata){
@@ -363,7 +371,7 @@ void NP_LOADDS NPN_ForceRedraw(NPP instance){
 }
 
 NPIdentifier NP_LOADDS NPN_GetStringIdentifier(const NPUTF8* name){
-	EnterFunction();
+	DBG_TRACE("( name='%s' )", name);
 
 	writeString(name);
 	callFunction(FUNCTION_NPN_GET_STRINGIDENTIFIER);
@@ -375,7 +383,7 @@ NPIdentifier NP_LOADDS NPN_GetStringIdentifier(const NPUTF8* name){
 }
 
 void NP_LOADDS NPN_GetStringIdentifiers(const NPUTF8** names, int32_t nameCount, NPIdentifier* identifiers){
-	EnterFunction();
+	DBG_TRACE("( names=0x%p, nameCount=%d, identifier=0x%p )", names, nameCount, identifiers);
 
 	// Lazy implementation ;-)
 	for(int i = 0; i < nameCount; i++){
@@ -384,7 +392,7 @@ void NP_LOADDS NPN_GetStringIdentifiers(const NPUTF8** names, int32_t nameCount,
 }
 
 NPIdentifier NP_LOADDS NPN_GetIntIdentifier(int32_t intid){
-	EnterFunction();
+	DBG_TRACE("( intid=%d )", intid);
 
 	writeInt32(intid);
 	callFunction(FUNCTION_NPN_GET_INTIDENTIFIER);
@@ -396,7 +404,7 @@ NPIdentifier NP_LOADDS NPN_GetIntIdentifier(int32_t intid){
 }
 
 bool NP_LOADDS NPN_IdentifierIsString(NPIdentifier identifier){
-	EnterFunction();
+	DBG_TRACE("( identifier=0x%p )", identifier);
 
 	writeHandleIdentifier(identifier);
 	callFunction(FUNCTION_NPN_IDENTIFIER_IS_STRING);
@@ -407,7 +415,7 @@ bool NP_LOADDS NPN_IdentifierIsString(NPIdentifier identifier){
 }
 
 NPUTF8* NP_LOADDS NPN_UTF8FromIdentifier(NPIdentifier identifier){
-	EnterFunction();
+	DBG_TRACE("( identifier=0x%p )", identifier);
 
 	writeHandleIdentifier(identifier);
 	callFunction(FUNCTION_NPN_UTF8_FROM_IDENTIFIER);
@@ -420,7 +428,7 @@ NPUTF8* NP_LOADDS NPN_UTF8FromIdentifier(NPIdentifier identifier){
 }
 
 int32_t NP_LOADDS NPN_IntFromIdentifier(NPIdentifier identifier){
-	EnterFunction();
+	DBG_TRACE("( identifier=0x%p )", identifier);
 
 	writeHandleIdentifier(identifier);
 	callFunction(FUNCTION_NPN_INT_FROM_IDENTIFIER);
@@ -428,11 +436,11 @@ int32_t NP_LOADDS NPN_IntFromIdentifier(NPIdentifier identifier){
 	return readResultInt32();
 }
 
-NPObject* NP_LOADDS NPN_CreateObject(NPP npp, NPClass *aClass){
-	EnterFunction();
+NPObject* NP_LOADDS NPN_CreateObject(NPP instance, NPClass *aClass){
+	DBG_TRACE("( instance=0x%p, aClass=0x%p )", instance, aClass);
 
 	// The other side doesnt need to know aClass
-	writeHandleInstance(npp);
+	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_CREATE_OBJECT);
 
 	std::vector<ParameterInfo> stack;
@@ -440,17 +448,13 @@ NPObject* NP_LOADDS NPN_CreateObject(NPP npp, NPClass *aClass){
 
 	// When we get a object handle back, then allocate a local corresponding object
 	// and initialize the refcounter to 1 before returning it.
-	NPObject* result = readHandleObjIncRef(stack, npp, aClass);
+	NPObject* result = readHandleObjIncRef(stack, instance, aClass);
 
 	return result;
 }
 
 NPObject* NP_LOADDS NPN_RetainObject(NPObject *obj){
-	EnterFunction();
-
-	#ifdef DEBUG_LOG_HANDLES
-		std::cerr << "[PIPELIGHT:WINDOWS] NPN_RetainObject(" << (void*)obj << ")" << std::endl;
-	#endif
+	DBG_TRACE("( obj=0x%p )", obj);
 
 	if (obj){
 
@@ -472,11 +476,7 @@ NPObject* NP_LOADDS NPN_RetainObject(NPObject *obj){
 }
 
 void NP_LOADDS NPN_ReleaseObject(NPObject *obj){
-	EnterFunction();
-
-	#ifdef DEBUG_LOG_HANDLES
-		std::cerr << "[PIPELIGHT:WINDOWS] NPN_ReleaseObject(" << (void*)obj << ")" << std::endl;
-	#endif
+	DBG_TRACE("( obj=0x%p )", obj);
 
 	if (obj){
 
@@ -486,14 +486,14 @@ void NP_LOADDS NPN_ReleaseObject(NPObject *obj){
 	}
 }
 
-bool NP_LOADDS NPN_Invoke(NPP npp, NPObject* obj, NPIdentifier methodName, const NPVariant *args, uint32_t argCount, NPVariant *result){
-	EnterFunction();
+bool NP_LOADDS NPN_Invoke(NPP instance, NPObject* obj, NPIdentifier methodName, const NPVariant *args, uint32_t argCount, NPVariant *result){
+	DBG_TRACE("( instance=0x%p, obj=0x%p, methodName=0x%p, args=0x%p, argCount=%d, result=0x%p )", instance, obj, methodName, args, argCount, result);
 
 	writeVariantArrayConst(args, argCount);
 	writeInt32(argCount);
 	writeHandleIdentifier(methodName);
 	writeHandleObj(obj);
-	writeHandleInstance(npp);
+	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_INVOKE);
 
 	std::vector<ParameterInfo> stack;
@@ -511,13 +511,13 @@ bool NP_LOADDS NPN_Invoke(NPP npp, NPObject* obj, NPIdentifier methodName, const
 	return resultBool;
 }
 
-bool NP_LOADDS NPN_InvokeDefault(NPP npp, NPObject* obj, const NPVariant *args, uint32_t argCount, NPVariant *result){ // UNTESTED!
-	EnterFunction();
+bool NP_LOADDS NPN_InvokeDefault(NPP instance, NPObject* obj, const NPVariant *args, uint32_t argCount, NPVariant *result){ // UNTESTED!
+	DBG_TRACE("( instance=0x%p, obj=0x%p, args=0x%p, argCount=%d, result=0x%p )", instance, obj, args, argCount, result);
 
 	writeVariantArrayConst(args, argCount);
 	writeInt32(argCount);
 	writeHandleObj(obj);
-	writeHandleInstance(npp);
+	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_INVOKE_DEFAULT);
 
 	std::vector<ParameterInfo> stack;
@@ -535,13 +535,12 @@ bool NP_LOADDS NPN_InvokeDefault(NPP npp, NPObject* obj, const NPVariant *args, 
 	return resultBool;
 }
 
-// Verified, everything okay
-bool NP_LOADDS NPN_Evaluate(NPP npp, NPObject *obj, NPString *script, NPVariant *result){
-	EnterFunction();
+bool NP_LOADDS NPN_Evaluate(NPP instance, NPObject *obj, NPString *script, NPVariant *result){
+	DBG_TRACE("( instance=0x%p, obj=0x%p, script=0x%p, result=0x%p )", instance, obj, script, result);
 
 	writeNPString(script);
 	writeHandleObj(obj);
-	writeHandleInstance(npp);
+	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_EVALUATE);
 
 	std::vector<ParameterInfo> stack;
@@ -559,13 +558,12 @@ bool NP_LOADDS NPN_Evaluate(NPP npp, NPObject *obj, NPString *script, NPVariant 
 	return resultBool;
 }
 
-// Verified, everything okay
-bool NP_LOADDS NPN_GetProperty(NPP npp, NPObject *obj, NPIdentifier propertyName, NPVariant *result){
-	EnterFunction();
+bool NP_LOADDS NPN_GetProperty(NPP instance, NPObject *obj, NPIdentifier propertyName, NPVariant *result){
+	DBG_TRACE("( instance=0x%p, obj=0x%p, propertyName=0x%p, result=0x%p )", instance, obj, propertyName, result);
 
 	writeHandleIdentifier(propertyName);
 	writeHandleObj(obj);
-	writeHandleInstance(npp);
+	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_GET_PROPERTY);
 
 	std::vector<ParameterInfo> stack;
@@ -584,49 +582,49 @@ bool NP_LOADDS NPN_GetProperty(NPP npp, NPObject *obj, NPIdentifier propertyName
 
 }
 
-bool NP_LOADDS NPN_SetProperty(NPP npp, NPObject *obj, NPIdentifier propertyName, const NPVariant *value){
-	EnterFunction();
+bool NP_LOADDS NPN_SetProperty(NPP instance, NPObject *obj, NPIdentifier propertyName, const NPVariant *value){
+	DBG_TRACE("( instance=0x%p, obj=0x%p, propertyName=0x%p, value=0x%p )", instance, obj, propertyName, value);
 
 	writeVariantConst(*value);
 	writeHandleIdentifier(propertyName);
 	writeHandleObj(obj);
-	writeHandleInstance(npp);
+	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_SET_PROPERTY);
 
 	bool result = (bool)readResultInt32();
 	return result;
 }
 
-bool NP_LOADDS NPN_RemoveProperty(NPP npp, NPObject *obj, NPIdentifier propertyName){
-	EnterFunction();
+bool NP_LOADDS NPN_RemoveProperty(NPP instance, NPObject *obj, NPIdentifier propertyName){
+	DBG_TRACE("( instance=0x%p, obj=0x%p, propertyName=0x%p )", instance, obj, propertyName);
 
 	writeHandleIdentifier(propertyName);
 	writeHandleObj(obj);
-	writeHandleInstance(npp);
+	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_REMOVE_PROPERTY);
 
 	bool result = (bool)readResultInt32();
 	return result;
 }
 
-bool NP_LOADDS NPN_HasProperty(NPP npp, NPObject *obj, NPIdentifier propertyName){
-	EnterFunction();
+bool NP_LOADDS NPN_HasProperty(NPP instance, NPObject *obj, NPIdentifier propertyName){
+	DBG_TRACE("( instance=0x%p, obj=0x%p, propertyName=0x%p )", instance, obj, propertyName);
 
 	writeHandleIdentifier(propertyName);
 	writeHandleObj(obj);
-	writeHandleInstance(npp);
+	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_HAS_PROPERTY);
 
 	bool result = (bool)readResultInt32();
 	return result;
 }
 
-bool NP_LOADDS NPN_HasMethod(NPP npp, NPObject *obj, NPIdentifier propertyName){
-	EnterFunction();
+bool NP_LOADDS NPN_HasMethod(NPP instance, NPObject *obj, NPIdentifier propertyName){
+	DBG_TRACE("( instance=0x%p, obj=0x%p, propertyName=0x%p )", instance, obj, propertyName);
 
 	writeHandleIdentifier(propertyName);
 	writeHandleObj(obj);
-	writeHandleInstance(npp);
+	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_HAS_METHOD);
 
 	bool result = (bool)readResultInt32();
@@ -634,7 +632,7 @@ bool NP_LOADDS NPN_HasMethod(NPP npp, NPObject *obj, NPIdentifier propertyName){
 }
 
 void NP_LOADDS NPN_ReleaseVariantValue(NPVariant *variant){
-	EnterFunction();
+	DBG_TRACE("( variant=0x%p )", variant);
 
 	switch(variant->type){
 
@@ -656,7 +654,7 @@ void NP_LOADDS NPN_ReleaseVariantValue(NPVariant *variant){
 }
 
 void NP_LOADDS NPN_SetException(NPObject *obj, const NPUTF8 *message){
-	EnterFunction();
+	DBG_TRACE("( obj=0x%p, message='%s' )", obj, message);
 
 	writeString(message);
 	writeHandleObj(obj);
@@ -664,19 +662,21 @@ void NP_LOADDS NPN_SetException(NPObject *obj, const NPUTF8 *message){
 	waitReturn();
 }
 
-void NP_LOADDS NPN_PushPopupsEnabledState(NPP npp, NPBool enabled){
-	NotImplemented();
+void NP_LOADDS NPN_PushPopupsEnabledState(NPP instance, NPBool enabled){
+	DBG_TRACE("( instance=0x%p, enabled=%d )", instance, enabled);
+	NOTIMPLEMENTED();
 }
 
-void NP_LOADDS NPN_PopPopupsEnabledState(NPP npp){
-	NotImplemented();
+void NP_LOADDS NPN_PopPopupsEnabledState(NPP instance){
+	DBG_TRACE("( instance=0x%p )", instance);
+	NOTIMPLEMENTED();
 }
 
-bool NP_LOADDS NPN_Enumerate(NPP npp, NPObject *obj, NPIdentifier **identifier, uint32_t *count){
-	EnterFunction();
+bool NP_LOADDS NPN_Enumerate(NPP instance, NPObject *obj, NPIdentifier **identifier, uint32_t *count){
+	DBG_TRACE("( instance=0x%p, obj=0x%p, identifier=0x%p, count=0x%p )", instance, obj, identifier, count);
 
 	writeHandleObj(obj);
-	writeHandleInstance(npp);
+	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_ENUMERATE);
 
 	std::vector<ParameterInfo> stack;
@@ -709,74 +709,91 @@ bool NP_LOADDS NPN_Enumerate(NPP npp, NPObject *obj, NPIdentifier **identifier, 
 }
 
 void NP_LOADDS NPN_PluginThreadAsyncCall(NPP instance, void (*func)(void *), void *userData){
-	NotImplemented();
+	DBG_TRACE("( instance=0x%p, func=0x%p, userData=0x%p )", instance, func, userData);
+	NOTIMPLEMENTED();
 }
 
-bool NP_LOADDS NPN_Construct(NPP npp, NPObject* obj, const NPVariant *args, uint32_t argCount, NPVariant *result){
-	NotImplemented();
+bool NP_LOADDS NPN_Construct(NPP instance, NPObject* obj, const NPVariant *args, uint32_t argCount, NPVariant *result){
+	DBG_TRACE("( instance=0x%p, obj=0x%p, args=0x%p, argCount=%d, result=0x%p )", instance, obj, args, argCount, result);
+	NOTIMPLEMENTED();
 	return false;
 }
 
-NPError NP_LOADDS NPN_GetValueForURL(NPP npp, NPNURLVariable variable, const char *url, char **value, uint32_t *len){
-	NotImplemented();
+NPError NP_LOADDS NPN_GetValueForURL(NPP instance, NPNURLVariable variable, const char *url, char **value, uint32_t *len){
+	DBG_TRACE("( instance=0x%p, variable=%d, url='%s', value=0x%p, len=0x%p )", instance, variable, url, value, len);
+	NOTIMPLEMENTED();
 	return NPERR_NO_ERROR;
 }
 
-NPError NP_LOADDS NPN_SetValueForURL(NPP npp, NPNURLVariable variable, const char *url, const char *value, uint32_t len){
-	NotImplemented();
+NPError NP_LOADDS NPN_SetValueForURL(NPP instance, NPNURLVariable variable, const char *url, const char *value, uint32_t len){
+	DBG_TRACE("( instance=0x%p, variable=%d, url='%s', value=0x%p, len=%d )", instance, variable, url, value, len);
+	NOTIMPLEMENTED();
 	return NPERR_NO_ERROR;	
 }
 
-NPError NPN_GetAuthenticationInfo(NPP npp, const char *protocol, const char *host, int32_t port, const char *scheme, const char *realm, char **username, uint32_t *ulen, char **password, uint32_t *plen){
-	NotImplemented();
+NPError NPN_GetAuthenticationInfo(NPP instance, const char *protocol, const char *host, int32_t port, const char *scheme, const char *realm, char **username, uint32_t *ulen, char **password, uint32_t *plen){
+	DBG_TRACE("( instance=0x%p, protocol='%s', host='%s', port=%d, scheme='%s', realm='%s', username=0x%p, ulen=0x%p, password=0x%p, plen=0x%p )", \
+			instance, protocol, host, port, scheme, realm, username, ulen, password, plen);
+	NOTIMPLEMENTED();
 	return NPERR_NO_ERROR;	
 }
 
 uint32_t NP_LOADDS NPN_ScheduleTimer(NPP instance, uint32_t interval, NPBool repeat, void (*timerFunc)(NPP npp, uint32_t timerID)){
-	NotImplemented();
+	DBG_TRACE("( instance=0x%p, interval=%d, repeat=%d, timerFunc=0x%p )", instance, interval, repeat, timerFunc);
+	NOTIMPLEMENTED();
 	return 0;
 }
 
 void NP_LOADDS NPN_UnscheduleTimer(NPP instance, uint32_t timerID){
-	NotImplemented();
+	DBG_TRACE("( instance=0x%p, timerID=%d )", instance, timerID);
+	NOTIMPLEMENTED();
 }
 
 NPError NP_LOADDS NPN_PopUpContextMenu(NPP instance, NPMenu* menu){
-	NotImplemented();
+	DBG_TRACE("( instance=0x%p, menu=0x%p )", instance, menu);
+	NOTIMPLEMENTED();
 	return NPERR_NO_ERROR;
 }
 
 NPBool NP_LOADDS NPN_ConvertPoint(NPP instance, double sourceX, double sourceY, NPCoordinateSpace sourceSpace, double *destX, double *destY, NPCoordinateSpace destSpace){
-	NotImplemented();
+	DBG_TRACE("( instance=0x%p, sourceX=%f, sourceY=%f, sourceSpace=%d, destX=0x%p, destY=0x%p, destSpace=%d )", \
+			instance, sourceX, sourceY, sourceSpace, destX, destY, destSpace);
+	NOTIMPLEMENTED();
 	return false;
 }
 
 NPBool NP_LOADDS NPN_HandleEvent(NPP instance, void *event, NPBool handled){
-	NotImplemented();
+	DBG_TRACE("( instance=0x%p, event=0x%p, handled=%d )", instance, event, handled);
+	NOTIMPLEMENTED();
 	return false;
 }
 
 NPBool NP_LOADDS NPN_UnfocusInstance(NPP instance, NPFocusDirection direction){
-	NotImplemented();
+	DBG_TRACE("( instance=0x%p, direction=%d )", instance, direction);
+	NOTIMPLEMENTED();
 	return false;
 }
 
 void NP_LOADDS NPN_URLRedirectResponse(NPP instance, void* notifyData, NPBool allow){
-	NotImplemented();
+	DBG_TRACE("( instance=0x%p, notifyData=0x%p, allow=%d )", instance, notifyData, allow);
+	NOTIMPLEMENTED();
 }
 
 NPError NP_LOADDS NPN_InitAsyncSurface(NPP instance, NPSize *size, NPImageFormat format, void *initData, NPAsyncSurface *surface){
-	NotImplemented();
+	DBG_TRACE("( instance=0x%p, size=0x%p, format=%d, initData=0x%p, surface=0x%p )", instance, size, format, initData, surface);
+	NOTIMPLEMENTED();
 	return NPERR_NO_ERROR;	
 }
 
 NPError NP_LOADDS NPN_FinalizeAsyncSurface(NPP instance, NPAsyncSurface *surface){
-	NotImplemented();
+	DBG_TRACE("( instance=0x%p, surface=0x%p )", instance, surface);
+	NOTIMPLEMENTED();
 	return NPERR_NO_ERROR;	
 }
 
 void NP_LOADDS NPN_SetCurrentAsyncSurface(NPP instance, NPAsyncSurface *surface, NPRect *changed){
-	NotImplemented();
+	DBG_TRACE("( instance=0x%p, surface=0x%p, changed=0x%p )", instance, surface, changed);
+	NOTIMPLEMENTED();
 }
 
 NPNetscapeFuncs browserFuncs = {

@@ -7,7 +7,7 @@
 #endif
 
 void NPInvalidateFunction(NPObject *npobj){
-	EnterFunction();
+	DBG_TRACE("NPInvalidateFunction( npobj=0x%p )", npobj);
 
 	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_INVALIDATE);
@@ -15,7 +15,7 @@ void NPInvalidateFunction(NPObject *npobj){
 }
 
 bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name){
-	EnterFunction();
+	DBG_TRACE("NPHasMethodFunction( npobj=0x%p, name=0x%p )", npobj, name);
 
 	writeHandleIdentifier(name);
 	writeHandleObj(npobj);
@@ -26,7 +26,7 @@ bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name){
 }
 
 bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args, uint32_t argCount, NPVariant *result){
-	EnterFunction();
+	DBG_TRACE("NPInvokeFunction( npobj=0x%p, name=0x%p, args[]=0x%p, argCount=%d, result=0x%p )", npobj, name, args, argCount, result);
 
 	// Warning: parameter order swapped!
 	writeVariantArrayConst(args, argCount);
@@ -51,7 +51,7 @@ bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args,
 }
 
 bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result){
-	EnterFunction();
+	DBG_TRACE("NPInvokeDefaultFunction( npobj=0x%p, args=0x%p, argCount=%d, result=0x%p )", npobj, args, argCount, result);
 
 	writeVariantArrayConst(args, argCount);
 	writeInt32(argCount);
@@ -74,7 +74,7 @@ bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t ar
 }
 
 bool NPHasPropertyFunction(NPObject *npobj, NPIdentifier name){
-	EnterFunction();
+	DBG_TRACE("NPHasPropertyFunction( npobj=0x%p, name=0x%p )", npobj, name);
 
 	writeHandleIdentifier(name);
 	writeHandleObj(npobj);
@@ -84,7 +84,7 @@ bool NPHasPropertyFunction(NPObject *npobj, NPIdentifier name){
 }
 
 bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result){
-	EnterFunction();
+	DBG_TRACE("NPGetPropertyFunction( npobj=0x%p, name=0x%p, result=0x%p )", npobj, name, result);
 
 	writeHandleIdentifier(name);
 	writeHandleObj(npobj);
@@ -106,7 +106,7 @@ bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result
 }
 
 bool NPSetPropertyFunction(NPObject *npobj, NPIdentifier name, const NPVariant *value){
-	EnterFunction();
+	DBG_TRACE("NPSetPropertyFunction( npobj=0x%p, name=0x%p, value=0x%p )", npobj, name, value);
 
 	writeVariantConst(*value);
 	writeHandleIdentifier(name);
@@ -117,7 +117,7 @@ bool NPSetPropertyFunction(NPObject *npobj, NPIdentifier name, const NPVariant *
 }
 
 bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name){
-	EnterFunction();
+	DBG_TRACE("NPRemovePropertyFunction( npobj=0x%p, name=0x%p )", npobj, name);
 
 	writeHandleIdentifier(name);
 	writeHandleObj(npobj);
@@ -127,7 +127,7 @@ bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name){
 }
 
 bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *count){
-	EnterFunction();
+	DBG_TRACE("NPEnumerationFunction( npobj=0x%p, value=0x%p, count=0x%p )", npobj, value, count);
 
 	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_ENUMERATE);
@@ -162,12 +162,13 @@ bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *coun
 }
 
 bool NPConstructFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result){
-	NotImplemented();
+	DBG_TRACE("NPConstructFunction( npobj=0x%p, args=0x%p, argCount=%d, result=0x%p )", npobj, args, argCount, result);
+	NOTIMPLEMENTED();
 	return false;
 }
 
 NPObject * NPAllocateFunction(NPP npp, NPClass *aClass){
-	EnterFunction();
+	DBG_TRACE("NPAllocateFunction( npp=0x%p, aClass=0x%p )", npp, aClass);
 
 	NPObject* obj = (NPObject*)malloc(sizeof(NPObject));
 	if(obj){
@@ -178,21 +179,13 @@ NPObject * NPAllocateFunction(NPP npp, NPClass *aClass){
 }
 
 void NPDeallocateFunction(NPObject *npobj){
-	EnterFunction();
-
-	#ifdef DEBUG_LOG_HANDLES
-		std::cerr << "[PIPELIGHT:LINUX] NPDeallocateFunction(" << (void*)npobj << ")" << std::endl;
-	#endif
+	DBG_TRACE("NPDeallocateFunction( npp=0x%p )", npobj);
 
 	if(npobj){
 		bool exists = handlemanager.existsHandleByReal((uint64_t)npobj, TYPE_NPObject);
 
 		if( exists ){
-			// This has to be a user-created object which has to be freed via a KILL_OBJECT message
-
-			#ifdef DEBUG_LOG_HANDLES
-				std::cerr << "[PIPELIGHT:LINUX] Seems to be a user created handle, calling OBJECT_KILL(" << (void*)npobj << ")" << std::endl;
-			#endif
+			DBG_TRACE("seems to be a user created handle, calling OBJECT_KILL(0x%p).", npobj);
 
 			// Kill the object on the other side
 			writeHandleObj(npobj);
@@ -205,7 +198,6 @@ void NPDeallocateFunction(NPObject *npobj){
 
 		// Remove the object locally
 		free(npobj);
-
 	}
 }
 

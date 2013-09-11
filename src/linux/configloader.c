@@ -155,25 +155,25 @@ bool openConfig(std::ifstream &configFile, std::string &configPath){
 
 	configPath = getEnvironmentString("PIPELIGHT_CONFIG");
 	if(configPath != ""){
-		std::cerr << "[PIPELIGHT] Trying to load config file from " << configPath << std::endl;
+		DBG_INFO("trying to load config file from '%s'.", configPath.c_str());
 		configFile.open(configPath);
 		if(configFile.is_open()) return true;
 	}
 
 	if(homeDir != ""){
 		configPath = homeDir + "/.config/pipelight";
-		std::cerr << "[PIPELIGHT] Trying to load config file from " << configPath << std::endl;
+		DBG_INFO("trying to load config file from '%s'.", configPath.c_str());
 		configFile.open(configPath);
 		if(configFile.is_open()) return true;
 	}
 
 	configPath = "/etc/pipelight";
-	std::cerr << "[PIPELIGHT] Trying to load default config file from " << configPath << std::endl;
+	DBG_INFO("trying to load config file from '%s'.", configPath.c_str());
 	configFile.open(configPath);
 	if(configFile.is_open()) return true;
 
 	configPath = PREFIX "/share/pipelight/pipelight";
-	std::cerr << "[PIPELIGHT] Trying to load default config file from " << configPath << std::endl;
+	DBG_INFO("trying to load config file from '%s'.", configPath.c_str());
 	configFile.open(configPath);
 	if(configFile.is_open()) return true;
 
@@ -234,7 +234,7 @@ bool loadConfig(PluginConfig &config){
 	std::ifstream 	configFile;
 
 	if(!openConfig(configFile, config.configPath)){
-		std::cerr << "[PIPELIGHT] Couldn't find any configuration file" << std::endl;
+		DBG_ERROR("couldn't find any configuration file.");
 		return false;
 	}
 
@@ -289,7 +289,7 @@ bool loadConfig(PluginConfig &config){
 			config.winePathIsDeprecated = checkIfFile(value);
 
 			if(config.winePathIsDeprecated){
-				std::cerr << "[PIPELIGHT] The meaning of your config entry 'winePath' is deprecated" << std::endl;
+				DBG_WARN("the meaning of your config entry 'winePath' is deprecated.");
 			}
 
 		}else if(key == "winearch") {
@@ -361,7 +361,7 @@ bool loadConfig(PluginConfig &config){
 			config.experimental_usermodeTimer = (value == "true" || value == "yes");
 
 		}else{
-			std::cerr << "[PIPELIGHT] Unrecognized config key: " << key << std::endl;
+			DBG_WARN("unrecognized configuration key '%s'.", key.c_str());
 		}
 
 	}
