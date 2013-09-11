@@ -7,6 +7,12 @@
 # http://bazaar.launchpad.net/~ehoover/netflix-desktop/trunk/view/head:/wine-browser-installer/install-dependency
 # http://bazaar.launchpad.net/~ehoover/netflix-desktop/trunk/files/head:/debian/  (all *.install-script files)
 
+# Environment variable check
+if [ -z "${WINE}" ] || [ -z "${WINEPREFIX}" ]; then
+	echo "Missing necessary environment variables WINE and WINEPREFIX.";
+	exit 1;
+fi
+
 # Check if some visual feedback is possible
 if command -v zenity >/dev/null 2>&1; then
 	progressbar ()
@@ -49,12 +55,6 @@ else
 fi
 
 DEPENDENCIES="$@";
-
-# Environment variable check
-if [ -z "${WINE}" ] || [ -z "${WINEPREFIX}" ]; then
-	echo "Missing necessary environment variables.";
-	exit 1;
-fi
 
 # Generate a lock file based on the wine prefix
 LOCK_FILE=$(echo "${WINEPREFIX}" | md5sum | cut -d" " -f1);
