@@ -339,17 +339,18 @@ bool initDLL(std::string dllPath, std::string dllName){
 
 	if(NP_GetEntryPoints && NP_Initialize){
 
-		if (NP_Initialize(&browserFuncs) == NPERR_NO_ERROR){
+		if(NP_GetEntryPoints(&pluginFuncs) == NPERR_NO_ERROR){
 
-			if(NP_GetEntryPoints(&pluginFuncs) == NPERR_NO_ERROR){
+			if (NP_Initialize(&browserFuncs) == NPERR_NO_ERROR){
+
 				return true;
 
 			}else{
-				DBG_ERROR("failed to get entry points for plugin functions.");
+				DBG_ERROR("failed to initialize plugin.");
 			}
 
 		}else{
-			DBG_ERROR("failed to initialize plugin.");
+			DBG_ERROR("failed to get entry points for plugin functions.");
 		}
 
 	}else{

@@ -130,13 +130,20 @@ void NP_LOADDS NPN_Status(NPP instance, const char* message){
 const char*  NP_LOADDS NPN_UserAgent(NPP instance){
 	DBG_TRACE("( instance=0x%p )", instance);
 
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPN_USERAGENT);
+	/*
+		The following code is not used currently since we set a hardcoded user agent.
+		Some plugins like Flash pass a NULL handle as instance which would cause our
+		internal error checking mechanism to think something wents wrong and terminate
+		our process, so just keep it commented out till we allow NULL instances.
 
-	std::string result = readResultString();
+		writeHandleInstance(instance);
+		callFunction(FUNCTION_NPN_USERAGENT);
+
+		std::string result = readResultString();
+	*/
 
 	// TODO: Remove this if it doesnt cause problems
-	result = "Mozilla/5.0 (Windows NT 5.1; rv:18.0) Gecko/20100101 Firefox/18.0";
+	std::string result = "Mozilla/5.0 (Windows NT 5.1; rv:18.0) Gecko/20100101 Firefox/18.0";
 
 	pokeString(result, strUserAgent, sizeof(strUserAgent));
 	return strUserAgent;
@@ -245,13 +252,25 @@ NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 			writeInt32(variable);
 			writeHandleInstance(instance);
 			callFunction(FUNCTION_NPN_GETVALUE_BOOL);
-
 			readCommands(stack);
 
 			result = readInt32(stack);
 
 			if(result == NPERR_NO_ERROR)
 				*((NPBool*)value) 	= (NPBool)readInt32(stack);
+
+			break;
+
+		case NPNVdocumentOrigin:
+			writeInt32(variable);
+			writeHandleInstance(instance);
+			callFunction(FUNCTION_NPN_GETVALUE_STRING);
+			readCommands(stack);
+
+			result = readInt32(stack);
+
+			if(result == NPERR_NO_ERROR)
+				*((char**)value) 	= readStringMalloc(stack);
 
 			break;
 
@@ -266,6 +285,11 @@ NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 					result = NPERR_GENERIC_ERROR;
 				}
 			}
+			break;
+
+		case NPNVSupportsWindowless:
+			result = NPERR_NO_ERROR;
+			*((NPBool*)value) = true;
 			break;
 
 		default:

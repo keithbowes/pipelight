@@ -602,6 +602,26 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
+		case FUNCTION_NPN_GETVALUE_STRING:
+			{
+				NPP instance 			= readHandleInstance(stack);
+				NPNVariable variable 	= (NPNVariable)readInt32(stack);
+
+				char* str = NULL;
+				NPError result = sBrowserFuncs->getvalue(instance, variable, &str);
+
+				if(result == NPERR_NO_ERROR){
+					writeString(str);
+
+					if(str)
+						sBrowserFuncs->memfree(str);
+				}
+
+				writeInt32(result);
+				returnCommand();
+			}
+			break;
+
 		case FUNCTION_NPN_RELEASEOBJECT:
 			{
 				NPObject* obj 		= readHandleObj(stack);
