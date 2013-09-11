@@ -11,7 +11,7 @@
 if command -v zenity >/dev/null 2>&1; then
 	progressbar ()
 	{
-		zenity --progress --title="$1" --text="$2" --pulsate --width=400 --auto-close --no-cancel;
+		WINDOWID="" zenity --progress --title="$1" --text="$2" --pulsate --width=400 --auto-close --no-cancel;
 	}
 
 elif command -v kdialog >/dev/null 2>&1; then
