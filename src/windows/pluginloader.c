@@ -268,7 +268,7 @@ bool initDLL(std::string dllPath, std::string dllName){
 
 	HMODULE dll = LoadLibrary(dllName.c_str());
 	if (!dll){
-		DBG_ERROR("could not load library '%s' (last error = %lu).", dllName.c_str(), GetLastError());
+		DBG_ERROR("could not load library '%s' (last error = %lu).", dllName.c_str(), (unsigned long)GetLastError());
 		return false;
 	}
 
