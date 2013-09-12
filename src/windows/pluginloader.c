@@ -468,47 +468,50 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 		
-		case OBJECT_KILL:
-			{
-				NPObject 	*obj = readHandleObjIncRef(stack, NULL, 0, HANDLE_SHOULD_EXIST);
-				DBG_TRACE("OBJECT_KILL( obj=0x%p )", obj);
-
-				objectKill(obj);
-
-				DBG_TRACE("OBJECT_KILL -> void");
-				returnCommand();
-			}
-			break;
-
-		case OBJECT_IS_CUSTOM:
-			{
-				NPObject 	*obj = readHandleObjIncRef(stack, NULL, 0, HANDLE_SHOULD_EXIST);
-				DBG_TRACE("OBJECT_IS_CUSTOM( obj=0x%p )", obj);
-
-				writeInt32( (obj->referenceCount == REFCOUNT_UNDEFINED) );
-
-				DBG_TRACE("OBJECT_IS_CUSTOM -> bool=%d", (obj->referenceCount == REFCOUNT_UNDEFINED));
-				objectDecRef(obj); // not really required, but looks better ;-)
-				returnCommand();
-			}
-			break;
-
-		// HANDLE_MANAGER_REQUEST_STREAM_INFO not implemented
-
-		case HANDLE_MANAGER_FREE_NOTIFY_DATA:
+		case WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA:
 			{
 				void *notifyData 			= readHandleNotify(stack, HANDLE_SHOULD_EXIST);
-				DBG_TRACE("HANDLE_MANAGER_FREE_NOTIFY_DATA( notifyData=0x%p )", notifyData);
+				DBG_TRACE("WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA( notifyData=0x%p )", notifyData);
 
 				handlemanager.removeHandleByReal((uint64_t)notifyData, TYPE_NotifyData);
 
-				DBG_TRACE("HANDLE_MANAGER_FREE_NOTIFY_DATA -> void");
+				DBG_TRACE("WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA -> void");
+				returnCommand();
+			}
+			break;
+
+		case WIN_HANDLE_MANAGER_FREE_OBJECT:
+			{
+				NPObject 	*obj = readHandleObjIncRef(stack, NULL, 0, HANDLE_SHOULD_EXIST);
+				DBG_TRACE("WIN_HANDLE_MANAGER_FREE_OBJECT( obj=0x%p )", obj);
+
+				objectKill(obj);
+
+				DBG_TRACE("WIN_HANDLE_MANAGER_FREE_OBJECT -> void");
+				returnCommand();
+			}
+			break;
+
+		case WIN_HANDLE_MANAGER_OBJECT_IS_CUSTOM:
+			{
+				NPObject 	*obj = readHandleObjIncRef(stack, NULL, 0, HANDLE_SHOULD_EXIST);
+				DBG_TRACE("WIN_HANDLE_MANAGER_OBJECT_IS_CUSTOM( obj=0x%p )", obj);
+
+				writeInt32( (obj->referenceCount == REFCOUNT_UNDEFINED) );
+
+				DBG_TRACE("WIN_HANDLE_MANAGER_OBJECT_IS_CUSTOM -> bool=%d", (obj->referenceCount == REFCOUNT_UNDEFINED));
+				objectDecRef(obj); // not really required, but looks better ;-)
 				returnCommand();
 			}
 			break;
 
 		case PROCESS_WINDOW_EVENTS:
 			{
+				uint64_t remoteHandleCount = readInt64(stack);
+				if(remoteHandleCount != handlemanager.handleCount()){
+					throw std::runtime_error("Remote handle count doesn't match the local one");
+				}	
+
 				// Process window events
 				MSG msg;
 				DBG_TRACE("PROCESS_WINDOW_EVENTS()");

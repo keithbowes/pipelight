@@ -61,13 +61,16 @@ class HandleManager{
 		// Searches for an additional instance
 		NPP_t* findInstance();
 
+		// Read the handle count
+		uint64_t handleCount();
+
 		void clear();
 };
 
 void 			writeHandle(uint64_t real, HandleType type, HandleExists shouldExist = HANDLE_CAN_EXIST);
 uint64_t		readHandle(Stack &stack, int32_t &type, NPP instance = NULL, NPClass *aclass = 0, HandleExists shouldExist = HANDLE_CAN_EXIST);
 
-void writeHandleObj(NPObject *obj, HandleExists shouldExist = HANDLE_CAN_EXIST, bool deleteFromHandleManager = false);
+void writeHandleObj(NPObject *obj, HandleExists shouldExist = HANDLE_CAN_EXIST, bool deleteFromRemoteHandleManager = false);
 void writeHandleInstance(NPP instance, HandleExists shouldExist = HANDLE_CAN_EXIST);
 void writeHandleIdentifier(NPIdentifier name, HandleExists shouldExist = HANDLE_CAN_EXIST);
 void writeHandleStream(NPStream* stream, HandleExists shouldExist = HANDLE_CAN_EXIST);
@@ -84,7 +87,7 @@ void* 			readHandleNotify(Stack &stack, HandleExists shouldExist = HANDLE_CAN_EX
 #ifdef __WIN32__
 NPObject * 		readHandleObjIncRef(Stack &stack, NPP instance = NULL, NPClass *aclass = 0, HandleExists shouldExist = HANDLE_CAN_EXIST);
 void writeHandleObjDecRef(NPObject *obj, HandleExists shouldExist = HANDLE_CAN_EXIST);
-void objectDecRef(NPObject *obj);
+void objectDecRef(NPObject *obj, bool deleteFromRemoteHandleManager = true);
 
 void objectKill(NPObject *obj);
 
@@ -96,7 +99,7 @@ void writeVariantRelease(NPVariant &variant);
 void writeVariantArrayRelease(NPVariant *variant, int count);
 #endif
 
-void writeVariantConst(const NPVariant &variant);
+void writeVariantConst(const NPVariant &variant, bool deleteFromRemoteHandleManager = false);
 void writeVariantArrayConst(const NPVariant *variant, int count);
 
 #ifdef __WIN32__

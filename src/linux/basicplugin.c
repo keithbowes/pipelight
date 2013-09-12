@@ -491,12 +491,10 @@ void dispatcher(int functionid, Stack &stack){
 
 	switch(functionid){
 		
-		// OBJECT_KILL not implemented
-
-		case HANDLE_MANAGER_REQUEST_STREAM_INFO:
+		case LIN_HANDLE_MANAGER_REQUEST_STREAM_INFO:
 			{
 				NPStream* stream = readHandleStream(stack); // shouldExist not necessary, Linux checks always
-				DBG_TRACE("HANDLE_MANAGER_REQUEST_STREAM_INFO( stream=0x%p )", stream);
+				DBG_TRACE("LIN_HANDLE_MANAGER_REQUEST_STREAM_INFO( stream=0x%p )", stream);
 
 				writeString(stream->headers);
 				writeHandleNotify(stream->notifyData, HANDLE_SHOULD_EXIST);
@@ -504,13 +502,23 @@ void dispatcher(int functionid, Stack &stack){
 				writeInt32(stream->end);
 				writeString(stream->url);
 
-				DBG_TRACE("HANDLE_MANAGER_REQUEST_STREAM_INFO -> ( headers='%s', notifyData=0x%p, lastmodified=%d, end=%d, url='%s' )", \
+				DBG_TRACE("LIN_HANDLE_MANAGER_REQUEST_STREAM_INFO -> ( headers='%s', notifyData=0x%p, lastmodified=%d, end=%d, url='%s' )", \
 						stream->headers, stream->notifyData, stream->lastmodified, stream->end, stream->url);
 				returnCommand();
 			}
 			break;
 
-		// PROCESS_WINDOW_EVENTS not implemented
+		case LIN_HANDLE_MANAGER_FREE_OBJECT:
+			{
+				NPObject* obj 		= readHandleObj(stack);
+				DBG_TRACE("LIN_HANDLE_MANAGER_FREE_OBJECT( obj=0x%p )", obj);
+
+				handlemanager.removeHandleByReal((uint64_t)obj, TYPE_NPObject);
+
+				DBG_TRACE("LIN_HANDLE_MANAGER_FREE_OBJECT -> void");
+				returnCommand();
+			}
+			break;
 
 		case GET_WINDOW_RECT:
 			{
@@ -630,7 +638,7 @@ void dispatcher(int functionid, Stack &stack){
 				// We do this check always, although its not really required, but this makes it easier to find errors
 				if(obj->referenceCount == 1 && handlemanager.existsHandleByReal( (uint64_t)obj, TYPE_NPObject) ){
 					writeHandleObj(obj);
-					callFunction(OBJECT_IS_CUSTOM);
+					callFunction(WIN_HANDLE_MANAGER_OBJECT_IS_CUSTOM);
 
 					if( !(bool)readResultInt32() ){
 						throw std::runtime_error("Forgot to set killObject?");

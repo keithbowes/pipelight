@@ -7,26 +7,25 @@
 #include <stdio.h>								// for fprintf
 
 enum FunctionIDs{
-
 	// ------- Special -------
+
 	//Check if Init was okay
 	INIT_OKAY = 1,
 
-	// Tells the windows side that the given object should be freed
-	OBJECT_KILL,
-	OBJECT_IS_CUSTOM,
+	// Handlemanager on the linux side
+	LIN_HANDLE_MANAGER_REQUEST_STREAM_INFO,
+	LIN_HANDLE_MANAGER_FREE_OBJECT,
 
-	// Used to request stream details
-	HANDLE_MANAGER_REQUEST_STREAM_INFO,
-	HANDLE_MANAGER_FREE_NOTIFY_DATA,
-
-	// Processes window events
-	PROCESS_WINDOW_EVENTS,
-
-	// Get window rects
+	// Additional commands on the linux side
 	GET_WINDOW_RECT,
 
-	// Make the window visible
+	// Handlemanager on the windows side
+	WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA,
+	WIN_HANDLE_MANAGER_FREE_OBJECT,
+	WIN_HANDLE_MANAGER_OBJECT_IS_CUSTOM,
+
+	// Additional commands on the windows side
+	PROCESS_WINDOW_EVENTS,
 	SHOW_UPDATE_WINDOW,
 
 	// ------- Plugin -------

@@ -329,6 +329,8 @@ NP_EXPORT(NPError) NP_Shutdown() {
 }
 
 void timerFunc(NPP instance, uint32_t timerID){
+
+	writeInt64( handlemanager.handleCount() );
 	callFunction(PROCESS_WINDOW_EVENTS);
 	waitReturn();
 }
@@ -339,6 +341,7 @@ void timerThreadAsyncFunc(void* argument){
 	if( sem_trywait(&eventThreadSemScheduledAsyncCall) ) return;
 
 	// Update the window
+	writeInt64( handlemanager.handleCount() );
 	callFunction(PROCESS_WINDOW_EVENTS);
 	waitReturn();
 
@@ -810,7 +813,7 @@ void NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyD
 
 			// Free everything
 			writeHandleNotify(myNotifyData);
-			callFunction(HANDLE_MANAGER_FREE_NOTIFY_DATA);
+			callFunction(WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA);
 			waitReturn();
 
 			handlemanager.removeHandleByReal((uint64_t)myNotifyData, TYPE_NotifyData);

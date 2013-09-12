@@ -185,11 +185,11 @@ void NPDeallocateFunction(NPObject *npobj){
 		bool exists = handlemanager.existsHandleByReal((uint64_t)npobj, TYPE_NPObject);
 
 		if( exists ){
-			DBG_TRACE("seems to be a user created handle, calling OBJECT_KILL(0x%p).", npobj);
+			DBG_TRACE("seems to be a user created handle, calling WIN_HANDLE_MANAGER_FREE_OBJECT(0x%p).", npobj);
 
 			// Kill the object on the other side
 			writeHandleObj(npobj);
-			callFunction(OBJECT_KILL);
+			callFunction(WIN_HANDLE_MANAGER_FREE_OBJECT);
 			waitReturn();
 
 			// Remove it in the handle manager

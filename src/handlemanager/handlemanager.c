@@ -90,7 +90,7 @@ NPStream * createNPStream(uint64_t id){
 	// We cannot use writeHandle, as the handle manager hasn't finished adding this yet.
 	writeInt64(id);
 	writeInt32(TYPE_NPStream);
-	callFunction(HANDLE_MANAGER_REQUEST_STREAM_INFO);
+	callFunction(LIN_HANDLE_MANAGER_REQUEST_STREAM_INFO);
 
 	std::vector<ParameterInfo> 	stack;
 	readCommands(stack);
@@ -120,7 +120,6 @@ NotifyDataRefCount* createNotifyDataRefCount(uint64_t id){
 
 #endif
 
-
 // Used for incoming handle translation(id -> real)
 // aclass and instance  are used for some cases when a new object is generated
 uint64_t HandleManager::translateFrom(uint64_t id, HandleType type, NPP instance, NPClass *aclass, HandleExists shouldExist){
@@ -131,7 +130,7 @@ uint64_t HandleManager::translateFrom(uint64_t id, HandleType type, NPP instance
 			return 0;
 
 		}else{
-			throw std::runtime_error("Trying to translate the reserved null id");
+			throw std::runtime_error("Trying to translate the reserved null ID");
 		}
 	}
 
@@ -141,6 +140,9 @@ uint64_t HandleManager::translateFrom(uint64_t id, HandleType type, NPP instance
 		// When an aclass is given, this is an error, as we expected a new object
 		if(aclass || shouldExist == HANDLE_SHOULD_NOT_EXIST){		
 			throw std::runtime_error("Expected a new handle, but I already got this one");
+
+		}else if(it->second.type != type){
+			throw std::runtime_error("Wrong handle type when translating ID to real object");
 		}
 
 		return it->second.real;
@@ -247,31 +249,6 @@ void HandleManager::removeHandleByReal(uint64_t real, HandleType type){
 
 	handlesID.erase(it->second.id);
 	handlesReal.erase(it);
-
-	/*
-	std::cerr << "[PIPELIGHT] Removed from handle manager: REAL=" << (void*)real << std::endl;
-
-	int num[TYPE_MaxTypes];
-
-	for(int i = 0; i < TYPE_MaxTypes; i++){
-		num[i] = 0;
-	}
-
-	std::cerr << "[PIPELIGHT] Handles:";
-
-	for(it = handlesReal.begin(); it != handlesReal.end(); it++){
-		num[ it->second.type ]++;
-
-		std::cerr << "[PIPELIGHT] " << (void*)it->second.real;
-	}
-	std::cerr << std::endl;
-
-	std::cerr << "[PIPELIGHT] * TYPE_NPObject: " << num[TYPE_NPObject] << std::endl;
-	std::cerr << "[PIPELIGHT] * TYPE_NPIdentifier: " << num[TYPE_NPIdentifier] << std::endl;
-	std::cerr << "[PIPELIGHT] * TYPE_NPPInstance: " << num[TYPE_NPPInstance] << std::endl;
-	std::cerr << "[PIPELIGHT] * TYPE_NPStream: " << num[TYPE_NPStream] << std::endl;
-	std::cerr << "[PIPELIGHT] * TYPE_NotifyData: " << num[TYPE_NotifyData] << std::endl;
-	*/
 }
 
 bool HandleManager::existsHandleByReal(uint64_t real, HandleType type){
@@ -295,6 +272,17 @@ NPP_t* HandleManager::findInstance(){
 	return NULL;
 }
 
+uint64_t HandleManager::handleCount(){
+	uint64_t count = handlesID.size();
+
+	if(count != handlesReal.size()){
+		throw std::runtime_error("Number if local handles is not unique due to destroyed handle manager structures");
+	}
+
+	return count;
+}
+
+
 void HandleManager::clear(){
 
 	handlesID.clear();
@@ -302,20 +290,17 @@ void HandleManager::clear(){
 
 }
 
-
-
 void writeHandle(uint64_t real, HandleType type, HandleExists shouldExist){
 	writeInt64(handlemanager.translateTo(real, type, shouldExist));
 	writeInt32(type);
 }
 
-void writeHandleObj(NPObject *obj, HandleExists shouldExist, bool deleteFromHandleManager){
-
+void writeHandleObj(NPObject *obj, HandleExists shouldExist, bool deleteFromRemoteHandleManager){
 	#ifndef __WIN32__
-		if(deleteFromHandleManager) throw std::runtime_error("writeHandleObj called with deleteFromHandleManager=true, but not allowed on Linux.");
+		if(deleteFromRemoteHandleManager) throw std::runtime_error("writeHandleObj called with deleteFromRemoteHandleManager=true, but not allowed on Linux.");
 	#endif
 
-	writeInt32(deleteFromHandleManager);
+	writeInt32(deleteFromRemoteHandleManager);
 	writeHandle((uint64_t)obj, TYPE_NPObject, shouldExist);
 }
 
@@ -342,6 +327,7 @@ uint64_t readHandle(Stack &stack, int32_t &type, NPP instance, NPClass *aclass, 
 }
 
 #ifndef __WIN32__
+
 NPObject * readHandleObj(Stack &stack, NPP instance, NPClass *aclass, HandleExists shouldExist){
 	int32_t type;
 	NPObject *obj = (NPObject *)readHandle(stack, type, instance, aclass, shouldExist);
@@ -349,13 +335,14 @@ NPObject * readHandleObj(Stack &stack, NPP instance, NPClass *aclass, HandleExis
 	if (type != TYPE_NPObject)
 		throw std::runtime_error("Wrong handle type, expected object");
 
-	bool deleteFromHandleManager     = (bool)readInt32(stack);
-	if(deleteFromHandleManager){
+	bool deleteFromRemoteHandleManager     = (bool)readInt32(stack);
+	if(deleteFromRemoteHandleManager){
 		handlemanager.removeHandleByReal((uint64_t)obj, TYPE_NPObject);
 	}
 
 	return obj;
 }
+
 #endif
 
 NPIdentifier readHandleIdentifier(Stack &stack, HandleExists shouldExist){
@@ -400,6 +387,7 @@ void* readHandleNotify(Stack &stack, HandleExists shouldExist){
 
 
 #ifdef __WIN32__
+
 NPObject * readHandleObjIncRef(Stack &stack, NPP instance, NPClass *aclass, HandleExists shouldExist){
 	int32_t type;
 	NPObject *obj = (NPObject *)readHandle(stack, type, instance, aclass, shouldExist);
@@ -407,7 +395,7 @@ NPObject * readHandleObjIncRef(Stack &stack, NPP instance, NPClass *aclass, Hand
 	if (type != TYPE_NPObject)
 		throw std::runtime_error("Wrong handle type, expected object");
 
-	readInt32(stack); // deleteFromHandleManager not possible on Windows
+	readInt32(stack); // deleteFromRemoteHandleManager not possible on Windows
 
 	if(obj->referenceCount != REFCOUNT_UNDEFINED)
 		obj->referenceCount++;
@@ -417,11 +405,11 @@ NPObject * readHandleObjIncRef(Stack &stack, NPP instance, NPClass *aclass, Hand
 
 void writeHandleObjDecRef(NPObject *obj, HandleExists shouldExist){
 	writeHandleObj(obj, shouldExist, (obj->referenceCount == 1));
-	objectDecRef(obj);
+	objectDecRef(obj, false);
 }
 
 
-void objectDecRef(NPObject *obj){
+void objectDecRef(NPObject *obj, bool deleteFromRemoteHandleManager){
 
 	// Is the refcount already zero?
 	if(obj->referenceCount == 0){
@@ -434,10 +422,16 @@ void objectDecRef(NPObject *obj){
 
 	// Remove the object locally
 	if(obj->referenceCount == 0){
-		DBG_TRACE("removed object %p from handle manager.", obj);
+		DBG_TRACE("removing object %p from handle manager.", obj);
 
 		if( obj->_class->deallocate){
 			throw std::runtime_error("Proxy object has a deallocate method set?");
+		}
+
+		if(deleteFromRemoteHandleManager){
+			writeHandleObj(obj, HANDLE_SHOULD_EXIST);
+			callFunction(LIN_HANDLE_MANAGER_FREE_OBJECT);
+			waitReturn();
 		}
 
 		free((char*)obj);
@@ -471,7 +465,7 @@ void objectKill(NPObject *obj){
 
 
 void writeVariantReleaseDecRef(NPVariant &variant){
-	writeVariantConst(variant);
+	writeVariantConst(variant, (variant.type == NPVariantType_Object && variant.value.objectValue->referenceCount == 1));
 
 	if( variant.type == NPVariantType_String){
 		if (variant.value.stringValue.UTF8Characters)
@@ -479,7 +473,7 @@ void writeVariantReleaseDecRef(NPVariant &variant){
 
 	}else if(variant.type == NPVariantType_Object){
 		NPObject* obj = variant.value.objectValue;
-		objectDecRef(obj);
+		objectDecRef(obj, false);
 
 	}
 	
@@ -515,7 +509,11 @@ void writeVariantArrayRelease(NPVariant *variant, int count){
 
 #endif
 
-void writeVariantConst(const NPVariant &variant){
+void writeVariantConst(const NPVariant &variant, bool deleteFromRemoteHandleManager){
+	#ifndef __WIN32__
+		if(deleteFromRemoteHandleManager) throw std::runtime_error("writeHandleObj called with deleteFromRemoteHandleManager=true, but not allowed on Linux.");
+	#endif
+
 	switch(variant.type){
 		
 		case NPVariantType_Null:
@@ -541,7 +539,7 @@ void writeVariantConst(const NPVariant &variant){
 			break;
 
 		case NPVariantType_Object:
-			writeHandleObj(variant.value.objectValue);
+			writeHandleObj(variant.value.objectValue, HANDLE_CAN_EXIST, deleteFromRemoteHandleManager);
 			break;
 
 		default:
