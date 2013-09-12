@@ -11,66 +11,66 @@
 */
 
 void NPInvalidateFunction(NPObject *npobj){
-	DBG_TRACE("( npobj=0x%p )", npobj);
+	DBG_TRACE("( npobj=%p )", npobj);
 	NOTIMPLEMENTED();
 }
 
 bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name){
-	DBG_TRACE("( npobj=0x%p, name=0x%p )", npobj, name);
+	DBG_TRACE("( npobj=%p, name=%p )", npobj, name);
 	NOTIMPLEMENTED();
 	return false;
 }
 
 bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args, uint32_t argCount, NPVariant *result){
-	DBG_TRACE("( npobj=0x%p, name=0x%p, args=0x%p, argCount=%d, result=0x%p )", npobj, name, args, argCount, result);
+	DBG_TRACE("( npobj=%p, name=%p, args=%p, argCount=%d, result=%p )", npobj, name, args, argCount, result);
 	NOTIMPLEMENTED();
 	return false;
 }
 
 bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result){
-	DBG_TRACE("( npobj=0x%p, args=0x%p, argCount=%d, result=0x%p )", npobj, args, argCount, result);
+	DBG_TRACE("( npobj=%p, args=%p, argCount=%d, result=%p )", npobj, args, argCount, result);
 	NOTIMPLEMENTED();
 	return false;
 }
 
 bool NPHasPropertyFunction(NPObject *npobj, NPIdentifier name){
-	DBG_TRACE("( npobj=0x%p, name=0x%p )", npobj, name);
+	DBG_TRACE("( npobj=%p, name=%p )", npobj, name);
 	NOTIMPLEMENTED();
 	return false;
 }
 
 bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result){
-	DBG_TRACE("( npobj=0x%p, name=0x%p, result=0x%p )", npobj, name, result);
+	DBG_TRACE("( npobj=%p, name=%p, result=%p )", npobj, name, result);
 	NOTIMPLEMENTED();
 	return false;
 }
 
 bool NPSetPropertyFunction(NPObject *npobj, NPIdentifier name, const NPVariant *value){
-	DBG_TRACE("( npobj=0x%p, name=0x%p, result=0x%p )", npobj, name, value);
+	DBG_TRACE("( npobj=%p, name=%p, result=%p )", npobj, name, value);
 	NOTIMPLEMENTED();
 	return false;
 }
 
 bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name){
-	DBG_TRACE("( npobj=0x%p, name=0x%p )", npobj, name);
+	DBG_TRACE("( npobj=%p, name=%p )", npobj, name);
 	NOTIMPLEMENTED();
 	return false;
 }
 
 bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *count){
-	DBG_TRACE("( npobj=0x%p, value=0x%p, count=0x%p )", npobj, value, count);
+	DBG_TRACE("( npobj=%p, value=%p, count=%p )", npobj, value, count);
 	NOTIMPLEMENTED();
 	return false;
 }
 
 bool NPConstructFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result){
-	DBG_TRACE("( npobj=0x%p, args=0x%p, argCount=%d, result=0x%p )", npobj, args, argCount, result);
+	DBG_TRACE("( npobj=%p, args=%p, argCount=%d, result=%p )", npobj, args, argCount, result);
 	NOTIMPLEMENTED();
 	return false;
 }
 
 NPObject * NPAllocateFunction(NPP instance, NPClass *aClass){
-	DBG_TRACE("( instance=0x%p, aClass=0x%p )", instance, aClass);
+	DBG_TRACE("( instance=%p, aClass=%p )", instance, aClass);
 	NOTIMPLEMENTED();
 	return NULL;
 }

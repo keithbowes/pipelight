@@ -62,11 +62,11 @@ NPObject* createNPObject(uint64_t id, NPClass *aclass = NULL, NPP instance = 0){
 	// If its a custom created object then we can get the deallocate event and don't have to do manually refcounting.
 	// Otherwise its just a proxy object and can be destroyed when there is no pointer anymore in the Windows area
 	if(customObject){
-		DBG_TRACE("created custom object 0x%p with aclass 0x%p.", obj, aclass);
+		DBG_TRACE("created custom object %p with aclass %p.", obj, aclass);
 		obj->referenceCount = REFCOUNT_UNDEFINED;
 
 	}else{
-		DBG_TRACE("created proxy object 0x%p.", obj);
+		DBG_TRACE("created proxy object %p.", obj);
 		obj->referenceCount	= 0; // Will be incremented via readHandleObjInc
 	}
 

@@ -99,7 +99,7 @@ void pokeString(std::string str, char *dest, unsigned int maxLength){
 
 NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 {
-	DBG_TRACE("( bFuncs=0x%p, pFuncs=0x%p )", bFuncs, pFuncs);
+	DBG_TRACE("( bFuncs=%p, pFuncs=%p )", bFuncs, pFuncs);
 
 	if( bFuncs == NULL || pFuncs == NULL )
 		return NPERR_INVALID_PARAM;
@@ -268,7 +268,7 @@ NP_EXPORT(const char*) NP_GetMIMEDescription()
 }
 
 NP_EXPORT(NPError) NP_GetValue(void* future, NPPVariable aVariable, void* aValue) {
-	DBG_TRACE("( future=0x%p, aVariable=%d, aValue=0x%p )", future, aVariable, aValue);
+	DBG_TRACE("( future=%p, aVariable=%d, aValue=%p )", future, aVariable, aValue);
 
 	NPError result = NPERR_GENERIC_ERROR;
 	std::string resultStr;
@@ -371,7 +371,7 @@ void* timerThread(void* argument){
 }
 
 NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* argn[], char* argv[], NPSavedData* saved) {
-	DBG_TRACE("( pluginType='%s', instance=0x%p, mode=%d, argc=%d, argn=0x%p, argv=0x%p, saved=0x%p )", pluginType, instance, mode, argc, argn, argv, saved);
+	DBG_TRACE("( pluginType='%s', instance=%p, mode=%d, argc=%d, argn=%p, argv=%p, saved=%p )", pluginType, instance, mode, argc, argn, argv, saved);
 
 	// Remember if this was an error, in this case we shouldn't call the original destroy function
 	bool pipelightError = (strcmp(pluginType, "application/x-pipelight-error") == 0);
@@ -517,7 +517,7 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 }
 
 NPError NPP_Destroy(NPP instance, NPSavedData** save) {
-	DBG_TRACE("( instance=0x%p, save=0x%p )", instance, save);
+	DBG_TRACE("( instance=%p, save=%p )", instance, save);
 
 	// Initialization failed or diagnostic mode
 	bool pipelightError = (bool)instance->pdata;
@@ -613,7 +613,7 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 				if(nextInstance == 0){
 					eventThread = 0;
 				}else{
-					DBG_INFO("started timer thread for instance 0x%p.", nextInstance);
+					DBG_INFO("started timer thread for instance %p.", nextInstance);
 				}
 			}
 
@@ -624,7 +624,7 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 				eventTimerID 		= sBrowserFuncs->scheduletimer(nextInstance, 5, true, timerFunc);
 				eventTimerInstance 	= instance;
 
-				DBG_INFO("started timer for instance 0x%p.", nextInstance);
+				DBG_INFO("started timer for instance %p.", nextInstance);
 			}
 
 		}
@@ -634,7 +634,7 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 }
 
 NPError NPP_SetWindow(NPP instance, NPWindow* window) {
-	DBG_TRACE("( instance=0x%p, window=0x%p )", instance, window);
+	DBG_TRACE("( instance=%p, window=%p )", instance, window);
 
 	// TODO: translate to Screen coordinates
 	// TODO: Use all parameters
@@ -684,7 +684,7 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window) {
 }
 
 NPError NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool seekable, uint16_t* stype) {
-	DBG_TRACE("( instance=0x%p, type='%s', stream=0x%p, seekable=%d, stype=0x%p )", instance, type, stream, seekable, stype);
+	DBG_TRACE("( instance=%p, type='%s', stream=%p, seekable=%d, stype=%p )", instance, type, stream, seekable, stype);
 
 	writeInt32(seekable);
 	writeHandleStream(stream);
@@ -710,7 +710,7 @@ NPError NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool se
 }
 
 NPError NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
-	DBG_TRACE("( instance=0x%p, stream=0x%p, reason=%d )", instance, stream, reason);
+	DBG_TRACE("( instance=%p, stream=%p, reason=%d )", instance, stream, reason);
 
 	if( !handlemanager.existsHandleByReal((uint64_t)stream, TYPE_NPStream) ){
 		// Affects Opera
@@ -732,7 +732,7 @@ NPError NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
 }
 
 int32_t NPP_WriteReady(NPP instance, NPStream* stream) {
-	DBG_TRACE("( instance=0x%p, stream=0x%p )", instance, stream);
+	DBG_TRACE("( instance=%p, stream=%p )", instance, stream);
 
 	if( !handlemanager.existsHandleByReal((uint64_t)stream, TYPE_NPStream) ){
 		// Affects Chrome
@@ -755,7 +755,7 @@ int32_t NPP_WriteReady(NPP instance, NPStream* stream) {
 }
 
 int32_t NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, void* buffer) {
-	DBG_TRACE("( instance=0x%p, stream=0x%p, offset=%d, len=%d, buffer=0x%p )", instance, stream, offset, len, buffer);
+	DBG_TRACE("( instance=%p, stream=%p, offset=%d, len=%d, buffer=%p )", instance, stream, offset, len, buffer);
 
 	if( !handlemanager.existsHandleByReal((uint64_t)stream, TYPE_NPStream) ){
 		// Affects Chrome
@@ -773,23 +773,23 @@ int32_t NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, v
 }
 
 void NPP_StreamAsFile(NPP instance, NPStream* stream, const char* fname) {
-	DBG_TRACE("( instance=0x%p, stream=0x%p, fname=0x%p )", instance, stream, fname);
+	DBG_TRACE("( instance=%p, stream=%p, fname=%p )", instance, stream, fname);
 	NOTIMPLEMENTED();
 }
 
 void NPP_Print(NPP instance, NPPrint* platformPrint) {
-	DBG_TRACE("( instance=0x%p, platformPrint=0x%p )", instance, platformPrint);
+	DBG_TRACE("( instance=%p, platformPrint=%p )", instance, platformPrint);
 	NOTIMPLEMENTED();
 }
 
 int16_t NPP_HandleEvent(NPP instance, void* event) {
-	DBG_TRACE("( instance=0x%p, event=0x%p )", instance, event);
+	DBG_TRACE("( instance=%p, event=%p )", instance, event);
 	NOTIMPLEMENTED();
 	return 0;
 }
 
 void NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyData) {
-	DBG_TRACE("( instance=0x%p, URL='%s', reason=%d, notifyData=0x%p )", instance, URL, reason, notifyData);
+	DBG_TRACE("( instance=%p, URL='%s', reason=%d, notifyData=%p )", instance, URL, reason, notifyData);
 
 	writeHandleNotify(notifyData, HANDLE_SHOULD_EXIST);
 	writeInt32(reason);
@@ -825,7 +825,7 @@ void NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyD
 }
 
 NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
-	DBG_TRACE("( instance=0x%p, variable=%d, value=0x%p )", instance, variable, value);
+	DBG_TRACE("( instance=%p, variable=%d, value=%p )", instance, variable, value);
 
 	NPError result = NPERR_GENERIC_ERROR;
 	std::vector<ParameterInfo> stack;
@@ -880,7 +880,7 @@ NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 }
 
 NPError NPP_SetValue(NPP instance, NPNVariable variable, void *value) {
-	DBG_TRACE("( instance=0x%p, variable=%d, value=0x%p )", instance, variable, value);
+	DBG_TRACE("( instance=%p, variable=%d, value=%p )", instance, variable, value);
 	NOTIMPLEMENTED();
 	return NPERR_GENERIC_ERROR;
 }

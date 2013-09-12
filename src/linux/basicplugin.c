@@ -494,7 +494,7 @@ void dispatcher(int functionid, Stack &stack){
 		case LIN_HANDLE_MANAGER_REQUEST_STREAM_INFO:
 			{
 				NPStream* stream = readHandleStream(stack); // shouldExist not necessary, Linux checks always
-				DBG_TRACE("LIN_HANDLE_MANAGER_REQUEST_STREAM_INFO( stream=0x%p )", stream);
+				DBG_TRACE("LIN_HANDLE_MANAGER_REQUEST_STREAM_INFO( stream=%p )", stream);
 
 				writeString(stream->headers);
 				writeHandleNotify(stream->notifyData, HANDLE_SHOULD_EXIST);
@@ -502,7 +502,7 @@ void dispatcher(int functionid, Stack &stack){
 				writeInt32(stream->end);
 				writeString(stream->url);
 
-				DBG_TRACE("LIN_HANDLE_MANAGER_REQUEST_STREAM_INFO -> ( headers='%s', notifyData=0x%p, lastmodified=%d, end=%d, url='%s' )", \
+				DBG_TRACE("LIN_HANDLE_MANAGER_REQUEST_STREAM_INFO -> ( headers='%s', notifyData=%p, lastmodified=%d, end=%d, url='%s' )", \
 						stream->headers, stream->notifyData, stream->lastmodified, stream->end, stream->url);
 				returnCommand();
 			}
@@ -511,7 +511,7 @@ void dispatcher(int functionid, Stack &stack){
 		case LIN_HANDLE_MANAGER_FREE_OBJECT:
 			{
 				NPObject* obj 		= readHandleObj(stack);
-				DBG_TRACE("LIN_HANDLE_MANAGER_FREE_OBJECT( obj=0x%p )", obj);
+				DBG_TRACE("LIN_HANDLE_MANAGER_FREE_OBJECT( obj=%p )", obj);
 
 				handlemanager.removeHandleByReal((uint64_t)obj, TYPE_NPObject);
 
@@ -560,12 +560,12 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPN_CREATE_OBJECT:
 			{
 				NPP instance 			= readHandleInstance(stack);
-				DBG_TRACE("FUNCTION_NPN_CREATE_OBJECT( instance=0x%p )", instance);
+				DBG_TRACE("FUNCTION_NPN_CREATE_OBJECT( instance=%p )", instance);
 
 				NPObject* obj = sBrowserFuncs->createobject(instance, &myClass);
 				writeHandleObj(obj); // refcounter is hopefully 1
 
-				DBG_TRACE("FUNCTION_NPN_CREATE_OBJECT -> obj=0x%p", obj);
+				DBG_TRACE("FUNCTION_NPN_CREATE_OBJECT -> obj=%p", obj);
 				returnCommand();
 			}
 			break;
@@ -575,7 +575,7 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPP instance 			= readHandleInstance(stack);
 				NPNVariable variable 	= (NPNVariable)readInt32(stack);
-				DBG_TRACE("FUNCTION_NPN_GETVALUE_BOOL( instance=0x%p, variable=%d )", instance, variable);
+				DBG_TRACE("FUNCTION_NPN_GETVALUE_BOOL( instance=%p, variable=%d )", instance, variable);
 
 				NPBool resultBool = 0;
 				NPError result = sBrowserFuncs->getvalue(instance, variable, &resultBool);
@@ -595,7 +595,7 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPP instance 			= readHandleInstance(stack);
 				NPNVariable variable 	= (NPNVariable)readInt32(stack);
-				DBG_TRACE("FUNCTION_NPN_GETVALUE_OBJECT( instance=0x%p, variable=%d )", instance, variable);
+				DBG_TRACE("FUNCTION_NPN_GETVALUE_OBJECT( instance=%p, variable=%d )", instance, variable);
 
 				NPObject* obj = NULL;
 				NPError result = sBrowserFuncs->getvalue(instance, variable, &obj);
@@ -633,7 +633,7 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPN_RELEASEOBJECT:
 			{
 				NPObject* obj 		= readHandleObj(stack);
-				DBG_TRACE("FUNCTION_NPN_GETVALUE_OBJECT( obj=0x%p )", obj);
+				DBG_TRACE("FUNCTION_NPN_GETVALUE_OBJECT( obj=%p )", obj);
 
 				// We do this check always, although its not really required, but this makes it easier to find errors
 				if(obj->referenceCount == 1 && handlemanager.existsHandleByReal( (uint64_t)obj, TYPE_NPObject) ){
@@ -656,7 +656,7 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPObject* obj 				= readHandleObj(stack);
 				uint32_t minReferenceCount 	= readInt32(stack);
-				DBG_TRACE("FUNCTION_NPN_RETAINOBJECT( obj=0x%p, minReferenceCount=%d )", obj, minReferenceCount);
+				DBG_TRACE("FUNCTION_NPN_RETAINOBJECT( obj=%p, minReferenceCount=%d )", obj, minReferenceCount);
 
 				sBrowserFuncs->retainobject(obj);
 
@@ -680,7 +680,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPVariant resultVariant;
 				resultVariant.type 					= NPVariantType_Void;
 				resultVariant.value.objectValue 	= NULL;
-				DBG_TRACE("FUNCTION_NPN_EVALUATE( instance=0x%p, obj=0x%p )", instance, obj);
+				DBG_TRACE("FUNCTION_NPN_EVALUATE( instance=%p, obj=%p )", instance, obj);
 
 				bool result = sBrowserFuncs->evaluate(instance, obj, &script, &resultVariant);	
 				
@@ -707,7 +707,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPVariant resultVariant;
 				resultVariant.type 					= NPVariantType_Void;
 				resultVariant.value.objectValue 	= NULL;
-				DBG_TRACE("FUNCTION_NPN_INVOKE( instance=0x%p, obj=0x%p, identifier=0x%p, argCount=%d, ... )", instance, obj, identifier, argCount);
+				DBG_TRACE("FUNCTION_NPN_INVOKE( instance=%p, obj=%p, identifier=%p, argCount=%d, ... )", instance, obj, identifier, argCount);
 
 				bool result = sBrowserFuncs->invoke(instance, obj, identifier, args.data(), argCount, &resultVariant);
 
@@ -733,7 +733,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPVariant resultVariant;
 				resultVariant.type 					= NPVariantType_Void;
 				resultVariant.value.objectValue 	= NULL;
-				DBG_TRACE("FUNCTION_NPN_INVOKE_DEFAULT( instance=0x%p, obj=0x%p, argCount=%d, ... )", instance, obj, argCount);
+				DBG_TRACE("FUNCTION_NPN_INVOKE_DEFAULT( instance=%p, obj=%p, argCount=%d, ... )", instance, obj, argCount);
 
 				bool result = sBrowserFuncs->invokeDefault(instance, obj, args.data(), argCount, &resultVariant);
 
@@ -755,7 +755,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 					= readHandleInstance(stack);
 				NPObject* obj 					= readHandleObj(stack);
 				NPIdentifier identifier			= readHandleIdentifier(stack);
-				DBG_TRACE("FUNCTION_NPN_HAS_PROPERTY( instance=0x%p, obj=0x%p, identifier=0x%p )", instance, obj, identifier);
+				DBG_TRACE("FUNCTION_NPN_HAS_PROPERTY( instance=%p, obj=%p, identifier=%p )", instance, obj, identifier);
 
 				bool result = sBrowserFuncs->hasproperty(instance, obj, identifier);
 				writeInt32(result);
@@ -770,7 +770,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 					= readHandleInstance(stack);
 				NPObject* obj 					= readHandleObj(stack);
 				NPIdentifier identifier			= readHandleIdentifier(stack);
-				DBG_TRACE("FUNCTION_NPN_HAS_METHOD( instance=0x%p, obj=0x%p, identifier=0x%p )", instance, obj, identifier);
+				DBG_TRACE("FUNCTION_NPN_HAS_METHOD( instance=%p, obj=%p, identifier=%p )", instance, obj, identifier);
 
 				bool result = sBrowserFuncs->hasmethod(instance, obj, identifier);
 				writeInt32(result);
@@ -788,7 +788,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPVariant resultVariant;
 				resultVariant.type 					= NPVariantType_Void;
 				resultVariant.value.objectValue 	= NULL;
-				DBG_TRACE("FUNCTION_NPN_GET_PROPERTY( instance=0x%p, obj=0x%p, propertyName=0x%p )", instance, obj, propertyName);
+				DBG_TRACE("FUNCTION_NPN_GET_PROPERTY( instance=%p, obj=%p, propertyName=%p )", instance, obj, propertyName);
 
 				bool result = sBrowserFuncs->getproperty(instance, obj, propertyName, &resultVariant);
 				if(result)
@@ -807,7 +807,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPIdentifier propertyName		= readHandleIdentifier(stack);
 				NPVariant value;
 				readVariant(stack, value);
-				DBG_TRACE("FUNCTION_NPN_SET_PROPERTY( instance=0x%p, obj=0x%p, propertyName=0x%p, value=0x%p )", instance, obj, propertyName, &value);
+				DBG_TRACE("FUNCTION_NPN_SET_PROPERTY( instance=%p, obj=%p, propertyName=%p, value=%p )", instance, obj, propertyName, &value);
 
 				bool result = sBrowserFuncs->setproperty(instance, obj, propertyName, &value);
 				writeInt32(result);
@@ -823,7 +823,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 					= readHandleInstance(stack);
 				NPObject* obj 					= readHandleObj(stack);
 				NPIdentifier propertyName		= readHandleIdentifier(stack);
-				DBG_TRACE("FUNCTION_NPN_REMOVE_PROPERTY( instance=0x%p, obj=0x%p, propertyName=0x%p )", instance, obj, propertyName);
+				DBG_TRACE("FUNCTION_NPN_REMOVE_PROPERTY( instance=%p, obj=%p, propertyName=%p )", instance, obj, propertyName);
 
 				bool result = sBrowserFuncs->removeproperty(instance, obj, propertyName);
 				writeInt32(result);
@@ -839,7 +839,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPObject *obj 					= readHandleObj(stack);
 				NPIdentifier*   identifierTable  = NULL;
 				uint32_t 		identifierCount  = 0;
-				DBG_TRACE("FUNCTION_NPN_ENUMERATE( instance=0x%p, obj=0x%p )", instance, obj);
+				DBG_TRACE("FUNCTION_NPN_ENUMERATE( instance=%p, obj=%p )", instance, obj);
 
 				bool result = sBrowserFuncs->enumerate(instance, obj, &identifierTable, &identifierCount);
 
@@ -863,7 +863,7 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPObject* obj 					= readHandleObj(stack);
 				std::shared_ptr<char> message 	= readStringAsMemory(stack);
-				DBG_TRACE("FUNCTION_NPN_SET_EXCEPTION( instance=0x%p, obj=0x%p )", obj, message.get());
+				DBG_TRACE("FUNCTION_NPN_SET_EXCEPTION( instance=%p, obj=%p )", obj, message.get());
 
 				sBrowserFuncs->setexception(obj, message.get());
 
@@ -878,7 +878,7 @@ void dispatcher(int functionid, Stack &stack){
 				std::shared_ptr<char> url 		= readStringAsMemory(stack);
 				std::shared_ptr<char> target 	= readStringAsMemory(stack);
 				NotifyDataRefCount* notifyData 	= (NotifyDataRefCount*)readHandleNotify(stack);
-				DBG_TRACE("FUNCTION_NPN_GET_URL_NOTIFY( instance=0x%p, url='%s', target='%s', notifyData=0x%p )", instance, url.get(), target.get(), notifyData);
+				DBG_TRACE("FUNCTION_NPN_GET_URL_NOTIFY( instance=%p, url='%s', target='%s', notifyData=%p )", instance, url.get(), target.get(), notifyData);
 
 				// Increase refcounter
 				if(notifyData){
@@ -902,7 +902,7 @@ void dispatcher(int functionid, Stack &stack){
 				std::shared_ptr<char> buffer	= readMemory(stack, len);
 				bool file 						= (bool)readInt32(stack);
 				NotifyDataRefCount* notifyData 	= (NotifyDataRefCount*)readHandleNotify(stack);
-				DBG_TRACE("FUNCTION_NPN_POST_URL_NOTIFY( instance=0x%p, url='%s', target='%s', buffer=0x%p, len=%lu, file=%d, notifyData=0x%p )", instance, url.get(), target.get(), buffer.get(), len, file, notifyData);
+				DBG_TRACE("FUNCTION_NPN_POST_URL_NOTIFY( instance=%p, url='%s', target='%s', buffer=%p, len=%lu, file=%d, notifyData=%p )", instance, url.get(), target.get(), buffer.get(), len, file, notifyData);
 
 				// Increase refcounter
 				if(notifyData){
@@ -922,7 +922,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 					= readHandleInstance(stack);
 				std::shared_ptr<char> url 		= readStringAsMemory(stack);
 				std::shared_ptr<char> target 	= readStringAsMemory(stack);
-				DBG_TRACE("FUNCTION_NPN_GET_URL( instance=0x%p, url='%s', target='%s' )", instance, url.get(), target.get());
+				DBG_TRACE("FUNCTION_NPN_GET_URL( instance=%p, url='%s', target='%s' )", instance, url.get(), target.get());
 
 				NPError result = sBrowserFuncs->geturl(instance, url.get(), target.get());
 				writeInt32(result);
@@ -940,7 +940,7 @@ void dispatcher(int functionid, Stack &stack){
 				size_t len;
 				std::shared_ptr<char> buffer	= readMemory(stack, len);
 				bool file 						= (bool)readInt32(stack);
-				DBG_TRACE("FUNCTION_NPN_POST_URL( instance=0x%p, url='%s', target='%s', buffer=0x%p, len=%lu, file=%d )", instance, url.get(), target.get(), buffer.get(), len, file );
+				DBG_TRACE("FUNCTION_NPN_POST_URL( instance=%p, url='%s', target='%s', buffer=%p, len=%lu, file=%d )", instance, url.get(), target.get(), buffer.get(), len, file );
 
 				NPError result = sBrowserFuncs->posturl(instance, url.get(), target.get(), len, buffer.get(), file);
 				writeInt32(result);
@@ -955,7 +955,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPStream *stream 				= readHandleStream(stack);
 				uint32_t rangeCount				= readInt32(stack);
 				NPByteRange *byteRange 			= NULL;
-				DBG_TRACE("FUNCTION_NPN_REQUEST_READ( stream=0x%p, rangeCount=%d, ... )", stream, rangeCount );
+				DBG_TRACE("FUNCTION_NPN_REQUEST_READ( stream=%p, rangeCount=%d, ... )", stream, rangeCount );
 
 				for(unsigned int i = 0; i < rangeCount; i++){
 					NPByteRange *newByteRange = (NPByteRange*)malloc(sizeof(NPByteRange));
@@ -990,7 +990,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 					= readHandleInstance(stack);
 				NPStream *stream 				= readHandleStream(stack);
 				std::shared_ptr<char> buffer	= readMemory(stack, len);	
-				DBG_TRACE("FUNCTION_NPN_WRITE( instance=0x%p, stream=0x%p, buffer=0x%p, len=%lu )", instance, stream, buffer.get(), len );
+				DBG_TRACE("FUNCTION_NPN_WRITE( instance=%p, stream=%p, buffer=%p, len=%lu )", instance, stream, buffer.get(), len );
 
 				int32_t result = sBrowserFuncs->write(instance, stream, len, buffer.get());
 				writeInt32(result);
@@ -1005,7 +1005,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 					= readHandleInstance(stack);
 				std::shared_ptr<char> type 		= readStringAsMemory(stack);
 				std::shared_ptr<char> target 	= readStringAsMemory(stack);
-				DBG_TRACE("FUNCTION_NPN_NEW_STREAM( instance=0x%p, type='%s', target='%s' )", instance, type.get(), target.get() );
+				DBG_TRACE("FUNCTION_NPN_NEW_STREAM( instance=%p, type='%s', target='%s' )", instance, type.get(), target.get() );
 
 				NPStream* stream = NULL;
 				NPError result = sBrowserFuncs->newstream(instance, type.get(), target.get(), &stream);
@@ -1023,7 +1023,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 		= readHandleInstance(stack);
 				NPStream *stream 	= readHandleStream(stack, HANDLE_SHOULD_EXIST);
 				NPReason reason 	= (NPReason) readInt32(stack);
-				DBG_TRACE("FUNCTION_NPN_DESTROY_STREAM( instance=0x%p, stream=0x%p, reason=%d )", instance, stream, reason );
+				DBG_TRACE("FUNCTION_NPN_DESTROY_STREAM( instance=%p, stream=%p, reason=%d )", instance, stream, reason );
 
 				NPError result = sBrowserFuncs->destroystream(instance, stream, reason);
 				writeInt32(result);
@@ -1038,7 +1038,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 					= readHandleInstance(stack);
 				std::shared_ptr<char> message	= readStringAsMemory(stack);
 
-				DBG_TRACE("FUNCTION_NPN_STATUS( instance=0x%p, message='%s' )", instance, message.get() );
+				DBG_TRACE("FUNCTION_NPN_STATUS( instance=%p, message='%s' )", instance, message.get() );
 				sBrowserFuncs->status(instance, message.get());
 
 				DBG_TRACE("FUNCTION_NPN_DESTROY_STREAM -> void");
@@ -1049,7 +1049,7 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPN_USERAGENT:
 			{
 				NPP instance 					= readHandleInstance(stack);
-				DBG_TRACE("FUNCTION_NPN_USERAGENT( instance=0x%p )", instance );
+				DBG_TRACE("FUNCTION_NPN_USERAGENT( instance=%p )", instance );
 
 				const char* uagent = sBrowserFuncs->uagent(instance);
 				writeString(uagent);
@@ -1062,7 +1062,7 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPN_IDENTIFIER_IS_STRING:
 			{
 				NPIdentifier identifier = readHandleIdentifier(stack);
-				DBG_TRACE("FUNCTION_NPN_IDENTIFIER_IS_STRING( identifier=0x%p )", identifier );
+				DBG_TRACE("FUNCTION_NPN_IDENTIFIER_IS_STRING( identifier=%p )", identifier );
 
 				bool result = sBrowserFuncs->identifierisstring(identifier);
 				writeInt32(result);
@@ -1075,7 +1075,7 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPN_UTF8_FROM_IDENTIFIER:
 			{
 				NPIdentifier identifier	= readHandleIdentifier(stack);
-				DBG_TRACE("FUNCTION_NPN_UTF8_FROM_IDENTIFIER( identifier=0x%p )", identifier );
+				DBG_TRACE("FUNCTION_NPN_UTF8_FROM_IDENTIFIER( identifier=%p )", identifier );
 
 				NPUTF8 *str = sBrowserFuncs->utf8fromidentifier(identifier);
 				writeString((char*) str);
@@ -1094,7 +1094,7 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPN_INT_FROM_IDENTIFIER:
 			{
 				NPIdentifier identifier = readHandleIdentifier(stack);
-				DBG_TRACE("FUNCTION_NPN_IDENTIFIER_IS_STRING( identifier=0x%p )", identifier );
+				DBG_TRACE("FUNCTION_NPN_IDENTIFIER_IS_STRING( identifier=%p )", identifier );
 
 				int32_t result = sBrowserFuncs->intfromidentifier(identifier);
 				writeInt32(result);
@@ -1112,7 +1112,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPIdentifier identifier 		= sBrowserFuncs->getstringidentifier((NPUTF8*) utf8name.get());
 				writeHandleIdentifier(identifier);
 
-				DBG_TRACE("FUNCTION_NPN_GET_STRINGIDENTIFIER -> identifier=0x%p", identifier );
+				DBG_TRACE("FUNCTION_NPN_GET_STRINGIDENTIFIER -> identifier=%p", identifier );
 				returnCommand();
 			}
 			break;
@@ -1125,7 +1125,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPIdentifier identifier 		= sBrowserFuncs->getintidentifier(intid);
 				writeHandleIdentifier(identifier);
 
-				DBG_TRACE("FUNCTION_NPN_GET_INTIDENTIFIER -> identifier=0x%p", identifier );
+				DBG_TRACE("FUNCTION_NPN_GET_INTIDENTIFIER -> identifier=%p", identifier );
 				returnCommand();
 			}
 			break;

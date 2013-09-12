@@ -471,7 +471,7 @@ void dispatcher(int functionid, Stack &stack){
 		case WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA:
 			{
 				void *notifyData 			= readHandleNotify(stack, HANDLE_SHOULD_EXIST);
-				DBG_TRACE("WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA( notifyData=0x%p )", notifyData);
+				DBG_TRACE("WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA( notifyData=%p )", notifyData);
 
 				handlemanager.removeHandleByReal((uint64_t)notifyData, TYPE_NotifyData);
 
@@ -483,7 +483,7 @@ void dispatcher(int functionid, Stack &stack){
 		case WIN_HANDLE_MANAGER_FREE_OBJECT:
 			{
 				NPObject 	*obj = readHandleObjIncRef(stack, NULL, 0, HANDLE_SHOULD_EXIST);
-				DBG_TRACE("WIN_HANDLE_MANAGER_FREE_OBJECT( obj=0x%p )", obj);
+				DBG_TRACE("WIN_HANDLE_MANAGER_FREE_OBJECT( obj=%p )", obj);
 
 				objectKill(obj);
 
@@ -495,7 +495,7 @@ void dispatcher(int functionid, Stack &stack){
 		case WIN_HANDLE_MANAGER_OBJECT_IS_CUSTOM:
 			{
 				NPObject 	*obj = readHandleObjIncRef(stack, NULL, 0, HANDLE_SHOULD_EXIST);
-				DBG_TRACE("WIN_HANDLE_MANAGER_OBJECT_IS_CUSTOM( obj=0x%p )", obj);
+				DBG_TRACE("WIN_HANDLE_MANAGER_OBJECT_IS_CUSTOM( obj=%p )", obj);
 
 				writeInt32( (obj->referenceCount == REFCOUNT_UNDEFINED) );
 
@@ -538,7 +538,7 @@ void dispatcher(int functionid, Stack &stack){
 		case SHOW_UPDATE_WINDOW:
 			{
 				NPP instance = readHandleInstance(stack);
-				DBG_TRACE("SHOW_UPDATE_WINDOW( instance=0x%p )", instance);
+				DBG_TRACE("SHOW_UPDATE_WINDOW( instance=%p )", instance);
 
 				// Only used when isEmbeddedMode is set
 				if(isEmbeddedMode){
@@ -611,7 +611,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPVariant resultVariant;
 				resultVariant.type 				= NPVariantType_Void;
 				resultVariant.value.objectValue = NULL;
-				DBG_TRACE("FUNCTION_NP_INVOKE( obj=0x%p, name=0x%p, argCount=%d, args=0x%p )", obj, name, argCount, args.data());
+				DBG_TRACE("FUNCTION_NP_INVOKE( obj=%p, name=%p, argCount=%d, args=%p )", obj, name, argCount, args.data());
 
 				bool result = obj->_class->invoke(obj, name, args.data(), argCount, &resultVariant);
 
@@ -640,7 +640,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPVariant resultVariant;
 				resultVariant.type 				= NPVariantType_Void;
 				resultVariant.value.objectValue = NULL;
-				DBG_TRACE("FUNCTION_NP_INVOKE_DEFAULT( obj=0x%p, argCount=%d, args=0x%p )", obj, argCount, args.data());
+				DBG_TRACE("FUNCTION_NP_INVOKE_DEFAULT( obj=%p, argCount=%d, args=%p )", obj, argCount, args.data());
 
 				bool result = obj->_class->invokeDefault(obj, args.data(), argCount, &resultVariant);
 
@@ -664,7 +664,7 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPObject *obj 		= readHandleObjIncRef(stack);
 				NPIdentifier name 	= readHandleIdentifier(stack);	
-				DBG_TRACE("FUNCTION_NP_INVOKE_DEFAULT( obj=0x%p, name=0x%p )", obj, name);
+				DBG_TRACE("FUNCTION_NP_INVOKE_DEFAULT( obj=%p, name=%p )", obj, name);
 
 				bool result = obj->_class->hasProperty(obj, name);
 				writeInt32(result);
@@ -679,7 +679,7 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPObject *obj 		= readHandleObjIncRef(stack);
 				NPIdentifier name 	= readHandleIdentifier(stack);	
-				DBG_TRACE("FUNCTION_NP_HAS_METHOD( obj=0x%p, name=0x%p )", obj, name);
+				DBG_TRACE("FUNCTION_NP_HAS_METHOD( obj=%p, name=%p )", obj, name);
 
 				bool result = obj->_class->hasMethod(obj, name);
 				writeInt32(result);
@@ -697,7 +697,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPVariant resultVariant;
 				resultVariant.type 				= NPVariantType_Void;
 				resultVariant.value.objectValue = NULL;
-				DBG_TRACE("FUNCTION_NP_GET_PROPERTY( obj=0x%p, name=0x%p )", obj, name);
+				DBG_TRACE("FUNCTION_NP_GET_PROPERTY( obj=%p, name=%p )", obj, name);
 
 				bool result = obj->_class->getProperty(obj, name, &resultVariant);
 
@@ -719,7 +719,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPIdentifier 	name 		= readHandleIdentifier(stack);	
 				NPVariant 		variant;
 				readVariantIncRef(stack, variant);
-				DBG_TRACE("FUNCTION_NP_SET_PROPERTY( obj=0x%p, name=0x%p, variant=0x%p )", obj, name, &variant);
+				DBG_TRACE("FUNCTION_NP_SET_PROPERTY( obj=%p, name=%p, variant=%p )", obj, name, &variant);
 
 				bool result = obj->_class->setProperty(obj, name, &variant);
 				freeVariantDecRef(variant);
@@ -735,7 +735,7 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPObject 		*obj 		= readHandleObjIncRef(stack);
 				NPIdentifier 	name 		= readHandleIdentifier(stack);	
-				DBG_TRACE("FUNCTION_NP_REMOVE_PROPERTY( obj=0x%p, name=0x%p )", obj, name);
+				DBG_TRACE("FUNCTION_NP_REMOVE_PROPERTY( obj=%p, name=%p )", obj, name);
 
 				bool result = obj->_class->removeProperty(obj, name);
 				writeInt32(result);
@@ -751,7 +751,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPObject 		*obj 		= readHandleObjIncRef(stack);
 				NPIdentifier*   identifierTable  = NULL;
 				uint32_t 		identifierCount  = 0;
-				DBG_TRACE("FUNCTION_NP_ENUMERATE( obj=0x%p )", obj);
+				DBG_TRACE("FUNCTION_NP_ENUMERATE( obj=%p )", obj);
 
 				bool result = obj->_class->enumerate && obj->_class->enumerate(obj, &identifierTable, &identifierCount);
 
@@ -775,7 +775,7 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NP_INVALIDATE:
 			{
 				NPObject *obj = readHandleObjIncRef(stack);
-				DBG_TRACE("FUNCTION_NP_INVALIDATE( obj=0x%p )", obj);
+				DBG_TRACE("FUNCTION_NP_INVALIDATE( obj=%p )", obj);
 
 				obj->_class->invalidate(obj);
 				objectDecRef(obj);
@@ -808,7 +808,7 @@ void dispatcher(int functionid, Stack &stack){
 					savedPtr 	= &saved;
 				}
 
-				DBG_TRACE("FUNCTION_NPP_NEW( mimeType='%s', instance=0x%p, mode=%d, argc=%d, argn=0x%p, argv=0x%p, saved=0x%p )", \
+				DBG_TRACE("FUNCTION_NPP_NEW( mimeType='%s', instance=%p, mode=%d, argc=%d, argn=%p, argv=%p, saved=%p )", \
 						mimeType.get(), instance, mode, argc, argn.data(), argv.data(), savedPtr);
 
 				// Most plugins only support windowlessMode in combination with NP_EMBED
@@ -847,7 +847,7 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPSavedData* saved 	= NULL;
 				NPP instance 		= readHandleInstance(stack);
-				DBG_TRACE("FUNCTION_NPP_DESTROY( instance=0x%p )", instance);
+				DBG_TRACE("FUNCTION_NPP_DESTROY( instance=%p )", instance);
 
 				NPError result 		= pluginFuncs.destroy(instance, &saved);
 
@@ -901,7 +901,7 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPP instance 			= readHandleInstance(stack);
 				NPPVariable variable 	= (NPPVariable)readInt32(stack);
-				DBG_TRACE("FUNCTION_NPP_GETVALUE_BOOL( instance=0x%p, variable=%d )", instance, variable);
+				DBG_TRACE("FUNCTION_NPP_GETVALUE_BOOL( instance=%p, variable=%d )", instance, variable);
 
 				PRBool boolValue;
 				NPError result = pluginFuncs.getvalue(instance, variable, &boolValue);
@@ -918,7 +918,7 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPP instance 			= readHandleInstance(stack);
 				NPPVariable variable 	= (NPPVariable)readInt32(stack);
-				DBG_TRACE("FUNCTION_NPP_GETVALUE_OBJECT( instance=0x%p, variable=%d )", instance, variable);
+				DBG_TRACE("FUNCTION_NPP_GETVALUE_OBJECT( instance=%p, variable=%d )", instance, variable);
 
 				NPObject *objectValue;
 				NPError result = pluginFuncs.getvalue(instance, variable, &objectValue);
@@ -938,7 +938,7 @@ void dispatcher(int functionid, Stack &stack){
 				int32_t y 		= readInt32(stack);
 				int32_t width 	= readInt32(stack);
 				int32_t height 	= readInt32(stack);
-				DBG_TRACE("FUNCTION_NPP_SET_WINDOW( instance=0x%p, x=%d, y=%d, width=%d, height=%d )", instance, x, y, width, height);
+				DBG_TRACE("FUNCTION_NPP_SET_WINDOW( instance=%p, x=%d, y=%d, width=%d, height=%d )", instance, x, y, width, height);
 
 				// Only used in XEMBED mode
 				int32_t windowIDX11 = 0;
@@ -1049,7 +1049,7 @@ void dispatcher(int functionid, Stack &stack){
 				std::shared_ptr<char> type 		= readStringAsMemory(stack);
 				NPStream *stream 				= readHandleStream(stack, HANDLE_SHOULD_NOT_EXIST);
 				NPBool seekable					= (NPBool) readInt32(stack); 
-				DBG_TRACE("FUNCTION_NPP_NEW_STREAM( instance=0x%p, type='%s', stream=0x%p, seekable=%d )", instance, type.get(), stream, seekable);
+				DBG_TRACE("FUNCTION_NPP_NEW_STREAM( instance=%p, type='%s', stream=%p, seekable=%d )", instance, type.get(), stream, seekable);
 
 				uint16_t stype = NP_NORMAL; // Fix for silverlight....
 				NPError result = pluginFuncs.newstream(instance, type.get(), stream, seekable, &stype);
@@ -1073,7 +1073,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 		= readHandleInstance(stack);
 				NPStream* stream 	= readHandleStream(stack, HANDLE_SHOULD_EXIST);
 				NPReason reason 	= (NPReason)readInt32(stack);
-				DBG_TRACE("FUNCTION_NPP_DESTROY_STREAM( instance=0x%p, stream=0x%p, reason=%d )", instance, stream, reason);
+				DBG_TRACE("FUNCTION_NPP_DESTROY_STREAM( instance=%p, stream=%p, reason=%d )", instance, stream, reason);
 
 				NPError result = pluginFuncs.destroystream(instance, stream, reason);
 
@@ -1099,7 +1099,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 		= readHandleInstance(stack);
 				NPStream* stream 	= readHandleStream(stack, HANDLE_SHOULD_EXIST);
 
-				DBG_TRACE("FUNCTION_NPP_WRITE_READY( instance=0x%p, stream=0x%p )", instance, stream);
+				DBG_TRACE("FUNCTION_NPP_WRITE_READY( instance=%p, stream=%p )", instance, stream);
 
 				int32_t result = pluginFuncs.writeready(instance, stream);
 				writeInt32(result);
@@ -1116,7 +1116,7 @@ void dispatcher(int functionid, Stack &stack){
 				int32_t offset 		= readInt32(stack);
 				size_t length;
 				std::shared_ptr<char> data = readMemory(stack, length);
-				DBG_TRACE("FUNCTION_NPP_WRITE( instance=0x%p, stream=0x%p, offset=%d, length=%d, data=0x%p )", instance, stream, offset, length, data.get());
+				DBG_TRACE("FUNCTION_NPP_WRITE( instance=%p, stream=%p, offset=%d, length=%d, data=%p )", instance, stream, offset, length, data.get());
 
 				int32_t result = pluginFuncs.write(instance, stream, offset, length, data.get());
 				writeInt32(result);
@@ -1132,7 +1132,7 @@ void dispatcher(int functionid, Stack &stack){
 				std::shared_ptr<char> url 	= readStringAsMemory(stack);
 				NPReason reason 			= (NPReason) readInt32(stack);
 				void *notifyData 			= readHandleNotify(stack, HANDLE_SHOULD_EXIST);
-				DBG_TRACE("FUNCTION_NPP_URL_NOTIFY( instance=0x%p, url='%s', reason=%d, notifyData=0x%p )", instance, url.get(), reason, notifyData);
+				DBG_TRACE("FUNCTION_NPP_URL_NOTIFY( instance=%p, url='%s', reason=%d, notifyData=%p )", instance, url.get(), reason, notifyData);
 
 				pluginFuncs.urlnotify(instance, url.get(), reason, notifyData);
 
