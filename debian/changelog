@@ -1,6 +1,14 @@
+pipelight (0.1-4) UNRELEASED; urgency=low
+
+  * Add unofficial flash support by fixing some bugs and implementing
+    additional functions
+  * Imported new translations (nl, en_GB)
+
+ -- Michael Mueller <michael@fds-team.de>  Thu, 12 Sep 2013 19:41:00 +0200
+
 pipelight (0.1-3) RELEASED; urgency=low
 
-  * Added additional wine patches, which allow to use additional streaming
+  * Added additional wine patches, which allows one to use additional streaming
     pages like for example LOVEFiLM
   * Added configuration option that allows to install additional dependencies
   * Initialize FPU registers on startup (fixes error popup messages)
