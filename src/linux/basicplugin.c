@@ -578,7 +578,14 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPN_GETVALUE_BOOL( instance=%p, variable=%d )", instance, variable);
 
 				NPBool resultBool = 0;
-				NPError result = sBrowserFuncs->getvalue(instance, variable, &resultBool);
+				NPError result;
+
+				if( variable == NPNVprivateModeBool ){
+					result = sBrowserFuncs->getvalue(instance, variable, &resultBool);
+				}else{
+					DBG_WARN("FUNCTION_NPN_GETVALUE_BOOL - variable %d not allowed", variable);
+					result = NPERR_GENERIC_ERROR;
+				}
 
 				if(result == NPERR_NO_ERROR)
 					writeInt32(resultBool);
@@ -598,7 +605,14 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPN_GETVALUE_OBJECT( instance=%p, variable=%d )", instance, variable);
 
 				NPObject* obj = NULL;
-				NPError result = sBrowserFuncs->getvalue(instance, variable, &obj);
+				NPError result;
+
+				if(	variable == NPNVPluginElementNPObject || variable == NPNVWindowNPObject){
+					result = sBrowserFuncs->getvalue(instance, variable, &obj);
+				}else{
+					DBG_WARN("FUNCTION_NPN_GETVALUE_OBJECT - variable %d not allowed", variable);
+					result = NPERR_GENERIC_ERROR;
+				}
 
 				if(result == NPERR_NO_ERROR)
 					writeHandleObj(obj); // Refcount was already incremented by getValue
@@ -614,9 +628,17 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPP instance 			= readHandleInstance(stack);
 				NPNVariable variable 	= (NPNVariable)readInt32(stack);
+				DBG_TRACE("FUNCTION_NPN_GETVALUE_STRING( instance=%p, variable=%d )", instance, variable);
 
 				char* str = NULL;
-				NPError result = sBrowserFuncs->getvalue(instance, variable, &str);
+				NPError result;
+
+				if( variable == NPNVdocumentOrigin ){
+					result = sBrowserFuncs->getvalue(instance, variable, &str);
+				}else{
+					DBG_WARN("FUNCTION_NPN_GETVALUE_STRING - variable %d not allowed", variable);
+					result = NPERR_GENERIC_ERROR;
+				}
 
 				if(result == NPERR_NO_ERROR){
 					writeString(str);
@@ -626,6 +648,8 @@ void dispatcher(int functionid, Stack &stack){
 				}
 
 				writeInt32(result);
+
+				DBG_TRACE("FUNCTION_NPN_GETVALUE_STRING -> ( result=%d, ... )", result);
 				returnCommand();
 			}
 			break;

@@ -904,9 +904,18 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPP_GETVALUE_BOOL( instance=%p, variable=%d )", instance, variable);
 
 				PRBool boolValue;
-				NPError result = pluginFuncs.getvalue(instance, variable, &boolValue);
+				NPError result;
+
+				if( false ){ // not used at the moment
+					result = pluginFuncs.getvalue(instance, variable, &boolValue);
+				}else{
+					DBG_WARN("FUNCTION_NPP_GETVALUE_BOOL - variable %d not allowed", variable);
+					result = NPERR_GENERIC_ERROR;
+				}		 
+
 				if(result == NPERR_NO_ERROR)
 					writeInt32(boolValue);
+
 				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPP_GETVALUE_BOOL -> ( result=%d, ... )", result);
@@ -921,9 +930,18 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPP_GETVALUE_OBJECT( instance=%p, variable=%d )", instance, variable);
 
 				NPObject *objectValue;
-				NPError result = pluginFuncs.getvalue(instance, variable, &objectValue);
+				NPError result;
+				
+				if( variable == NPPVpluginScriptableNPObject ){
+					result = pluginFuncs.getvalue(instance, variable, &objectValue);
+				}else{
+					DBG_WARN("FUNCTION_NPP_GETVALUE_OBJECT - variable %d not allowed", variable);
+					result = NPERR_GENERIC_ERROR;
+				}
+
 				if(result == NPERR_NO_ERROR)
 					writeHandleObjDecRef(objectValue);
+
 				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPP_GETVALUE_OBJECT -> ( result=%d, ... )", result);
