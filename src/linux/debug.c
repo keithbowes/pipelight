@@ -171,20 +171,14 @@ void runDiagnostic(NPP instance){
 		(config.winePath != "" && checkIfExists(config.winePath)) ? "okay" : "failed", \
 		(config.winePath != "") ? config.winePath : "not set" );
 
-	// Check if winePath/bin/wine and winePath/bin/winepath exists
-	if(config.winePath != "" && !config.winePathIsDeprecated){
-		std::string wineBinary 		= config.winePath + "/bin/wine";
-		std::string winePathBinary	= config.winePath + "/bin/winepath";
+	// Check if wine exists
+	if(config.winePath != ""){
 
 		debugStatusMessage(instance, \
-			"Checking if winePath/bin/wine exists", \
-			checkIfExists(wineBinary) ? "okay" : "failed", \
-			wineBinary );
+			"Checking if wine exists", \
+			checkIfExists(config.winePath) ? "okay" : "failed", \
+			config.winePath );
 
-		debugStatusMessage(instance, \
-			"Checking if winePath/bin/winepath exists", \
-			checkIfExists(winePathBinary) ? "okay" : "failed", \
-			winePathBinary );
 	}
 
 	// Check winePrefix
@@ -212,7 +206,7 @@ void runDiagnostic(NPP instance){
 	if( config.winePrefix != "" && !checkIfExists(config.winePrefix) ){
 		debugSimpleMessage(instance, "The whole wine prefix " + config.winePrefix + " doesn't exist");
 
-	}else if(unixPath == ""){ // includes config.winePathIsDeprecated == true
+	}else if(unixPath == ""){
 		debugSimpleMessage(instance, "Unable to verify if the DLL exists, please check this manually!");
 
 	}else{

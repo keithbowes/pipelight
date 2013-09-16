@@ -130,9 +130,10 @@ void attach(){
 	if( config.winePath 		== "" ||	// We have to know where wine is installed (default: wine)
 		config.dllPath 			== "" ||	// We need the path and name of the plugin DLL
 		config.dllName 			== "" ||
-		config.pluginLoaderPath == "" ){	// Without pluginloader.exe this doesn't work
+		config.pluginLoaderPath == "" ||	// Without pluginloader.exe this doesn't work
+		config.winePrefix 		== "" ){	// winePrefix
 
-		DBG_ERROR("your configuration file doesn't contain all necessary keys - aborting.");
+		DBG_ERROR("Your configuration file doesn't contain all necessary keys - aborting.");
 		DBG_ERROR("please take a look at the original configuration file for more details.");
 		return;
 	}
@@ -189,12 +190,7 @@ std::string getEnvironmentString(const char* variable){
 
 std::string convertWinePath(std::string path, bool direction){
 
-	// Not possible to call /bin/winepath if the path is deprecated
-	if( config.winePathIsDeprecated ){
-		DBG_WARN("don't know where /bin/winepath is.");
-		return "";
-
-	}else if( config.winePrefix != "" && !checkIfExists(config.winePrefix) ){
+	if( !checkIfExists(config.winePrefix) ){
 		DBG_WARN("wine prefix doesn't exist.");
 		return "";
 	}
@@ -203,7 +199,7 @@ std::string convertWinePath(std::string path, bool direction){
 	std::string resultPath;
 
 	if( pipe(tempPipeIn) == -1 ){
-		DBG_ERROR("could not create pipes to communicate with /bin/winepath.");
+		DBG_ERROR("could not create pipes to communicate with winepath.");
 		return "";
 	}
 
@@ -214,23 +210,35 @@ std::string convertWinePath(std::string path, bool direction){
 		close(tempPipeIn[0]);
 		dup2(tempPipeIn[1], 1);
 
-		// Run winepath with the correct environment variables
-
-		std::string winePathBinary		= config.winePath + "/bin/winepath";
-
-		if (config.winePrefix != "")
-			setenv("WINEPREFIX", 		config.winePrefix.c_str(), 	true);
+		// Setup environment variables
+		setenv("WINEPREFIX", 			config.winePrefix.c_str(), 			true);
 
 		if(config.wineArch != "")
-			setenv("WINEARCH", 			config.wineArch.c_str(), 	true);
+			setenv("WINEARCH", 			config.wineArch.c_str(), 			true);
 
 		if(config.wineDLLOverrides != "")
-			setenv("WINEDLLOVERRIDES", 	config.wineDLLOverrides.c_str(), true);
+			setenv("WINEDLLOVERRIDES", 	config.wineDLLOverrides.c_str(), 	true);
 
-		std::string argument = direction ? "--windows" : "--unix";
+		if(config.sandboxPath != "")
+			setenv("SANDBOXWRITEDIR",	config.winePrefix.c_str(),			true);
 
-		execlp(winePathBinary.c_str(), winePathBinary.c_str(), argument.c_str(), path.c_str(), NULL);
-		throw std::runtime_error("Error in execlp command - probably /bin/sh not found?");
+		std::string argument 		= direction ? "--windows" : "--unix";
+
+		// Generate argv array
+		std::vector<const char*> argv;
+
+		if(config.sandboxPath != "")
+			argv.push_back( config.sandboxPath.c_str() );
+
+		argv.push_back( config.winePath.c_str() );
+		argv.push_back( "winepath.exe" );
+		argv.push_back( argument.c_str() );
+		argv.push_back( path.c_str() );
+
+		argv.push_back(NULL);
+
+		execvp(argv[0], (char**)argv.data());
+		throw std::runtime_error("Error in execvp command - probably wine/sandbox not found?");
 
 	}else if(pidWinePath != -1){
 		char resultPathBuffer[4096+1];
@@ -272,12 +280,6 @@ std::string convertWinePath(std::string path, bool direction){
 
 bool checkSilverlightInstallation(){
 
-	// Checking the silverlight installation is only possible if the user has defined a winePrefix
-	if( config.winePrefix == "" ){
-		DBG_WARN("no winePrefix defined - unable to check Silverlight installation.");
-		return true;
-	}
-
 	// Output wine prefix
 	DBG_INFO("using wine prefix directory %s.", config.winePrefix.c_str());
 
@@ -296,31 +298,36 @@ bool checkSilverlightInstallation(){
 
 		close(0);
 
-		// Run the installer with the correct environment variables
-
-		std::string wineBinary		= config.winePathIsDeprecated ? config.winePath : (config.winePath + "/bin/wine");
-
-		setenv("WINEPREFIX", 	config.winePrefix.c_str(), 	true);
-		setenv("WINE", 			wineBinary.c_str(), 		true);
+		// Setup environment variables
+		setenv("WINEPREFIX", 			config.winePrefix.c_str(), 			true);
+		setenv("WINE", 					config.winePath.c_str(), 			true);
 
 		if(config.wineArch != "")
-			setenv("WINEARCH", 	config.wineArch.c_str(), 	true);
+			setenv("WINEARCH", 			config.wineArch.c_str(), 			true);
 
 		if(config.wineDLLOverrides != "")
-			setenv("WINEDLLOVERRIDES", config.wineDLLOverrides.c_str(), true);
+			setenv("WINEDLLOVERRIDES", 	config.wineDLLOverrides.c_str(), 	true);
+
+		if(config.sandboxPath != "")
+			setenv("SANDBOXWRITEDIR",	config.winePrefix.c_str(),			true);
 
 		// Generate argv array
-		std::vector<char*> argv;
-		argv.push_back( (char*)config.dependencyInstaller.c_str());
+		std::vector<const char*> argv;
+
+		// NOTE: Using a sandbox isn't possible on the first run, as the winePrefix doesn't exist yet
+		if(config.sandboxPath != "" && checkIfExists(config.winePrefix))
+			argv.push_back( config.sandboxPath.c_str() );
+
+		argv.push_back( config.dependencyInstaller.c_str());
 
 		for(std::string &dep: config.dependencies){
-			argv.push_back( (char*)dep.c_str());
+			argv.push_back( dep.c_str());
 		}
 
 		argv.push_back(NULL);
 
-		execvp(config.dependencyInstaller.c_str(), argv.data() );
-		throw std::runtime_error("Error in execlp command - probably /bin/sh not found?");
+		execvp(argv[0], (char**)argv.data());
+		throw std::runtime_error("Error in execvp command - probably dependencyInstaller/sandbox not found?");
 
 	}else if(pidInstall != -1){
 
@@ -362,20 +369,7 @@ bool checkGraphicDriver(){
 
 		close(0);
 
-		// We set all enviroments variables for Wine although the GPU check script shouldn't need them
-
-		std::string wineBinary		= config.winePathIsDeprecated ? config.winePath : (config.winePath + "/bin/wine");
-
-		setenv("WINE", 					wineBinary.c_str(), 		true);
-
-		if (config.winePrefix != "")
-			setenv("WINEPREFIX", 		config.winePrefix.c_str(), 	true);
-
-		if(config.wineArch != "")
-			setenv("WINEARCH", 			config.wineArch.c_str(), 	true);
-
-		if(config.wineDLLOverrides != "")
-			setenv("WINEDLLOVERRIDES", 	config.wineDLLOverrides.c_str(), true);
+		// The graphic driver check doesn't need any environment variables at all.
 
 		execlp(config.graphicDriverCheck.c_str(), config.graphicDriverCheck.c_str(), NULL);
 		throw std::runtime_error("Error in execlp command - probably /bin/sh not found?");
@@ -427,13 +421,11 @@ bool startWineProcess(){
 		dup2(PIPE_PLUGIN_READ,  0);
 		dup2(PIPE_PLUGIN_WRITE, 1);
 		
-		// Runt he pluginloader with the correct environment variables
-
-		if (config.winePrefix != "")
-			setenv("WINEPREFIX", 		config.winePrefix.c_str(), 	true);
+		// Setup environment variables
+		setenv("WINEPREFIX", 			config.winePrefix.c_str(), 			true);
 
 		if (config.wineArch != "")
-			setenv("WINEARCH", 			config.wineArch.c_str(), 	true);
+			setenv("WINEARCH", 			config.wineArch.c_str(), 			true);
 
 		if(config.wineDLLOverrides != "")
 			setenv("WINEDLLOVERRIDES", 	config.wineDLLOverrides.c_str(), 	true);
@@ -445,16 +437,34 @@ bool startWineProcess(){
 			setenv("Path", runtime.c_str(), true);
 		}
 
-		// Put together the flags
-		std::string windowMode 		= config.windowlessMode 			? "--windowless" 	: "";
-		std::string embedMode 		= config.embed 						? "--embed" 		: "";
-		std::string usermodeTimer	= config.experimental_usermodeTimer ? "--usermodetimer" : "";
+		if(config.sandboxPath != "")
+			setenv("SANDBOXWRITEDIR",	config.winePrefix.c_str(),			true);
 
-		std::string wineBinary		= config.winePathIsDeprecated ? config.winePath : (config.winePath + "/bin/wine");
+		// Generate argv array
+		std::vector<const char*> argv;
+
+		if(config.sandboxPath != "")
+			argv.push_back( config.sandboxPath.c_str() );
+
+		argv.push_back( config.winePath.c_str() );
+		argv.push_back( config.pluginLoaderPath.c_str() );
+		argv.push_back( config.dllPath.c_str() );
+		argv.push_back( config.dllName.c_str() );
+
+		if(config.windowlessMode)
+			argv.push_back( "--windowless" );
+
+		if(config.embed)
+			argv.push_back( "--embed" );
+
+		if(config.experimental_usermodeTimer)
+			argv.push_back( "--usermodetimer" );
+
+		argv.push_back(NULL);	
 
 		// Execute wine
-		execlp(wineBinary.c_str(), wineBinary.c_str(), config.pluginLoaderPath.c_str(), config.dllPath.c_str(), config.dllName.c_str(), windowMode.c_str(), embedMode.c_str(), usermodeTimer.c_str(), NULL);	
-		throw std::runtime_error("Error in execlp command - probably wine not found?");
+		execvp(argv[0], (char**)argv.data());
+		throw std::runtime_error("Error in execvp command - probably wine/sandbox not found?");
 
 	}else if (winePid != -1){
 		// The parent process will return normally and use the pipes to communicate with the child process
@@ -468,7 +478,7 @@ bool startWineProcess(){
 		// In case something goes wrong ...
 		if(pipeOutF == NULL || pipeInF == NULL){
 			if(pipeOutF) fclose(pipeOutF);
-			if(pipeInF) fclose(pipeInF);
+			if(pipeInF)  fclose(pipeInF);
 
 			return false;
 		}

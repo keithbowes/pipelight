@@ -15,14 +15,10 @@
 diagnosticMode      = true
 
 #
-# Path to the wine directory
-# * the wine executable itself should be at: winePath/bin/wine
-# * the winepath executable should be at:    winePath/bin/winepath
+# Path to the wine directory or the wine wine executable. When you
+# specify a directory it should contain /bin/wine.
 #
-# Please note: In older versions this was a path to the wine
-# executable instead. [deprecated, but should still work]
-#
-winePath            = /opt/wine-compholio/
+winePath            = /opt/wine-compholio/bin/wine
 
 #
 # Path to the wine prefix containing Silverlight
@@ -38,7 +34,7 @@ wineArch            = win32
 # DLLs to overwrite in Wine
 # (prevents Wine from asking for Gecko, Mono or winegstreamer)
 #
-wineDLLOverrides    = mscoree,mshtml,winegstreamer=
+wineDLLOverrides    = mscoree,mshtml,winegstreamer,winemenubuilder.exe=
 
 #
 # Path to the plugin loader executable
@@ -201,3 +197,12 @@ graphicDriverCheck  = /usr/share/wine-browser-installer/hw-accel-default
 # [default: false]
 #
 # experimental-userModeTimer = true
+
+#
+# A sandbox is a method to isolate an untrusted program from the rest of
+# the system to prevent damage in case of a virus, program errors or
+# similar issues. We've been developing the ability to use a (self-created)
+# sandbox, but this feature still has to be considered highly experimental.
+# Only use it when you REALLY know what you're doing!
+#
+# sandboxPath = /usr/bin/pipelight-sandbox

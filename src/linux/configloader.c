@@ -181,7 +181,7 @@ bool openConfig(std::ifstream &configFile, std::string &configPath){
 }
 
 
-bool checkIfFile(std::string path){
+bool checkIsFile(std::string path){
 	struct stat info;
 	if(stat(path.c_str(), &info) == 0){
 		return (bool)S_ISREG(info.st_mode);
@@ -203,8 +203,9 @@ bool loadConfig(PluginConfig &config){
 	config.configPath			= "";
 	config.diagnosticMode 		= false;
 
+	config.sandboxPath			= "";
+
 	config.winePath 			= "wine";
-	config.winePathIsDeprecated = true;
 	config.wineArch 			= "win32";
 	config.winePrefix 			= "";
 	config.wineDLLOverrides		= "mscoree,mshtml="; // prevent Installation of Geck & Mono by default
@@ -282,15 +283,14 @@ bool loadConfig(PluginConfig &config){
 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 			config.diagnosticMode = (value == "true" || value == "yes");
 
-		}else if(key == "winepath"){
-			// In previous versions winePath correspondeds to a direct path to /bin/wine, but now it
-			// just contains a path to the main wine directory instead
-			config.winePath 			= value;
-			config.winePathIsDeprecated = checkIfFile(value);
+		}else if(key == "sandboxpath"){
+			config.sandboxPath = value;
 
-			if(config.winePathIsDeprecated){
-				DBG_WARN("the meaning of your config entry 'winePath' is deprecated.");
-			}
+		}else if(key == "winepath"){
+			config.winePath = value;
+
+			if(!checkIsFile(config.winePath))
+				config.winePath += "/bin/wine";
 
 		}else if(key == "winearch") {
 			config.wineArch = value;

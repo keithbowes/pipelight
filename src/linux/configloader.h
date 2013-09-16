@@ -15,8 +15,9 @@ struct PluginConfig{
 	std::string		configPath;
 	bool 			diagnosticMode;
 	
+	std::string 	sandboxPath;
+
 	std::string 	winePath;
-	bool			winePathIsDeprecated;
 	std::string		wineArch;
 	std::string 	winePrefix;
 	std::string		wineDLLOverrides;
