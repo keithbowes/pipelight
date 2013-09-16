@@ -1,4 +1,4 @@
-pipelight (0.1-4) UNRELEASED; urgency=low
+pipelight (0.1-4) RELEASED; urgency=low
 
   * Add unofficial flash support by fixing some bugs and implementing
     additional functions
