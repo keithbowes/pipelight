@@ -2,9 +2,12 @@ pipelight (0.1-4) UNRELEASED; urgency=low
 
   * Add unofficial flash support by fixing some bugs and implementing
     additional functions
+  * Added HIGHLY experimental sandbox support
   * Imported new translations (nl, en_GB)
+  * Improved and cleaned up debugging code for developers
 
- -- Michael Mueller <michael@fds-team.de>  Thu, 12 Sep 2013 19:41:00 +0200
+ -- Michael Mueller <michael@fds-team.de>  Mon, 16 Sep 2013 03:43:00 +0200
+
 
 pipelight (0.1-3) RELEASED; urgency=low
 
