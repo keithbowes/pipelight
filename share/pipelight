@@ -136,7 +136,7 @@ dependency          = wine-mpg2splt-installer
 
 #
 # Doesn't show any dialogs which require manual confirmation during
-# the installation procress, like EULA or DRM dialogs.
+# the installation process, like EULA or DRM dialogs.
 # [default: true]
 #
 quietInstallation = true

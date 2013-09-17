@@ -157,7 +157,7 @@ for DEP in $DEPENDENCIES; do
 		TRYCOUNT="3";
 
 		while [ "${DOWNLOADOKAY}" -ne "0" ]; do
-			if [ "${TRYCOUNT}" -le 0 ]; then
+			if [ "${TRYCOUNT}" -le "0" ]; then
 				break;
 			fi
 
@@ -187,7 +187,7 @@ for DEP in $DEPENDENCIES; do
 
 		# Move the downloaded file to right path
 		mv "${TMPFILE}" "${FILEDOWNLOAD}";
-		if [ $? -ne 0 ]; then
+		if [ $? -ne "0" ]; then
 			FILEDOWNLOAD="${TMPFILE}";
 
 			# Delete on exit
@@ -239,7 +239,7 @@ for DEP in $DEPENDENCIES; do
 		rm -f "${USER_DESKTOP_FILE}";
 		xdg-desktop-menu uninstall "${USER_DESKTOP_FILE}" 2>/dev/null;
 
-	elif [ "$INSTALLER" = "cablibrary" ]; then
+	elif [ "${INSTALLER}" = "cablibrary" ]; then
 
 		# Extract and register the libraries
 		SYSTEM32="${WINEPREFIX}/drive_c/windows/system32";
@@ -252,7 +252,7 @@ for DEP in $DEPENDENCIES; do
 
 		"${WINE}" regsvr32.exe "${EXTRACTFILE}";
 
-	elif [ "$INSTALLER" = "firefox" ]; then
+	elif [ "${INSTALLER}" = "firefox" ]; then
 
 		TMPFILE=$(mktemp);
 		if [ ! -f "${TMPFILE}" ]; then
