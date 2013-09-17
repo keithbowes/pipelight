@@ -75,6 +75,8 @@ if [ ! -d "${WINEPREFIX}" ]; then
 		progressbar "Please wait..." "Creating wine prefix";
 fi
 
+NUMDELETEFILES="0";
+
 # Overall status of the installation
 RET="0";
 
@@ -122,7 +124,7 @@ for DEP in $DEPENDENCIES; do
 	fi
 
 	FILEINSTALLED="${WINEPREFIX}/${DEP}.installed";
-	FILEDOWNLOAD="${WINEPREFIX}/${DEP}.${FILEEXT}";
+	FILEDOWNLOAD="/tmp/pipelight-${DEP}.${FILEEXT}";
 
 	# Check if its already installed
 	if [ -f "${FILEINSTALLED}" ]; then
@@ -133,7 +135,7 @@ for DEP in $DEPENDENCIES; do
 		fi
 	fi
 
-	# Do we still have the installation files in the right directory?
+	# Does the downloaded file still exist?
 	DOWNLOADOKAY="1";
 	if [ -f "${FILEDOWNLOAD}" ]; then
 		DOWNLOAD_SHA256SUM=$(sha256sum "${FILEDOWNLOAD}" | cut -d' ' -f1);
@@ -142,52 +144,83 @@ for DEP in $DEPENDENCIES; do
 		fi
 	fi
 
-	TRYCOUNT=3
+	# Download required
+	if [ "${DOWNLOADOKAY}" -ne "0" ]; then
 
-	while [ "${DOWNLOADOKAY}" -ne "0" ]; do
-		if [ "${TRYCOUNT}" -le 0 ]; then
-			break;
+		TMPFILE=$(mktemp --suffix=".${FILEEXT}");
+		if [ ! -f "$TMPFILE" ]; then
+			echo "Failed to create tempfile.";
+			RET="1";
+			continue;
 		fi
 
-		wget -O "${FILEDOWNLOAD}" "${URL}" 2>&1 | \
-			progressbar "Please wait, downloading ..." "Downloading $DEP";
+		TRYCOUNT="3";
 
-		# Check if it was successful this time
-		if [ $? -eq 0 ]; then
-			if [ -f "${FILEDOWNLOAD}" ]; then
-				DOWNLOAD_SHA256SUM=$(sha256sum "${FILEDOWNLOAD}" | cut -d' ' -f1);
+		while [ "${DOWNLOADOKAY}" -ne "0" ]; do
+			if [ "${TRYCOUNT}" -le 0 ]; then
+				break;
+			fi
+
+			wget -O "${TMPFILE}" "${URL}" 2>&1 | \
+				progressbar "Please wait, downloading ..." "Downloading $DEP";
+
+			# Check if it was successful this time
+			if [ $? -eq 0 ] && [ -f "${TMPFILE}" ]; then
+				DOWNLOAD_SHA256SUM=$(sha256sum "${TMPFILE}" | cut -d' ' -f1);
 				if [ "${SHA256SUM}" = "${DOWNLOAD_SHA256SUM}" ]; then
 					DOWNLOADOKAY="0";
 					break
 				fi
 			fi
+
+			TRYCOUNT=$((${TRYCOUNT}-1));
+			sleep 2;
+		done
+
+		if [ "${DOWNLOADOKAY}" -ne "0" ]; then
+			rm "${TMPFILE}";
+
+			echo "Downloading ${DEP} failed multiple times - please check your internet connection and if you're using the latest version of Pipelight.";
+			RET="1";
+			continue;
 		fi
 
-		TRYCOUNT=$((${TRYCOUNT}-1));
-		sleep 2;
-	done
+		# Move the downloaded file to right path
+		mv "${TMPFILE}" "${FILEDOWNLOAD}";
+		if [ $? -ne 0 ]; then
+			FILEDOWNLOAD="${TMPFILE}";
 
-	if [ "${DOWNLOADOKAY}" -ne "0" ]; then
-		echo "Downloading ${DEP} failed multiple times - please check your internet connection and if you're using the latest version of Pipelight.";
-		RET="1";
-		continue;	
+			# Delete on exit
+			eval "DELETEFILE_${NUMDELETEFILES}=\$TMPFILE";
+			NUMDELETEFILES=$((${NUMDELETEFILES}+1));
+		fi
+
 	fi
 
-
 	# Do the actual installation
-	if [ "$INSTALLER" = "silverlight" ]; then
+	if [ "${INSTALLER}" = "silverlight" ]; then
 
 		# Remove the registry keys for Silverlight since other versions can prevent this one from installing
 		"${WINE}" msiexec /uninstall {89F4137D-6C26-4A84-BDB8-2E5A4BB71E00};
 
 		# Launch the installer
-		"${WINE}" "${FILEDOWNLOAD}" /q /doNotRequireDRMPrompt /noupdate 2>&1 | \
-			progressbar "Please wait, installing ..." "Installing $DEP";
+		if [ -z "${QUIETINSTALLATION}" ] || [ "${QUIETINSTALLATION}" -eq 0 ]; then
+			"${WINE}" "${FILEDOWNLOAD}" /noupdate 2>&1;
+		else
+			"${WINE}" "${FILEDOWNLOAD}" /q /doNotRequireDRMPrompt /noupdate 2>&1 | \
+				progressbar "Please wait, installing ..." "Installing $DEP";
+		fi
+
+		PROGRAM_FILES="${WINEPREFIX}/drive_c/Program Files";
+
+		if [ ! -d "${PROGRAM_FILES}/Microsoft Silverlight/${SILVERLIGHTVERSION}" ]; then
+			echo "Installer for ${DEP} did not run correctly or was aborted.";
+			RET="1";
+			continue;
+		fi
 
 		# Move the installation to a version-specific folder that nothing will touch
-		PROGRAM_FILES="${WINEPREFIX}/drive_c/Program Files";
-		mkdir -p "${PROGRAM_FILES}/Silverlight"; # create the destination folder if necessary
-
+		mkdir -p "${PROGRAM_FILES}/Silverlight";
 		mv "${PROGRAM_FILES}/Microsoft Silverlight/${SILVERLIGHTVERSION}" "${PROGRAM_FILES}/Silverlight/${SILVERLIGHTVERSION}";
 
 		# Wait for Wine to finish building the .desktop files
@@ -222,7 +255,7 @@ for DEP in $DEPENDENCIES; do
 	elif [ "$INSTALLER" = "firefox" ]; then
 
 		TMPFILE=$(mktemp);
-		if [ ! -f "$TMPFILE" ]; then
+		if [ ! -f "${TMPFILE}" ]; then
 			echo "Failed to create tempfile.";
 			RET="1";
 			continue;
@@ -235,15 +268,15 @@ for DEP in $DEPENDENCIES; do
 			echo "DesktopShortcut=false";
 			echo "StartMenuShortcuts=false";
 			echo "MaintenanceService=false";
-		) > "$TMPFILE";
+		) > "${TMPFILE}";
 
 
-		INIFILE=$("${WINE}" winepath --windows "$TMPFILE")
+		INIFILE=$("${WINE}" winepath --windows "${TMPFILE}")
 
 		"${WINE}" "${FILEDOWNLOAD}" "/INI=$INIFILE" 2>&1 | \
 			progressbar "Please wait, installing ..." "Installing $DEP";
 
-		rm "$TMPFILE"
+		rm "${TMPFILE}"
 
 	else
 		echo "Unable to process downloaded file for ${URL}.";
@@ -253,6 +286,15 @@ for DEP in $DEPENDENCIES; do
 
 	# Mark it as installed
 	echo "${SHA256SUM}" > "${FILEINSTALLED}";
+done
+
+# Delete temporary files (except if they can be used for other installers)
+while [ "${NUMDELETEFILES}" -ne "0" ]; do
+	NUMDELETEFILES=$((${NUMDELETEFILES}-1));
+	eval "TMPFILE=\$DELETEFILE_${NUMDELETEFILES}";
+
+	echo "Deleting temporary file $TMPFILE.";
+	rm "$TMPFILE";
 done
 
 exit "${RET}";

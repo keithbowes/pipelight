@@ -34,6 +34,7 @@ struct PluginConfig{
 
 	std::string		dependencyInstaller;
 	std::vector<std::string> dependencies;
+	bool 			quietInstallation;
 
 	std::string		graphicDriverCheck;
 

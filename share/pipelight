@@ -135,6 +135,13 @@ silverlightVersion  = silverlight5.1
 dependency          = wine-mpg2splt-installer
 
 #
+# Doesn't show any dialogs which require manual confirmation during
+# the installation procress, like EULA or DRM dialogs.
+# [default: true]
+#
+quietInstallation = true
+
+#
 # In order to support browsers without NPAPI timer support
 # (like Midori) we've implemented a fallback to
 # NPN_PluginThreadAsyncCall. In the default configuration 

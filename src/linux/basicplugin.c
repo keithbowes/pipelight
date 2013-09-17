@@ -308,6 +308,9 @@ bool checkSilverlightInstallation(){
 		if(config.wineDLLOverrides != "")
 			setenv("WINEDLLOVERRIDES", 	config.wineDLLOverrides.c_str(), 	true);
 
+		if(config.quietInstallation)
+			setenv("QUIETINSTALLATION",	"1", 								true);
+
 		if(config.sandboxPath != "")
 			setenv("SANDBOXWRITEDIR",	config.winePrefix.c_str(),			true);
 

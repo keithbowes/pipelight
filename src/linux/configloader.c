@@ -222,6 +222,7 @@ bool loadConfig(PluginConfig &config){
 	
 	config.dependencyInstaller 	= "";
 	config.dependencies.clear();
+	config.quietInstallation 	= true;
 
 	config.graphicDriverCheck 	= "";
 
@@ -341,6 +342,10 @@ bool loadConfig(PluginConfig &config){
 
 		}else if(key == "dependency"){
 			if(value != "") config.dependencies.push_back(value);
+
+		}else if(key == "quietinstallation"){
+			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+			config.quietInstallation = (value == "true" || value == "yes");
 
 		}else if(key == "graphicdrivercheck"){
 			config.graphicDriverCheck = value;
