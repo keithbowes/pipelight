@@ -76,7 +76,7 @@ index c3f58e0..8759ab9 100644
 +     * is set to a value by GetDisplayModeEx(). */
 +    ok(mode_ex.ScanLineOrdering != 0, "ScanLineOrdering returned 0.\n");
 +    /* Don't know how to compare the rotation in this case, test that it is set */
-+    ok(rotation != (D3DDISPLAYROTATION)0xdeadbeef, "rotation is %d, expected != 0xdeadbeef.", rotation);
++    ok(rotation != (D3DDISPLAYROTATION)0xdeadbeef, "rotation is %d, expected != 0xdeadbeef.\n", rotation);
 +
 +    trace("GetDisplayModeEx returned Width = %d, Height = %d, RefreshRate = %d, Format = %x, ScanLineOrdering = %x, rotation = %d.\n",
 +          mode_ex.Width, mode_ex.Height, mode_ex.RefreshRate, mode_ex.Format, mode_ex.ScanLineOrdering, rotation);
