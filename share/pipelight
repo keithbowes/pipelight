@@ -200,7 +200,7 @@ graphicDriverCheck  = /usr/share/wine-browser-installer/hw-accel-default
 # . In order to speed this up a bit the following switch enables
 # some API hooks to do most of timer stuff in user mode (without
 # having to call wine-server each time). It is still unclear
-# if this option has any significant effent on the performance.
+# if this option has any significant effect on the performance.
 # [default: false]
 #
 # experimental-userModeTimer = true
