@@ -1,13 +1,13 @@
-From 7292ecfb9311cb922f21fa6c2ea7ffbc774a6d86 Mon Sep 17 00:00:00 2001
+From 33a2c83322798187866262e333b593006b10cdbd Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Michael=20M=C3=BCller?= <michael@fds-team.de>
-Date: Sun, 8 Sep 2013 12:20:14 +0200
+Date: Mon, 9 Sep 2013 15:43:00 +0200
 Subject: d3d9: Partial implementation of IDirect3DSwapChain9Ex
 
 ---
  dlls/d3d9/d3d9_private.h |    7 ++-
- dlls/d3d9/device.c       |   17 +++----
- dlls/d3d9/swapchain.c    |  125 +++++++++++++++++++++++++++++++++++++---------
- 3 files changed, 113 insertions(+), 36 deletions(-)
+ dlls/d3d9/device.c       |   13 ++---
+ dlls/d3d9/swapchain.c    |  123 +++++++++++++++++++++++++++++++++++++---------
+ 3 files changed, 109 insertions(+), 34 deletions(-)
 
 diff --git a/dlls/d3d9/d3d9_private.h b/dlls/d3d9/d3d9_private.h
 index 8ef7f9b..a27de15 100644
@@ -33,7 +33,7 @@ index 8ef7f9b..a27de15 100644
 +
  #endif /* __WINE_D3D9_PRIVATE_H */
 diff --git a/dlls/d3d9/device.c b/dlls/d3d9/device.c
-index 17664b1..a99f53b 100644
+index 17664b1..6387def 100644
 --- a/dlls/d3d9/device.c
 +++ b/dlls/d3d9/device.c
 @@ -229,11 +229,6 @@ static void wined3d_swapchain_desc_from_present_parameters(struct wined3d_swapch
@@ -48,39 +48,22 @@ index 17664b1..a99f53b 100644
  static HRESULT WINAPI d3d9_device_QueryInterface(IDirect3DDevice9Ex *iface, REFIID riid, void **out)
  {
      TRACE("iface %p, riid %s, out %p.\n", iface, debugstr_guid(riid), out);
-@@ -495,7 +490,7 @@ static BOOL WINAPI d3d9_device_ShowCursor(IDirect3DDevice9Ex *iface, BOOL show)
- }
- 
- static HRESULT WINAPI DECLSPEC_HOTPATCH d3d9_device_CreateAdditionalSwapChain(IDirect3DDevice9Ex *iface,
--        D3DPRESENT_PARAMETERS *present_parameters, IDirect3DSwapChain9 **swapchain)
-+        D3DPRESENT_PARAMETERS *present_parameters, IDirect3DSwapChain9Ex **swapchain)
- {
-     struct d3d9_device *device = impl_from_IDirect3DDevice9Ex(iface);
-     struct wined3d_swapchain_desc desc;
-@@ -507,14 +502,14 @@ static HRESULT WINAPI DECLSPEC_HOTPATCH d3d9_device_CreateAdditionalSwapChain(ID
+@@ -507,7 +502,7 @@ static HRESULT WINAPI DECLSPEC_HOTPATCH d3d9_device_CreateAdditionalSwapChain(ID
  
      wined3d_swapchain_desc_from_present_parameters(&desc, present_parameters);
      if (SUCCEEDED(hr = d3d9_swapchain_create(device, &desc, &object)))
 -        *swapchain = &object->IDirect3DSwapChain9_iface;
-+        *swapchain = &object->IDirect3DSwapChain9Ex_iface;
++        *swapchain = (IDirect3DSwapChain9 *)&object->IDirect3DSwapChain9Ex_iface;
      present_parameters_from_wined3d_swapchain_desc(present_parameters, &desc);
  
      return hr;
- }
- 
- static HRESULT WINAPI DECLSPEC_HOTPATCH d3d9_device_GetSwapChain(IDirect3DDevice9Ex *iface,
--        UINT swapchain_idx, IDirect3DSwapChain9 **swapchain)
-+        UINT swapchain_idx, IDirect3DSwapChain9Ex **swapchain)
- {
-     struct d3d9_device *device = impl_from_IDirect3DDevice9Ex(iface);
-     struct wined3d_swapchain *wined3d_swapchain;
 @@ -527,8 +522,8 @@ static HRESULT WINAPI DECLSPEC_HOTPATCH d3d9_device_GetSwapChain(IDirect3DDevice
      if ((wined3d_swapchain = wined3d_device_get_swapchain(device->wined3d_device, swapchain_idx)))
      {
         swapchain_impl = wined3d_swapchain_get_parent(wined3d_swapchain);
 -       *swapchain = &swapchain_impl->IDirect3DSwapChain9_iface;
 -       IDirect3DSwapChain9_AddRef(*swapchain);
-+       *swapchain = &swapchain_impl->IDirect3DSwapChain9Ex_iface;
++       *swapchain = (IDirect3DSwapChain9 *)&swapchain_impl->IDirect3DSwapChain9Ex_iface;
 +       IDirect3DSwapChain9Ex_AddRef(*swapchain);
         hr = D3D_OK;
      }
@@ -95,7 +78,7 @@ index 17664b1..a99f53b 100644
      return hr;
  }
 diff --git a/dlls/d3d9/swapchain.c b/dlls/d3d9/swapchain.c
-index 8177336..6b63f9a 100644
+index 8177336..d44b449 100644
 --- a/dlls/d3d9/swapchain.c
 +++ b/dlls/d3d9/swapchain.c
 @@ -25,19 +25,38 @@
@@ -253,7 +236,7 @@ index 8177336..6b63f9a 100644
      struct wined3d_swapchain_desc desc;
  
      TRACE("iface %p, parameters %p.\n", iface, parameters);
-@@ -221,12 +240,66 @@ static HRESULT WINAPI d3d9_swapchain_GetPresentParameters(IDirect3DSwapChain9 *i
+@@ -221,12 +240,64 @@ static HRESULT WINAPI d3d9_swapchain_GetPresentParameters(IDirect3DSwapChain9 *i
      return D3D_OK;
  }
  
@@ -288,9 +271,7 @@ index 8177336..6b63f9a 100644
 +
 +    TRACE("iface %p, mode %p, rotation %p.\n", iface, mode, rotation);
 +
-+    if (!mode && !rotation) /* one argument can be NULL, but not both */
-+        return D3DERR_INVALIDCALL;
-+    else if (mode && mode->Size != sizeof(*mode))
++    if (mode->Size != sizeof(*mode))
 +        return D3DERR_INVALIDCALL;
 +
 +    wined3d_mutex_lock();
@@ -298,7 +279,7 @@ index 8177336..6b63f9a 100644
 +            (enum wined3d_display_rotation *)rotation);
 +    wined3d_mutex_unlock();
 +
-+    if (SUCCEEDED(hr) && mode)
++    if (SUCCEEDED(hr))
 +    {
 +        mode->Width = wined3d_mode.width;
 +        mode->Height = wined3d_mode.height;
@@ -321,7 +302,7 @@ index 8177336..6b63f9a 100644
      d3d9_swapchain_Present,
      d3d9_swapchain_GetFrontBufferData,
      d3d9_swapchain_GetBackBuffer,
-@@ -234,6 +307,10 @@ static const struct IDirect3DSwapChain9Vtbl d3d9_swapchain_vtbl =
+@@ -234,6 +305,10 @@ static const struct IDirect3DSwapChain9Vtbl d3d9_swapchain_vtbl =
      d3d9_swapchain_GetDisplayMode,
      d3d9_swapchain_GetDevice,
      d3d9_swapchain_GetPresentParameters,
@@ -332,7 +313,7 @@ index 8177336..6b63f9a 100644
  };
  
  static void STDMETHODCALLTYPE d3d9_swapchain_wined3d_object_released(void *parent)
-@@ -252,7 +329,7 @@ static HRESULT swapchain_init(struct d3d9_swapchain *swapchain, struct d3d9_devi
+@@ -252,7 +327,7 @@ static HRESULT swapchain_init(struct d3d9_swapchain *swapchain, struct d3d9_devi
      HRESULT hr;
  
      swapchain->refcount = 1;
