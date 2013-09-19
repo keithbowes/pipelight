@@ -64,14 +64,14 @@ index c3f58e0..8759ab9 100644
 +
 +    /* compare what GetDisplayMode returns with what GetDisplayModeEx returns */
 +    hr = IDirect3DSwapChain9Ex_GetDisplayMode(swapchainEx, &mode);
-+    ok(SUCCEEDED(hr), "GetDisplayModeEx failed, hr %#x.\n", hr);
++    ok(SUCCEEDED(hr), "GetDisplayMode failed, hr %#x.\n", hr);
 +
-+    ok(mode_ex.Size == sizeof(D3DDISPLAYMODEEX), "size is %d.\n", mode_ex.Size);
-+    ok(mode_ex.Width == mode.Width, "width is %d instead of %d.\n", mode_ex.Width, mode.Width);
-+    ok(mode_ex.Height == mode.Height, "height is %d instead of %d.\n", mode_ex.Height, mode.Height);
++    ok(mode_ex.Size == sizeof(D3DDISPLAYMODEEX), "Size is %d.\n", mode_ex.Size);
++    ok(mode_ex.Width == mode.Width, "Width is %d instead of %d.\n", mode_ex.Width, mode.Width);
++    ok(mode_ex.Height == mode.Height, "Height is %d instead of %d.\n", mode_ex.Height, mode.Height);
 +    ok(mode_ex.RefreshRate == mode.RefreshRate, "RefreshRate is %d instead of %d.\n",
 +            mode_ex.RefreshRate, mode.RefreshRate);
-+    ok(mode_ex.Format == mode.Format, "format is %x instead of %x.\n", mode_ex.Format, mode.Format);
++    ok(mode_ex.Format == mode.Format, "Format is %x instead of %x.\n", mode_ex.Format, mode.Format);
 +    /* Don't know yet how to test for ScanLineOrdering, just testing that it
 +     * is set to a value by GetDisplayModeEx(). */
 +    ok(mode_ex.ScanLineOrdering != 0, "ScanLineOrdering returned 0.\n");
@@ -88,12 +88,12 @@ index c3f58e0..8759ab9 100644
 +    hr = IDirect3DSwapChain9Ex_GetDisplayModeEx(swapchainEx, &mode_ex, NULL);
 +    ok(SUCCEEDED(hr), "GetDisplayModeEx failed, hr %#x.\n", hr);
 +
-+    ok(mode_ex.Size == sizeof(D3DDISPLAYMODEEX), "size is %d.\n", mode_ex.Size);
-+    ok(mode_ex.Width == mode.Width, "width is %d instead of %d.\n", mode_ex.Width, mode.Width);
-+    ok(mode_ex.Height == mode.Height, "height is %d instead of %d.\n", mode_ex.Height, mode.Height);
++    ok(mode_ex.Size == sizeof(D3DDISPLAYMODEEX), "Size is %d.\n", mode_ex.Size);
++    ok(mode_ex.Width == mode.Width, "Width is %d instead of %d.\n", mode_ex.Width, mode.Width);
++    ok(mode_ex.Height == mode.Height, "Height is %d instead of %d.\n", mode_ex.Height, mode.Height);
 +    ok(mode_ex.RefreshRate == mode.RefreshRate, "RefreshRate is %d instead of %d.\n",
 +            mode_ex.RefreshRate, mode.RefreshRate);
-+    ok(mode_ex.Format == mode.Format, "format is %x instead of %x.\n", mode_ex.Format, mode.Format);
++    ok(mode_ex.Format == mode.Format, "Format is %x instead of %x.\n", mode_ex.Format, mode.Format);
 +    /* Don't know yet how to test for ScanLineOrdering, just testing that it
 +     * is set to a value by GetDisplayModeEx(). */
 +    ok(mode_ex.ScanLineOrdering != 0, "ScanLineOrdering returned 0.\n");
