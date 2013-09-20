@@ -1,0 +1,56 @@
+From dda548fa938d90ab7d9338161081f3d307b19263 Mon Sep 17 00:00:00 2001
+From: Sebastian Lackner <sebastian@fds-team.de>
+Date: Sat, 21 Sep 2013 00:50:58 +0200
+Subject: winex11: Request focus for xembedded windows instead of calling
+ XSetInputFocus
+
+---
+ dlls/winex11.drv/event.c |   18 ++++++++++++++++--
+ 1 file changed, 16 insertions(+), 2 deletions(-)
+
+diff --git a/dlls/winex11.drv/event.c b/dlls/winex11.drv/event.c
+index 5d320a0..621e8c2 100644
+--- a/dlls/winex11.drv/event.c
++++ b/dlls/winex11.drv/event.c
+@@ -578,7 +578,12 @@ static void set_input_focus( HWND hwnd )
+         /* Set X focus and install colormap */
+         changes.stack_mode = Above;
+         XConfigureWindow( data->display, data->whole_window, CWStackMode, &changes );
+-        XSetInputFocus( data->display, data->whole_window, RevertToParent, timestamp );
++
++        if (data->embedder)
++            send_xembed_message( data->display, data->embedder, XEMBED_REQUEST_FOCUS, 0, 0, 0, timestamp );
++        else
++            XSetInputFocus( data->display, data->whole_window, RevertToParent, timestamp );
++
+     }
+ 
+     release_win_data(data);
+@@ -592,6 +597,7 @@ static void set_focus( Display *display, HWND hwnd, Time time )
+     HWND focus;
+     Window win;
+     GUITHREADINFO threadinfo;
++    struct x11drv_win_data *data;
+ 
+     TRACE( "setting foreground window to %p\n", hwnd );
+     SetForegroundWindow( hwnd );
+@@ -606,7 +612,15 @@ static void set_focus( Display *display, HWND hwnd, Time time )
+     if (win)
+     {
+         TRACE( "setting focus to %p (%lx) time=%ld\n", focus, win, time );
+-        XSetInputFocus( display, win, RevertToParent, time );
++        data = get_win_data( hwnd );
++
++        if (data && data->embedder)
++            send_xembed_message( display, data->embedder, XEMBED_REQUEST_FOCUS, 0, 0, 0, time );
++        else
++            XSetInputFocus( display, win, RevertToParent, time );
++
++        if (data)
++            release_win_data(data);
+     }
+ }
+ 
+-- 
+1.7.9.5
+

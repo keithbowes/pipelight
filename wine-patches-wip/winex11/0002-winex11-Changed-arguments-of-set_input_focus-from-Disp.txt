@@ -1,0 +1,82 @@
+From 9a8a095917a3aec1f3617c179683a1bc0b8b1a57 Mon Sep 17 00:00:00 2001
+From: Sebastian Lackner <sebastian@fds-team.de>
+Date: Sat, 21 Sep 2013 00:40:10 +0200
+Subject: winex11: Changed arguments of set_input_focus from (Display, Window)
+ to HWND
+
+---
+ dlls/winex11.drv/event.c |   37 +++++++++++++++++++------------------
+ 1 file changed, 19 insertions(+), 18 deletions(-)
+
+diff --git a/dlls/winex11.drv/event.c b/dlls/winex11.drv/event.c
+index 258c06b..5d320a0 100644
+--- a/dlls/winex11.drv/event.c
++++ b/dlls/winex11.drv/event.c
+@@ -559,24 +559,29 @@ static inline BOOL can_activate_window( HWND hwnd )
+  *
+  * Try to force focus for non-managed windows.
+  */
+-static void set_input_focus( Display *display, Window window )
++static void set_input_focus( HWND hwnd )
+ {
+     XWindowChanges changes;
+     DWORD timestamp;
++    struct x11drv_win_data *data;
++    if (!(data = get_win_data( hwnd ))) return;
+ 
+-    if (!window) return;
++    if (!data->managed)
++    {
++        if (EVENT_x11_time_to_win32_time(0))
++            /* ICCCM says don't use CurrentTime, so try to use last message time if possible */
++            /* FIXME: this is not entirely correct */
++            timestamp = GetMessageTime() - EVENT_x11_time_to_win32_time(0);
++        else
++            timestamp = CurrentTime;
+ 
+-    if (EVENT_x11_time_to_win32_time(0))
+-        /* ICCCM says don't use CurrentTime, so try to use last message time if possible */
+-        /* FIXME: this is not entirely correct */
+-        timestamp = GetMessageTime() - EVENT_x11_time_to_win32_time(0);
+-    else
+-        timestamp = CurrentTime;
++        /* Set X focus and install colormap */
++        changes.stack_mode = Above;
++        XConfigureWindow( data->display, data->whole_window, CWStackMode, &changes );
++        XSetInputFocus( data->display, data->whole_window, RevertToParent, timestamp );
++    }
+ 
+-    /* Set X focus and install colormap */
+-    changes.stack_mode = Above;
+-    XConfigureWindow( display, window, CWStackMode, &changes );
+-    XSetInputFocus( display, window, RevertToParent, timestamp );
++    release_win_data(data);
+ }
+ 
+ /**********************************************************************
+@@ -916,7 +921,7 @@ static void X11DRV_MapNotify( HWND hwnd, XEvent *event )
+     {
+         HWND hwndFocus = GetFocus();
+         if (hwndFocus && IsChild( hwnd, hwndFocus ))
+-            set_input_focus( data->display, data->whole_window );
++            set_input_focus( hwnd );
+     }
+     release_win_data( data );
+ }
+@@ -1358,12 +1363,8 @@ void wait_for_withdrawn_state( HWND hwnd, BOOL set )
+  */
+ void CDECL X11DRV_SetFocus( HWND hwnd )
+ {
+-    struct x11drv_win_data *data;
+-
+     if (!(hwnd = GetAncestor( hwnd, GA_ROOT ))) return;
+-    if (!(data = get_win_data( hwnd ))) return;
+-    if (!data->managed) set_input_focus( data->display, data->whole_window );
+-    release_win_data( data );
++    set_input_focus( hwnd );
+ }
+ 
+ 
+-- 
+1.7.9.5
+

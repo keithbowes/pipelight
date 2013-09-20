@@ -1,0 +1,59 @@
+From dbb3642e5dc54730ad7b2fa1c0aa48279fda2fcf Mon Sep 17 00:00:00 2001
+From: Sebastian Lackner <sebastian@fds-team.de>
+Date: Sat, 21 Sep 2013 01:03:58 +0200
+Subject: winex11: Implement additional XEMBED_* events
+
+---
+ dlls/winex11.drv/event.c |   28 ++++++++++++++++++++++++++++
+ 1 file changed, 28 insertions(+)
+
+diff --git a/dlls/winex11.drv/event.c b/dlls/winex11.drv/event.c
+index 621e8c2..cc07452 100644
+--- a/dlls/winex11.drv/event.c
++++ b/dlls/winex11.drv/event.c
+@@ -1638,6 +1638,7 @@ static void EVENT_DropURLs( HWND hWnd, XClientMessageEvent *event )
+  */
+ static void handle_xembed_protocol( HWND hwnd, XClientMessageEvent *event )
+ {
++    XFocusChangeEvent focusEvent;
+     struct x11drv_win_data *data = get_win_data( hwnd );
+ 
+     if (!data) return;
+@@ -1647,7 +1648,34 @@ static void handle_xembed_protocol( HWND hwnd, XClientMessageEvent *event )
+     case XEMBED_EMBEDDED_NOTIFY:
+         TRACE( "win %p/%lx XEMBED_EMBEDDED_NOTIFY owner %lx\n", hwnd, event->window, event->data.l[3] );
+         data->embedder = event->data.l[3];
++        data->embedded = TRUE;
+         break;
++
++    case XEMBED_FOCUS_OUT:
++    case XEMBED_WINDOW_DEACTIVATE:
++        TRACE( "win %p/%lx XEMBED_FOCUS_OUT or XEMBED_WINDOW_DEACTIVATE message\n", hwnd, event->window );
++
++        /* simulate FocusOut event */
++        focusEvent.type         = FocusOut;
++        focusEvent.serial       = event->serial;
++        focusEvent.send_event   = event->send_event;
++        focusEvent.display      = event->display;
++        focusEvent.window       = event->window;
++        focusEvent.mode         = NotifyNormal;
++        focusEvent.detail       = NotifyNonlinear;
++        X11DRV_FocusOut(hwnd, (XEvent *)&focusEvent);
++        break;
++
++    case XEMBED_MODALITY_ON:
++        TRACE( "win %p/%lx XEMBED_MODALITY_ON message\n", hwnd, event->window);
++        EnableWindow(hwnd, FALSE);
++        break;
++
++    case XEMBED_MODALITY_OFF:
++        TRACE( "win %p/%lx XEMBED_MODALITY_OFF message\n", hwnd, event->window);
++        EnableWindow(hwnd, TRUE);
++        break;
++
+     default:
+         TRACE( "win %p/%lx XEMBED message %lu(%lu)\n",
+                hwnd, event->window, event->data.l[1], event->data.l[2] );
+-- 
+1.7.9.5
+

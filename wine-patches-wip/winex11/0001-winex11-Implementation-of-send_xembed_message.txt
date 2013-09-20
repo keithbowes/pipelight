@@ -1,0 +1,48 @@
+From 889eef5b66047294a1f178a2290b34d1beaf5aaa Mon Sep 17 00:00:00 2001
+From: Sebastian Lackner <sebastian@fds-team.de>
+Date: Sat, 21 Sep 2013 00:04:21 +0200
+Subject: winex11: Implementation of send_xembed_message
+
+---
+ dlls/winex11.drv/event.c |   25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
+
+diff --git a/dlls/winex11.drv/event.c b/dlls/winex11.drv/event.c
+index 5e5b19e..258c06b 100644
+--- a/dlls/winex11.drv/event.c
++++ b/dlls/winex11.drv/event.c
+@@ -182,6 +182,31 @@ static inline void free_event_data( XEvent *event )
+ #endif
+ }
+ 
++
++/***********************************************************************
++ *           send_xembed_message
++ *
++ * Sends an XEMBED event according to the specification.
++ */
++void send_xembed_message(Display *display, Window window, long message, long detail, long data1, long data2, DWORD timestamp){
++    XEvent xev;
++    memset(&xev, 0, sizeof(xev));
++
++    xev.xclient.type         = ClientMessage;
++    xev.xclient.window       = window;
++    xev.xclient.message_type = XInternAtom(display, "_XEMBED", False);
++    xev.xclient.format       = 32;
++
++    xev.xclient.data.l[0]    = timestamp;
++    xev.xclient.data.l[1]    = message;
++    xev.xclient.data.l[2]    = detail;
++    xev.xclient.data.l[3]    = data1;
++    xev.xclient.data.l[4]    = data2;
++
++    XSendEvent(display, window, False, NoEventMask, &xev);
++    XSync(display, False);
++}
++
+ /***********************************************************************
+  *           X11DRV_register_event_handler
+  *
+-- 
+1.7.9.5
+
