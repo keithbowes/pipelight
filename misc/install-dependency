@@ -187,7 +187,9 @@ for DEP in $DEPENDENCIES; do
 
 		# Move the downloaded file to right path
 		mv "${TMPFILE}" "${FILEDOWNLOAD}";
-		if [ $? -ne "0" ]; then
+		if [ $? -eq "0" ]; then
+			chmod 0644 "${FILEDOWNLOAD}";
+		else
 			FILEDOWNLOAD="${TMPFILE}";
 
 			# Delete on exit
