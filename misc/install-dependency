@@ -24,7 +24,7 @@ elif command -v kdialog >/dev/null 2>&1; then
 	#Check if qdbus is symlinked to qtchooser (for Arch Linux)
 	QD_BUS=$(which qdbus)
 	QTC=$(readlink "$QD_BUS")
-	if [ "$QTC" == "qtchooser" ]; then
+	if [ "$QTC" = "qtchooser" ]; then
 		QD_BUS="qtchooser -run-tool=qdbus -qt=4"
 	else
 		QD_BUS="qdbus"
