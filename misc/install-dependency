@@ -21,6 +21,14 @@ if command -v zenity >/dev/null 2>&1; then
 	}
 
 elif command -v kdialog >/dev/null 2>&1; then
+	#Check if qdbus is symlinked to qtchooser (for Arch Linux)
+	QD_BUS=`which qdbus`
+	QTC=`readlink "$QD_BUS"`
+	if [ $QTC == "qtchooser" ]; then
+		QD_BUS="qtchooser -run-tool=qdbus -qt=4"
+	else
+		QD_BUS="qdbus"
+	fi
 	progressbar ()
 	{
 		DCOPREF=$(kdialog --title "$1" --progressbar "$2" 10);
@@ -28,7 +36,7 @@ elif command -v kdialog >/dev/null 2>&1; then
 		(
 			PROGRESS=1;
 			while true; do
-				ERR=$(qdbus $DCOPREF org.freedesktop.DBus.Properties.Set org.kde.kdialog.ProgressDialog value "$PROGRESS" 2>&1);
+				ERR=$($QD_BUS $DCOPREF org.freedesktop.DBus.Properties.Set org.kde.kdialog.ProgressDialog value "$PROGRESS" 2>&1);
 				if [ ! -z "$ERR" ]; then
 					break
 				fi
@@ -44,7 +52,7 @@ elif command -v kdialog >/dev/null 2>&1; then
 		cat - > /dev/null;
 		
 		kill "$DIALOGPID";
-		qdbus $DCOPREF org.kde.kdialog.ProgressDialog.close  &> /dev/null;
+		$QD_BUS $DCOPREF org.kde.kdialog.ProgressDialog.close  &> /dev/null;
 	}
 
 else
