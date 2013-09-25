@@ -9,9 +9,16 @@
 
 # Environment variable check
 if [ -z "${WINE}" ] || [ -z "${WINEPREFIX}" ]; then
-	echo "Missing necessary environment variables WINE and WINEPREFIX.";
+	echo "install-dependency: Missing necessary environment variables WINE and WINEPREFIX." >&2;
+	exit 1;
+
+elif [ $# -eq "0" ]; then
+	echo "install-dependency: Missing list of packages to install. Available packages are:" >&2;
+	echo "install-dependency: wine-silverlight{4,5.0,5.1}-installer, wine-mpg2splt-installer, wine-browser-installer" >&2;
 	exit 1;
 fi
+
+echo "install-dependency: WINE=\"${WINE}\" WINEPREFIX=\"${WINEPREFIX}\" WINEARCH=\"${WINEARCH}\""
 
 # Check if some visual feedback is possible
 if command -v zenity >/dev/null 2>&1; then
@@ -74,7 +81,7 @@ LOCK_FD=9; # must be less than 10 for dash
 eval "exec ${LOCK_FD}> \"\${LOCK_FILE}\"";
 flock -x -w 360 "${LOCK_FD}";
 if [ $? -ne 0 ]; then
-	echo "Failed to obtain an installation lock in 6 minutes.";
+	echo "install-dependency: Failed to obtain an installation lock in 6 minutes." >&2;
 	exit 1;
 fi
 
@@ -126,7 +133,7 @@ for DEP in $DEPENDENCIES; do
 		FILEEXT="exe"
 
 	else
-		echo "No installer script found for ${DEP}.";
+		echo "install-dependency: No installer script found for ${DEP}." >&2;
 		RET="1";
 		continue;
 	fi
@@ -142,7 +149,7 @@ for DEP in $DEPENDENCIES; do
 	if [ -f "${FILEINSTALLED}" ]; then
 		INSTALL_SHA256SUM=$(cat "${FILEINSTALLED}")
 		if [ "${SHA256SUM}" = "${INSTALL_SHA256SUM}" ]; then
-			echo "${DEP} is already installed in ${WINEPREFIX}.";
+			echo "install-dependency: ${DEP} is already installed in ${WINEPREFIX}.";
 			continue;
 		fi
 	fi
@@ -161,7 +168,7 @@ for DEP in $DEPENDENCIES; do
 
 		TMPFILE=$(mktemp --suffix=".${FILEEXT}");
 		if [ ! -f "$TMPFILE" ]; then
-			echo "Failed to create tempfile.";
+			echo "install-dependency: Failed to create tempfile." >&2;
 			RET="1";
 			continue;
 		fi
@@ -192,7 +199,7 @@ for DEP in $DEPENDENCIES; do
 		if [ "${DOWNLOADOKAY}" -ne "0" ]; then
 			rm "${TMPFILE}";
 
-			echo "Downloading ${DEP} failed multiple times - please check your internet connection and if you're using the latest version of Pipelight.";
+			echo "install-dependency: Downloading ${DEP} failed multiple times - please check your internet connection and if you're using the latest version of Pipelight." >&2;
 			RET="1";
 			continue;
 		fi
@@ -241,7 +248,7 @@ for DEP in $DEPENDENCIES; do
 		SERVERPID=$(ps aux | grep "w[i]neserver" | grep -v 'nano' | sed 's|[^ ]*[ ]*\([^ ]*\).*|\1|g');
 		TIMEOUT="10";
 
-		while [ ! $(kill -0 ${SERVERPID}; echo $?) -eq "0" ] && [ "${TIMEOUT}" -ne "0" ]; do
+		while [ ! $(kill -0 ${SERVERPID}; echo "$?") -eq "0" ] && [ "${TIMEOUT}" -ne "0" ]; do
 			sleep 1;
 			TIMEOUT=$((${TIMEOUT}-1));
 		done
@@ -259,7 +266,7 @@ for DEP in $DEPENDENCIES; do
 		SYSTEM32="${WINEPREFIX}/drive_c/windows/system32";
 		cabextract -d "${SYSTEM32}" "${FILEDOWNLOAD}" -F "${EXTRACTFILE}";
 		if [ ! -f "${SYSTEM32}/${EXTRACTFILE}" ]; then
-			echo "Failed to extract ${EXTRACTFILE} from cab file.";
+			echo "install-dependency: Failed to extract ${EXTRACTFILE} from cab file." >&2;
 			RET="1";
 			continue;
 		fi
@@ -293,7 +300,7 @@ for DEP in $DEPENDENCIES; do
 		rm "${TMPFILE}"
 
 	else
-		echo "Unable to process downloaded file for ${URL}.";
+		echo "install-dependency: Unable to process downloaded file for ${DEP}." >&2;
 		RET="1";
 		continue;
 	fi
@@ -302,12 +309,12 @@ for DEP in $DEPENDENCIES; do
 	echo "${SHA256SUM}" > "${FILEINSTALLED}";
 done
 
-# Delete temporary files (except if they can be used for other installers)
+# Delete temporary files that cannot be reused later
 while [ "${NUMDELETEFILES}" -ne "0" ]; do
 	NUMDELETEFILES=$((${NUMDELETEFILES}-1));
 	eval "TMPFILE=\$DELETEFILE_${NUMDELETEFILES}";
 
-	echo "Deleting temporary file $TMPFILE.";
+	echo "install-dependency: Deleting temporary file $TMPFILE." >&2;
 	rm "$TMPFILE";
 done
 
