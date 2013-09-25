@@ -22,13 +22,14 @@ if command -v zenity >/dev/null 2>&1; then
 
 elif command -v kdialog >/dev/null 2>&1; then
 	#Check if qdbus is symlinked to qtchooser (for Arch Linux)
-	QD_BUS=$(which qdbus)
-	QTC=$(readlink "$QD_BUS")
+	QD_BUS=$(which qdbus);
+	QTC=$(readlink "${QD_BUS}");
 	if [ "$QTC" = "qtchooser" ]; then
-		QD_BUS="qtchooser -run-tool=qdbus -qt=4"
+		QD_BUS="qtchooser -run-tool=qdbus -qt=4";
 	else
-		QD_BUS="qdbus"
+		QD_BUS="qdbus";
 	fi
+
 	progressbar ()
 	{
 		DCOPREF=$(kdialog --title "$1" --progressbar "$2" 10);
@@ -70,12 +71,15 @@ LOCK_FILE="/tmp/wine-${LOCK_FILE}.tmp";
 
 # Make sure that this installation is only occurring in one process at a time
 LOCK_FD=9; # must be less than 10 for dash
-eval "exec ${LOCK_FD}> "${LOCK_FILE}"";
-flock -x -w 360 ${LOCK_FD};
+eval "exec ${LOCK_FD}> \"\${LOCK_FILE}\"";
+flock -x -w 360 "${LOCK_FD}";
 if [ $? -ne 0 ]; then
 	echo "Failed to obtain an installation lock in 6 minutes.";
 	exit 1;
 fi
+
+# Close file descriptor (ensure that the lock is released when the installation is ready)
+trap "EXITSTATUS=\$?; flock -u \"${LOCK_FD}\"; exit \"\${EXITSTATUS}\";" 0
 
 # Initialize wine if not done yet
 if [ ! -d "${WINEPREFIX}" ]; then
@@ -91,31 +95,31 @@ RET="0";
 for DEP in $DEPENDENCIES; do
 	FILEEXT=""
 
-	if [ "$DEP" = "wine-silverlight4-installer" ]; then
+	if [ "${DEP}" = "wine-silverlight4-installer" ]; then
 		INSTALLER="silverlight";
 		URL="http://silverlight.dlservice.microsoft.com/download/6/A/1/6A13C54D-3F35-4082-977A-27F30ECE0F34/10329.00/runtime/Silverlight.exe";
 		SHA256SUM="b0e476090206b2e61ba897de9151a31e0182c0e62e8abd528c35d3857ad6131c";
 		SILVERLIGHTVERSION="4.1.10329.0";
 
-	elif [ "$DEP" = "wine-silverlight5.0-installer" ]; then
+	elif [ "${DEP}" = "wine-silverlight5.0-installer" ]; then
 		INSTALLER="silverlight";
 		URL="http://silverlight.dlservice.microsoft.com/download/5/5/7/55748E53-D673-4225-8072-4C7A377BB513/runtime/Silverlight.exe"
 		SHA256SUM="dd45a55419026c592f8b6fc848dceface7e1ce98720bf13848a2e8ae366b29e8";
 		SILVERLIGHTVERSION="5.0.61118.0";
 
-	elif [ "$DEP" = "wine-silverlight5.1-installer" ]; then
+	elif [ "${DEP}" = "wine-silverlight5.1-installer" ]; then
 		INSTALLER="silverlight";
 		URL="http://silverlight.dlservice.microsoft.com/download/B/3/C/B3CF6815-40B1-4E36-8746-C4A0381AD260/20513.00/runtime/Silverlight.exe"
 		SHA256SUM="8c5d1ddaefd629670033841fb88188789f2f63170b2fe1aaddb2c9b33d4532ea";
 		SILVERLIGHTVERSION="5.1.20513.0";
 
-	elif [ "$DEP" = "wine-mpg2splt-installer" ]; then
+	elif [ "${DEP}" = "wine-mpg2splt-installer" ]; then
 		INSTALLER="cablibrary";
 		URL="http://download.microsoft.com/download/8/0/D/80D7E79D-C0E4-415A-BCCA-E229EAFE2679/dshow_nt.cab";
 		SHA256SUM="984ed15e23a00a33113f0012277e1e680c95782ce2c44f414e7af14e28e3f1a2";
 		EXTRACTFILE="mpg2splt.ax";
 
-	elif [ "$DEP" = "wine-browser-installer" ]; then
+	elif [ "${DEP}" = "wine-browser-installer" ]; then
 		INSTALLER="firefox";
 		URL="http://download.mozilla.org/?product=firefox-22.0&os=win&lang=en-US";
 		SHA256SUM="abb189f17e65e73d61843247ad1af7c997318b7854fa850a04e5f9d9a20cdd03";
@@ -127,8 +131,8 @@ for DEP in $DEPENDENCIES; do
 		continue;
 	fi
 
-	if [ -z "$FILEEXT" ]; then
-		FILEEXT=$(echo "$URL" | sed 's/.*\.//');
+	if [ -z "${FILEEXT}" ]; then
+		FILEEXT=$(echo "${URL}" | sed 's/.*\.//');
 	fi
 
 	FILEINSTALLED="${WINEPREFIX}/${DEP}.installed";
