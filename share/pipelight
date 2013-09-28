@@ -212,4 +212,4 @@ graphicDriverCheck  = /usr/share/wine-browser-installer/hw-accel-default
 # sandbox, but this feature still has to be considered highly experimental.
 # Only use it when you REALLY know what you're doing!
 #
-# sandboxPath = /usr/bin/pipelight-sandbox
+# sandboxPath = /usr/bin/wine-sandbox

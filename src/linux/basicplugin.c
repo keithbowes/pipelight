@@ -219,9 +219,6 @@ std::string convertWinePath(std::string path, bool direction){
 		if(config.wineDLLOverrides != "")
 			setenv("WINEDLLOVERRIDES", 	config.wineDLLOverrides.c_str(), 	true);
 
-		if(config.sandboxPath != "")
-			setenv("SANDBOXWRITEDIR",	config.winePrefix.c_str(),			true);
-
 		std::string argument 		= direction ? "--windows" : "--unix";
 
 		// Generate argv array
@@ -310,9 +307,6 @@ bool checkSilverlightInstallation(){
 
 		if(config.quietInstallation)
 			setenv("QUIETINSTALLATION",	"1", 								true);
-
-		if(config.sandboxPath != "")
-			setenv("SANDBOXWRITEDIR",	config.winePrefix.c_str(),			true);
 
 		// Generate argv array
 		std::vector<const char*> argv;
@@ -439,9 +433,6 @@ bool startWineProcess(){
 			runtime += config.gccRuntimeDLLs;
 			setenv("Path", runtime.c_str(), true);
 		}
-
-		if(config.sandboxPath != "")
-			setenv("SANDBOXWRITEDIR",	config.winePrefix.c_str(),			true);
 
 		// Generate argv array
 		std::vector<const char*> argv;

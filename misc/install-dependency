@@ -7,18 +7,20 @@
 # http://bazaar.launchpad.net/~ehoover/netflix-desktop/trunk/view/head:/wine-browser-installer/install-dependency
 # http://bazaar.launchpad.net/~ehoover/netflix-desktop/trunk/files/head:/debian/  (all *.install-script files)
 
+PRG=$(basename "$0");
+
 # Environment variable check
 if [ -z "${WINE}" ] || [ -z "${WINEPREFIX}" ]; then
-	echo "install-dependency: Missing necessary environment variables WINE and WINEPREFIX." >&2;
+	echo "$PRG: Missing necessary environment variables WINE and WINEPREFIX." >&2;
 	exit 1;
 
 elif [ $# -eq "0" ]; then
-	echo "install-dependency: Missing list of packages to install. Available packages are:" >&2;
-	echo "install-dependency: wine-silverlight{4,5.0,5.1}-installer, wine-mpg2splt-installer, wine-browser-installer" >&2;
+	echo "$PRG: Missing list of packages to install. Available packages are:" >&2;
+	echo "$PRG: wine-silverlight{4,5.0,5.1}-installer, wine-mpg2splt-installer, wine-browser-installer" >&2;
 	exit 1;
 fi
 
-echo "install-dependency: WINE=\"${WINE}\" WINEPREFIX=\"${WINEPREFIX}\" WINEARCH=\"${WINEARCH}\""
+echo "$PRG: WINE=\"${WINE}\" WINEPREFIX=\"${WINEPREFIX}\" WINEARCH=\"${WINEARCH}\"";
 
 # Check if some visual feedback is possible
 if command -v zenity >/dev/null 2>&1; then
@@ -81,7 +83,7 @@ LOCK_FD=9; # must be less than 10 for dash
 eval "exec ${LOCK_FD}> \"\${LOCK_FILE}\"";
 flock -x -w 360 "${LOCK_FD}";
 if [ $? -ne 0 ]; then
-	echo "install-dependency: Failed to obtain an installation lock in 6 minutes." >&2;
+	echo "$PRG: Failed to obtain an installation lock in 6 minutes." >&2;
 	exit 1;
 fi
 
@@ -133,7 +135,7 @@ for DEP in $DEPENDENCIES; do
 		FILEEXT="exe"
 
 	else
-		echo "install-dependency: No installer script found for ${DEP}." >&2;
+		echo "$PRG: No installer script found for ${DEP}." >&2;
 		RET="1";
 		continue;
 	fi
@@ -149,7 +151,7 @@ for DEP in $DEPENDENCIES; do
 	if [ -f "${FILEINSTALLED}" ]; then
 		INSTALL_SHA256SUM=$(cat "${FILEINSTALLED}")
 		if [ "${SHA256SUM}" = "${INSTALL_SHA256SUM}" ]; then
-			echo "install-dependency: ${DEP} is already installed in ${WINEPREFIX}.";
+			echo "$PRG: ${DEP} is already installed in ${WINEPREFIX}.";
 			continue;
 		fi
 	fi
@@ -168,7 +170,7 @@ for DEP in $DEPENDENCIES; do
 
 		TMPFILE=$(mktemp --suffix=".${FILEEXT}");
 		if [ ! -f "$TMPFILE" ]; then
-			echo "install-dependency: Failed to create tempfile." >&2;
+			echo "$PRG: Failed to create tempfile." >&2;
 			RET="1";
 			continue;
 		fi
@@ -199,7 +201,7 @@ for DEP in $DEPENDENCIES; do
 		if [ "${DOWNLOADOKAY}" -ne "0" ]; then
 			rm "${TMPFILE}";
 
-			echo "install-dependency: Downloading ${DEP} failed multiple times - please check your internet connection and if you're using the latest version of Pipelight." >&2;
+			echo "$PRG: Downloading ${DEP} failed multiple times - please check your internet connection and if you're using the latest version of Pipelight." >&2;
 			RET="1";
 			continue;
 		fi
@@ -266,7 +268,7 @@ for DEP in $DEPENDENCIES; do
 		SYSTEM32="${WINEPREFIX}/drive_c/windows/system32";
 		cabextract -d "${SYSTEM32}" "${FILEDOWNLOAD}" -F "${EXTRACTFILE}";
 		if [ ! -f "${SYSTEM32}/${EXTRACTFILE}" ]; then
-			echo "install-dependency: Failed to extract ${EXTRACTFILE} from cab file." >&2;
+			echo "$PRG: Failed to extract ${EXTRACTFILE} from cab file." >&2;
 			RET="1";
 			continue;
 		fi
@@ -300,7 +302,7 @@ for DEP in $DEPENDENCIES; do
 		rm "${TMPFILE}"
 
 	else
-		echo "install-dependency: Unable to process downloaded file for ${DEP}." >&2;
+		echo "$PRG: Unable to process downloaded file for ${DEP}." >&2;
 		RET="1";
 		continue;
 	fi
@@ -314,7 +316,7 @@ while [ "${NUMDELETEFILES}" -ne "0" ]; do
 	NUMDELETEFILES=$((${NUMDELETEFILES}-1));
 	eval "TMPFILE=\$DELETEFILE_${NUMDELETEFILES}";
 
-	echo "install-dependency: Deleting temporary file $TMPFILE." >&2;
+	echo "$PRG: Deleting temporary file $TMPFILE." >&2;
 	rm "$TMPFILE";
 done
 
