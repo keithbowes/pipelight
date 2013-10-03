@@ -874,9 +874,9 @@ void dispatcher(int functionid, Stack &stack){
 					instance->ndata = NULL;
 				}
 
-				free(instance);
-
 				handlemanager.removeHandleByReal((uint64_t)instance, TYPE_NPPInstance);
+
+				free(instance);
 
 				if(result == NPERR_NO_ERROR){
 					if(saved){
@@ -1017,14 +1017,18 @@ void dispatcher(int functionid, Stack &stack){
 						// Allocate new window structure
 						if(!window){
 							window 			= (NPWindow*)malloc(sizeof(NPWindow));
-							ndata->window 	= window;
-							// Only do this once to prevent leaking DCs
-							if(ndata->windowlessMode){
-								window->window 			= GetDC(ndata->hWnd);
-								window->type 			= NPWindowTypeDrawable;
-							}else{
-								window->window 			= ndata->hWnd;
-								window->type 			= NPWindowTypeWindow;
+
+							if (window){
+								ndata->window 	= window;
+								
+								// Only do this once to prevent leaking DCs
+								if(ndata->windowlessMode){
+									window->window 			= GetDC(ndata->hWnd);
+									window->type 			= NPWindowTypeDrawable;
+								}else{
+									window->window 			= ndata->hWnd;
+									window->type 			= NPWindowTypeWindow;
+								}
 							}
 
 						}
@@ -1097,13 +1101,14 @@ void dispatcher(int functionid, Stack &stack){
 
 				// Free data
 				if(stream){
+
+					// Let the handlemanager remove this one
+					handlemanager.removeHandleByReal((uint64_t)stream, TYPE_NPStream);
+
 					if(stream->url) 	free((char*)stream->url);
 					if(stream->headers) free((char*)stream->headers);
 					free(stream);
 				}
-
-				// Let the handlemanager remove this one
-				handlemanager.removeHandleByReal((uint64_t)stream, TYPE_NPStream);
 
 				writeInt32(result);
 
