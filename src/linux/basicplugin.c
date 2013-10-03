@@ -162,7 +162,7 @@ void attach(){
 	try {
 		callFunction(INIT_OKAY);
 		waitReturn();
-	} catch(std::runtime_error error){
+	} catch(std::runtime_error &error){
 		DBG_ERROR("error during the initialization of the wine process - aborting.");
 		return;
 	}
@@ -281,7 +281,7 @@ bool checkSilverlightInstallation(){
 	DBG_INFO("using wine prefix directory %s.", config.winePrefix.c_str());
 
 	// If there is no installer provided we cannot check the installation
-	if( config.dependencyInstaller == "" || config.dependencies.size() == 0 || 
+	if( config.dependencyInstaller == "" || config.dependencies.empty() ||
 		!checkIfExists(config.dependencyInstaller) ){
 
 		return checkIfExists(config.winePrefix);

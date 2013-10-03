@@ -26,7 +26,7 @@ extern HandleManager handlemanager;				// global handlemanager object
 
 // TODO: Improve this method - allow using low handles again
 uint64_t HandleManager::getFreeID(){
-	if(handlesID.size() > 0){
+	if(!handlesID.empty()){
 		//The last elment has the biggest ID
 		uint64_t freeHandle = handlesID.rbegin()->first + 1;
 

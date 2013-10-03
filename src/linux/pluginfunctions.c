@@ -557,7 +557,7 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 	try {
 		readCommands(stack, true, 5000);
 
-	} catch(std::runtime_error error){
+	} catch(std::runtime_error &error){
 		DBG_ERROR("plugin did not deinitialize properly, killing it!");
 
 		// Kill the wine process (if it still exists) ...

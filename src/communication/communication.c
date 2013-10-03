@@ -540,7 +540,10 @@ void readCommands(Stack &stack, bool allowReturn, int abortTimeout){
 
 			while(pos < blockLength){
 				size_t numBytes = fread( blockData + pos, sizeof(char), blockLength - pos, pipeInF);
-				if( numBytes <= 0) throw std::runtime_error("Unable to receive data");
+				if( numBytes <= 0){
+					free(blockData);
+					throw std::runtime_error("Unable to receive data");
+				}
 				pos += numBytes;
 			}
 
