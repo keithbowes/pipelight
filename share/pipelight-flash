@@ -21,12 +21,12 @@ diagnosticMode      = true
 winePath            = /opt/wine-compholio/bin/wine
 
 #
-# Path to the wine prefix containing Silverlight
+# Path to the wine prefix containing Flash
 #
 winePrefix          = $HOME/.wine-pipelight/
 
 #
-# The wine architecture for the wine prefix containing Silverlight
+# The wine architecture for the wine prefix containing Flash
 #
 wineArch            = win32
 
@@ -50,59 +50,47 @@ pluginLoaderPath    = PLUGIN_LOADER_PATH
 gccRuntimeDlls      = /usr/lib/gcc/i686-w64-mingw32/4.6/
 
 #
-# Path to the Silverlight directory
-# Must be changed if a different version should be used.
-# The standard installation Path is:
-# c:\Program Files\Microsoft Silverlight\5.1.20513.0\
+# Path to the Flash directory
 #
-dllPath             = c:\Program Files\Silverlight\5.1.20513.0\
+dllPath             = C:\windows\system32\Macromed\Flash\
 
 #
-# Name of the Silverlight library to load
+# Name of the Flash library to load
 # (relative to the path specified above)
+# Must be changed if a different version should be used.
 #
-dllName             = npctrl.dll
+dllName             = NPSWF32_11_8_800_168.dll
 
 #
-# fakeVersion allows to fake the version string of Silverlight
-# Allows to get around some version checks done by some websites
-# when using an old version of Silverlight.
+# fakeVersion allows to fake the version string of Flash
+# We don't know any reason why it would be necessary for flash
 #
-# fakeVersion       = 5.1.20513.0
+# fakeVersion       = 11.8.800.168
 
 #
 # overwriteArg allows to overwrite/add initialization arguments
-# passed by websites to Silverlight applications. You can
+# passed by websites to Flash applications. You can
 # use this option as often as you want to overwrite multiple
-# parameters. The GPU acceleration state of Silverlight can be controlled
-# by setting:
+# parameters. For a list of useful values for Flash take a look at
+# http://helpx.adobe.com/flash/kb/flash-object-embed-tag-attributes.html#main_Optional_attributes
 #
-#   enableGPUAcceleration=false     # disable GPU acceleration
-#   comment out                     # let the application decide (default)
-#   enableGPUAcceleration=true      # force GPU acceleration
-#
-# You may need to overwrite the minimum runtime version if
-# you use an old Silverlight version as some websites set
-# an artificial limit for the version number although it 
-# would work with older versions.
-#
-# overwriteArg      = minRuntimeVersion=5.0.61118.0
-# overwriteArg      = enableGPUAcceleration=false
-# overwriteArg      = enableGPUAcceleration=true
+# Examples:
+# overwriteArg      = quality=best
+# overwriteArg      = wmode=direct
 #
 
 #
 # windowlessmode refers to a term of the Netscape Plugin API and 
 # defines a different mode of drawing and handling events.
-# On some desktop enviroments you may have problems using the
-# keyboard in windowless mode, on the other hand the drawing is
-# more efficient when this mode is enabled. Just choose what works
-# best for you. [default: false]
+# Flash will automatically switch to windowless mode if it is not
+# disabled by the website. We set the default value to false to mime
+# the behavior of a normal browser.
+# [default: false]
 #
 windowlessMode      = false
 
 #
-# embed defines whether the Silverlight plugin should be shown 
+# embed defines whether the Flash plugin should be shown 
 # inside the browser (true) or an external window (false).
 # [default: true]
 #
@@ -118,18 +106,11 @@ dependencyInstaller = /usr/share/wine-browser-installer/install-dependency
 # Dependencies which should be installed for this plugin via the
 # dependencyInstaller, can be used multiple times. (optional)
 #
-# Useful values for Silverlight are:
-#
-#   -> Silverlight versions (you need to adjust dllPath):
-#   wine-silverlight5.1-installer
-#   wine-silverlight5.0-installer
-#   wine-silverlight4-installer
-#
-#   -> optional depependencies (required by some streaming sites)
-#   wine-mpg2splt-installer
-#
-dependency          = wine-silverlight5.1-installer
-dependency          = wine-mpg2splt-installer
+# Useful values for Flash are:
+#   wine-flash-installer
+#   
+dependency          = wine-flash-installer
+
 
 #
 # Doesn't show any dialogs which require manual confirmation during
@@ -161,7 +142,7 @@ operaDetection      = true
 
 #
 # Minimal JavaScript user agent switcher. If your page doesn't check
-# the user agent before loading a Silverlight instance, you can use
+# the user agent before loading a Flash instance, you can use
 # this trick to overwrite the useragent or execute any other Java-
 # Script you want. You can use this command multiple times.
 # Uncomment the following 4 lines for FF15 spoofing.
@@ -172,20 +153,12 @@ operaDetection      = true
 # executejavascript = navigator.__defineGetter__('userAgent', function () { return 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:15.0) Gecko/20120427 Firefox/15.0a1'; });
 
 #
-# We are currently implementing hardware acceleration support, which
-# can cause problems on some systems as especially specific open source
-# drivers render only garbage when hardware acceleration is enabled.
-# To prevent breaking any working solutions, we are currently
-# implementing a whitelist system, which will enable hardware
-# acceleration by default if the specified shell scripts returns 0.
-# Otherwise we will disable it. You can still use
+# The graphic driver check is not used for Flash and should be set to
+# /bin/true which will prevent Pipelight from passing any variables to
+# Flash. Not defining the script would cause Pipelight to assume a 
+# failure and pass a parameter which is not understood by Flash.
 #
-# overwriteArg      = enableGPUAcceleration=false/true
-#
-# to overwrite the check results. If you really want to skip this test
-# you can use: graphicDriverCheck = /bin/true
-#
-graphicDriverCheck  = /usr/share/wine-browser-installer/hw-accel-default
+graphicDriverCheck  = /bin/true
 
 #------------------------- EXPERIMENTAL -------------------------
 # Watch out: The following section contains highly experimental
@@ -193,11 +166,7 @@ graphicDriverCheck  = /usr/share/wine-browser-installer/hw-accel-default
 # might be removed at any time.
 
 #
-# Silverlight uses a lot of timer stuff do to the window redrawing
-# . In order to speed this up a bit the following switch enables
-# some API hooks to do most of timer stuff in user mode (without
-# having to call wine-server each time). It is still unclear
-# if this option has any significant effect on the performance.
+# It is currently unknown whether this option affects Flash
 # [default: false]
 #
 # experimental-userModeTimer = true

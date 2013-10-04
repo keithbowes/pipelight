@@ -134,6 +134,12 @@ for DEP in $DEPENDENCIES; do
 		SHA256SUM="abb189f17e65e73d61843247ad1af7c997318b7854fa850a04e5f9d9a20cdd03";
 		FILEEXT="exe"
 
+	elif [ "${DEP}" = "wine-flash-installer" ]; then
+		INSTALLER="flash";
+		URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/11.8.800.168/install_flash_player.exe";
+		SHA256SUM="2213027430edb7c0b90860c54bd5d797db9e32bb2ce6470c7b162adb58c421c7";
+		FLASHVERSION="11_8_800_168";
+
 	else
 		echo "$PRG: No installer script found for ${DEP}." >&2;
 		RET="1";
@@ -300,6 +306,24 @@ for DEP in $DEPENDENCIES; do
 			progressbar "Please wait, installing ..." "Installing $DEP";
 
 		rm "${TMPFILE}"
+
+	elif [ "${INSTALLER}" = "flash" ]; then
+
+		# Launch the installer
+		if [ -z "${QUIETINSTALLATION}" ] || [ "${QUIETINSTALLATION}" -eq 0 ]; then
+			"${WINE}" "${FILEDOWNLOAD}" 2>&1;
+		else
+			"${WINE}" "${FILEDOWNLOAD}" -install 2>&1 | \
+				progressbar "Please wait, installing ..." "Installing $DEP";
+		fi
+
+		INSTALL_DIR="${WINEPREFIX}/drive_c/windows/system32/Macromed/Flash";
+
+		if [ ! -f "${INSTALL_DIR}/NPSWF32_${FLASHVERSION}.dll" ]; then
+			echo "Installer for ${DEP} did not run correctly or was aborted.";
+			RET="1";
+			continue;
+		fi
 
 	else
 		echo "$PRG: Unable to process downloaded file for ${DEP}." >&2;
