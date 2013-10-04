@@ -389,6 +389,7 @@ bool loadConfig(PluginConfig &config){
 			config.dependencyInstaller = value;
 
 		}else if(key == "silverlightversion"){
+			DBG_WARN("The configuration parameter silverlightVersion is deprecated.\n");
 			config.dependencies.insert(config.dependencies.begin(), "wine-" + value + "-installer");
 
 		}else if(key == "dependency"){
