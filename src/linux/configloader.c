@@ -58,6 +58,19 @@ std::string getHomeDirectory(){
 	return std::string(info->pw_dir);
 }
 
+// see http://source.winehq.org/source/libs/wine/config.c?v=wine-1.7.3#L268
+std::string getWineUser(){
+	struct passwd* info = getpwuid(getuid());
+	if(info && info->pw_name){
+		return std::string(info->pw_name);
+	}
+
+	char uid_string[32];
+	sprintf(uid_string, "%lu", (unsigned long)getuid());
+	return std::string(uid_string);
+}
+
+
 std::string getConfigNameFromLibrary(){
 	Dl_info 	libinfo;
 	std::string	configName;
@@ -249,6 +262,9 @@ bool loadConfig(PluginConfig &config){
 	// Add homedir to variables
 	std::string homeDir = getHomeDirectory();
 	if(homeDir != "") variables["$home"] = homeDir;
+
+	// getWineUser() never returns an empty string
+	variables["$wineuser"] = getWineUser();
 
 	// Initialize config variables with default values
 	config.configPath			= "";
