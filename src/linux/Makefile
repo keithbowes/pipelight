@@ -1,6 +1,6 @@
 CXX 		:= g++
 CXXFLAGS 	:= -Wall -DXP_UNIX=1 -DMOZ_X11=1 -fPIC -std=gnu++0x $(CXXFLAGS)
-LDFLAGS 	:= -lX11 -lpthread $(LDFLAGS)
+LDFLAGS 	:= -lX11 -lpthread -ldl $(LDFLAGS)
 OBJECTS 	:= communication.o handlemanager.o npclass.o configloader.o pluginfunctions.o debug.o
 
 libpipelight.so: basicplugin.c basicplugin.h configloader.h ../npapi-headers/npapi.h ../npapi-headers/npruntime.h ../npapi-headers/npfunctions.h ../communication/communication.h ../handlemanager/handlemanager.h $(OBJECTS)

@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <unistd.h>								// for dladdr
 #include <sys/stat.h>							// for stat
+#include <dlfcn.h>
 
 #include "configloader.h"
 #include "basicplugin.h"
@@ -55,6 +56,51 @@ std::string getHomeDirectory(){
 		return "";
 	
 	return std::string(info->pw_dir);
+}
+
+std::string getConfigNameFromLibrary(){
+	Dl_info 	libinfo;
+	std::string	configName;
+	size_t 		pos;
+
+	// get full path
+	if(!dladdr((void*)getConfigNameFromLibrary, &libinfo))
+		return "";
+
+	if(!libinfo.dli_fname)
+		return "";
+
+	configName = std::string(libinfo.dli_fname);
+
+	// strip directory name
+	pos = configName.find_last_of('/');
+	if (pos != std::string::npos){
+
+		// stop if we just have a directory
+		if (pos >= configName.length() - 1)
+			return "";
+
+		configName = configName.substr(pos+1, std::string::npos);
+	}
+
+	// strip extension (.so)
+	pos = configName.find_last_of('.');
+	if (pos != std::string::npos){
+		configName = configName.substr(0, pos);
+	}
+
+	// convert to lower case
+	std::transform(configName.begin(), configName.end(), configName.begin(), ::tolower);
+
+	if (configName.length() > 3){
+
+		// strip "lib" from start of the filename
+		if(configName.substr(0, 3) == "lib"){
+			return configName.substr(3, std::string::npos);
+		}
+	}
+
+	return configName;
 }
 
 std::string trim(std::string str){
@@ -160,19 +206,24 @@ bool openConfig(std::ifstream &configFile, std::string &configPath){
 		if(configFile.is_open()) return true;
 	}
 
+	std::string configName = getConfigNameFromLibrary();
+	if(configName == ""){
+		configName = "pipelight";
+	}
+
 	if(homeDir != ""){
-		configPath = homeDir + "/.config/pipelight";
+		configPath = homeDir + "/.config/" + configName;
 		DBG_INFO("trying to load config file from '%s'.", configPath.c_str());
 		configFile.open(configPath);
 		if(configFile.is_open()) return true;
 	}
 
-	configPath = "/etc/pipelight";
+	configPath = "/etc/" + configName;
 	DBG_INFO("trying to load config file from '%s'.", configPath.c_str());
 	configFile.open(configPath);
 	if(configFile.is_open()) return true;
 
-	configPath = PREFIX "/share/pipelight/pipelight";
+	configPath = PREFIX "/share/pipelight/" + configName;
 	DBG_INFO("trying to load config file from '%s'.", configPath.c_str());
 	configFile.open(configPath);
 	if(configFile.is_open()) return true;
