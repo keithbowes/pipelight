@@ -1,21 +1,15 @@
-#include <iostream>
-
+/*
 #include "pluginloader.h"
 
-extern char strUserAgent[1024];
 extern HandleManager handlemanager;
 
 extern NPPluginFuncs pluginFuncs;
+*/
 
-void pokeString(std::string str, char *dest, unsigned int maxLength){
-	if(maxLength > 0){
-		unsigned int length = std::min((unsigned int)str.length(), maxLength-1);
+#include "../common/common.h"
+#include "pluginloader.h"
 
-		// Always at least one byte to copy (nullbyte)
-		memcpy(dest, str.c_str(), length);
-		dest[length] = 0;
-	}
-}
+#include <windows.h>
 
 NPError NP_LOADDS NPN_GetURL(NPP instance, const char* url, const char* window){
 	DBG_TRACE("( instance=%p, url='%s', window='%s' )", instance, url, window);
@@ -65,7 +59,7 @@ NPError NP_LOADDS NPN_RequestRead(NPStream* stream, NPByteRange* rangeList){
 	}
 
 	writeInt32(rangeCount);
-	writeHandleStream(stream, HANDLE_SHOULD_EXIST);
+	writeHandleStream(stream, HMGR_SHOULD_EXIST);
 	callFunction(FUNCTION_NPN_REQUEST_READ);
 
 	NPError result = readResultInt32();
@@ -95,7 +89,7 @@ int32_t NP_LOADDS NPN_Write(NPP instance, NPStream* stream, int32_t len, void* b
 	DBG_TRACE("( instance=%p, stream=%p, len=%d, buffer=%p )", instance, stream, len, buffer);
 
 	writeMemory((char*)buffer, len);
-	writeHandleStream(stream, HANDLE_SHOULD_EXIST);
+	writeHandleStream(stream, HMGR_SHOULD_EXIST);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_WRITE);
 
@@ -107,7 +101,7 @@ NPError NP_LOADDS NPN_DestroyStream(NPP instance, NPStream* stream, NPReason rea
 	DBG_TRACE("( instance=%p, stream=%p, reason=%d )", instance, stream, reason);
 
 	writeInt32(reason);
-	writeHandleStream(stream, HANDLE_SHOULD_EXIST);
+	writeHandleStream(stream, HMGR_SHOULD_EXIST);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_DESTROY_STREAM);
 
@@ -123,7 +117,7 @@ void NP_LOADDS NPN_Status(NPP instance, const char* message){
 	writeString(message);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_STATUS);
-	waitReturn();
+	readResultVoid();
 }
 
 // Verified, everything okay
@@ -145,7 +139,7 @@ const char*  NP_LOADDS NPN_UserAgent(NPP instance){
 	// TODO: Remove this if it doesnt cause problems
 	std::string result = "Mozilla/5.0 (Windows NT 5.1; rv:18.0) Gecko/20100101 Firefox/18.0";
 
-	pokeString(result, strUserAgent, sizeof(strUserAgent));
+	pokeString(strUserAgent, result, sizeof(strUserAgent));
 	return strUserAgent;
 }
 
@@ -491,9 +485,9 @@ NPObject* NP_LOADDS NPN_RetainObject(NPObject *obj){
 		// (only used when DEBUG_LOG_HANDLES is on)
 		writeInt32(obj->referenceCount);
 
-		writeHandleObj(obj, HANDLE_SHOULD_EXIST);
+		writeHandleObj(obj, HMGR_SHOULD_EXIST);
 		callFunction(FUNCTION_NPN_RETAINOBJECT);
-		waitReturn();	
+		readResultVoid();	
 	}
 
 	return obj;	
@@ -504,9 +498,9 @@ void NP_LOADDS NPN_ReleaseObject(NPObject *obj){
 
 	if (obj){
 
-		writeHandleObjDecRef(obj, HANDLE_SHOULD_EXIST);
+		writeHandleObjDecRef(obj, HMGR_SHOULD_EXIST);
 		callFunction(FUNCTION_NPN_RELEASEOBJECT);
-		waitReturn();
+		readResultVoid();
 	}
 }
 
@@ -683,7 +677,7 @@ void NP_LOADDS NPN_SetException(NPObject *obj, const NPUTF8 *message){
 	writeString(message);
 	writeHandleObj(obj);
 	callFunction(FUNCTION_NPN_SET_EXCEPTION);
-	waitReturn();
+	readResultVoid();
 }
 
 void NP_LOADDS NPN_PushPopupsEnabledState(NPP instance, NPBool enabled){

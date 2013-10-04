@@ -1,11 +1,9 @@
-#include <windows.h>							// for PVOID and other types
-#include <iostream>								// for std::cerr
 #include <vector>								// for std::vector
+#include "../common/common.h"
 
-#include "../communication/communication.h"		// for DBG_INFO
+#include <windows.h>							// for PVOID and other types
 
-void* patchDLLExport(PVOID ModuleBase, const char* functionName, void* newFunctionPtr)
-{
+void* patchDLLExport(PVOID ModuleBase, const char* functionName, void* newFunctionPtr){
 	// Based on the following source code:
 	// http://alter.org.ua/docs/nt_kernel/procaddr/#RtlImageDirectoryEntryToData
 	
@@ -65,13 +63,13 @@ bool handleTimerEvents(){
 	EnterCriticalSection(&timerCS);
 
 	numTimers = timerEntries.size();
-	if(numTimers){
+	if (numTimers){
 
-		for( unsigned int i = 0; i < numTimers; i++){
+		for (unsigned int i = 0; i < numTimers; i++){
 			// Access by index to avoid problems with new timers
 			TimerEntry *it = &timerEntries[i];
 
-			if(it->hWnd){
+			if (it->hWnd){
 				MSG msg;
 				msg.hwnd    = it->hWnd;
 				msg.message = WM_TIMER;
@@ -84,8 +82,8 @@ bool handleTimerEvents(){
 			}
 		}
 
-		for(std::vector<TimerEntry>::iterator it = timerEntries.begin(); it != timerEntries.end();){
-			if(it->hWnd == 0){
+		for (std::vector<TimerEntry>::iterator it = timerEntries.begin(); it != timerEntries.end();){
+			if (it->hWnd == 0){
 				it = timerEntries.erase(it);
 			}else{
 				it++;
@@ -102,19 +100,19 @@ bool handleTimerEvents(){
 UINT_PTR WINAPI mySetTimer(HWND hWnd, UINT_PTR nIDEvent, UINT uElapse, TIMERPROC lpTimerFunc){
 
 	// Callback immediately? 
-	if(hWnd && nIDEvent && uElapse == 0){
+	if (hWnd && nIDEvent && uElapse == 0){
 		EnterCriticalSection(&timerCS);
 
 		std::vector<TimerEntry>::iterator it;
 		
-		for(it = timerEntries.begin(); it != timerEntries.end(); it++){
-			if(it->hWnd == hWnd && it->IDEvent == nIDEvent){
+		for (it = timerEntries.begin(); it != timerEntries.end(); it++){
+			if (it->hWnd == hWnd && it->IDEvent == nIDEvent){
 				it->lpTimerFunc = lpTimerFunc;
 				break;
 			}
 		}
 
-		if( it == timerEntries.end() ){
+		if (it == timerEntries.end()){
 			TimerEntry entry;
 			entry.hWnd          = hWnd;
 			entry.IDEvent       = nIDEvent;
@@ -132,13 +130,13 @@ UINT_PTR WINAPI mySetTimer(HWND hWnd, UINT_PTR nIDEvent, UINT uElapse, TIMERPROC
 
 BOOL WINAPI myKillTimer(HWND hWnd, UINT_PTR uIDEvent){
 
-	if(hWnd && uIDEvent){
+	if (hWnd && uIDEvent){
 		bool found = false;
 
 		EnterCriticalSection(&timerCS);
 
-		for(std::vector<TimerEntry>::iterator it = timerEntries.begin(); it != timerEntries.end(); it++){
-			if(it->hWnd == hWnd && it->IDEvent == uIDEvent){
+		for (std::vector<TimerEntry>::iterator it = timerEntries.begin(); it != timerEntries.end(); it++){
+			if (it->hWnd == hWnd && it->IDEvent == uIDEvent){
 				it->hWnd        = (HWND)0;
 				found           = true;
 				break;
@@ -155,7 +153,6 @@ BOOL WINAPI myKillTimer(HWND hWnd, UINT_PTR uIDEvent){
 }
 
 bool installTimerHook(){
-
 	HMODULE user32 = LoadLibrary("user32.dll");
 
 	if(!user32)

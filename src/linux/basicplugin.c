@@ -46,21 +46,15 @@
  *		Sebastian Lackner <sebastian@fds-team.de>
  *
  */
- 
-#include <stdlib.h>								// for getenv, ...
-#include <iostream>								// for std::cerr
-#include <unistd.h>								// for POSIX api
-#include <string>								// for std::string
-#include <stdexcept>							// for std::runtime_error
 
-#include "basicplugin.h"
-#include "configloader.h"
 #include <sys/types.h>
-#include <sys/stat.h>
 #include <sys/wait.h>
+#include <unistd.h>								// for POSIX api
+#include <iostream>								// for std::ios_base
+#include <string>								// for std::string
 
-#include <pthread.h>							// alternative to ScheduleTimer etc.
-#include <semaphore.h>
+#include "../common/common.h"
+#include "basicplugin.h"
 
 /* BEGIN GLOBAL VARIABLES
 
@@ -69,43 +63,30 @@
 
 */
 
-// Description etc.
-char strMimeType[2048] 			= {0};
-char strPluginversion[100]		= {0};
-char strPluginName[256] 		= {0};
-char strPluginDescription[1024]	= {0};
+char strMimeType[2048] 				= {0};
+char strPluginversion[100]			= {0};
+char strPluginName[256] 			= {0};
+char strPluginDescription[1024]		= {0};
 
-// Instance responsible for triggering the timer
-uint32_t  			eventTimerID 			= 0;
-NPP 				eventTimerInstance 		= NULL;
-pthread_t 			eventThread				= 0;
+uint32_t  	eventTimerID 			= 0;
+NPP 		eventTimerInstance 		= NULL;
+pthread_t 	eventThread				= 0;
 
-sem_t				eventThreadSemRequestAsyncCall;
-sem_t				eventThreadSemScheduledAsyncCall;
+sem_t		eventThreadSemRequestAsyncCall;
+sem_t		eventThreadSemScheduledAsyncCall;
 
-
-// Pipes to communicate with the wine process
-int pipeOut[2] 	= {0, 0};
-int pipeIn[2] 	= {0, 0};
-FILE * pipeOutF = NULL;
-FILE * pipeInF	= NULL;
-
-// winePid if wine has already been started
-pid_t winePid = -1;
-bool initOkay = false;
+pid_t 		winePid 				= -1;
+bool 		initOkay 				= false;
 
 // Browser functions
-NPNetscapeFuncs* sBrowserFuncs = NULL;
-
-// Handlemanager
-HandleManager handlemanager __attribute__((init_priority(101)));
+NPNetscapeFuncs* sBrowserFuncs 		= NULL;
 
 // Global plugin configuration
-PluginConfig config __attribute__((init_priority(101)));
+PluginConfig config INIT_EARLY;
 
 // Attach has to be called as a last step
-void attach() __attribute__((constructor(102)));
-void detach() __attribute__((destructor));
+void attach() CONSTRUCTOR;
+void detach() DESTRUCTOR;
 
 /* END GLOBAL VARIABLES */
 
@@ -159,10 +140,7 @@ void attach(){
 	}
 
 	// We want to be sure that wine is up and running until we return!
-	try {
-		callFunction(INIT_OKAY);
-		waitReturn();
-	} catch(std::runtime_error &error){
+	if (!pluginInitOkay()){
 		DBG_ERROR("error during the initialization of the wine process - aborting.");
 		return;
 	}
@@ -173,19 +151,6 @@ void attach(){
 
 void detach(){
 	// TODO: Deinitialize pointers etc.
-}
-
-bool checkIfExists(std::string path){
-	struct stat info;
-	if(stat(path.c_str(), &info) == 0){
-		return true;
-	}
-	return false;
-}
-
-std::string getEnvironmentString(const char* variable){
-	char *str = getenv(variable);
-	return str ? std::string(str) : "";
 }
 
 std::string convertWinePath(std::string path, bool direction){
@@ -235,7 +200,7 @@ std::string convertWinePath(std::string path, bool direction){
 		argv.push_back(NULL);
 
 		execvp(argv[0], (char**)argv.data());
-		throw std::runtime_error("Error in execvp command - probably wine/sandbox not found?");
+		DBG_ABORT("error in execvp command - probably wine/sandbox not found or missing execute permission.");
 
 	}else if(pidWinePath != -1){
 		char resultPathBuffer[4096+1];
@@ -324,7 +289,7 @@ bool checkSilverlightInstallation(){
 		argv.push_back(NULL);
 
 		execvp(argv[0], (char**)argv.data());
-		throw std::runtime_error("Error in execvp command - probably dependencyInstaller/sandbox not found?");
+		DBG_ABORT("error in execvp command - probably dependencyInstaller/sandbox not found or missing execute permission.");
 
 	}else if(pidInstall != -1){
 
@@ -369,7 +334,7 @@ bool checkGraphicDriver(){
 		// The graphic driver check doesn't need any environment variables at all.
 
 		execlp(config.graphicDriverCheck.c_str(), config.graphicDriverCheck.c_str(), NULL);
-		throw std::runtime_error("Error in execlp command - probably /bin/sh not found?");
+		DBG_ABORT("error in execlp command - probably graphicDriverCheck not found or missing execute permission.");
 
 	}else if(pidCheck != -1){
 
@@ -400,8 +365,9 @@ bool checkGraphicDriver(){
 }
 
 bool startWineProcess(){
+	int tempPipeOut[2], tempPipeIn[2];
 
-	if( pipe(pipeOut) == -1 || pipe(pipeIn) == -1 ){
+	if( pipe(tempPipeOut) == -1 || pipe(tempPipeIn) == -1 ){
 		DBG_ERROR("could not create pipes to communicate with the plugin.");
 		return false;
 	}
@@ -411,12 +377,12 @@ bool startWineProcess(){
 	if (winePid == 0){
 		// The child process will be replaced with wine
 
-		close(PIPE_BROWSER_READ);
-		close(PIPE_BROWSER_WRITE);
+		close(tempPipeIn[0]);
+		close(tempPipeOut[1]);
 
 		// Assign to stdin/stdout
-		dup2(PIPE_PLUGIN_READ,  0);
-		dup2(PIPE_PLUGIN_WRITE, 1);
+		dup2(tempPipeOut[0],  0);
+		dup2(tempPipeIn[1], 1);
 		
 		// Setup environment variables
 		setenv("WINEPREFIX", 			config.winePrefix.c_str(), 			true);
@@ -458,28 +424,16 @@ bool startWineProcess(){
 
 		// Execute wine
 		execvp(argv[0], (char**)argv.data());
-		throw std::runtime_error("Error in execvp command - probably wine/sandbox not found?");
+		DBG_ABORT("error in execvp command - probably wine/sandbox not found or missing execute permission.");
 
 	}else if (winePid != -1){
 		// The parent process will return normally and use the pipes to communicate with the child process
 
-		close(PIPE_PLUGIN_READ);
-		close(PIPE_PLUGIN_WRITE);		
+		close(tempPipeOut[0]);
+		close(tempPipeIn[1]);
 
-		pipeOutF 	= fdopen(PIPE_BROWSER_WRITE, 	"wb");
-		pipeInF		= fdopen(PIPE_BROWSER_READ, 	"rb");
-
-		// In case something goes wrong ...
-		if(pipeOutF == NULL || pipeInF == NULL){
-			if(pipeOutF) fclose(pipeOutF);
-			if(pipeInF)  fclose(pipeInF);
-
+		if (!initCommPipes(tempPipeOut[1], tempPipeIn[0]))
 			return false;
-		}
-
-		// Disable buffering for input pipe (to allow waiting for a pipe)
-		setbuf(pipeInF, NULL);
-
 
 	}else{
 		DBG_ERROR("unable to fork() - probably out of memory?");
@@ -490,10 +444,10 @@ bool startWineProcess(){
 }
 
 
-void dispatcher(int functionid, Stack &stack){
-	if(!sBrowserFuncs) throw std::runtime_error("Browser didn't correctly initialize the plugin!");
+void dispatcher(int function, Stack &stack){
+	DBG_ASSERT(sBrowserFuncs != NULL, "browser didn't correctly initialize the plugin!");
 
-	switch(functionid){
+	switch(function){
 		
 		case LIN_HANDLE_MANAGER_REQUEST_STREAM_INFO:
 			{
@@ -501,7 +455,7 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("LIN_HANDLE_MANAGER_REQUEST_STREAM_INFO( stream=%p )", stream);
 
 				writeString(stream->headers);
-				writeHandleNotify(stream->notifyData, HANDLE_SHOULD_EXIST);
+				writeHandleNotify(stream->notifyData, HMGR_SHOULD_EXIST);
 				writeInt32(stream->lastmodified);
 				writeInt32(stream->end);
 				writeString(stream->url);
@@ -517,7 +471,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPObject* obj 		= readHandleObj(stack);
 				DBG_TRACE("LIN_HANDLE_MANAGER_FREE_OBJECT( obj=%p )", obj);
 
-				handlemanager.removeHandleByReal((uint64_t)obj, TYPE_NPObject);
+				handleManager_removeByPtr(HMGR_TYPE_NPObject, obj);
 
 				DBG_TRACE("LIN_HANDLE_MANAGER_FREE_OBJECT -> void");
 				returnCommand();
@@ -664,13 +618,10 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPN_GETVALUE_OBJECT( obj=%p )", obj);
 
 				// We do this check always, although its not really required, but this makes it easier to find errors
-				if(obj->referenceCount == 1 && handlemanager.existsHandleByReal( (uint64_t)obj, TYPE_NPObject) ){
+				if(obj->referenceCount == 1 && handleManager_existsByPtr(HMGR_TYPE_NPObject, obj) ){
 					writeHandleObj(obj);
 					callFunction(WIN_HANDLE_MANAGER_OBJECT_IS_CUSTOM);
-
-					if( !(bool)readResultInt32() ){
-						throw std::runtime_error("Forgot to set killObject?");
-					}
+					DBG_ASSERT((bool)readResultInt32(), "forgot to set killObject?");
 				}
 
 				sBrowserFuncs->releaseobject(obj);
@@ -688,9 +639,8 @@ void dispatcher(int functionid, Stack &stack){
 
 				sBrowserFuncs->retainobject(obj);
 
-				if( minReferenceCount != REFCOUNT_UNDEFINED && obj->referenceCount < minReferenceCount ){
-					throw std::runtime_error("Object referencecount smaller than expected?");
-				}
+				DBG_ASSERT( minReferenceCount == REFCOUNT_UNDEFINED || minReferenceCount <= obj->referenceCount, \
+					"object referenceCount smaller than expected?");
 
 				DBG_TRACE("FUNCTION_NPN_RETAINOBJECT -> void");
 				returnCommand();
@@ -1049,7 +999,7 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPN_DESTROY_STREAM:
 			{
 				NPP instance 		= readHandleInstance(stack);
-				NPStream *stream 	= readHandleStream(stack, HANDLE_SHOULD_EXIST);
+				NPStream *stream 	= readHandleStream(stack, HMGR_SHOULD_EXIST);
 				NPReason reason 	= (NPReason) readInt32(stack);
 				DBG_TRACE("FUNCTION_NPN_DESTROY_STREAM( instance=%p, stream=%p, reason=%d )", instance, stream, reason );
 
@@ -1159,7 +1109,7 @@ void dispatcher(int functionid, Stack &stack){
 			break;
 
 		default:
-			throw std::runtime_error("Specified function not found!");
+			DBG_ABORT("specified function not found!");
 			break;
 	}
 }

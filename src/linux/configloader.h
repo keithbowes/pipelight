@@ -1,9 +1,10 @@
 #ifndef ConfigLoader_h_
 #define ConfigLoader_h_
 
-#include <string>								// for std::string
-#include <map>									// for std::map
 #include <strings.h>							// for strcasecmp
+#include <string>								// for std::string
+#include <vector>								// for std::vector
+#include <map>									// for std::map
 
 struct stringInsensitiveCompare { 
 	bool operator() (const std::string& a, const std::string& b) const{
@@ -22,7 +23,7 @@ struct PluginConfig{
 	std::string 	winePrefix;
 	std::string		wineDLLOverrides;
 
-	std::string 	dllPath; //we may need to extend this to a vector in the future
+	std::string 	dllPath;
 	std::string 	dllName;
 	std::string 	pluginLoaderPath;
 	std::string 	gccRuntimeDLLs;
@@ -45,9 +46,6 @@ struct PluginConfig{
 	bool 			experimental_usermodeTimer;
 };
 
-std::string getFileName(const std::string &path);
-std::string getHomeDirectory();
-std::string trim(std::string str);
 bool loadConfig(PluginConfig &config);
 
 #endif // ConfigLoader_h_

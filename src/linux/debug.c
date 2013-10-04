@@ -1,13 +1,9 @@
 
 #include <fstream>								// for std::ifstream
-#include <iostream>								// for std::cerr
 
+#include "../common/common.h"
 #include "basicplugin.h"
-#include "configloader.h"
-
-extern bool 		initOkay;
-
-extern PluginConfig config;
+#include "debug.h"
 
 bool debugSection(NPP instance, std::string name){
 	NPObject 		*windowObj;

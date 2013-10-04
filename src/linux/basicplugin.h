@@ -50,29 +50,29 @@
 #ifndef BasicPlugin_h_
 #define BasicPlugin_h_
 
-#include "../npapi-headers/npapi.h"
-#include "../npapi-headers/npruntime.h"
-#include "../npapi-headers/npfunctions.h"
+#include <sys/types.h>
+#include <pthread.h>							// alternative to ScheduleTimer etc.
+#include <semaphore.h>
 
-#include "../communication/communication.h"
-#include "../handlemanager/handlemanager.h"
+#include "../common/common.h"
+#include "configloader.h"
 
-// Public exports
-extern NPClass myClass;
+extern char strMimeType[2048];
+extern char strPluginversion[100];
+extern char strPluginName[256];
+extern char strPluginDescription[1024];
 
-extern NPNetscapeFuncs* sBrowserFuncs;
-extern HandleManager handlemanager;
+extern uint32_t  	eventTimerID;
+extern NPP 			eventTimerInstance;
+extern pthread_t 	eventThread;
 
-extern int pipeOut[2];
-extern int pipeIn[2];
+extern sem_t		eventThreadSemRequestAsyncCall;
+extern sem_t		eventThreadSemScheduledAsyncCall;
 
-#define PIPE_BROWSER_READ   pipeIn[0]
-#define PIPE_PLUGIN_WRITE   pipeIn[1]
-#define PIPE_BROWSER_WRITE  pipeOut[1]
-#define PIPE_PLUGIN_READ    pipeOut[0]
+extern pid_t 		winePid;
+extern bool 		initOkay;
 
-extern pid_t winePid;
-
+extern PluginConfig config;
 
 /* 
 	Plugin Interface for the Browser
@@ -111,11 +111,10 @@ bool NPConstructFunction(NPObject *npobj, const NPVariant *args, uint32_t argCou
 NPObject * NPAllocateFunction(NPP npp, NPClass *aClass);
 void NPDeallocateFunction(NPObject *npobj);
 
-bool checkSilverlightInstallation();
-bool checkGraphicDriver();
-bool startWineProcess();
-std::string getEnvironmentString(const char* variable);
-std::string convertWinePath(std::string path, bool direction = false);
-bool checkIfExists(std::string path);
+/* public */
+extern std::string convertWinePath(std::string path, bool direction = false);
+extern bool checkSilverlightInstallation();
+extern bool checkGraphicDriver();
+extern bool startWineProcess();
 
 #endif // BasicPlugin_h_

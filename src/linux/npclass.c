@@ -1,17 +1,13 @@
 #include <string.h> 							// for memcpy
 
-#include "basicplugin.h"
-
-#ifdef DEBUG_LOG_HANDLES
-	#include <iostream>							// for std::cerr
-#endif
+#include "../common/common.h"
 
 void NPInvalidateFunction(NPObject *npobj){
 	DBG_TRACE("NPInvalidateFunction( npobj=%p )", npobj);
 
 	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_INVALIDATE);
-	waitReturn();
+	readResultVoid();
 }
 
 bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name){
@@ -28,7 +24,7 @@ bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name){
 bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args, uint32_t argCount, NPVariant *result){
 	DBG_TRACE("NPInvokeFunction( npobj=%p, name=%p, args[]=%p, argCount=%d, result=%p )", npobj, name, args, argCount, result);
 
-	// Warning: parameter order swapped!
+	/* Warning: parameter order swapped! */
 	writeVariantArrayConst(args, argCount);
 	writeInt32(argCount);
 	writeHandleIdentifier(name);
@@ -41,7 +37,7 @@ bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args,
 	bool resultBool = (bool)readInt32(stack);
 
 	if(resultBool){
-		readVariant(stack, *result); // Refcount already incremented by invoke()
+		readVariant(stack, *result); /* refcount already incremented by invoke() */
 	}else{
 		result->type 				= NPVariantType_Void;
 		result->value.objectValue 	= NULL;
@@ -64,7 +60,7 @@ bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t ar
 	bool resultBool = (bool)readInt32(stack);
 
 	if(resultBool){
-		readVariant(stack, *result); // Refcount already incremented by invoke()
+		readVariant(stack, *result); /* refcount already incremented by invoke() */
 	}else{
 		result->type 				= NPVariantType_Void;
 		result->value.objectValue 	= NULL;
@@ -93,7 +89,7 @@ bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result
 	std::vector<ParameterInfo> stack;
 	readCommands(stack);
 
-	bool resultBool = readInt32(stack); // Refcount already incremented by getProperty()
+	bool resultBool = readInt32(stack); /* refcount already incremented by getProperty() */
 
 	if(resultBool){
 		readVariant(stack, *result);
@@ -182,21 +178,21 @@ void NPDeallocateFunction(NPObject *npobj){
 	DBG_TRACE("NPDeallocateFunction( npp=%p )", npobj);
 
 	if(npobj){
-		bool exists = handlemanager.existsHandleByReal((uint64_t)npobj, TYPE_NPObject);
+		bool exists = handleManager_existsByPtr(HMGR_TYPE_NPObject, npobj);
 
 		if( exists ){
 			DBG_TRACE("seems to be a user created handle, calling WIN_HANDLE_MANAGER_FREE_OBJECT(%p).", npobj);
 
-			// Kill the object on the other side
+			/* kill the object on the other side */
 			writeHandleObj(npobj);
 			callFunction(WIN_HANDLE_MANAGER_FREE_OBJECT);
-			waitReturn();
+			readResultVoid();
 
-			// Remove it in the handle manager
-			handlemanager.removeHandleByReal((uint64_t)npobj, TYPE_NPObject);
+			/* remove it in the handle manager */
+			handleManager_removeByPtr(HMGR_TYPE_NPObject, npobj);
 		}
 
-		// Remove the object locally
+		/* remove the object locally */
 		free(npobj);
 	}
 }

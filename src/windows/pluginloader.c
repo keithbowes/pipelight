@@ -1,41 +1,33 @@
-#include <iostream>								// for std::cerr
 #include <cstdlib>								// for malloc, ...
-#include <stdexcept>							// for std::runtime_error
-#include <memory>								// for std::shared_ptr
 #include <string>								// for std::string
-//#include <fstream>
 #include <vector>								// for std::vector
 #include <algorithm>							// for std::transform
 #include <stdio.h>								// for _fdopen
+#include <float.h>								// _controlfp_s
+
 #ifdef __WINE__
 	#include <unistd.h>							// for dup
 #else
 	#include <io.h>								// for _dup
 #endif
-#include <objbase.h>							// for CoInitializeEx
-#include <float.h>								// _controlfp_s
 
+#include "../common/common.h"
 #include "pluginloader.h"
 #include "apihook.h"
 
+#include <windows.h>
+#include <objbase.h>							// for CoInitializeEx
+
 /* BEGIN GLOBAL VARIABLES */
 
-// Pipes to communicate with the linux process
-FILE * pipeOutF = stdout;
-FILE * pipeInF 	= stdin;
-
-// Windows Classname for CreateWindowEx
 LPCTSTR ClsName = "VirtualBrowser";
 
-// hWnd -> Instance
 std::map<HWND, NPP> hwndToInstance;
 
-// Global plugin configuration (only required fields)
 bool isWindowlessMode	= false;
 bool isEmbeddedMode		= false;
 bool usermodeTimer      = false;
 
-// Used by NPN_UserAgent
 char strUserAgent[1024] = {0};
 
 std::string np_MimeType;
@@ -45,47 +37,43 @@ std::string np_ProductName;
 std::string np_FileDescription;
 std::string np_Language;
 
-// Handlemanager
-HandleManager handlemanager;
-
-// The plugin itself
-NPPluginFuncs pluginFuncs = {sizeof(pluginFuncs), NP_VERSION_MINOR};
+NPPluginFuncs pluginFuncs = {sizeof(pluginFuncs), (NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR};
 
 /* END GLOBAL VARIABLES */
 
 LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam){
 
 	// Only messages with a hwnd can be relevant in windowlessmode mode
-	if(hWnd){
+	if (hWnd){
 
 		// Find the specific instance
 		std::map<HWND, NPP>::iterator it = hwndToInstance.find(hWnd);
-		if(it != hwndToInstance.end()){
+		if (it != hwndToInstance.end()){
 			NPP instance = it->second;
 
 			// Get netscape data
 			NetscapeData* ndata = (NetscapeData*)instance->ndata;
-			if(ndata && ndata->window){
+			if (ndata && ndata->window){
 
 				// Handle events in windowless mode
-				if(ndata->windowlessMode && ndata->window){
+				if (ndata->windowlessMode && ndata->window){
 					NPWindow* window = ndata->window;
 
 					// Paint event
-					if( Msg == WM_PAINT ){
+					if (Msg == WM_PAINT){
 
 						RECT rect;
 						PAINTSTRUCT paint;
 						HDC hDC;
 
-						if( GetClientRect(hWnd, &rect) ) {
+						if (GetClientRect(hWnd, &rect)) {
 							
 							hDC = BeginPaint(hWnd, &paint);
-							if(hDC != NULL){
+							if (hDC != NULL){
 
 								// Save the previous DC (or allocate a new one)
 								HDC previousDC;
-								if(window->type == NPWindowTypeDrawable){
+								if (window->type == NPWindowTypeDrawable){
 									previousDC = (HDC)window->window;
 								}else{
 									previousDC = GetDC(hWnd);
@@ -129,38 +117,14 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 					// All other events
 					}else{
 
-						// Workaround for Contextmenu in embedded mode
-						if(Msg == WM_RBUTTONDOWN && isEmbeddedMode){
-							int32_t windowIDX11 = (int32_t) GetPropA(hWnd, "__wine_x11_whole_window");
-							if(windowIDX11){
-								Stack stack;
-
-								writeInt32(windowIDX11);
-								callFunction(GET_WINDOW_RECT);
-
-								readCommands(stack);
-
-								if( (bool)readInt32(stack) ){
-									int32_t x 			= readInt32(stack);
-									int32_t y 			= readInt32(stack);
-									/*int32_t width 		= readInt32(stack);
-									int32_t height 		= readInt32(stack);*/
-
-									SetWindowPos(hWnd, HWND_TOP, x, y, 0, 0, SWP_NOSIZE | SWP_NOZORDER);
-								}
-							}
-						}
-
-
 						// Workaround for Silverlight - the events are not correctly handled if
 						// window->window is nonzero
 						// Set it to zero before calling the event handler in this case
 
 						HDC previousDC = NULL;
 
-						if(	window->type == NPWindowTypeDrawable &&
-							((Msg >= WM_KEYFIRST && Msg <= WM_KEYLAST) ||
-							 (Msg >= WM_MOUSEFIRST && Msg <= WM_MOUSELAST )) ){
+						if (window->type == NPWindowTypeDrawable &&
+							((Msg >= WM_KEYFIRST && Msg <= WM_KEYLAST) || (Msg >= WM_MOUSEFIRST && Msg <= WM_MOUSELAST )) ){
 
 							previousDC = (HDC)window->window;
 							window->window = NULL;
@@ -172,11 +136,10 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 						event.lParam 	= lParam;
 						int16_t result = pluginFuncs.event(instance, &event);
 
-						if(previousDC){
+						if (previousDC)
 							window->window = previousDC;
-						}
 
-						if(result == kNPEventHandled) return 0;
+						if (result == kNPEventHandled) return 0;
 
 					}
 
@@ -187,13 +150,13 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	}
 
 	// Otherwise we only have to handle several regular events
-	if(Msg == WM_DESTROY){
+	if (Msg == WM_DESTROY){
 		return 0;
 
-	}else if(Msg == WM_CLOSE){
+	}else if (Msg == WM_CLOSE){
 		return 0;
 
-	}else if( Msg == WM_SIZE ){
+	}else if (Msg == WM_SIZE){
 		InvalidateRect(hWnd, NULL, false);
 		return 0;
 
@@ -203,9 +166,8 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 }
 
 void freeSharedPtrMemory(void *memory){
-	if(memory){
+	if (memory)
 		free(memory);
-	}
 }
 
 std::vector<std::string> splitMimeType(std::string input){
@@ -237,19 +199,19 @@ std::string createLinuxCompatibleMimeType(){
 
 	std::string result = "";
 
-	for(unsigned int i = 0; i < mimeTypes.size(); i++){
+	for (unsigned int i = 0; i < mimeTypes.size(); i++){
 
-		if(i != 0) 
+		if (i != 0) 
 			result += ";";
 
 		result += mimeTypes[i];
 		
 		result += ":";	
-		if(i < fileExtensions.size())
+		if (i < fileExtensions.size())
 			result += fileExtensions[i];
 
 		result += ":";
-		if(i < extDescription.size())
+		if (i < extDescription.size())
 			result += extDescription[i];
 	}
 
@@ -295,64 +257,50 @@ bool initDLL(std::string dllPath, std::string dllName){
 	char *info = NULL;
 	UINT size = 0; 
 
-	if(VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\MIMEType", (void**)&info, &size)){
+	if (VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\MIMEType", (void**)&info, &size)){
 		while( size > 0 && info[size-1] == 0) size--;
 		np_MimeType = std::string(info, size);
 	}
 
-	if(VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\FileExtents", (void**)&info, &size)){
+	if (VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\FileExtents", (void**)&info, &size)){
 		while( size > 0 && info[size-1] == 0) size--;
 		np_FileExtents = std::string(info, size);
 	}
 
-	if(VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\FileOpenName", (void**)&info, &size)){
+	if (VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\FileOpenName", (void**)&info, &size)){
 		while( size > 0 && info[size-1] == 0) size--;
 		np_FileOpenName = std::string(info, size);
 	}
 
-	if(VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\ProductName", (void**)&info, &size)){
+	if (VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\ProductName", (void**)&info, &size)){
 		while( size > 0 && info[size-1] == 0) size--;
 		np_ProductName = std::string(info, size);
 	}
 
-	if(VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\FileDescription", (void**)&info, &size)){
+	if (VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\FileDescription", (void**)&info, &size)){
 		while( size > 0 && info[size-1] == 0) size--;
 		np_FileDescription = std::string(info, size);
 	}
 	
-	if(VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\Language", (void**)&info, &size)){
+	if (VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\Language", (void**)&info, &size)){
 		while( size > 0 && info[size-1] == 0) size--;
 		np_Language = std::string(info, size);
 	}
 
-	/*
-	std::cerr << "[PIPELIGHT] mimeType: " << np_MimeType << std::endl;
-	std::cerr << "[PIPELIGHT] FileExtents: " << np_FileExtents << std::endl;
-	std::cerr << "[PIPELIGHT] FileOpenName" << np_FileOpenName << std::endl;
-	std::cerr << "[PIPELIGHT] ProductName" << np_ProductName << std::endl;
-	std::cerr << "[PIPELIGHT] FileDescription" << np_FileDescription << std::endl;
-	std::cerr << "[PIPELIGHT] Language:" << np_Language << std::endl;
-	*/
-
 	NP_GetEntryPointsFunc 	NP_GetEntryPoints 	= (NP_GetEntryPointsFunc) 	GetProcAddress(dll, "NP_GetEntryPoints");
 	NP_InitializeFunc 		NP_Initialize 		= (NP_InitializeFunc) 		GetProcAddress(dll, "NP_Initialize");
 
-	if(NP_GetEntryPoints && NP_Initialize){
-
-		if(NP_GetEntryPoints(&pluginFuncs) == NPERR_NO_ERROR){
-
+	if (NP_GetEntryPoints && NP_Initialize){
+		if (NP_GetEntryPoints(&pluginFuncs) == NPERR_NO_ERROR){
 			if (NP_Initialize(&browserFuncs) == NPERR_NO_ERROR){
-
 				return true;
 
 			}else{
 				DBG_ERROR("failed to initialize plugin.");
 			}
-
 		}else{
 			DBG_ERROR("failed to get entry points for plugin functions.");
 		}
-
 	}else{
 		DBG_ERROR("could not load entry points from DLL!");
 	}
@@ -371,23 +319,22 @@ int main(int argc, char *argv[]){
 		_controlfp_s(&control_word, _CW_DEFAULT, MCW_PC);
 	#endif
 
-	if(argc < 3)
-		throw std::runtime_error("Not enough arguments supplied");
+	DBG_ASSERT(argc >= 3, "not enough arguments supplied.");
 
 	std::string dllPath 		= std::string(argv[1]);
 	std::string dllName 		= std::string(argv[2]);
 
-	for(int i = 3; i < argc; i++){
+	for (int i = 3; i < argc; i++){
 		std::string arg = std::string(argv[i]);
 		std::transform(arg.begin(), arg.end(), arg.begin(), ::tolower);
 
-		if(			arg == "--windowless"){
+		if (		arg == "--windowless"){
 			isWindowlessMode 	= true;
 
-		}else if(	arg == "--embed"){
+		}else if (	arg == "--embed"){
 			isEmbeddedMode 		= true;
 
-		}else if(	arg == "--usermodetimer"){
+		}else if (	arg == "--usermodetimer"){
 			usermodeTimer 		= true;
 
 		}
@@ -397,23 +344,7 @@ int main(int argc, char *argv[]){
 	DBG_INFO("embedded mode   is %s.", (isEmbeddedMode ? "on" : "off"));
 	DBG_INFO("usermode Timer  is %s.", (usermodeTimer ? "on" : "off"));
 
-	// Copy stdin and stdout
-	#ifdef __WINE__
-		int stdoutF	= dup(1);
-		pipeOutF 	= fdopen(stdoutF, 	"wb");
-
-		int stdinF	= dup(0);
-		pipeInF 	= fdopen(stdinF, 	"rb");
-	#else
-		int stdoutF	= _dup(1);
-		pipeOutF 	= _fdopen(stdoutF, 	"wb");
-
-		int stdinF	= _dup(0);
-		pipeInF 	= _fdopen(stdinF, 	"rb");
-	#endif
-	
-	// Disable buffering not necessary here
-	//setbuf(pipeInF, NULL);
+	DBG_ASSERT(initCommIO(), "unable to initialize communication channel.");
 
 	//Redirect STDOUT to STDERR
 	SetStdHandle(STD_OUTPUT_HANDLE, GetStdHandle(STD_ERROR_HANDLE));
@@ -434,7 +365,7 @@ int main(int argc, char *argv[]){
 	WndClsEx.hIconSm       = LoadIcon(NULL, IDI_APPLICATION);
 
 	ATOM classAtom = RegisterClassEx(&WndClsEx);
-	if(!classAtom){
+	if (!classAtom){
 		DBG_ERROR("failed to register class.");
 		return 1;
 	}
@@ -470,10 +401,10 @@ void dispatcher(int functionid, Stack &stack){
 		
 		case WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA:
 			{
-				void *notifyData 			= readHandleNotify(stack, HANDLE_SHOULD_EXIST);
+				void *notifyData = readHandleNotify(stack, HMGR_SHOULD_EXIST);
 				DBG_TRACE("WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA( notifyData=%p )", notifyData);
 
-				handlemanager.removeHandleByReal((uint64_t)notifyData, TYPE_NotifyData);
+				handleManager_removeByPtr(HMGR_TYPE_NotifyData, notifyData);
 
 				DBG_TRACE("WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA -> void");
 				returnCommand();
@@ -482,7 +413,7 @@ void dispatcher(int functionid, Stack &stack){
 
 		case WIN_HANDLE_MANAGER_FREE_OBJECT:
 			{
-				NPObject 	*obj = readHandleObjIncRef(stack, NULL, 0, HANDLE_SHOULD_EXIST);
+				NPObject 	*obj = readHandleObjIncRef(stack, NULL, 0, HMGR_SHOULD_EXIST);
 				DBG_TRACE("WIN_HANDLE_MANAGER_FREE_OBJECT( obj=%p )", obj);
 
 				objectKill(obj);
@@ -494,7 +425,7 @@ void dispatcher(int functionid, Stack &stack){
 
 		case WIN_HANDLE_MANAGER_OBJECT_IS_CUSTOM:
 			{
-				NPObject 	*obj = readHandleObjIncRef(stack, NULL, 0, HANDLE_SHOULD_EXIST);
+				NPObject 	*obj = readHandleObjIncRef(stack, NULL, 0, HMGR_SHOULD_EXIST);
 				DBG_TRACE("WIN_HANDLE_MANAGER_OBJECT_IS_CUSTOM( obj=%p )", obj);
 
 				writeInt32( (obj->referenceCount == REFCOUNT_UNDEFINED) );
@@ -508,9 +439,7 @@ void dispatcher(int functionid, Stack &stack){
 		case PROCESS_WINDOW_EVENTS:
 			{
 				uint64_t remoteHandleCount = readInt64(stack);
-				if(remoteHandleCount != handlemanager.handleCount()){
-					throw std::runtime_error("Remote handle count doesn't match the local one");
-				}	
+				DBG_ASSERT(remoteHandleCount == handleManager_count(), "remote handle count doesn't match local one.");
 
 				// Process window events
 				MSG msg;
@@ -518,11 +447,11 @@ void dispatcher(int functionid, Stack &stack){
 
 				DWORD abortTime = GetTickCount() + 80;
 				while (GetTickCount() < abortTime){
-					if( PeekMessage(&msg, NULL, 0, 0, PM_REMOVE) ){
+					if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)){
 						TranslateMessage(&msg);
 						DispatchMessage(&msg);
 
-					}else if(usermodeTimer && handleTimerEvents()){
+					}else if (usermodeTimer && handleTimerEvents()){
 						// dummy
 
 					}else{
@@ -541,10 +470,10 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("SHOW_UPDATE_WINDOW( instance=%p )", instance);
 
 				// Only used when isEmbeddedMode is set
-				if(isEmbeddedMode){
+				if (isEmbeddedMode){
 					NetscapeData* ndata = (NetscapeData*)instance->ndata;
-					if(ndata){
-						if(ndata->hWnd){
+					if (ndata){
+						if (ndata->hWnd){
 							ShowWindow(ndata->hWnd, SW_SHOW);
 							UpdateWindow(ndata->hWnd);
 						}
@@ -617,9 +546,8 @@ void dispatcher(int functionid, Stack &stack){
 
 				// The objects refcount has been incremented by invoke
 				// Return the variant without modifying the objects refcount
-				if(result){
+				if (result)
 					writeVariantReleaseDecRef(resultVariant);
-				}
 
 				// This frees ONLY all the strings!
 				freeVariantArrayDecRef(args);
@@ -646,9 +574,8 @@ void dispatcher(int functionid, Stack &stack){
 
 				// The objects refcount has been incremented by invoke
 				// Return the variant without modifying the objects refcount
-				if(result){
+				if (result)
 					writeVariantReleaseDecRef(resultVariant);
-				}
 
 				// This frees ONLY all the strings!
 				freeVariantArrayDecRef(args);
@@ -701,9 +628,8 @@ void dispatcher(int functionid, Stack &stack){
 
 				bool result = obj->_class->getProperty(obj, name, &resultVariant);
 
-				if (result){
+				if (result)
 					writeVariantReleaseDecRef(resultVariant);
-				}
 
 				objectDecRef(obj);
 				writeInt32(result);
@@ -755,12 +681,12 @@ void dispatcher(int functionid, Stack &stack){
 
 				bool result = obj->_class->enumerate && obj->_class->enumerate(obj, &identifierTable, &identifierCount);
 
-				if(result){
+				if (result){
 					writeIdentifierArray(identifierTable, identifierCount);
 					writeInt32(identifierCount);
 
 					// Free the memory for the table
-					if(identifierTable)
+					if (identifierTable)
 						free(identifierTable);
 				}
 
@@ -802,7 +728,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPSavedData* savedPtr = NULL;
 
 				// Note: The plugin is responsible for freeing the saved memory when not required anymore!
-				if(saved_data){
+				if (saved_data){
 					saved.buf 	= saved_data;
 					saved.len 	= saved_length;
 					savedPtr 	= &saved;
@@ -812,11 +738,12 @@ void dispatcher(int functionid, Stack &stack){
 						mimeType.get(), instance, mode, argc, argn.data(), argv.data(), savedPtr);
 
 				// Most plugins only support windowlessMode in combination with NP_EMBED
-				if(isWindowlessMode)	mode = NP_EMBED;
+				if (isWindowlessMode)
+					mode = NP_EMBED;
 
 				// Set privata data before calling the plugin, it might already use some commands
 				NetscapeData* ndata = (NetscapeData*)malloc(sizeof(NetscapeData));
-				if(ndata){
+				if (ndata){
 					instance->ndata = ndata;
 
 					ndata->windowlessMode 	= isWindowlessMode;
@@ -853,18 +780,18 @@ void dispatcher(int functionid, Stack &stack){
 
 				// Destroy the pointers
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
-				if(ndata){
+				if (ndata){
 
 					// ReleaseDC and free memory for window info
-					if(ndata->window){
-						if(ndata->window->type == NPWindowTypeDrawable && ndata->hWnd){
+					if (ndata->window){
+						if (ndata->window->type == NPWindowTypeDrawable && ndata->hWnd){
 							ReleaseDC(ndata->hWnd, (HDC)ndata->window->window);
 						}
 						free(ndata->window);
 					}
 
 					// Destroy the window itself
-					if(ndata->hWnd){
+					if (ndata->hWnd){
 						hwndToInstance.erase(ndata->hWnd);
 						DestroyWindow(ndata->hWnd);
 					}
@@ -874,15 +801,15 @@ void dispatcher(int functionid, Stack &stack){
 					instance->ndata = NULL;
 				}
 
-				handlemanager.removeHandleByReal((uint64_t)instance, TYPE_NPPInstance);
+				handleManager_removeByPtr(HMGR_TYPE_NPPInstance, instance);
 
 				free(instance);
 
-				if(result == NPERR_NO_ERROR){
-					if(saved){
+				if (result == NPERR_NO_ERROR){
+					if (saved){
 						writeMemory((char*)saved->buf, saved->len);
 
-						if(saved->buf) free((char*)saved->buf);
+						if (saved->buf) free((char*)saved->buf);
 						free(saved);
 
 					}else{
@@ -906,7 +833,7 @@ void dispatcher(int functionid, Stack &stack){
 				PRBool boolValue;
 				NPError result;
 
-				if( false ){ // not used at the moment
+				if (false){ // not used at the moment
 					result = pluginFuncs.getvalue(instance, variable, &boolValue);
 				}else{
 					DBG_WARN("FUNCTION_NPP_GETVALUE_BOOL - variable %d not allowed", variable);
@@ -932,14 +859,14 @@ void dispatcher(int functionid, Stack &stack){
 				NPObject *objectValue;
 				NPError result;
 				
-				if( variable == NPPVpluginScriptableNPObject ){
+				if (variable == NPPVpluginScriptableNPObject){
 					result = pluginFuncs.getvalue(instance, variable, &objectValue);
 				}else{
 					DBG_WARN("FUNCTION_NPP_GETVALUE_OBJECT - variable %d not allowed", variable);
 					result = NPERR_GENERIC_ERROR;
 				}
 
-				if(result == NPERR_NO_ERROR)
+				if (result == NPERR_NO_ERROR)
 					writeHandleObjDecRef(objectValue);
 
 				writeInt32(result);
@@ -962,13 +889,13 @@ void dispatcher(int functionid, Stack &stack){
 				int32_t windowIDX11 = 0;
 
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
-				if(ndata){
+				if (ndata){
 
 					// Note: It breaks input event handling when calling
 					// SetWindowPos(ndata->hWnd, HWND_TOP, 0, 0, width, height, SWP_NOMOVE | SWP_SHOWWINDOW);
 					// here ... although we don't call it the window seems to resize properly
 
-					if(!ndata->hWnd){
+					if (!ndata->hWnd){
 						RECT rect;
 						rect.left 	= 0;
 						rect.top	= 0;
@@ -980,7 +907,7 @@ void dispatcher(int functionid, Stack &stack){
 						int posX;
 						int posY;
 
-						if(isEmbeddedMode){
+						if (isEmbeddedMode){
 							style 		= WS_POPUP;
 							extStyle 	= WS_EX_TOOLWINDOW;
 							posX		= 0;
@@ -995,10 +922,10 @@ void dispatcher(int functionid, Stack &stack){
 						AdjustWindowRectEx(&rect, style, false, extStyle);
 
 						ndata->hWnd = CreateWindowEx(extStyle, ClsName, "Plugin", style, posX, posY, rect.right - rect.left, rect.bottom - rect.top, 0, 0, 0, 0);
-						if(ndata->hWnd){
+						if (ndata->hWnd){
 							hwndToInstance.insert( std::pair<HWND, NPP>(ndata->hWnd, instance) );
 
-							if(isEmbeddedMode){
+							if (isEmbeddedMode){
 								windowIDX11 = (int32_t) GetPropA(ndata->hWnd, "__wine_x11_whole_window");
 								// Its better not to show the window until its at the final position
 
@@ -1011,18 +938,18 @@ void dispatcher(int functionid, Stack &stack){
 						}
 					}
 
-					if(ndata->hWnd){
+					if (ndata->hWnd){
 						NPWindow* window = ndata->window;
 
 						// Allocate new window structure
-						if(!window){
+						if (!window){
 							window 			= (NPWindow*)malloc(sizeof(NPWindow));
 
 							if (window){
 								ndata->window 	= window;
 								
 								// Only do this once to prevent leaking DCs
-								if(ndata->windowlessMode){
+								if (ndata->windowlessMode){
 									window->window 			= GetDC(ndata->hWnd);
 									window->type 			= NPWindowTypeDrawable;
 								}else{
@@ -1033,7 +960,7 @@ void dispatcher(int functionid, Stack &stack){
 
 						}
 
-						if(window){
+						if (window){
 							window->x 				= 0; //x;
 							window->y 				= 0; //y;
 							window->width 			= width;
@@ -1069,7 +996,7 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPP instance 					= readHandleInstance(stack);
 				std::shared_ptr<char> type 		= readStringAsMemory(stack);
-				NPStream *stream 				= readHandleStream(stack, HANDLE_SHOULD_NOT_EXIST);
+				NPStream *stream 				= readHandleStream(stack, HMGR_SHOULD_NOT_EXIST);
 				NPBool seekable					= (NPBool) readInt32(stack); 
 				DBG_TRACE("FUNCTION_NPP_NEW_STREAM( instance=%p, type='%s', stream=%p, seekable=%d )", instance, type.get(), stream, seekable);
 
@@ -1077,10 +1004,10 @@ void dispatcher(int functionid, Stack &stack){
 				NPError result = pluginFuncs.newstream(instance, type.get(), stream, seekable, &stype);
 				
 				// Return result
-				if(result == NPERR_NO_ERROR){
+				if (result == NPERR_NO_ERROR){
 					writeInt32(stype);
 				}else{ // Handle is now invalid because of this error
-					handlemanager.removeHandleByReal((uint64_t)stream, TYPE_NPStream);
+					handleManager_removeByPtr(HMGR_TYPE_NPStream, stream);
 				}
 				
 				writeInt32(result);
@@ -1093,20 +1020,20 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPP_DESTROY_STREAM:
 			{
 				NPP instance 		= readHandleInstance(stack);
-				NPStream* stream 	= readHandleStream(stack, HANDLE_SHOULD_EXIST);
+				NPStream* stream 	= readHandleStream(stack, HMGR_SHOULD_EXIST);
 				NPReason reason 	= (NPReason)readInt32(stack);
 				DBG_TRACE("FUNCTION_NPP_DESTROY_STREAM( instance=%p, stream=%p, reason=%d )", instance, stream, reason);
 
 				NPError result = pluginFuncs.destroystream(instance, stream, reason);
 
 				// Free data
-				if(stream){
+				if (stream){
 
 					// Let the handlemanager remove this one
-					handlemanager.removeHandleByReal((uint64_t)stream, TYPE_NPStream);
+					handleManager_removeByPtr(HMGR_TYPE_NPStream, stream);
 
-					if(stream->url) 	free((char*)stream->url);
-					if(stream->headers) free((char*)stream->headers);
+					if (stream->url) 		free((char*)stream->url);
+					if (stream->headers) 	free((char*)stream->headers);
 					free(stream);
 				}
 
@@ -1120,7 +1047,7 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPP_WRITE_READY:
 			{
 				NPP instance 		= readHandleInstance(stack);
-				NPStream* stream 	= readHandleStream(stack, HANDLE_SHOULD_EXIST);
+				NPStream* stream 	= readHandleStream(stack, HMGR_SHOULD_EXIST);
 
 				DBG_TRACE("FUNCTION_NPP_WRITE_READY( instance=%p, stream=%p )", instance, stream);
 
@@ -1135,7 +1062,7 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPP_WRITE:
 			{
 				NPP instance 		= readHandleInstance(stack);
-				NPStream* stream 	= readHandleStream(stack, HANDLE_SHOULD_EXIST);
+				NPStream* stream 	= readHandleStream(stack, HMGR_SHOULD_EXIST);
 				int32_t offset 		= readInt32(stack);
 				size_t length;
 				std::shared_ptr<char> data = readMemory(stack, length);
@@ -1154,7 +1081,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 				= readHandleInstance(stack);
 				std::shared_ptr<char> url 	= readStringAsMemory(stack);
 				NPReason reason 			= (NPReason) readInt32(stack);
-				void *notifyData 			= readHandleNotify(stack, HANDLE_SHOULD_EXIST);
+				void *notifyData 			= readHandleNotify(stack, HMGR_SHOULD_EXIST);
 				DBG_TRACE("FUNCTION_NPP_URL_NOTIFY( instance=%p, url='%s', reason=%d, notifyData=%p )", instance, url.get(), reason, notifyData);
 
 				pluginFuncs.urlnotify(instance, url.get(), reason, notifyData);
@@ -1175,9 +1102,8 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-
 		default:
-			throw std::runtime_error("Specified function not found!");
+			DBG_ABORT("specified function not found!");
 			break;
 
 	}
