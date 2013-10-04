@@ -24,6 +24,7 @@ struct PluginConfig{
 
 	std::string 	dllPath; //we may need to extend this to a vector in the future
 	std::string 	dllName;
+	std::string 	regKey;
 	std::string 	pluginLoaderPath;
 	std::string 	gccRuntimeDLLs;
 

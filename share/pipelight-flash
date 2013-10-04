@@ -51,15 +51,29 @@ gccRuntimeDlls      = /usr/lib/gcc/i686-w64-mingw32/4.6/
 
 #
 # Path to the Flash directory
+# You should prefer using regKey and consider this option only if you have
+# multiple versions of the Flash plugin installed inside the Wineprefix.
 #
-dllPath             = C:\windows\system32\Macromed\Flash\
+# dllPath             = C:\windows\system32\Macromed\Flash\
 
 #
 # Name of the Flash library to load
 # (relative to the path specified above)
 # Must be changed if a different version should be used.
 #
-dllName             = NPSWF32_11_8_800_168.dll
+# You should prefer using regKey and consider this option only if you have
+# multiple versions of the Flash plugin installed inside the Wineprefix.
+#
+# dllName             = NPSWF32_11_8_800_168.dll
+
+#
+# Name of the registry key at HKCU\Software\MozillaPlugins\ or
+# HKLM\Software\MozillaPlugins\ where to search for the plugin path.
+#
+# You should use this option instead of dllPath/dllName in most cases
+# since you do not need to alter dllPath on a Flash update.
+#
+regKey                = @adobe.com/FlashPlayer
 
 #
 # fakeVersion allows to fake the version string of Flash

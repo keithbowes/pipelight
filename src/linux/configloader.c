@@ -279,6 +279,7 @@ bool loadConfig(PluginConfig &config){
 
 	config.dllPath 				= "";
 	config.dllName 				= "";
+	config.regKey 				= "";
 	config.pluginLoaderPath 	= "";
 	config.gccRuntimeDLLs		= "";
 
@@ -375,6 +376,9 @@ bool loadConfig(PluginConfig &config){
 		}else if(key == "dllname"){
 			config.dllName = value;
 
+		}else if(key == "regkey"){
+			config.regKey = value;
+
 		}else if(key == "pluginloaderpath"){
 			config.pluginLoaderPath = value;
 
@@ -405,7 +409,7 @@ bool loadConfig(PluginConfig &config){
 			config.dependencyInstaller = value;
 
 		}else if(key == "silverlightversion"){
-			DBG_WARN("The configuration parameter silverlightVersion is deprecated.\n");
+			DBG_WARN("The configuration parameter silverlightVersion is deprecated.");
 			config.dependencies.insert(config.dependencies.begin(), "wine-" + value + "-installer");
 
 		}else if(key == "dependency"){

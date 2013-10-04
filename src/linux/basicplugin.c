@@ -127,10 +127,11 @@ void attach(){
 		return;
 	}
 
-	if( config.winePath 		== "" ||	// We have to know where wine is installed (default: wine)
-		config.dllPath 			== "" ||	// We need the path and name of the plugin DLL
-		config.dllName 			== "" ||
-		config.pluginLoaderPath == "" ||	// Without pluginloader.exe this doesn't work
+	if( config.winePath 		== "" 	||	// We have to know where wine is installed (default: wine)
+		((config.dllPath 		== "" 	||	// We need the path and name of the plugin DLL
+		config.dllName 			== "") 	&&	// or a registry key where we can find them
+		config.regKey			== "")	||
+		config.pluginLoaderPath == "" 	||	// Without pluginloader.exe this doesn't work
 		config.winePrefix 		== "" ){	// winePrefix
 
 		DBG_ERROR("Your configuration file doesn't contain all necessary keys - aborting.");
@@ -442,8 +443,18 @@ bool startWineProcess(){
 
 		argv.push_back( config.winePath.c_str() );
 		argv.push_back( config.pluginLoaderPath.c_str() );
-		argv.push_back( config.dllPath.c_str() );
-		argv.push_back( config.dllName.c_str() );
+
+		if(config.dllPath != "")
+			argv.push_back( "--dllPath" );
+			argv.push_back( config.dllPath.c_str() );
+
+		if(config.dllName != "")
+			argv.push_back( "--dllName" );
+			argv.push_back( config.dllName.c_str() );
+
+		if(config.regKey != "")
+			argv.push_back( "--regKey" );
+			argv.push_back( config.regKey.c_str() );
 
 		if(config.windowlessMode)
 			argv.push_back( "--windowless" );

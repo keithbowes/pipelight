@@ -362,6 +362,36 @@ bool initDLL(std::string dllPath, std::string dllName){
 }
 
 
+std::string readPathFromRegistry(HKEY hKey, std::string regKey){
+
+	std::string fullKey = "Software\\MozillaPlugins\\" + regKey + "\\";
+
+	DWORD type;
+	DWORD length;
+
+	// Check if the value exists and get required size
+	if (RegGetValue(hKey, fullKey.c_str(), "Path", RRF_RT_ANY, &type, NULL, &length) != ERROR_SUCCESS)
+		return "";
+
+	// Check if the value is a string and the length is > 0
+	if (type != REG_SZ || !length)
+		return "";
+
+	char *path = (char*)malloc(length);
+	if (!path)
+		return "";
+
+	if (RegGetValue(hKey, fullKey.c_str(), "Path", RRF_RT_REG_SZ, NULL, path, &length) != ERROR_SUCCESS){
+		free(path);
+		return "";
+	}
+
+	std::string result(path);
+	free(path);
+
+	return result;
+}
+
 int main(int argc, char *argv[]){
 
 	// When compiling with wineg++ the _controlfp_s isn't available
@@ -371,13 +401,12 @@ int main(int argc, char *argv[]){
 		_controlfp_s(&control_word, _CW_DEFAULT, MCW_PC);
 	#endif
 
-	if(argc < 3)
-		throw std::runtime_error("Not enough arguments supplied");
 
-	std::string dllPath 		= std::string(argv[1]);
-	std::string dllName 		= std::string(argv[2]);
+	std::string dllPath;
+	std::string dllName;
+	std::string regKey;
 
-	for(int i = 3; i < argc; i++){
+	for(int i = 1; i < argc; i++){
 		std::string arg = std::string(argv[i]);
 		std::transform(arg.begin(), arg.end(), arg.begin(), ::tolower);
 
@@ -390,7 +419,57 @@ int main(int argc, char *argv[]){
 		}else if(	arg == "--usermodetimer"){
 			usermodeTimer 		= true;
 
+		}else if(	arg == "--dllpath"){
+			if (i >= argc - 1) break;
+			dllPath = std::string(argv[i+1]);
+			i++;
+
+		}else if(	arg == "--dllname"){
+			if (i >= argc - 1) break;
+			dllName = std::string(argv[i+1]);
+			i++;
+
+		}else if(	arg == "--regkey"){
+			if (i >= argc - 1) break;
+			regKey = std::string(argv[i+1]);
+			i++;
+
 		}
+	}
+
+	if (regKey == "" && (dllPath == "" || dllName == "")){
+		DBG_ERROR("You must at least specify --regKey or --dllPath and --dllName.");
+		return 1;
+	}
+
+	while (dllPath == "" || dllName == ""){
+		std::string path;
+
+		path = readPathFromRegistry(HKEY_CURRENT_USER, regKey);
+
+		if(path == "")
+			path = readPathFromRegistry(HKEY_LOCAL_MACHINE, regKey);
+
+		if(path == "")
+			break;
+
+		size_t pos = path.find_last_of('\\');
+		if (pos == std::string::npos)
+			break;
+
+		if (pos >= path.length() - 1)
+			break;
+
+		dllPath = path.substr(0, pos);
+		dllName = path.substr(pos+1, std::string::npos);
+		DBG_INFO("Read dllPath %s and dllName %s from registry", dllPath.c_str(), dllName.c_str());
+		break;
+	}
+
+
+	if (dllPath == "" || dllName == ""){
+		DBG_ERROR("Couldn't read dllPath and dllName from registry");
+		return 1;
 	}
 
 	DBG_INFO("windowless mode is %s.", (isWindowlessMode ? "on" : "off"));
