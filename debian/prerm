@@ -1,6 +1,0 @@
-#!/bin/sh -e
-#DEBHELPER#
-
-if [ -h "/usr/lib/mozilla/plugins/libpipelight.so" ]; then
-	rm -f "/usr/lib/mozilla/plugins/libpipelight.so"
-fi

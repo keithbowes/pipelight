@@ -10,7 +10,7 @@ getInstallDir()
 	if [[ $(/usr/bin/id -u) -eq 0 ]]; then
 		installdir="/usr/lib/mozilla/plugins/"
 	else
-		installdir="$HOME/.mozilla/plugins-test/"
+		installdir="$HOME/.mozilla/plugins/"
 	fi
 }
 
@@ -31,6 +31,8 @@ usage ()
 	echo "Usage : pipelight-plugin OPTIONS"
 	echo ""
 	echo "Options:"
+	echo "	--create-hardlinks	create hardlinks for plugins"
+	echo "	--remove-hardlinks	remove hardlinks for plugins"
 	echo "	--enable  plugin 	enable plugin"
 	echo "	--disable plugin 	disable plugin"
 	echo ""
