@@ -1,5 +1,5 @@
 
-ifeq ($(USE_WINE_GCC),1)
+ifeq ($(USE_WINEGCC),1)
 	CXX 	:= wineg++ -m32
 else
 	CXX 	:= i686-w64-mingw32-g++

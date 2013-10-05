@@ -15,8 +15,17 @@ FILE *commPipeOut	= NULL;
 FILE *commPipeIn	= NULL;
 
 /* global mappings */
-std::map<HMGR_HANDLE, void*> idToPtr[HMGR_NUMTYPES] INIT_EARLY;
-std::map<void*, HMGR_HANDLE> ptrToId[HMGR_NUMTYPES] INIT_EARLY;
+static inline std::map<HMGR_HANDLE, void*>& __idToPtr(int type){
+	static std::map<HMGR_HANDLE, void*> idToPtr[HMGR_NUMTYPES];
+	DBG_ASSERT(type >= 0 && type < HMGR_NUMTYPES, "invalid handle type.");
+	return idToPtr[type];
+}
+
+static inline std::map<void*, HMGR_HANDLE>& __ptrToId(int type){
+	static std::map<void*, HMGR_HANDLE> ptrToId[HMGR_NUMTYPES];
+	DBG_ASSERT(type >= 0 && type < HMGR_NUMTYPES, "invalid handle type.");
+	return ptrToId[type];
+}
 
 /* freeSharedPtrMemory */
 void freeSharedPtrMemory(char *memory){
@@ -608,17 +617,16 @@ NotifyDataRefCount* createNotifyData(HMGR_HANDLE id){
 	Allocate a unused ID for a specific type
 */
 HMGR_HANDLE handleManager_getFreeID(HMGR_TYPE type){
+	std::map<HMGR_HANDLE, void*> &idToPtr = __idToPtr(type);
 	HMGR_HANDLE id;
 
-	DBG_ASSERT(type >= 0 && type < HMGR_NUMTYPES, "invalid handle type.");
-
-	if (idToPtr[type].empty())
+	if (idToPtr.empty())
 		return 1;
 
-	id = idToPtr[type].rbegin()->first + 1;
+	id = idToPtr.rbegin()->first + 1;
 
 	if (!id){
-		while (idToPtr[type].find(++id) != idToPtr[type].end()){ /* empty */ }
+		while (idToPtr.find(++id) != idToPtr.end()){ /* empty */ }
 	}
 
 	return id;
@@ -628,10 +636,9 @@ HMGR_HANDLE handleManager_getFreeID(HMGR_TYPE type){
 	Convert ID to ptr
 */
 void* handleManager_idToPtr(HMGR_TYPE type, HMGR_HANDLE id, NPP instance, NPClass *cls, HMGR_EXISTS exists){
+	std::map<HMGR_HANDLE, void*> &idToPtr = __idToPtr(type);
 	std::map<HMGR_HANDLE, void*>::iterator it;
 	void* ptr;
-
-	DBG_ASSERT(type >= 0 && type < HMGR_NUMTYPES, "invalid handle type.");
 
 	/* handle null id */
 	if (!id){
@@ -640,8 +647,8 @@ void* handleManager_idToPtr(HMGR_TYPE type, HMGR_HANDLE id, NPP instance, NPClas
 	}
 
 	/* translate id -> ptr */
-	it = idToPtr[type].find(id);
-	if (it != idToPtr[type].end()){
+	it = idToPtr.find(id);
+	if (it != idToPtr.end()){
 		DBG_ASSERT(!cls && exists != HMGR_SHOULD_NOT_EXIST, "expected new handle, but I already got this one.");
 		return it->second;
 	}
@@ -670,8 +677,10 @@ void* handleManager_idToPtr(HMGR_TYPE type, HMGR_HANDLE id, NPP instance, NPClas
 
 	#endif
 
-	idToPtr[type][id] 	= ptr;
-	ptrToId[type][ptr]	= id;
+	std::map<void*, HMGR_HANDLE> &ptrToId = __ptrToId(type);
+
+	idToPtr[id] 	= ptr;
+	ptrToId[ptr]	= id;
 	return ptr;
 }
 
@@ -679,18 +688,17 @@ void* handleManager_idToPtr(HMGR_TYPE type, HMGR_HANDLE id, NPP instance, NPClas
 	Convert ptr to ID
 */
 HMGR_HANDLE handleManager_ptrToId(HMGR_TYPE type, void* ptr, HMGR_EXISTS exists){
+	std::map<void*, HMGR_HANDLE> &ptrToId = __ptrToId(type);
 	std::map<void*, HMGR_HANDLE>::iterator it;
 	HMGR_HANDLE id;
-
-	DBG_ASSERT(type >= 0 && type < HMGR_NUMTYPES, "invalid handle type.");
 
 	if(!ptr){
 		DBG_ASSERT(type == HMGR_TYPE_NotifyData, "trying to translate a null pointer.");
 		return 0;
 	}
 
-	it = ptrToId[type].find(ptr);
-	if (it != ptrToId[type].end()){
+	it = ptrToId.find(ptr);
+	if (it != ptrToId.end()){
 		DBG_ASSERT(exists != HMGR_SHOULD_NOT_EXIST, "expected new handle, but I already got this one.");
 		return it->second;
 	}
@@ -706,8 +714,10 @@ HMGR_HANDLE handleManager_ptrToId(HMGR_TYPE type, void* ptr, HMGR_EXISTS exists)
 	id = handleManager_getFreeID(type);
 	DBG_ASSERT(id != 0, "unable to find free id.");
 
-	idToPtr[type][id] 	= ptr;
-	ptrToId[type][ptr]	= id;
+	std::map<HMGR_HANDLE, void*> &idToPtr = __idToPtr(type);
+
+	idToPtr[id] 	= ptr;
+	ptrToId[ptr]	= id;
 	return id;
 }
 
@@ -715,37 +725,38 @@ HMGR_HANDLE handleManager_ptrToId(HMGR_TYPE type, void* ptr, HMGR_EXISTS exists)
 	Delete by ptr
 */
 void handleManager_removeByPtr(HMGR_TYPE type, void* ptr){
+	std::map<HMGR_HANDLE, void*> &idToPtr = __idToPtr(type);
+	std::map<void*, HMGR_HANDLE> &ptrToId = __ptrToId(type);
 	std::map<void*, HMGR_HANDLE>::iterator it;
 
-	DBG_ASSERT(type >= 0 && type < HMGR_NUMTYPES, "invalid handle type.");
+	it = ptrToId.find(ptr);
+	DBG_ASSERT(it != ptrToId.end(), "trying to remove handle by nonexistent pointer.");
 
-	it = ptrToId[type].find(ptr);
-	DBG_ASSERT(it != ptrToId[type].end(), "trying to remove handle by nonexistent pointer.");
-
-	idToPtr[type].erase(it->second);
-	ptrToId[type].erase(it);
+	idToPtr.erase(it->second);
+	ptrToId.erase(it);
 }
 
 /*
 	Check if handle exists
 */
 bool handleManager_existsByPtr(HMGR_TYPE type, void* ptr){
+	std::map<void*, HMGR_HANDLE> &ptrToId = __ptrToId(type);
 	std::map<void*, HMGR_HANDLE>::iterator it;
 
-	DBG_ASSERT(type >= 0 && type < HMGR_NUMTYPES, "invalid handle type.");
-
-	it = ptrToId[type].find(ptr);
-	return (it != ptrToId[type].end());
+	it = ptrToId.find(ptr);
+	return (it != ptrToId.end());
 }
 
 /*
 	Find any instance
 */
 NPP handleManager_findInstance(){
-	if (idToPtr[HMGR_TYPE_NPPInstance].empty())
+	std::map<HMGR_HANDLE, void*> &idToPtr = __idToPtr(HMGR_TYPE_NPPInstance);
+
+	if (idToPtr.empty())
 		return NULL;
 
-	return (NPP)idToPtr[HMGR_TYPE_NPPInstance].rbegin()->second;
+	return (NPP)idToPtr.rbegin()->second;
 }
 
 /*
@@ -756,8 +767,11 @@ size_t handleManager_count(){
 	int type;
 
 	for (type = 0; type < HMGR_NUMTYPES; type++){
-		tmp = idToPtr[type].size();
-		DBG_ASSERT(tmp == ptrToId[type].size(), "number of handles idToPtr and ptrToId  doesn't match.");
+		std::map<HMGR_HANDLE, void*> &idToPtr = __idToPtr(type);
+		std::map<void*, HMGR_HANDLE> &ptrToId = __ptrToId(type);
+
+		tmp = idToPtr.size();
+		DBG_ASSERT(tmp == ptrToId.size(), "number of handles idToPtr and ptrToId  doesn't match.");
 		count += tmp;
 	}
 
@@ -771,8 +785,11 @@ void handleManager_clear(){
 	int type;
 
 	for (type = 0; type < HMGR_NUMTYPES; type++){
-		idToPtr[type].clear();
-		ptrToId[type].clear();
+		std::map<HMGR_HANDLE, void*> &idToPtr = __idToPtr(type);
+		std::map<void*, HMGR_HANDLE> &ptrToId = __ptrToId(type);
+
+		idToPtr.clear();
+		ptrToId.clear();
 	}
 }
 

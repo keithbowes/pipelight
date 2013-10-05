@@ -24,11 +24,7 @@
 #endif
 
 /* init */
-#ifdef __WIN32__
-
-#define INIT_EARLY /* nothing */
-
-#else
+#ifndef __WIN32__
 
 #define INIT_EARLY 	__attribute__((init_priority(101)))
 #define CONSTRUCTOR __attribute__((constructor(102)))
