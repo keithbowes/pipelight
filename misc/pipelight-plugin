@@ -2,6 +2,7 @@
 sytemdir="/usr/lib/pipelight/"
 plugin=""
 installdir=""
+declare -a plugins=('silverlight' 'flash');
 
 getInstallDir()
 {
@@ -9,19 +10,19 @@ getInstallDir()
 	if [[ $(/usr/bin/id -u) -eq 0 ]]; then
 		installdir="/usr/lib/mozilla/plugins/"
 	else
-		installdir="$HOME/.mozilla/plugins/"
+		installdir="$HOME/.mozilla/plugins-test/"
 	fi
 }
 
 checkPlugin ()
 {
-	if [ "${plugin}" = "silverlight" ]; then
-		return 0
-	elif [ "${plugin}" = "flash" ]; then
-		return 0
-	else
-		return 1
-	fi
+	for i in "${plugins[@]}"; do
+		if [ "${plugin}" = "${i}" ]; then
+			return 0
+		fi
+	done
+
+	return 1
 }
 
 usage ()
@@ -113,8 +114,52 @@ disablePlugin ()
 	return 0;
 }
 
+createHardlinks ()
+{
+	if [ ! -f "${sytemdir}libpipelight.so" ]; then
+		echo "Error: Can't find Pipelight installation.";
+		return 1
+	fi
 
-if [ $# -le 1 ]; then
+	for i in "${plugins[@]}"; do
+
+		if [ -e "${sytemdir}libpipelight-${i}.so" ]; then
+			rm -f "${sytemdir}libpipelight-${i}.so"
+		fi
+
+		ln "${sytemdir}libpipelight.so" "${sytemdir}libpipelight-${i}.so"
+		if [ $? -ne 0 ]; then
+			echo "Error: failed to create hardlinks from ${sytemdir}libpipelight.so to ${sytemdir}libpipelight-${i}.so"
+			return 1;
+		fi	 
+	done
+
+	return 0;
+}
+
+removeHardlinks ()
+{
+	if [ ! -d "${sytemdir}" ]; then
+		echo "Error: Can't find Pipelight dir.";
+		return 1
+	fi
+
+	for i in "${plugins[@]}"; do
+
+		if [ -e "${sytemdir}libpipelight-${i}.so" ]; then
+			rm -f "${sytemdir}libpipelight-${i}.so"
+			if [ $? -ne 0 ]; then
+				echo "Error: Failed to remove ${sytemdir}libpipelight-${i}.so"
+				return 1;
+			fi	
+		fi
+
+	done
+
+	return 0;
+}
+
+if [ $# -le 0 ]; then
 	usage
 	exit 0
 fi
@@ -132,6 +177,12 @@ while [[ $# > 0 ]] ; do
 			shift
 			plugin=$1
 			disablePlugin
+			;;
+		--create-hardlinks)
+			createHardlinks
+			;;
+		--remove-hardlinks)
+			removeHardlinks
 			;;
 		--help)
 			usage
