@@ -13,12 +13,12 @@
 
 static std::string getHomeDirectory(){
 	char *homeDir = getenv("HOME");
-	if(homeDir)
+	if (homeDir)
 		return std::string(homeDir);
 	
 	// Do we need getpwuid_r() here ?
 	struct passwd* info = getpwuid(getuid());
-	if(!info || !info->pw_dir)
+	if (!info || !info->pw_dir)
 		return "";
 	
 	return std::string(info->pw_dir);
@@ -46,8 +46,8 @@ static bool splitConfigValue(std::string line, std::string &key, std::string &va
 static std::string readUntil(const char* &str, char abort = 0){
 	const char *start = str;
 
-	while(*str){
-		if( *str == abort || (!abort && !( (*str >= 'A' && *str <= 'Z') || (*str >= 'a' && *str <= 'z') || (*str >= '0' && *str <= '9') || *str == '_' ) ) ){
+	while (*str){
+		if (*str == abort || (!abort && !( (*str >= 'A' && *str <= 'Z') || (*str >= 'a' && *str <= 'z') || (*str >= '0' && *str <= '9') || *str == '_' ) )){
 			break;
 		}
 
@@ -62,17 +62,17 @@ static std::string replaceVariables(const std::map<std::string, std::string> &va
 	std::string varname = "";
 	std::map<std::string, std::string>::const_iterator it;
 
-	while(*str){
+	while (*str){
 
-		if(*str == '$'){ // Not escaped
+		if (*str == '$'){ // Not escaped
 			str++;
 
-			if(*str == '$'){ // Escape
+			if (*str == '$'){ // Escape
 				output.append(1, *str);
 				str++;
 				continue;
 
-			}else if(*str == '{'){ // In brackets
+			}else if (*str == '{'){ // In brackets
 				str++;
 
 				varname = readUntil(str, '}');
@@ -104,13 +104,13 @@ static  bool openConfig(std::ifstream &configFile, std::string &configPath){
 	std::string homeDir = getHomeDirectory();
 
 	configPath = getEnvironmentString("PIPELIGHT_CONFIG");
-	if(configPath != ""){
+	if (configPath != ""){
 		DBG_INFO("trying to load config file from '%s'.", configPath.c_str());
 		configFile.open(configPath);
 		if(configFile.is_open()) return true;
 	}
 
-	if(homeDir != ""){
+	if (homeDir != ""){
 		configPath = homeDir + "/.config/pipelight";
 		DBG_INFO("trying to load config file from '%s'.", configPath.c_str());
 		configFile.open(configPath);
@@ -120,12 +120,12 @@ static  bool openConfig(std::ifstream &configFile, std::string &configPath){
 	configPath = "/etc/pipelight";
 	DBG_INFO("trying to load config file from '%s'.", configPath.c_str());
 	configFile.open(configPath);
-	if(configFile.is_open()) return true;
+	if (configFile.is_open()) return true;
 
 	configPath = PREFIX "/share/pipelight/pipelight";
 	DBG_INFO("trying to load config file from '%s'.", configPath.c_str());
 	configFile.open(configPath);
-	if(configFile.is_open()) return true;
+	if (configFile.is_open()) return true;
 
 	return false;
 }
@@ -138,7 +138,7 @@ bool loadConfig(PluginConfig &config){
 
 	/* Add homedir to variables */
 	std::string homeDir = getHomeDirectory();
-	if(homeDir != "") variables["$home"] = homeDir;
+	if (homeDir != "") variables["$home"] = homeDir;
 
 	/* Initialize config variables with default values */
 	config.configPath			= "";
@@ -176,7 +176,7 @@ bool loadConfig(PluginConfig &config){
 
 	std::ifstream 	configFile;
 
-	if(!openConfig(configFile, config.configPath)){
+	if (!openConfig(configFile, config.configPath)){
 		DBG_ERROR("couldn't find any configuration file.");
 		return false;
 	}
@@ -187,7 +187,7 @@ bool loadConfig(PluginConfig &config){
 		getline(configFile, line);
 
 		line = trim(line);
-		if(line.length() == 0)
+		if (line.length() == 0)
 			continue;
 
 		size_t pos;
@@ -196,7 +196,7 @@ bool loadConfig(PluginConfig &config){
 		pos = line.find_first_of("#"); 
 		if (pos != std::string::npos){
 			
-			if(pos == 0)
+			if (pos == 0)
 				continue;
 
 			line = line.substr(0, pos);
@@ -205,7 +205,7 @@ bool loadConfig(PluginConfig &config){
 		std::string key;
 		std::string value;
 
-		if(!splitConfigValue(line, key, value))
+		if (!splitConfigValue(line, key, value))
 			continue;
 
 		// convert key to lower case
@@ -216,93 +216,93 @@ bool loadConfig(PluginConfig &config){
 
 		// check for variables
 		// splitConfiguration takes care that the key has at least one character
-		if(key[0] == '$'){
+		if (key[0] == '$'){
 			variables[key] = value;
 			continue;
 		}
 
-		if(		key == "diagnosticmode"){
+		if (	key == "diagnosticmode"){
 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 			config.diagnosticMode = (value == "true" || value == "yes");
 
-		}else if(key == "sandboxpath"){
+		}else if (key == "sandboxpath"){
 			config.sandboxPath = value;
 
-		}else if(key == "winepath"){
+		}else if (key == "winepath"){
 			config.winePath = value;
 
 			if(!checkIsFile(config.winePath))
 				config.winePath += "/bin/wine";
 
-		}else if(key == "winearch") {
+		}else if (key == "winearch") {
 			config.wineArch = value;
 
-		}else if(key == "wineprefix"){
+		}else if (key == "wineprefix"){
 			config.winePrefix = value;
 
-		}else if(key == "winedlloverrides"){
+		}else if (key == "winedlloverrides"){
 			config.wineDLLOverrides = value;
 
-		}else if(key == "dllpath"){
+		}else if (key == "dllpath"){
 			config.dllPath = value;	
 
-		}else if(key == "dllname"){
+		}else if (key == "dllname"){
 			config.dllName = value;
 
-		}else if(key == "pluginloaderpath"){
+		}else if (key == "pluginloaderpath"){
 			config.pluginLoaderPath = value;
 
-		}else if(key == "gccruntimedlls"){
+		}else if (key == "gccruntimedlls"){
 			config.gccRuntimeDLLs = value;
 
-		}else if(key == "windowlessmode"){
+		}else if (key == "windowlessmode"){
 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 			config.windowlessMode = (value == "true" || value == "yes");
 
-		}else if(key == "embed"){
+		}else if (key == "embed"){
 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 			config.embed = (value == "true" || value == "yes");
 
-		}else if(key == "fakeversion"){
+		}else if (key == "fakeversion"){
 			config.fakeVersion = value;
 
-		}else if(key == "overwritearg"){
+		}else if (key == "overwritearg"){
 			std::string argKey;
 			std::string argValue;
 
-			if(!splitConfigValue(value, argKey, argValue))
+			if (!splitConfigValue(value, argKey, argValue))
 				continue;
 
 			config.overwriteArgs[argKey] = argValue;
 
-		}else if(key == "dependencyinstaller"){
+		}else if (key == "dependencyinstaller"){
 			config.dependencyInstaller = value;
 
-		}else if(key == "silverlightversion"){
+		}else if (key == "silverlightversion"){
 			config.dependencies.insert(config.dependencies.begin(), "wine-" + value + "-installer");
 
-		}else if(key == "dependency"){
+		}else if (key == "dependency"){
 			if(value != "") config.dependencies.push_back(value);
 
-		}else if(key == "quietinstallation"){
+		}else if (key == "quietinstallation"){
 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 			config.quietInstallation = (value == "true" || value == "yes");
 
-		}else if(key == "graphicdrivercheck"){
+		}else if (key == "graphicdrivercheck"){
 			config.graphicDriverCheck = value;
 
-		}else if(key == "eventasynccall"){
+		}else if (key == "eventasynccall"){
 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 			config.eventAsyncCall = (value == "true" || value == "yes");
 
-		}else if(key == "operadetection"){
+		}else if (key == "operadetection"){
 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 			config.operaDetection = (value == "true" || value == "yes");
 
-		}else if(key == "executejavascript"){
+		}else if (key == "executejavascript"){
 			config.executeJavascript += value + "\n";
 
-		}else if(key == "experimental-usermodetimer"){
+		}else if (key == "experimental-usermodetimer"){
 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 			config.experimental_usermodeTimer = (value == "true" || value == "yes");
 

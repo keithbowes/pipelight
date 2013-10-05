@@ -20,10 +20,10 @@ bool debugSection(NPP instance, std::string name){
 
 	bool resultBool = false;
 
-	if( sBrowserFuncs->getvalue(instance, NPNVWindowNPObject, &windowObj) == NPERR_NO_ERROR ){
+	if (sBrowserFuncs->getvalue(instance, NPNVWindowNPObject, &windowObj) == NPERR_NO_ERROR){
 		functionName = sBrowserFuncs->getstringidentifier("debugSection");
 
-		if( sBrowserFuncs->invoke(instance, windowObj, functionName, &arg, 1, &resultVariant) == NPERR_NO_ERROR ){
+		if (sBrowserFuncs->invoke(instance, windowObj, functionName, &arg, 1, &resultVariant) == NPERR_NO_ERROR){
 			sBrowserFuncs->releasevariantvalue(&resultVariant);
 
 			resultBool = true;			
@@ -50,10 +50,10 @@ bool debugSimpleMessage(NPP instance, std::string message){
 
 	bool resultBool = false;
 
-	if( sBrowserFuncs->getvalue(instance, NPNVWindowNPObject, &windowObj) == NPERR_NO_ERROR ){
+	if (sBrowserFuncs->getvalue(instance, NPNVWindowNPObject, &windowObj) == NPERR_NO_ERROR){
 		functionName = sBrowserFuncs->getstringidentifier("debugSimpleMessage");
 
-		if( sBrowserFuncs->invoke(instance, windowObj, functionName, &arg, 1, &resultVariant) == NPERR_NO_ERROR ){
+		if (sBrowserFuncs->invoke(instance, windowObj, functionName, &arg, 1, &resultVariant) == NPERR_NO_ERROR){
 			sBrowserFuncs->releasevariantvalue(&resultVariant);
 
 			resultBool = true;			
@@ -78,7 +78,7 @@ bool debugStatusMessage(NPP instance, std::string name, std::string result, std:
 	args[1].value.stringValue.UTF8Characters 	= result.c_str();
 	args[1].value.stringValue.UTF8Length		= result.size();
 
-	if(additionalMessage != ""){
+	if (additionalMessage != ""){
 		args[2].type = NPVariantType_String;
 		args[2].value.stringValue.UTF8Characters 	= additionalMessage.c_str();
 		args[2].value.stringValue.UTF8Length		= additionalMessage.size();
@@ -93,10 +93,10 @@ bool debugStatusMessage(NPP instance, std::string name, std::string result, std:
 
 	bool resultBool = false;
 
-	if( sBrowserFuncs->getvalue(instance, NPNVWindowNPObject, &windowObj) == NPERR_NO_ERROR ){
+	if (sBrowserFuncs->getvalue(instance, NPNVWindowNPObject, &windowObj) == NPERR_NO_ERROR){
 		functionName = sBrowserFuncs->getstringidentifier("debugStatusMessage");
 
-		if( sBrowserFuncs->invoke(instance, windowObj, functionName, (NPVariant*)&args, 3, &resultVariant) == NPERR_NO_ERROR ){
+		if (sBrowserFuncs->invoke(instance, windowObj, functionName, (NPVariant*)&args, 3, &resultVariant) == NPERR_NO_ERROR){
 			sBrowserFuncs->releasevariantvalue(&resultVariant);
 
 			resultBool = true;
@@ -114,7 +114,7 @@ void debugFile(NPP instance,std::string filename){
 
 	debugStatusMessage(instance, "Loading file " + filename, file.is_open() ? "okay": "failed");
 
-	if(!file.is_open()) return;
+	if (!file.is_open()) return;
 
 	while (file.good()){
 		std::string line;
@@ -128,7 +128,7 @@ void runDiagnostic(NPP instance){
 	DBG_INFO("running diagnostic checks.");
 
 	// Initialization okay, but plugin cache still contains an error
-	if(initOkay){
+	if (initOkay){
 		debugStatusMessage(instance, \
 			"Valid browser plugin cache", \
 			"failed", \
@@ -141,7 +141,7 @@ void runDiagnostic(NPP instance){
 	debugSection(instance, "Configuration of Pipelight");
 
 	// No configuration found
-	if(config.configPath == "" || !checkIfExists(config.configPath)){
+	if (config.configPath == "" || !checkIfExists(config.configPath)){
 		debugStatusMessage(instance, \
 			"Checking if config exists", \
 			"failed", \
@@ -168,7 +168,7 @@ void runDiagnostic(NPP instance){
 		(config.winePath != "") ? config.winePath : "not set" );
 
 	// Check if wine exists
-	if(config.winePath != ""){
+	if (config.winePath != ""){
 
 		debugStatusMessage(instance, \
 			"Checking if wine exists", \
@@ -185,7 +185,7 @@ void runDiagnostic(NPP instance){
 		winePrefixFound ? "okay" : "failed", \
 		(config.winePrefix != "") ? config.winePrefix : "not set");
 
-	if(config.winePrefix == ""){
+	if (config.winePrefix == ""){
 		debugSimpleMessage(instance, "As you have no winePrefix defined the environment variable WINEPREFIX will be used.");
 		debugSimpleMessage(instance, "This script is not able to check if everything is okay with your wine prefix!");	
 	}
@@ -193,16 +193,16 @@ void runDiagnostic(NPP instance){
 	// Check dllPath / dllname
 	std::string unixPath 	= "";
 	bool dllPathSet 		= (config.dllPath != "" && config.dllName != "");
-	if(dllPathSet) unixPath	= convertWinePath(config.dllPath + "\\" + config.dllName);
+	if (dllPathSet) unixPath= convertWinePath(config.dllPath + "\\" + config.dllName);
 	bool dllPathFound 		= (unixPath != "" && checkIfExists(unixPath));
 
 	debugStatusMessage(instance, "Checking if dllPath/dllname is set and exists", \
 		dllPathFound ? "okay" : "failed");
 
-	if( config.winePrefix != "" && !checkIfExists(config.winePrefix) ){
+	if (config.winePrefix != "" && !checkIfExists(config.winePrefix)){
 		debugSimpleMessage(instance, "The whole wine prefix " + config.winePrefix + " doesn't exist");
 
-	}else if(unixPath == ""){
+	}else if (unixPath == ""){
 		debugSimpleMessage(instance, "Unable to verify if the DLL exists, please check this manually!");
 
 	}else{
@@ -212,18 +212,18 @@ void runDiagnostic(NPP instance){
 	debugSimpleMessage(instance, "(dllPath = " + config.dllPath + ")");
 	debugSimpleMessage(instance, "(dllName = " + config.dllName + ")");
 
-	if(!winePrefixFound || !dllPathFound){
+	if (!winePrefixFound || !dllPathFound){
 		bool dependencyInstallerFound = (config.dependencyInstaller != "" && checkIfExists(config.dependencyInstaller));
 
 		debugStatusMessage(instance, "Checking if dependencyInstaller is set and exists", \
 			dependencyInstallerFound ? "okay" : "failed", \
 			(config.dependencyInstaller != "") ? config.dependencyInstaller : "not set");
 
-		if(!dependencyInstallerFound){
+		if (!dependencyInstallerFound){
 			bool silverlightVersionOkay = false;
 
-			for(std::string &dep: config.dependencies){
-				if( 	dep == "wine-silverlight4-installer" 	|| \
+			for (std::string &dep: config.dependencies){
+				if ( 	dep == "wine-silverlight4-installer" 	|| \
 						dep == "wine-silverlight5.0-installer" 	|| \
 						dep == "wine-silverlight5.1-installer" ){
 					silverlightVersionOkay = true;
@@ -234,7 +234,7 @@ void runDiagnostic(NPP instance){
 				"Checking if silverlightVersion is correct", \
 				silverlightVersionOkay ? "okay" : "failed");
 
-			if(!silverlightVersionOkay){
+			if (!silverlightVersionOkay){
 				debugSimpleMessage(instance, "The version you have specified is none of the default ones!");
 			}
 

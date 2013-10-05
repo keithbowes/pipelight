@@ -288,7 +288,7 @@ void* timerThread(void* argument){
 		// If no instance is running, just terminate
 		if (!eventTimerInstance){
 			sem_wait(&eventThreadSemRequestAsyncCall);
-			if (!eventTimerInstance)	break;
+			if (!eventTimerInstance) break;
 		}
 
 		// Request an asynccall
@@ -576,7 +576,7 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window) {
 	Window win = (Window)readResultInt32();
 
 	if (win){
-		if(window->window){
+		if (window->window){
 
 			Display *display = XOpenDisplay(NULL);
 
@@ -788,7 +788,7 @@ NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 
 			result 						= readInt32(stack);
 
-			if(result == NPERR_NO_ERROR)
+			if (result == NPERR_NO_ERROR)
 				*((NPObject**)value) 	= readHandleObj(stack);
 			break;
 

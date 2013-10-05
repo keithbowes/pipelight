@@ -27,7 +27,7 @@ NPError NP_LOADDS NPN_PostURL(NPP instance, const char* url, const char* window,
 	DBG_TRACE("( instance=%p, url='%s', window='%s', len=%d, buf=%p, file=%d )", instance, url, window, len, buf, file);
 
 	// File upload would require to convert the wine path to a linux path - too complicated as this function isnt used in many plugins
-	if(file){
+	if (file){
 		NOTIMPLEMENTED("file argument not supported.");
 		return NPERR_FILE_NOT_FOUND;
 	}
@@ -49,7 +49,7 @@ NPError NP_LOADDS NPN_RequestRead(NPStream* stream, NPByteRange* rangeList){
 	// Count the number of elements in the linked list
 	uint32_t rangeCount = 0;
 
-	while(rangeList){
+	while (rangeList){
 		rangeCount++;
 
 		writeInt32(rangeList->length);
@@ -79,7 +79,7 @@ NPError NP_LOADDS NPN_NewStream(NPP instance, NPMIMEType type, const char* windo
 
 	NPError result = readInt32(stack);
 
-	if(result == NPERR_NO_ERROR)
+	if (result == NPERR_NO_ERROR)
 		*stream 	= readHandleStream(stack);
 
 	return NPERR_NO_ERROR;		
@@ -106,7 +106,6 @@ NPError NP_LOADDS NPN_DestroyStream(NPP instance, NPStream* stream, NPReason rea
 	callFunction(FUNCTION_NPN_DESTROY_STREAM);
 
 	NPError result = readResultInt32();
-
 	return result;	
 }
 
@@ -152,9 +151,8 @@ void* NP_LOADDS NPN_MemAlloc(uint32_t size){
 void NP_LOADDS NPN_MemFree(void* ptr){
 	DBG_TRACE("( ptr=%p )", ptr);
 
-	if (ptr){
+	if (ptr)
 		free(ptr);
-	}
 }
 
 // MacOS only, returns number of freed bytes
@@ -202,7 +200,7 @@ NPError NP_LOADDS NPN_PostURLNotify(NPP instance, const char* url, const char* t
 	DBG_TRACE("( instance=%p, url='%s', target='%s', len=%d, buf=%p, file=%d, notifyData=%p )", instance, url, target, len, buf, file, notifyData);
 
 	// File upload would require to convert the wine path to a linux path - too complicated as this function isnt used in many plugins
-	if(file){
+	if (file){
 		NOTIMPLEMENTED("file argument not supported.");
 		return NPERR_FILE_NOT_FOUND;
 	}
@@ -237,7 +235,7 @@ NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 
 			result = readInt32(stack);
 
-			if(result == NPERR_NO_ERROR)
+			if (result == NPERR_NO_ERROR)
 				*((NPObject**)value) 	= readHandleObjIncRef(stack);
 
 			break;
@@ -250,7 +248,7 @@ NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 
 			result = readInt32(stack);
 
-			if(result == NPERR_NO_ERROR)
+			if (result == NPERR_NO_ERROR)
 				*((NPBool*)value) 	= (NPBool)readInt32(stack);
 
 			break;
@@ -271,7 +269,7 @@ NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 		case NPNVnetscapeWindow:
 			{
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
-				if(ndata && ndata->hWnd){
+				if (ndata && ndata->hWnd){
 					result = NPERR_NO_ERROR;
 					*((HWND*)value) = ndata->hWnd;
 
@@ -299,12 +297,12 @@ NPError NP_LOADDS NPN_SetValue(NPP instance, NPPVariable variable, void *value){
 
 	NPError result = NPERR_GENERIC_ERROR;
 
-	switch(variable){
+	switch (variable){
 
 		case NPPVpluginWindowBool:
 			{
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
-				if(ndata){
+				if (ndata){
 
 					// Update windowless mode
 					ndata->windowlessMode 	= ( value == NULL );
@@ -313,14 +311,13 @@ NPError NP_LOADDS NPN_SetValue(NPP instance, NPPVariable variable, void *value){
 					DBG_INFO("plugin instance switched windowless mode to %s.", (ndata->windowlessMode ? "on" : "off"));
 
 					// Update existing plugin window
-					if(ndata->hWnd && ndata->window){
+					if (ndata->hWnd && ndata->window){
 						NPWindow* window = ndata->window;
 
-						if(window->type == NPWindowTypeDrawable){
+						if (window->type == NPWindowTypeDrawable)
 							ReleaseDC(ndata->hWnd, (HDC)ndata->window->window);
-						}
 
-						if(ndata->windowlessMode){
+						if (ndata->windowlessMode){
 							window->window 			= GetDC(ndata->hWnd);
 							window->type 			= NPWindowTypeDrawable;
 						}else{
@@ -347,9 +344,9 @@ void NP_LOADDS NPN_InvalidateRect(NPP instance, NPRect *rect){
 	DBG_TRACE("( instance=%p, rect=%p )", instance, rect);
 
 	NetscapeData* ndata = (NetscapeData*)instance->ndata;
-	if(ndata){
-		if(ndata->hWnd){
-			if(ndata->windowlessMode){
+	if (ndata){
+		if (ndata->hWnd){
+			if (ndata->windowlessMode){
 				RECT r;
 				r.left 		= rect->left;
 				r.top 		= rect->top;
@@ -370,8 +367,8 @@ void NP_LOADDS NPN_InvalidateRegion(NPP instance, NPRegion region){
 	DBG_TRACE("( instance=%p, region=%p )", instance, region);
 
 	NetscapeData* ndata = (NetscapeData*)instance->ndata;
-	if(ndata){
-		if(ndata->hWnd){
+	if (ndata){
+		if (ndata->hWnd){
 			InvalidateRgn(ndata->hWnd, region, false);
 		}
 	}
@@ -381,8 +378,8 @@ void NP_LOADDS NPN_ForceRedraw(NPP instance){
 	DBG_TRACE("( instance=%p )", instance);
 
 	NetscapeData* ndata = (NetscapeData*)instance->ndata;
-	if(ndata){
-		if(ndata->hWnd){
+	if (ndata){
+		if (ndata->hWnd){
 			UpdateWindow(ndata->hWnd);
 		}
 	}
@@ -404,7 +401,7 @@ void NP_LOADDS NPN_GetStringIdentifiers(const NPUTF8** names, int32_t nameCount,
 	DBG_TRACE("( names=%p, nameCount=%d, identifier=%p )", names, nameCount, identifiers);
 
 	// Lazy implementation ;-)
-	for(int i = 0; i < nameCount; i++){
+	for (int i = 0; i < nameCount; i++){
 		identifiers[i] = names[i] ? NPN_GetStringIdentifier(names[i]) : NULL;
 	}
 }
@@ -476,10 +473,8 @@ NPObject* NP_LOADDS NPN_RetainObject(NPObject *obj){
 
 	if (obj){
 
-		if(obj->referenceCount != REFCOUNT_UNDEFINED){
+		if(obj->referenceCount != REFCOUNT_UNDEFINED)
 			obj->referenceCount++;
-
-		}
 
 		// Required to check if the reference counting is still appropriate
 		// (only used when DEBUG_LOG_HANDLES is on)
@@ -519,7 +514,7 @@ bool NP_LOADDS NPN_Invoke(NPP instance, NPObject* obj, NPIdentifier methodName, 
 
 	bool resultBool = readInt32(stack);
 
-	if(resultBool){
+	if (resultBool){
 		readVariantIncRef(stack, *result); // Refcount already incremented by invoke()
 	}else{
 		result->type 				= NPVariantType_Void;
@@ -543,7 +538,7 @@ bool NP_LOADDS NPN_InvokeDefault(NPP instance, NPObject* obj, const NPVariant *a
 
 	bool resultBool = readInt32(stack);
 
-	if(resultBool){
+	if (resultBool){
 		readVariantIncRef(stack, *result); // Refcount already incremented by invoke()
 	}else{
 		result->type 				= NPVariantType_Void;
@@ -566,7 +561,7 @@ bool NP_LOADDS NPN_Evaluate(NPP instance, NPObject *obj, NPString *script, NPVar
 
 	bool resultBool = readInt32(stack);
 
-	if(resultBool){
+	if (resultBool){
 		readVariantIncRef(stack, *result); // Refcount already incremented by evaluate()
 	}else{
 		result->type 				= NPVariantType_Void;
@@ -589,7 +584,7 @@ bool NP_LOADDS NPN_GetProperty(NPP instance, NPObject *obj, NPIdentifier propert
 
 	bool resultBool = readInt32(stack);
 
-	if(resultBool){
+	if (resultBool){
 		readVariantIncRef(stack, *result); // Refcount already incremented by getProperty()
 	}else{
 		result->type 				= NPVariantType_Void;
@@ -652,7 +647,7 @@ bool NP_LOADDS NPN_HasMethod(NPP instance, NPObject *obj, NPIdentifier propertyN
 void NP_LOADDS NPN_ReleaseVariantValue(NPVariant *variant){
 	DBG_TRACE("( variant=%p )", variant);
 
-	switch(variant->type){
+	switch (variant->type){
 
 		case NPVariantType_String:
 			if (variant->value.stringValue.UTF8Characters)
@@ -701,12 +696,12 @@ bool NP_LOADDS NPN_Enumerate(NPP instance, NPObject *obj, NPIdentifier **identif
 	readCommands(stack);
 
 	bool 	 result                         = (bool)readInt32(stack);
-	if(!result){
+	if (!result){
 		return false;
 	}
 
 	uint32_t identifierCount 				= readInt32(stack);
-	if(identifierCount == 0){
+	if (identifierCount == 0){
 		*identifier = NULL;
 		*count 		= 0;
 		return result;
@@ -715,7 +710,7 @@ bool NP_LOADDS NPN_Enumerate(NPP instance, NPObject *obj, NPIdentifier **identif
 	std::vector<NPIdentifier> identifiers 	= readIdentifierArray(stack, identifierCount);
 
 	NPIdentifier* identifierTable = (NPIdentifier*)malloc(identifierCount * sizeof(NPIdentifier));
-	if(!identifierTable){
+	if (!identifierTable){
 		return false;
 	}
 

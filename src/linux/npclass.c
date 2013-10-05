@@ -36,7 +36,7 @@ bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args,
 
 	bool resultBool = (bool)readInt32(stack);
 
-	if(resultBool){
+	if (resultBool){
 		readVariant(stack, *result); /* refcount already incremented by invoke() */
 	}else{
 		result->type 				= NPVariantType_Void;
@@ -59,7 +59,7 @@ bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t ar
 
 	bool resultBool = (bool)readInt32(stack);
 
-	if(resultBool){
+	if (resultBool){
 		readVariant(stack, *result); /* refcount already incremented by invoke() */
 	}else{
 		result->type 				= NPVariantType_Void;
@@ -91,7 +91,7 @@ bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result
 
 	bool resultBool = readInt32(stack); /* refcount already incremented by getProperty() */
 
-	if(resultBool){
+	if (resultBool){
 		readVariant(stack, *result);
 	}else{
 		result->type 				= NPVariantType_Void;
@@ -132,12 +132,12 @@ bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *coun
 	readCommands(stack);
 
 	bool 	 result                         = (bool)readInt32(stack);
-	if(!result){
+	if (!result){
 		return false;
 	}
 
 	uint32_t identifierCount 				= readInt32(stack);
-	if(identifierCount == 0){
+	if (identifierCount == 0){
 		*value = NULL;
 		*count = 0;
 		return result;
@@ -146,7 +146,7 @@ bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *coun
 	std::vector<NPIdentifier> identifiers 	= readIdentifierArray(stack, identifierCount);
 
 	NPIdentifier* identifierTable = (NPIdentifier*)sBrowserFuncs->memalloc(identifierCount * sizeof(NPIdentifier));
-	if(!identifierTable){
+	if (!identifierTable){
 		return false;
 	}
 
@@ -167,7 +167,7 @@ NPObject * NPAllocateFunction(NPP npp, NPClass *aClass){
 	DBG_TRACE("NPAllocateFunction( npp=%p, aClass=%p )", npp, aClass);
 
 	NPObject* obj = (NPObject*)malloc(sizeof(NPObject));
-	if(obj){
+	if (obj){
 		obj->_class = aClass;
 	}
 
@@ -177,10 +177,8 @@ NPObject * NPAllocateFunction(NPP npp, NPClass *aClass){
 void NPDeallocateFunction(NPObject *npobj){
 	DBG_TRACE("NPDeallocateFunction( npp=%p )", npobj);
 
-	if(npobj){
-		bool exists = handleManager_existsByPtr(HMGR_TYPE_NPObject, npobj);
-
-		if( exists ){
+	if (npobj){
+		if (handleManager_existsByPtr(HMGR_TYPE_NPObject, npobj)){
 			DBG_TRACE("seems to be a user created handle, calling WIN_HANDLE_MANAGER_FREE_OBJECT(%p).", npobj);
 
 			/* kill the object on the other side */

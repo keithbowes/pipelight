@@ -25,11 +25,10 @@ void* patchDLLExport(PVOID ModuleBase, const char* functionName, void* newFuncti
 	for (i = 0; i < max_name; i++)
 	{
 		ULONG ord = ordinals[i];
-		if(i >= max_name || ord >= max_func) {
+		if (i >= max_name || ord >= max_func)
 			break;
-		}
 
-		if(strcmp( (PCHAR) ModuleBase + names[i], functionName ) == 0 ){
+		if (strcmp( (PCHAR) ModuleBase + names[i], functionName ) == 0){
 			DBG_INFO("replaced API function %s.", functionName);
 
 			void* oldFunctionPtr = (PVOID)((PCHAR) ModuleBase + functions[ord]);
@@ -146,7 +145,7 @@ BOOL WINAPI myKillTimer(HWND hWnd, UINT_PTR uIDEvent){
 		LeaveCriticalSection(&timerCS);
 
 		// If it was successful, then return true
-		if(found) return 1;
+		if (found) return 1;
 	}
 
 	return originalKillTimer(hWnd, uIDEvent);
@@ -155,15 +154,15 @@ BOOL WINAPI myKillTimer(HWND hWnd, UINT_PTR uIDEvent){
 bool installTimerHook(){
 	HMODULE user32 = LoadLibrary("user32.dll");
 
-	if(!user32)
+	if (!user32)
 		return false;
 
 	InitializeCriticalSection(&timerCS);
 
-	if(!originalSetTimer)
+	if (!originalSetTimer)
 		originalSetTimer    = (SetTimerPtr)patchDLLExport(user32,   "SetTimer", (void*)&mySetTimer);
 	
-	if(!originalKillTimer)
+	if (!originalKillTimer)
 		originalKillTimer   = (KillTimerPtr)patchDLLExport(user32,  "KillTimer", (void*)&myKillTimer);
 
 	return (originalSetTimer && originalKillTimer);
