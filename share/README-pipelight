@@ -1,0 +1,4 @@
+The pipelight package is only a meta package to install pipelight-multi
+and configure Silverlight for system-wide installation and is only used
+to stay compatible with old installations. It should no longer be used
+for new installations, install pipelight-multi instead.

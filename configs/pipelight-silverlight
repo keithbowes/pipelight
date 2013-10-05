@@ -112,7 +112,7 @@ embed               = true
 # Path to the dependency installer script provided by the compholio
 # package. (optional)
 #
-dependencyInstaller = /usr/share/wine-browser-installer/install-dependency
+dependencyInstaller = DEPENDENCY_INSTALLER
 
 #
 # Dependencies which should be installed for this plugin via the

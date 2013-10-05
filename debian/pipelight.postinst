@@ -1,0 +1,12 @@
+#!/bin/sh -e
+#DEBHELPER#
+
+# Source debconf library.
+. /usr/share/debconf/confmodule
+
+db_get pipelight/system-wide-installation
+if [ "$RET" = "true" ]; then
+	pipelight-plugin --enable silverlight
+else
+	pipelight-plugin --disable silverlight
+fi
