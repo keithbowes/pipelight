@@ -1,0 +1,145 @@
+#!/usr/bin/env bash
+sytemdir="/usr/lib/pipelight/"
+plugin=""
+installdir=""
+
+getInstallDir()
+{
+	# check for root rights (-> system wide installation)
+	if [[ $(/usr/bin/id -u) -eq 0 ]]; then
+		installdir="/usr/lib/mozilla/plugins/"
+	else
+		installdir="$HOME/.mozilla/plugins/"
+	fi
+}
+
+checkPlugin ()
+{
+	if [ "${plugin}" = "silverlight" ]; then
+		return 0
+	elif [ "${plugin}" = "flash" ]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+usage ()
+{
+	echo ""
+	echo "Usage : pipelight-plugin OPTIONS"
+	echo ""
+	echo "Options:"
+	echo "	--enable  plugin 	enable plugin"
+	echo "	--disable plugin 	disable plugin"
+	echo ""
+}
+
+enablePlugin ()
+{
+	checkPlugin
+	if [ $? -ne 0 ]; then
+		echo "Error: Plugin $plugin is unknown";
+		return 1
+	fi
+
+	if [ ! -f "${sytemdir}libpipelight-${plugin}.so" ]; then
+		echo "Error: Your system is missing the hardlink from ${sytemdir}/libpipelight.so to ${sytemdir}/libpipelight-${plugin}.so";
+		return 1
+	fi
+
+	getInstallDir
+
+	# create dir if it does not exist yet
+	if [ ! -d ${installdir} ]; then
+		mkdir -p ${installdir}
+		if [ $? -ne 0 ]; then
+			echo "Error: failed to create ${installdir}"
+			return 1;
+		fi
+	fi
+
+	# check if there is already a file
+	if [ -e "${installdir}libpipelight-${plugin}.so" ]; then
+
+		# check if it is a symlink
+		if [ ! -L "${installdir}libpipelight-${plugin}.so" ]; then
+			echo "Error: ${installdir}libpipelight-${plugin}.so exists but is not a symlink, aborting."
+			return 1;
+		else
+			rm "${installdir}libpipelight-${plugin}.so"
+		fi
+	fi
+
+	ln -s "${sytemdir}libpipelight-${plugin}.so" "${installdir}libpipelight-${plugin}.so"
+	if [ $? -ne 0 ]; then
+		echo "Error: failed to create symlink from ${sytemdir}libpipelight-${plugin}.so to ${installdir}libpipelight-${plugin}.so"
+		return 1;
+	fi	 
+
+	echo "Plugin $plugin is now enabled";
+	return 0;
+}
+
+disablePlugin ()
+{
+	checkPlugin
+	if [ $? -ne 0 ]; then
+		echo "Error: Plugin $plugin is unknown";
+		return 1
+	fi
+
+	getInstallDir
+
+	# create dir if it does not exist yet
+	if [ ! -d ${installdir} ]; then
+		echo "Error: Your plugin dir ${installdir} does not exist? Do you confuse a systemwide and user installation?"
+		return 1;
+	fi
+
+	# check if there is a file
+	if [ -e "${installdir}libpipelight-${plugin}.so" ]; then
+
+		# check if it is a symlink
+		if [ ! -L "${installdir}libpipelight-${plugin}.so" ]; then
+			echo "Error: ${installdir}libpipelight-${plugin}.so exists but is not a symlink?"
+			return 1;
+		else
+			rm "${installdir}libpipelight-${plugin}.so"
+		fi
+	fi
+
+	echo "Plugin $plugin is now disabled";
+	return 0;
+}
+
+
+if [ $# -le 1 ]; then
+	usage
+	exit 0
+fi
+
+retval=0
+
+while [[ $# > 0 ]] ; do
+	case "$1" in
+		--enable)
+			shift
+			plugin=$1
+			enablePlugin
+			;;
+		--disable)
+			shift
+			plugin=$1
+			disablePlugin
+			;;
+		--help)
+			usage
+			exit
+			;;
+		*)
+			echo "Warning: unknown argument $1" >&2
+			;;
+	esac
+	shift
+done
