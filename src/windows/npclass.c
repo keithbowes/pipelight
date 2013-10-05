@@ -1,7 +1,4 @@
-#include "../npapi-headers/npapi.h"
-#include "../npapi-headers/npruntime.h"
-
-#include "../communication/communication.h"
+#include "../common/common.h"
 
 /*
 	NP Class
