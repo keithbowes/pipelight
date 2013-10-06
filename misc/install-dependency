@@ -35,7 +35,7 @@ atexit()
 {
 	local file
 	for file in "${ATEXIT_RM_LIST[@]}"; do
-		echo "Deleting temporary '$file'"
+		echo "Deleting temporary '$file'."
 		rm "$file"
 	done
 }
@@ -69,6 +69,7 @@ mark_installed()
 # $4	- Overwrite file extension
 # returns:
 # $DOWNLOADFILE
+DOWNLOADFILE=""
 download()
 {
 	local DEP="$1";	local URL="$2";	local SHA="$3";	local EXT="$4"
@@ -92,7 +93,7 @@ download()
 	while true; do
 		if [ "$trycount" -le 0 ]; then
 			rm "$tmpfile"
-			echo "ERROR: Downloading failed multiple times - please check your internet connection" >&2
+			echo "ERROR: Downloading failed multiple times - please check your internet connection." >&2
 			return 1
 		fi
 
@@ -106,8 +107,7 @@ download()
 	done
 
 	# Move the downloaded file to the right path
-	mv "$tmpfile" "$dlfile"
-	if [ $? -eq 0 ]; then
+	if mv "$tmpfile" "$dlfile"; then
 		chmod 0644 "$dlfile"
 		DOWNLOADFILE="$dlfile"
 		return 0
@@ -151,7 +151,7 @@ install_silverlight()
 
 	local programfiles="$WINEPREFIX/drive_c/Program Files"
 	if [ ! -d "$programfiles/Microsoft Silverlight/$VER" ]; then
-		echo "Installer for $DEP did not run correctly or was aborted." >&2
+		echo "ERROR: Installer for $DEP did not run correctly or was aborted." >&2
 		return 1
 	fi
 
@@ -184,7 +184,7 @@ install_cabextract()
 	local system32="$WINEPREFIX/drive_c/windows/system32"
 	cabextract -d "$system32" "$DOWNLOADFILE" -F "$FILE"
 	if [ ! -f "$system32/$FILE" ]; then
-		echo "Failed to extract $FILE from cab file." >&2
+		echo "ERROR: Failed to extract $FILE from cab file." >&2
 		return 1
 	fi
 
@@ -237,7 +237,7 @@ install_flash()
 
 	local installdir="$WINEPREFIX/drive_c/windows/system32/Macromed/Flash"
 	if [ ! -f "$installdir/NPSWF32_$VER.dll" ]; then
-		echo "Installer for $DEP did not run correctly or was aborted." >&2
+		echo "ERROR: Installer for $DEP did not run correctly or was aborted." >&2
 		return 1
 	fi
 
@@ -302,13 +302,13 @@ fi
 
 # Check for environment variables
 if [ -z "$WINE" ] || [ -z "$WINEPREFIX" ]; then
-	echo "ERROR: Missing necessary environment variables WINE and WINEPREFIX" >&2
+	echo "ERROR: Missing necessary environment variables WINE and WINEPREFIX." >&2
 	exit 1
 fi
 
 if [ -z "$WINESERVER" ]; then
 	if [ ! -f "${WINE}server" ]; then
-		echo "ERROR: Missing necessary environment variable WINESERVER" >&2
+		echo "ERROR: Missing necessary environment variable WINESERVER." >&2
 		exit 1
 	fi
 	export WINESERVER="${WINE}server"
@@ -323,9 +323,9 @@ fi
 LOCKFILE=$(echo "$WINEPREFIX" | md5sum | cut -d' ' -f1)
 LOCKFILE="/tmp/wine-$LOCKFILE.tmp"
 
-LOCKFD=9; eval "exec $LOCKFD> \"\$LOCKFILE\""; flock -x -w 360 "$LOCKFD"
-if [ $? -ne 0 ]; then
-	echo "Failed to obtain an installation lock in 6 minutes." >&2
+LOCKFD=9; eval "exec $LOCKFD> \"\$LOCKFILE\""
+if ! flock -x -w 360 "$LOCKFD"; then
+	echo "ERROR: Failed to obtain an installation lock in 6 minutes." >&2
 	exit 1;
 fi
 
@@ -379,7 +379,8 @@ while [ $# -gt 0 ] ; do
 			;;
 
 		*)
-			echo "Error: No installer script found for $DEP" >&2
+			echo "ERROR: No installer script found for $DEP." >&2
+			RET=1
 			continue
 			;;
 	esac
@@ -392,14 +393,14 @@ while [ $# -gt 0 ] ; do
 
 	# Fetch the download
 	if ! download "$DEP" "$URL" "$SHA" "$EXT"; then
-		echo "Download of $DEP failed." >&2
+		echo "ERROR: Download of $DEP failed." >&2
 		RET=1
 		continue
 	fi
 
 	# Do the installation
 	if ! eval "${INS[@]}"; then
-		echo "Installation of $DEP failed." >&2
+		echo "ERROR: Installation of $DEP failed." >&2
 		RET=1
 		continue
 	fi

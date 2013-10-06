@@ -1,198 +1,257 @@
 #!/usr/bin/env bash
-sytemdir=PLUGIN_SYSTEM_DIR
-plugin=""
-installdir=""
-declare -a plugins=('silverlight' 'flash');
 
-getInstallDir()
+# Global configuration
+SYSTEMDIR="PLUGIN_SYSTEM_DIR"
+PLUGINDIR="/usr/lib/mozilla/plugins"
+LIBPIPELIGHT="libpipelight"
+
+# Supported plugins
+PLUGINS=("silverlight" "flash")
+
+# Fallback to Ubuntu path if not installed via make install
+if [[ "$SYSTEMDIR" =~ ^[P]LUGIN_SYSTEM_DIR$ ]] && [ -f "/usr/lib/pipelight/$LIBPIPELIGHT.so" ]; then
+	SYSTEMDIR="/usr/lib/pipelight"
+elif [ ! -d "$SYSTEMDIR" ]; then
+	echo "ERROR: Failed to find $SYSTEMDIR." >&2
+	exit 1
+else
+	SYSTEMDIR=$(readlink -m "$SYSTEMDIR")	
+fi
+
+usage()
 {
-	# check for root rights (-> system wide installation)
-	if [[ $(/usr/bin/id -u) -eq 0 ]]; then
-		installdir="/usr/lib/mozilla/plugins/"
+	echo ""
+	echo "Usage: pipelight-plugin OPTIONS"
+	echo ""
+	echo "Environment variables:"
+	echo "  MOZ_PLUGIN_PATH             overwrite plugin path"
+	echo ""
+	echo "Options:"
+	echo "	--enable  PLUGIN            enable plugin"
+	echo "	--disable PLUGIN            disable plugin"
+	echo "  --disable-all               disable all plugins"
+	echo ""
+	echo "Global options (requires root rights):"
+	echo "	--create-mozilla-plugins    create copies of libpipelight.so"
+	echo "	--remove-mozilla-plugins    remove copies of libpipelight.so"
+	echo ""
+	echo "Supported plugins:"
+	for entry in "${PLUGINS[@]}"; do
+		echo "  $entry"
+	done
+	echo ""
+}
+
+# > Get install directory
+# returns:
+# $INSTALLDIR
+INSTALLDIR=""
+get_installdir()
+{
+
+	# Global installation
+	if [ $(/usr/bin/id -u) -eq 0 ]; then
+		INSTALLDIR="$PLUGINDIR"
+
+	# Use environment variable
+	elif [ ! -z "$MOZ_PLUGIN_PATH" ] && [ -d "$MOZ_PLUGIN_PATH" ]; then
+		INSTALLDIR=$(readlink -m "$MOZ_PLUGIN_PATH")
+
+	# Local installation
 	else
-		installdir="$HOME/.mozilla/plugins/"
+		INSTALLDIR="$HOME/.mozilla/plugins"
 	fi
 }
 
-checkPlugin ()
+# > Checks if a given plugin is supported
+# arguments:
+# $1	- name of the plugin
+is_supported_plugin()
 {
-	for i in "${plugins[@]}"; do
-		if [ "${plugin}" = "${i}" ]; then
-			return 0
-		fi
+	local PLUGIN="$1"
+	for entry in "${PLUGINS[@]}"; do
+		if [ "$PLUGIN" == "$entry" ]; then return 0; fi
 	done
-
 	return 1
 }
 
-usage ()
+# > Enables/Disables a given plugin
+# arguments:
+# $1	- name of the plugin
+enable_plugin()
 {
-	echo ""
-	echo "Usage : pipelight-plugin OPTIONS"
-	echo ""
-	echo "Options:"
-	echo "	--create-hardlinks	create hardlinks for plugins"
-	echo "	--remove-hardlinks	remove hardlinks for plugins"
-	echo "	--enable  plugin 	enable plugin"
-	echo "	--disable plugin 	disable plugin"
-	echo ""
-}
+	local PLUGIN="$1"
+	[ ! -z "$INSTALLDIR" ] || return 1
 
-enablePlugin ()
-{
-	checkPlugin
-	if [ $? -ne 0 ]; then
-		echo "Error: Plugin $plugin is unknown";
+	if ! is_supported_plugin "$PLUGIN"; then
+		echo "ERROR: Plugin $PLUGIN is unknown" >&2
 		return 1
 	fi
 
-	if [ ! -f "${sytemdir}libpipelight-${plugin}.so" ]; then
-		echo "Error: Your system is missing the hardlink from ${sytemdir}/libpipelight.so to ${sytemdir}/libpipelight-${plugin}.so";
+	local src="$SYSTEMDIR/$LIBPIPELIGHT-$PLUGIN.so"
+	local dst="$INSTALLDIR/$LIBPIPELIGHT-$PLUGIN.so"
+
+	if [ ! -f "$src" ]; then
+		echo "ERROR: Your system is missing a copy of $SYSTEMDIR/$LIBPIPELIGHT.so at $src" >&2
 		return 1
 	fi
 
-	getInstallDir
-
-	# create dir if it does not exist yet
-	if [ ! -d ${installdir} ]; then
-		mkdir -p ${installdir}
-		if [ $? -ne 0 ]; then
-			echo "Error: failed to create ${installdir}"
-			return 1;
-		fi
+	# Create directory if it does not exist yet
+	if [ ! -d "$INSTALLDIR" ] && ! mkdir -p "$INSTALLDIR" 2>/dev/null; then
+		echo "ERROR: Failed to create $INSTALLDIR" >&2
+		return 1
 	fi
 
 	# check if there is already a file
-	if [ -e "${installdir}libpipelight-${plugin}.so" ]; then
-
-		# check if it is a symlink
-		if [ ! -L "${installdir}libpipelight-${plugin}.so" ]; then
-			echo "Error: ${installdir}libpipelight-${plugin}.so exists but is not a symlink, aborting."
-			return 1;
-		else
-			rm "${installdir}libpipelight-${plugin}.so"
+	if [ -e "$dst" ]; then
+		if [ ! -L "$dst" ]; then
+			echo "ERROR: $dst exists but is not a symlink, aborting - delete or rename this file manually." >&2
+			return 1
 		fi
+
+		rm "$dst"
 	fi
 
-	ln -s "${sytemdir}libpipelight-${plugin}.so" "${installdir}libpipelight-${plugin}.so"
-	if [ $? -ne 0 ]; then
-		echo "Error: failed to create symlink from ${sytemdir}libpipelight-${plugin}.so to ${installdir}libpipelight-${plugin}.so"
-		return 1;
-	fi	 
-
-	echo "Plugin $plugin is now enabled";
-	return 0;
-}
-
-disablePlugin ()
-{
-	checkPlugin
-	if [ $? -ne 0 ]; then
-		echo "Error: Plugin $plugin is unknown";
+	if ! ln -s "$src" "$dst"; then
+		echo "ERROR: Failed to create symlink from $src to $dst." >&2
 		return 1
 	fi
 
-	getInstallDir
+	echo "Plugin $PLUGIN is now enabled"
+	return 0
+}
 
-	# create dir if it does not exist yet
-	if [ ! -d ${installdir} ]; then
-		echo "Error: Your plugin dir ${installdir} does not exist? Do you confuse a systemwide and user installation?"
-		return 1;
+disable_plugin()
+{
+	local PLUGIN="$1"
+	[ ! -z "$INSTALLDIR" ] || return 1
+
+	if ! is_supported_plugin "$PLUGIN"; then
+		echo "ERROR: Plugin $PLUGIN is unknown" >&2
+		return 1
 	fi
+
+	if [ ! -d "$INSTALLDIR" ]; then
+		echo "ERROR: Your plugin dir $INSTALLDIR does not exist - are you running this as a wrong user?" >&2
+		return 1
+	fi
+
+	local dst="$INSTALLDIR/$LIBPIPELIGHT-$PLUGIN.so"
 
 	# check if there is a file
-	if [ -e "${installdir}libpipelight-${plugin}.so" ]; then
-
-		# check if it is a symlink
-		if [ ! -L "${installdir}libpipelight-${plugin}.so" ]; then
-			echo "Error: ${installdir}libpipelight-${plugin}.so exists but is not a symlink?"
-			return 1;
-		else
-			rm "${installdir}libpipelight-${plugin}.so"
+	if [ -e "$dst" ]; then
+		if [ ! -L "$dst" ]; then
+			echo "ERROR: $dst exists but is not a symlink, aborting - delete or rename this file manually." >&2
+			return 1
 		fi
-	fi
 
-	echo "Plugin $plugin is now disabled";
-	return 0;
+		if ! rm "$dst" 2>/dev/null; then
+			echo "ERROR: Failed to delete symlink $dst." >&2
+			return 1
+		fi
+
+		echo "Plugin $PLUGIN is now disabled"
+	fi
+	
+	return 0
 }
 
-createHardlinks ()
+# > Disables all plugins
+disable_all_plugin()
 {
-	if [ ! -f "${sytemdir}libpipelight.so" ]; then
-		echo "Error: Can't find Pipelight installation.";
+	for entry in "${PLUGINS[@]}"; do
+		if ! disable_plugin "$entry"; then return 1; fi
+	done
+
+	return 0
+}
+
+# > Create/Remove mozilla plugin copies
+create_mozilla_plugins()
+{
+	local src="$SYSTEMDIR/$LIBPIPELIGHT.so"
+
+	if [ ! -f "$src" ]; then
+		echo "ERROR: Can't find Pipelight installation at $src." >&2
 		return 1
 	fi
 
-	for i in "${plugins[@]}"; do
+	# Create copy of the original plugin in libpipelight-*.so
+	for entry in "${PLUGINS[@]}"; do
+		local dst="$SYSTEMDIR/$LIBPIPELIGHT-$entry.so"
 
-		if [ -e "${sytemdir}libpipelight-${i}.so" ]; then
-			rm -f "${sytemdir}libpipelight-${i}.so"
+		if [ -e "$dst" ] && ! rm -f "$dst" 2>/dev/null; then
+			echo "ERROR: $dst exists but unable to delete it, aborting" >&2
+			echo "ERROR: are you running this program with root rights?" >&2
+			return 1
 		fi
 
-		ln "${sytemdir}libpipelight.so" "${sytemdir}libpipelight-${i}.so"
-		if [ $? -ne 0 ]; then
-			echo "Error: failed to create hardlinks from ${sytemdir}libpipelight.so to ${sytemdir}libpipelight-${i}.so"
-			return 1;
-		fi	 
+		if ! cp "$src" "$dst" 2>/dev/null; then
+			echo "ERROR: failed to create copy of $src at $dst" >&2
+			echo "ERROR: are you running this program with root rights?" >&2
+			return 1
+		fi
 	done
 
-	return 0;
+	return 0
 }
 
-removeHardlinks ()
+remove_mozilla_plugins()
 {
-	if [ ! -d "${sytemdir}" ]; then
-		echo "Error: Can't find Pipelight dir.";
-		return 1
-	fi
+	for entry in "${PLUGINS[@]}"; do
+		local dst="$SYSTEMDIR/$LIBPIPELIGHT-$entry.so"
 
-	for i in "${plugins[@]}"; do
-
-		if [ -e "${sytemdir}libpipelight-${i}.so" ]; then
-			rm -f "${sytemdir}libpipelight-${i}.so"
-			if [ $? -ne 0 ]; then
-				echo "Error: Failed to remove ${sytemdir}libpipelight-${i}.so"
-				return 1;
-			fi	
+		if [ -e "$dst" ] && ! rm -f "$dst" 2>/dev/null; then
+			echo "ERROR: Failed to remove $dst." >&2
+			return 1
 		fi
 
 	done
 
-	return 0;
+	return 0
 }
 
-if [ $# -le 0 ]; then
+# Print usage message when no arguments are given at all
+if [ $# -eq 0 ]; then
 	usage
 	exit 0
 fi
 
-retval=0
+# Get the installation directory
+get_installdir
+
+RET=0
 
 while [[ $# > 0 ]] ; do
-	case "$1" in
+	CMD="$1"; shift
+	case "$CMD" in
 		--enable)
+			if ! enable_plugin "$1"; then RET=1; fi
 			shift
-			plugin=$1
-			enablePlugin
 			;;
 		--disable)
+			if ! disable_plugin "$1"; then RET=1; fi
 			shift
-			plugin=$1
-			disablePlugin
 			;;
-		--create-hardlinks)
-			createHardlinks
+		--disable-all)
+			if ! disable_all_plugin; then RET=1; fi
 			;;
-		--remove-hardlinks)
-			removeHardlinks
+
+		--create-mozilla-plugins)
+			if ! create_mozilla_plugins; then RET=1; fi
 			;;
+		--remove-mozilla-plugins)
+			if ! remove_mozilla_plugins; then RET=1; fi
+			;;
+
 		--help)
 			usage
-			exit
 			;;
 		*)
-			echo "Warning: unknown argument $1" >&2
+			echo "ERROR: Unknown argument $CMD." >&2
+			RET=1
 			;;
 	esac
-	shift
 done
+
+exit "$RET"
