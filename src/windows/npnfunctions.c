@@ -261,7 +261,7 @@ NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 
 			result = readInt32(stack);
 
-			if(result == NPERR_NO_ERROR)
+			if (result == NPERR_NO_ERROR)
 				*((char**)value) 	= readStringMalloc(stack);
 
 			break;
@@ -741,14 +741,14 @@ NPError NP_LOADDS NPN_GetValueForURL(NPP instance, NPNURLVariable variable, cons
 NPError NP_LOADDS NPN_SetValueForURL(NPP instance, NPNURLVariable variable, const char *url, const char *value, uint32_t len){
 	DBG_TRACE("( instance=%p, variable=%d, url='%s', value=%p, len=%d )", instance, variable, url, value, len);
 	NOTIMPLEMENTED();
-	return NPERR_NO_ERROR;	
+	return NPERR_NO_ERROR;
 }
 
 NPError NPN_GetAuthenticationInfo(NPP instance, const char *protocol, const char *host, int32_t port, const char *scheme, const char *realm, char **username, uint32_t *ulen, char **password, uint32_t *plen){
 	DBG_TRACE("( instance=%p, protocol='%s', host='%s', port=%d, scheme='%s', realm='%s', username=%p, ulen=%p, password=%p, plen=%p )", \
 			instance, protocol, host, port, scheme, realm, username, ulen, password, plen);
 	NOTIMPLEMENTED();
-	return NPERR_NO_ERROR;	
+	return NPERR_NO_ERROR;
 }
 
 uint32_t NP_LOADDS NPN_ScheduleTimer(NPP instance, uint32_t interval, NPBool repeat, void (*timerFunc)(NPP npp, uint32_t timerID)){

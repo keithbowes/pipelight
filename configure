@@ -4,7 +4,7 @@ prefix=/usr/local/
 usage ()
 {
 	echo ""
-	echo "Usage : ./configure [--prefix=PREFIX]"
+	echo "Usage: ./configure [--prefix=PREFIX]"
 	echo ""
 }
 

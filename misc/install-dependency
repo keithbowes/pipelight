@@ -1,347 +1,411 @@
-#!/bin/sh
-# This is a modified version of the script by Erich E. Hoover which does all the downloading
-# and installation during the runtime. Moreover it doesn't have any additional dependencies
-# as it contains everything hardcoded.
+#!/bin/bash
 
-# Original versions:
-# http://bazaar.launchpad.net/~ehoover/netflix-desktop/trunk/view/head:/wine-browser-installer/install-dependency
-# http://bazaar.launchpad.net/~ehoover/netflix-desktop/trunk/files/head:/debian/  (all *.install-script files)
+usage()
+{
+	echo ""
+	echo "Usage: ./install-dependency PACKAGES"
+	echo ""
+	echo "Environment variables:"
+	echo "  WINE                  path to the wine executable"
+	echo "  WINESERVER            path to the wineserver"
+	echo "  WINEPREFIX            usually \$HOME/.wine-pipelight"
+	echo "  WINEARCH              usually win32"
+	echo "  QUIETINSTALLATION=1   don't show the original installation dialogs"
+	echo ""
+	echo "Packages:"
+	echo "	wine-silverlight4-installer"
+	echo "	wine-silverlight5.0-installer"
+	echo "	wine-silverlight5.1-installer"
+	echo "	wine-mpg2splt-installer"
+	echo "	wine-browser-installer"
+	echo "	wine-flash-installer"
+	echo ""
+}
 
-PRG=$(basename "$0");
+# > Marks a file in order to delete it at program termination
+# arguments:
+# $1	- File to delete
+ATEXIT_RM_LIST=()
+atexit_add_rm()
+{
+	ATEXIT_RM_LIST+=("$1")
+}
 
-# Environment variable check
-if [ -z "${WINE}" ] || [ -z "${WINEPREFIX}" ]; then
-	echo "$PRG: Missing necessary environment variables WINE and WINEPREFIX." >&2;
-	exit 1;
+atexit()
+{
+	local file
+	for file in "${ATEXIT_RM_LIST[@]}"; do
+		echo "Deleting temporary '$file'"
+		rm "$file"
+	done
+}
 
-elif [ $# -eq "0" ]; then
-	echo "$PRG: Missing list of packages to install. Available packages are:" >&2;
-	echo "$PRG: wine-silverlight{4,5.0,5.1}-installer, wine-mpg2splt-installer, wine-browser-installer" >&2;
-	exit 1;
-fi
+# > Checks if a dependency is already installed
+# arguments:
+# $1	- DEP
+# $2	- SHA256
+is_installed()
+{
+	local DEP="$1";	local SHA="$2"
+	local ckfile="$WINEPREFIX/$DEP.installed"
+	[ -f "$ckfile" ] && [ "$SHA" == $(cat "$ckfile") ]
+	return $?
+}
 
-echo "$PRG: WINE=\"${WINE}\" WINEPREFIX=\"${WINEPREFIX}\" WINEARCH=\"${WINEARCH}\"";
+# > Marks a dependency as already installed
+# arguments: same as is_installed
+mark_installed()
+{
+	local DEP="$1";	local SHA="$2"
+	local ckfile="$WINEPREFIX/$DEP.installed"
+	echo "$SHA" > "$ckfile"
+}
+
+# > Download a given dependency file
+# arguments:
+# $1	- DEP
+# $2	- URL
+# $3	- SHA256
+# $4	- Overwrite file extension
+# returns:
+# $DOWNLOADFILE
+download()
+{
+	local DEP="$1";	local URL="$2";	local SHA="$3";	local EXT="$4"
+
+	if [ -z "$EXT" ]; then
+		EXT=$(echo "$URL" | sed 's/.*\.//')
+	fi
+
+	# Reuse existing download
+	local dlfile="/tmp/pipelight-$DEP.$EXT"
+	if [ -f "$dlfile" ] && [ "$SHA" == ""$(sha256sum "$dlfile" | cut -d' ' -f1) ]; then
+		DOWNLOADFILE="$dlfile"
+		return 0
+	fi
+
+	local trycount=3
+	local tmpfile=$(mktemp --suffix=".$EXT")
+	[ -f "$tmpfile" ] || return 1
+
+	# Download to tmpfile
+	while true; do
+		if [ "$trycount" -le 0 ]; then
+			rm "$tmpfile"
+			echo "ERROR: Downloading failed multiple times - please check your internet connection" >&2
+			return 1
+		fi
+
+		wget -O "$tmpfile" "$URL" 2>&1 | progressbar "Please wait, downloading ..." "Downloading $DEP";
+		if [ $? -eq 0 ] && [ -f "$tmpfile" ] && [ "$SHA" == ""$(sha256sum "$tmpfile" | cut -d' ' -f1) ]; then
+			break
+		fi
+
+		(( trycount-- ))
+		sleep 2
+	done
+
+	# Move the downloaded file to the right path
+	mv "$tmpfile" "$dlfile"
+	if [ $? -eq 0 ]; then
+		chmod 0644 "$dlfile"
+		DOWNLOADFILE="$dlfile"
+		return 0
+	fi
+
+	# Continue using the temp path
+	atexit_add_rm "$tmpfile"
+	DOWNLOADFILE="$tmpfile"
+	return 0
+}
+
+# > Waits until the wineserver terminates with a specific timeout
+# arguments:
+# $1	- timeout
+wait_wineserver()
+{
+	local TIMEOUT="$1"
+	while "$WINESERVER" --kill=0 && [ "$TIMEOUT" -gt 0 ]; do
+		sleep 1
+		(( TIMEOUT-- ))
+	done
+}
+
+# > Installer for Silverlight
+# arguments:
+# $1	- version
+# $DOWNLOADFILE
+install_silverlight()
+{
+	local VER="$1"
+
+	# Remove the registry keys for Silverlight since other versions can prevent this one from installing
+	"$WINE" msiexec /uninstall {89F4137D-6C26-4A84-BDB8-2E5A4BB71E00};
+
+	# Launch the installer
+	if [ "$QUIETINSTALLATION" -eq 0 ]; then
+		"$WINE" "$DOWNLOADFILE" /noupdate 2>&1
+	else
+		"$WINE" "$DOWNLOADFILE" /q /doNotRequireDRMPrompt /noupdate 2>&1 | progressbar "Please wait, installing ..." "Installing $DEP"
+	fi
+
+	local programfiles="$WINEPREFIX/drive_c/Program Files"
+	if [ ! -d "$programfiles/Microsoft Silverlight/$VER" ]; then
+		echo "Installer for $DEP did not run correctly or was aborted." >&2
+		return 1
+	fi
+
+	# Move the installation to a version-specific folder that nothing will touch
+	mkdir -p "$programfiles/Silverlight"
+	mv "$programfiles/Microsoft Silverlight/$VER" "$programfiles/Silverlight/$VER"
+
+	# Wait for Wine to finish building the .desktop files
+	wait_wineserver 10
+
+	# Remove the Silverlight menu shortcut
+	local user_link_file="$WINEPREFIX/drive_c/users/$USER/Start Menu/Programs/Microsoft Silverlight/Microsoft Silverlight.lnk"
+	local user_desktop_file="$HOME/.local/share/applications/wine/Programs/Microsoft Silverlight/Microsoft Silverlight.desktop"
+	rm -f "$user_link_file"
+	rm -f "$user_desktop_file"
+	xdg-desktop-menu uninstall "$user_desktop_file" 2>/dev/null
+
+	# Successful
+	return 0
+}
+
+# > Extract cab library
+# arguments:
+# $1	- file to extract
+# $DOWNLOADFILE
+install_cabextract()
+{
+	local FILE="$1"
+
+	local system32="$WINEPREFIX/drive_c/windows/system32"
+	cabextract -d "$system32" "$DOWNLOADFILE" -F "$FILE"
+	if [ ! -f "$system32/$FILE" ]; then
+		echo "Failed to extract $FILE from cab file." >&2
+		return 1
+	fi
+
+	"$WINE" regsvr32.exe "$FILE"
+
+	# Successful
+	return 0
+}
+
+# > Install firefox
+# arguments:
+# $DOWNLOADFILE
+install_firefox()
+{
+	local tmpfile=$(mktemp)
+	[ -f "$tmpfile" ] || return 1
+
+	( 	echo "[Install]"
+		echo "QuickLaunchShortcut=false"
+		echo "DesktopShortcut=false"
+		echo "StartMenuShortcuts=false"
+		echo "MaintenanceService=false"
+	) > "$tmpfile"
+
+
+	local inifile=$("$WINE" winepath --windows "$tmpfile")
+	"$WINE" "$DOWNLOADFILE" "/INI=$inifile" 2>&1 | progressbar "Please wait, installing ..." "Installing $DEP"
+
+	# Cleanup
+	rm "$tmpfile"
+
+	# Successful
+	return 0
+}
+
+# > Install flash
+# arguments:
+# $1	- version path component
+# $DOWNLOADFILE
+install_flash()
+{
+	VER="$1"
+
+	# Launch the installer
+	if [ "$QUIETINSTALLATION" -eq 0 ]; then
+		"$WINE" "$DOWNLOADFILE" 2>&1
+	else
+		"$WINE" "$DOWNLOADFILE" -install 2>&1 | progressbar "Please wait, installing ..." "Installing $DEP"
+	fi
+
+	local installdir="$WINEPREFIX/drive_c/windows/system32/Macromed/Flash"
+	if [ ! -f "$installdir/NPSWF32_$VER.dll" ]; then
+		echo "Installer for $DEP did not run correctly or was aborted." >&2
+		return 1
+	fi
+
+	# Successful
+	return 0
+}
 
 # Check if some visual feedback is possible
 if command -v zenity >/dev/null 2>&1; then
-	progressbar ()
+	progressbar()
 	{
-		WINDOWID="" zenity --progress --title="$1" --text="$2" --pulsate --width=400 --auto-close --no-cancel;
+		WINDOWID="" zenity --progress --title="$1" --text="$2" --pulsate --width=400 --auto-close --no-cancel
 	}
 
 elif command -v kdialog >/dev/null 2>&1; then
 	#Check if qdbus is symlinked to qtchooser (for Arch Linux)
-	QD_BUS=$(which qdbus);
-	QTC=$(readlink "${QD_BUS}");
-	if [ "$QTC" = "qtchooser" ]; then
-		QD_BUS="qtchooser -run-tool=qdbus -qt=4";
+	QDBUSPATH=$(which qdbus)
+	QDBUSPATH=$(readlink "$QDBUSPATH")
+	if [ "$QDBUSPATH" == "qtchooser" ]; then
+		QDBUSPATH="qtchooser -run-tool=qdbus -qt=4"
 	else
-		QD_BUS="qdbus";
+		QDBUSPATH="qdbus"
 	fi
 
-	progressbar ()
+	progressbar()
 	{
-		DCOPREF=$(kdialog --title "$1" --progressbar "$2" 10);
+		local dcopref=$(kdialog --title "$1" --progressbar "$2" 10)
+
 		# Update the progress bar (not really the progress, but the user knows that something is going on)
 		(
-			PROGRESS=1;
+			local progress=1
 			while true; do
-				ERR=$($QD_BUS $DCOPREF org.freedesktop.DBus.Properties.Set org.kde.kdialog.ProgressDialog value "$PROGRESS" 2>&1);
-				if [ ! -z "$ERR" ]; then
-					break
-				fi
-				sleep 1;
-				PROGRESS=$((${PROGRESS}+1));
-				if [ "$PROGRESS" -gt 10 ]; then
-					PROGRESS=0;
-				fi
+				local err=$($QDBUSPATH $dcopref org.freedesktop.DBus.Properties.Set org.kde.kdialog.ProgressDialog value "$PROGRESS" 2>&1)
+				if [ ! -z "$err" ]; then break; fi
+
+				sleep 1
+
+				(( progress++ ))
+				if [ "$progress" -gt 10 ]; then progress=0; fi
 			done
 		) &
-		DIALOGPID="$!"
+		local dialogpid="$!"
 
-		cat - > /dev/null;
+		cat - > /dev/null
 		
-		kill "$DIALOGPID";
-		$QD_BUS $DCOPREF org.kde.kdialog.ProgressDialog.close  &> /dev/null;
+		kill "$dialogpid"
+		$QDBUSPATH $dcopref org.kde.kdialog.ProgressDialog.close  &> /dev/null
 	}
 
 else
-	progressbar ()
+	progressbar()
 	{
-		cat -;
+		cat -
 	}
 fi
 
-DEPENDENCIES="$@";
+# Print usage message when no arguments are given at all
+if [ $# -eq 0 ]; then
+	usage
+	exit 0
+fi
+
+# Check for environment variables
+if [ -z "$WINE" ] || [ -z "$WINEPREFIX" ]; then
+	echo "ERROR: Missing necessary environment variables WINE and WINEPREFIX" >&2
+	exit 1
+fi
+
+if [ -z "$WINESERVER" ]; then
+	if [ ! -f "${WINE}server" ]; then
+		echo "ERROR: Missing necessary environment variable WINESERVER" >&2
+		exit 1
+	fi
+	export WINESERVER="${WINE}server"
+fi
+
+# Silent installation
+if [ -z "$QUIETINSTALLATION" ]; then
+	QUIETINSTALLATION=0
+fi
 
 # Generate a lock file based on the wine prefix
-LOCK_FILE=$(echo "${WINEPREFIX}" | md5sum | cut -d" " -f1);
-LOCK_FILE="/tmp/wine-${LOCK_FILE}.tmp";
+LOCKFILE=$(echo "$WINEPREFIX" | md5sum | cut -d' ' -f1)
+LOCKFILE="/tmp/wine-$LOCKFILE.tmp"
 
-# Make sure that this installation is only occurring in one process at a time
-LOCK_FD=9; # must be less than 10 for dash
-eval "exec ${LOCK_FD}> \"\${LOCK_FILE}\"";
-flock -x -w 360 "${LOCK_FD}";
+LOCKFD=9; eval "exec $LOCKFD> \"\$LOCKFILE\""; flock -x -w 360 "$LOCKFD"
 if [ $? -ne 0 ]; then
-	echo "$PRG: Failed to obtain an installation lock in 6 minutes." >&2;
+	echo "Failed to obtain an installation lock in 6 minutes." >&2
 	exit 1;
 fi
 
 # Close file descriptor (ensure that the lock is released when the installation is ready)
-trap "EXITSTATUS=\$?; flock -u \"${LOCK_FD}\"; exit \"\${EXITSTATUS}\";" 0
+trap "EXITSTATUS=\$?; flock -u \"$LOCKFD\"; atexit; exit \"\$EXITSTATUS\"" 0
 
 # Initialize wine if not done yet
-if [ ! -d "${WINEPREFIX}" ]; then
-	DISPLAY="" "${WINE}" wineboot.exe 2>&1 | \
-		progressbar "Please wait..." "Creating wine prefix";
+if [ ! -d "$WINEPREFIX" ]; then
+	DISPLAY="" "$WINE" wineboot.exe 2>&1 | progressbar "Please wait..." "Creating wine prefix"
 fi
 
-NUMDELETEFILES="0";
+# Set default return value
+RET=0
 
-# Overall status of the installation
-RET="0";
+while [ $# -gt 0 ] ; do
+	DEP="$1"; INS=""; URL=""; SHA=""; EXT=""; DOWNLOADFILE=""; shift
+	case "$DEP" in
+		wine-prefix)
+			continue # The wine-prefix is created automatically for all packages
+			;;
+		wine-silverlight4-installer)
+			INS=("install_silverlight" "4.1.10329.0")
+			URL="http://silverlight.dlservice.microsoft.com/download/6/A/1/6A13C54D-3F35-4082-977A-27F30ECE0F34/10329.00/runtime/Silverlight.exe"
+			SHA="b0e476090206b2e61ba897de9151a31e0182c0e62e8abd528c35d3857ad6131c"
+			;;
+		wine-silverlight5.0-installer)
+			INS=("install_silverlight" "5.0.61118.0")
+			URL="http://silverlight.dlservice.microsoft.com/download/5/5/7/55748E53-D673-4225-8072-4C7A377BB513/runtime/Silverlight.exe"
+			SHA="dd45a55419026c592f8b6fc848dceface7e1ce98720bf13848a2e8ae366b29e8"
+			;;
+		wine-silverlight5.1-installer)
+			INS=("install_silverlight" "5.1.20513.0")
+			URL="http://silverlight.dlservice.microsoft.com/download/B/3/C/B3CF6815-40B1-4E36-8746-C4A0381AD260/20513.00/runtime/Silverlight.exe"
+			SHA="8c5d1ddaefd629670033841fb88188789f2f63170b2fe1aaddb2c9b33d4532ea"
+			;;
+		wine-mpg2splt-installer)
+			INS=("install_cabextract" "mpg2splt.ax")
+			URL="http://download.microsoft.com/download/8/0/D/80D7E79D-C0E4-415A-BCCA-E229EAFE2679/dshow_nt.cab"
+			SHA="984ed15e23a00a33113f0012277e1e680c95782ce2c44f414e7af14e28e3f1a2"
+			;;
+		wine-browser-installer)
+			INS=("install_firefox")
+			URL="http://download.mozilla.org/?product=firefox-22.0&os=win&lang=en-US"
+			SHA="abb189f17e65e73d61843247ad1af7c997318b7854fa850a04e5f9d9a20cdd03"
+			EXT="exe"
+			;;
+		wine-flash-installer)
+			INS=("install_flash" "11_8_800_168")
+			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/11.8.800.168/install_flash_player.exe"
+			SHA="2213027430edb7c0b90860c54bd5d797db9e32bb2ce6470c7b162adb58c421c7"
+			;;
 
-for DEP in $DEPENDENCIES; do
-	FILEEXT=""
+		*)
+			echo "Error: No installer script found for $DEP" >&2
+			continue
+			;;
+	esac
 
-	if [ "${DEP}" = "wine-silverlight4-installer" ]; then
-		INSTALLER="silverlight";
-		URL="http://silverlight.dlservice.microsoft.com/download/6/A/1/6A13C54D-3F35-4082-977A-27F30ECE0F34/10329.00/runtime/Silverlight.exe";
-		SHA256SUM="b0e476090206b2e61ba897de9151a31e0182c0e62e8abd528c35d3857ad6131c";
-		SILVERLIGHTVERSION="4.1.10329.0";
-
-	elif [ "${DEP}" = "wine-silverlight5.0-installer" ]; then
-		INSTALLER="silverlight";
-		URL="http://silverlight.dlservice.microsoft.com/download/5/5/7/55748E53-D673-4225-8072-4C7A377BB513/runtime/Silverlight.exe"
-		SHA256SUM="dd45a55419026c592f8b6fc848dceface7e1ce98720bf13848a2e8ae366b29e8";
-		SILVERLIGHTVERSION="5.0.61118.0";
-
-	elif [ "${DEP}" = "wine-silverlight5.1-installer" ]; then
-		INSTALLER="silverlight";
-		URL="http://silverlight.dlservice.microsoft.com/download/B/3/C/B3CF6815-40B1-4E36-8746-C4A0381AD260/20513.00/runtime/Silverlight.exe"
-		SHA256SUM="8c5d1ddaefd629670033841fb88188789f2f63170b2fe1aaddb2c9b33d4532ea";
-		SILVERLIGHTVERSION="5.1.20513.0";
-
-	elif [ "${DEP}" = "wine-mpg2splt-installer" ]; then
-		INSTALLER="cablibrary";
-		URL="http://download.microsoft.com/download/8/0/D/80D7E79D-C0E4-415A-BCCA-E229EAFE2679/dshow_nt.cab";
-		SHA256SUM="984ed15e23a00a33113f0012277e1e680c95782ce2c44f414e7af14e28e3f1a2";
-		EXTRACTFILE="mpg2splt.ax";
-
-	elif [ "${DEP}" = "wine-browser-installer" ]; then
-		INSTALLER="firefox";
-		URL="http://download.mozilla.org/?product=firefox-22.0&os=win&lang=en-US";
-		SHA256SUM="abb189f17e65e73d61843247ad1af7c997318b7854fa850a04e5f9d9a20cdd03";
-		FILEEXT="exe"
-
-	elif [ "${DEP}" = "wine-flash-installer" ]; then
-		INSTALLER="flash";
-		URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/11.8.800.168/install_flash_player.exe";
-		SHA256SUM="2213027430edb7c0b90860c54bd5d797db9e32bb2ce6470c7b162adb58c421c7";
-		FLASHVERSION="11_8_800_168";
-
-	else
-		echo "$PRG: No installer script found for ${DEP}." >&2;
-		RET="1";
-		continue;
+	# Is already installed?
+	if is_installed "$DEP" "$SHA"; then
+		echo "$DEP is already installed in '$WINEPREFIX'."
+		continue
 	fi
 
-	if [ -z "${FILEEXT}" ]; then
-		FILEEXT=$(echo "${URL}" | sed 's/.*\.//');
+	# Fetch the download
+	if ! download "$DEP" "$URL" "$SHA" "$EXT"; then
+		echo "Download of $DEP failed." >&2
+		RET=1
+		continue
 	fi
 
-	FILEINSTALLED="${WINEPREFIX}/${DEP}.installed";
-	FILEDOWNLOAD="/tmp/pipelight-${DEP}.${FILEEXT}";
-
-	# Check if its already installed
-	if [ -f "${FILEINSTALLED}" ]; then
-		INSTALL_SHA256SUM=$(cat "${FILEINSTALLED}")
-		if [ "${SHA256SUM}" = "${INSTALL_SHA256SUM}" ]; then
-			echo "$PRG: ${DEP} is already installed in ${WINEPREFIX}.";
-			continue;
-		fi
+	# Do the installation
+	if ! eval "${INS[@]}"; then
+		echo "Installation of $DEP failed." >&2
+		RET=1
+		continue
 	fi
 
-	# Does the downloaded file still exist?
-	DOWNLOADOKAY="1";
-	if [ -f "${FILEDOWNLOAD}" ]; then
-		DOWNLOAD_SHA256SUM=$(sha256sum "${FILEDOWNLOAD}" | cut -d' ' -f1);
-		if [ "${SHA256SUM}" = "${DOWNLOAD_SHA256SUM}" ]; then
-			DOWNLOADOKAY="0";
-		fi
-	fi
-
-	# Download required
-	if [ "${DOWNLOADOKAY}" -ne "0" ]; then
-
-		TMPFILE=$(mktemp --suffix=".${FILEEXT}");
-		if [ ! -f "$TMPFILE" ]; then
-			echo "$PRG: Failed to create tempfile." >&2;
-			RET="1";
-			continue;
-		fi
-
-		TRYCOUNT="3";
-
-		while [ "${DOWNLOADOKAY}" -ne "0" ]; do
-			if [ "${TRYCOUNT}" -le "0" ]; then
-				break;
-			fi
-
-			wget -O "${TMPFILE}" "${URL}" 2>&1 | \
-				progressbar "Please wait, downloading ..." "Downloading $DEP";
-
-			# Check if it was successful this time
-			if [ $? -eq 0 ] && [ -f "${TMPFILE}" ]; then
-				DOWNLOAD_SHA256SUM=$(sha256sum "${TMPFILE}" | cut -d' ' -f1);
-				if [ "${SHA256SUM}" = "${DOWNLOAD_SHA256SUM}" ]; then
-					DOWNLOADOKAY="0";
-					break
-				fi
-			fi
-
-			TRYCOUNT=$((${TRYCOUNT}-1));
-			sleep 2;
-		done
-
-		if [ "${DOWNLOADOKAY}" -ne "0" ]; then
-			rm "${TMPFILE}";
-
-			echo "$PRG: Downloading ${DEP} failed multiple times - please check your internet connection and if you're using the latest version of Pipelight." >&2;
-			RET="1";
-			continue;
-		fi
-
-		# Move the downloaded file to right path
-		mv "${TMPFILE}" "${FILEDOWNLOAD}";
-		if [ $? -eq "0" ]; then
-			chmod 0644 "${FILEDOWNLOAD}";
-		else
-			FILEDOWNLOAD="${TMPFILE}";
-
-			# Delete on exit
-			eval "DELETEFILE_${NUMDELETEFILES}=\$TMPFILE";
-			NUMDELETEFILES=$((${NUMDELETEFILES}+1));
-		fi
-
-	fi
-
-	# Do the actual installation
-	if [ "${INSTALLER}" = "silverlight" ]; then
-
-		# Remove the registry keys for Silverlight since other versions can prevent this one from installing
-		"${WINE}" msiexec /uninstall {89F4137D-6C26-4A84-BDB8-2E5A4BB71E00};
-
-		# Launch the installer
-		if [ -z "${QUIETINSTALLATION}" ] || [ "${QUIETINSTALLATION}" -eq 0 ]; then
-			"${WINE}" "${FILEDOWNLOAD}" /noupdate 2>&1;
-		else
-			"${WINE}" "${FILEDOWNLOAD}" /q /doNotRequireDRMPrompt /noupdate 2>&1 | \
-				progressbar "Please wait, installing ..." "Installing $DEP";
-		fi
-
-		PROGRAM_FILES="${WINEPREFIX}/drive_c/Program Files";
-
-		if [ ! -d "${PROGRAM_FILES}/Microsoft Silverlight/${SILVERLIGHTVERSION}" ]; then
-			echo "Installer for ${DEP} did not run correctly or was aborted.";
-			RET="1";
-			continue;
-		fi
-
-		# Move the installation to a version-specific folder that nothing will touch
-		mkdir -p "${PROGRAM_FILES}/Silverlight";
-		mv "${PROGRAM_FILES}/Microsoft Silverlight/${SILVERLIGHTVERSION}" "${PROGRAM_FILES}/Silverlight/${SILVERLIGHTVERSION}";
-
-		# Wait for Wine to finish building the .desktop files
-		SERVERPID=$(ps aux | grep "w[i]neserver" | grep -v 'nano' | sed 's|[^ ]*[ ]*\([^ ]*\).*|\1|g');
-		TIMEOUT="10";
-
-		while [ ! $(kill -0 ${SERVERPID}; echo "$?") -eq "0" ] && [ "${TIMEOUT}" -ne "0" ]; do
-			sleep 1;
-			TIMEOUT=$((${TIMEOUT}-1));
-		done
-
-		# Remove the Silverlight menu shortcut
-		USER_LINK_FILE="${WINEPREFIX}/drive_c/users/${USER}/Start Menu/Programs/Microsoft Silverlight/Microsoft Silverlight.lnk";
-		USER_DESKTOP_FILE="${HOME}/.local/share/applications/wine/Programs/Microsoft Silverlight/Microsoft Silverlight.desktop";
-		rm -f "${USER_LINK_FILE}";
-		rm -f "${USER_DESKTOP_FILE}";
-		xdg-desktop-menu uninstall "${USER_DESKTOP_FILE}" 2>/dev/null;
-
-	elif [ "${INSTALLER}" = "cablibrary" ]; then
-
-		# Extract and register the libraries
-		SYSTEM32="${WINEPREFIX}/drive_c/windows/system32";
-		cabextract -d "${SYSTEM32}" "${FILEDOWNLOAD}" -F "${EXTRACTFILE}";
-		if [ ! -f "${SYSTEM32}/${EXTRACTFILE}" ]; then
-			echo "$PRG: Failed to extract ${EXTRACTFILE} from cab file." >&2;
-			RET="1";
-			continue;
-		fi
-
-		"${WINE}" regsvr32.exe "${EXTRACTFILE}";
-
-	elif [ "${INSTALLER}" = "firefox" ]; then
-
-		TMPFILE=$(mktemp);
-		if [ ! -f "${TMPFILE}" ]; then
-			echo "Failed to create tempfile.";
-			RET="1";
-			continue;
-		fi
-
-		# Note: We generate this file inplace, as we don't know the installation directory
-		# We have to update this if something changes in the original repository
-		( 	echo "[Install]";
-			echo "QuickLaunchShortcut=false";
-			echo "DesktopShortcut=false";
-			echo "StartMenuShortcuts=false";
-			echo "MaintenanceService=false";
-		) > "${TMPFILE}";
-
-
-		INIFILE=$("${WINE}" winepath --windows "${TMPFILE}")
-
-		"${WINE}" "${FILEDOWNLOAD}" "/INI=$INIFILE" 2>&1 | \
-			progressbar "Please wait, installing ..." "Installing $DEP";
-
-		rm "${TMPFILE}"
-
-	elif [ "${INSTALLER}" = "flash" ]; then
-
-		# Launch the installer
-		if [ -z "${QUIETINSTALLATION}" ] || [ "${QUIETINSTALLATION}" -eq 0 ]; then
-			"${WINE}" "${FILEDOWNLOAD}" 2>&1;
-		else
-			"${WINE}" "${FILEDOWNLOAD}" -install 2>&1 | \
-				progressbar "Please wait, installing ..." "Installing $DEP";
-		fi
-
-		INSTALL_DIR="${WINEPREFIX}/drive_c/windows/system32/Macromed/Flash";
-
-		if [ ! -f "${INSTALL_DIR}/NPSWF32_${FLASHVERSION}.dll" ]; then
-			echo "Installer for ${DEP} did not run correctly or was aborted.";
-			RET="1";
-			continue;
-		fi
-
-	else
-		echo "$PRG: Unable to process downloaded file for ${DEP}." >&2;
-		RET="1";
-		continue;
-	fi
-
-	# Mark it as installed
-	echo "${SHA256SUM}" > "${FILEINSTALLED}";
+	# Mark the package as installed
+	mark_installed "$DEP" "$SHA"
 done
 
-# Delete temporary files that cannot be reused later
-while [ "${NUMDELETEFILES}" -ne "0" ]; do
-	NUMDELETEFILES=$((${NUMDELETEFILES}-1));
-	eval "TMPFILE=\$DELETEFILE_${NUMDELETEFILES}";
-
-	echo "$PRG: Deleting temporary file $TMPFILE." >&2;
-	rm "$TMPFILE";
-done
-
-exit "${RET}";
+exit "$RET"
