@@ -26,7 +26,7 @@ static std::string getHomeDirectory(){
 }
 
 // see http://source.winehq.org/source/libs/wine/config.c?v=wine-1.7.3#L268
-std::string getWineUser(){
+static std::string getWineUser(){
 	struct passwd *info = getpwuid(getuid());
 	if (info && info->pw_name)
 		return std::string(info->pw_name);
@@ -36,45 +36,50 @@ std::string getWineUser(){
 	return std::string(uid_string);
 }
 
-
-std::string getConfigNameFromLibrary(){
+static std::string getConfigNameFromLibrary(){
 	Dl_info 	libinfo;
 	std::string	configName;
 	size_t 		pos;
 
 	// get full path
-	if (!dladdr((void*)getConfigNameFromLibrary, &libinfo))
-		return "";
-
-	if (!libinfo.dli_fname)
-		return "";
+	if (!dladdr((void*)getConfigNameFromLibrary, &libinfo) || !libinfo.dli_fname)
+		return "pipelight";
 
 	configName = std::string(libinfo.dli_fname);
 
 	// strip directory name
-	pos = configName.find_last_of('/');
-	if (pos != std::string::npos){
-
-		// stop if we just have a directory
-		if (pos >= configName.length() - 1)
-			return "";
-
+	if ((pos = configName.find_last_of('/')) != std::string::npos)
 		configName = configName.substr(pos + 1, std::string::npos);
-	}
 
 	// strip extension (.so)
-	pos = configName.find_last_of('.');
-	if (pos != std::string::npos)
+	if ((pos = configName.find_last_of('.')) != std::string::npos)
 		configName = configName.substr(0, pos);
 
 	// convert to lower case
 	std::transform(configName.begin(), configName.end(), configName.begin(), ::tolower);
 
 	// strip "lib" from start of the filename
-	if(configName.length() > 3 && configName.substr(0, 3) == "lib")
+	if (configName.length() > 3 && configName.substr(0, 3) == "lib")
 		return configName.substr(3, std::string::npos);
+	else if (configName.length())
+		return configName;
 
-	return configName;
+	return "pipelight";
+}
+
+static std::string generateConfigEnvVariable(std::string configEnv){
+	size_t pos;
+
+	pos = configEnv.find_last_of('-');
+	configEnv = (pos != std::string::npos) ? configEnv.substr(pos + 1, std::string::npos) : "";
+
+	// convert to upper case
+	std::transform(configEnv.begin(), configEnv.end(), configEnv.begin(), ::toupper);
+
+	if (configEnv.length())
+		return "PIPELIGHT_" + configEnv + "_CONFIG";
+
+	return "PIPELIGHT_CONFIG";
 }
 
 static bool splitConfigValue(std::string line, std::string &key, std::string &value){
@@ -82,12 +87,11 @@ static bool splitConfigValue(std::string line, std::string &key, std::string &va
 	line = trim(line);
 
 	// find delimiter
-	pos = line.find_first_of("=");
-	if (pos == std::string::npos)
+	if ((pos = line.find_first_of("=")) == std::string::npos)
 		return false;
 
 	key 	= trim(line.substr(0, pos));
-	value 	= trim(line.substr(pos+1, std::string::npos));
+	value 	= trim(line.substr(pos + 1, std::string::npos));
 
 	return (key != "");
 }
@@ -98,14 +102,12 @@ static bool splitConfigValue(std::string line, std::string &key, std::string &va
 */
 static std::string readUntil(const char* &str, char abort = 0){
 	const char *start = str;
+	char c;
 
-	while (*str){
-		if (*str == abort || (!abort && !( (*str >= 'A' && *str <= 'Z') || (*str >= 'a' && *str <= 'z') || (*str >= '0' && *str <= '9') || *str == '_' ) )){
-			break;
-		}
-
+	while (	(c = *str) && 						/* more characters? */	
+			(c != abort) &&						/* not the abort character? */
+			(abort || isAlphaNumericChar(c)) )	/* if no abort character given, then it should be alphanumeric */
 		str++;
-	}
 
 	return std::string(start, str-start);
 }
@@ -127,7 +129,6 @@ static std::string replaceVariables(const std::map<std::string, std::string> &va
 
 			}else if (*str == '{'){ // In brackets
 				str++;
-
 				varname = readUntil(str, '}');
 
 				DBG_ASSERT(*str == '}', "expected closing tag } at end of line.");
@@ -154,31 +155,36 @@ static std::string replaceVariables(const std::map<std::string, std::string> &va
 
 /* Tries to open the config and returns true on success */
 static  bool openConfig(std::ifstream &configFile, std::string &configPath){
-	std::string homeDir = getHomeDirectory();
-	std::string configName = getConfigNameFromLibrary();
+	std::string homeDir 	= getHomeDirectory();
+	std::string configName 	= getConfigNameFromLibrary();
+	std::string configEnv  	= generateConfigEnvVariable(configName);
 
-	if (configName == "")
-		configName = "pipelight";
+	/* use environment variable */
+	if (configEnv != ""){
+		DBG_INFO("checking environment variable %s.", configEnv.c_str());
 
-	configPath = getEnvironmentString("PIPELIGHT_CONFIG");
-	if (configPath != ""){
-		DBG_INFO("trying to load config file from '%s'.", configPath.c_str());
-		configFile.open(configPath);
-		if(configFile.is_open()) return true;
+		if ((configPath = getEnvironmentString(configEnv)) != ""){
+			DBG_INFO("trying to load config file from '%s'.", configPath.c_str());
+			configFile.open(configPath);
+			if (configFile.is_open()) return true;
+		}
 	}
 
-	if(homeDir != ""){
+	/* local config */
+	if (homeDir != ""){
 		configPath = homeDir + "/.config/" + configName;
 		DBG_INFO("trying to load config file from '%s'.", configPath.c_str());
 		configFile.open(configPath);
-		if(configFile.is_open()) return true;
+		if (configFile.is_open()) return true;
 	}
 
+	/* etc config */
 	configPath = "/etc/" + configName;
 	DBG_INFO("trying to load config file from '%s'.", configPath.c_str());
 	configFile.open(configPath);
 	if (configFile.is_open()) return true;
 
+	/* default config */
 	configPath = PREFIX "/share/pipelight/" + configName;
 	DBG_INFO("trying to load config file from '%s'.", configPath.c_str());
 	configFile.open(configPath);
@@ -208,7 +214,7 @@ bool loadConfig(PluginConfig &config){
 	config.winePath 			= "wine";
 	config.wineArch 			= "win32";
 	config.winePrefix 			= "";
-	config.wineDLLOverrides		= "mscoree,mshtml="; /* prevent Installation of Geck & Mono by default */
+	config.wineDLLOverrides		= "mscoree,mshtml,winegstreamer,winemenubuilder.exe="; /* prevent Installation of Geck & Mono by default */
 
 	config.dllPath 				= "";
 	config.dllName 				= "";
@@ -253,9 +259,7 @@ bool loadConfig(PluginConfig &config){
 		size_t pos;
 
 		//strip comments
-		pos = line.find_first_of("#"); 
-		if (pos != std::string::npos){
-			
+		if ((pos = line.find_first_of("#")) != std::string::npos){
 			if (pos == 0)
 				continue;
 
@@ -291,7 +295,7 @@ bool loadConfig(PluginConfig &config){
 		}else if (key == "winepath"){
 			config.winePath = value;
 
-			if(!checkIsFile(config.winePath))
+			if (!checkIsFile(config.winePath))
 				config.winePath += "/bin/wine";
 
 		}else if (key == "winearch") {

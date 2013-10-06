@@ -656,4 +656,7 @@ inline void pokeString(char *dest, const std::string str, size_t maxLength){
 	}
 }
 
+#define isAlphaNumericChar(c) \
+	( ((c) >= 'A' && (c) <= 'Z') || ((c) >= 'a' && (c) <= 'z') || ((c) >= '0' && (c) <= '9') || (c) == '_' )
+
 #endif // Common_h_
