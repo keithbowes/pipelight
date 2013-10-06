@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-sytemdir="/usr/lib/pipelight/"
+sytemdir=PLUGIN_SYSTEM_DIR
 plugin=""
 installdir=""
 declare -a plugins=('silverlight' 'flash');
