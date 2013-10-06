@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+
+# Default configuration
 prefix=/usr/local/
 
 usage ()
@@ -9,25 +11,26 @@ usage ()
 }
 
 while [[ $# > 0 ]] ; do
-	case "$1" in
+	CMD="$1"; shift
+	case "$CMD" in
 		--prefix=*)
-			prefix=${1#*=}
+			prefix=${CMD#*=}
 			;;
 		--prefix)
-			shift
-			prefix=$1
+			prefix="$1"; shift
 			;;
+
 		--help)
 			usage
 			exit
 			;;
 		*)
-			echo "Warning: unknown argument $1" >&2
+			echo "WARNING: Unknown argument $CMD." >&2
 			;;
 	esac
-	shift
 done
 
+# Normalize the path
 prefix=$(readlink -m "$prefix")
 
 echo "Configuration Summary"
@@ -41,3 +44,4 @@ echo "           your file system (required to watch DRM protected content)!"
 echo
 
 echo "prefix=$prefix" > config.make
+exit 0
