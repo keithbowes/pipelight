@@ -1,22 +1,27 @@
 #ifndef PluginLoader_h_
 #define PluginLoader_h_
 
-#include <cstdlib>
-#include <windows.h>
+#include <map>
 
-#ifdef __WINE__
-	#undef max
-	#undef min
-#endif
+#include "../common/common.h"
 
-#include <fstream>
+extern std::map<HWND, NPP> hwndToInstance;
 
-#include "../npapi-headers/npapi.h"
-#include "../npapi-headers/npruntime.h"
-#include "../npapi-headers/npfunctions.h"
+extern bool isWindowlessMode;
+extern bool isEmbeddedMode;
+extern bool usermodeTimer;
 
-#include "../communication/communication.h"
-#include "../handlemanager/handlemanager.h"
+extern char strUserAgent[1024];
+
+extern std::string np_MimeType;
+extern std::string np_FileExtents;
+extern std::string np_FileOpenName;
+extern std::string np_ProductName;
+extern std::string np_FileDescription;
+extern std::string np_Language;
+
+extern NPPluginFuncs pluginFuncs;
+extern NPNetscapeFuncs browserFuncs;
 
 /*
 	NP Class functions
@@ -33,8 +38,6 @@ bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *coun
 bool NPConstructFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result);
 NPObject * NPAllocateFunction(NPP npp, NPClass *aClass);
 void NPDeallocateFunction(NPObject *npobj);
-
-extern NPClass myClass;
 
 /*
 	NPN Browser functions
@@ -97,8 +100,7 @@ NPError NP_LOADDS NPN_InitAsyncSurface(NPP instance, NPSize *size, NPImageFormat
 NPError NP_LOADDS NPN_FinalizeAsyncSurface(NPP instance, NPAsyncSurface *surface);
 void NP_LOADDS NPN_SetCurrentAsyncSurface(NPP instance, NPAsyncSurface *surface, NPRect *changed);
 
-extern NPNetscapeFuncs browserFuncs;
-
+/* public */
 struct NetscapeData{
 	bool		windowlessMode;
 	HWND 		hWnd;

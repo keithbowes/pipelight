@@ -1,39 +1,15 @@
 
-#include <iostream>								// for std::cerr
-#include <algorithm>							// for std::transform
-#include <X11/Xlib.h>							// for XSendEvent, ...
-#include <X11/Xmd.h>							// for CARD32
-#include <stdexcept>							// for std::runtime_error
-#include <string.h>								// for memcpy, ...
-
-#include <signal.h>								// waitpid, kill, ...
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
+#include <signal.h>								// waitpid, kill, ...
+#include <string.h>								// for memcpy, ...
+#include <X11/Xlib.h>							// for XSendEvent, ...
+#include <X11/Xmd.h>							// for CARD32
 
-#include <pthread.h>							// alternative to ScheduleTimer etc.
-#include <semaphore.h>
-
+#include "../common/common.h"
 #include "basicplugin.h"
-#include "configloader.h"
 #include "debug.h"
-
-extern char strMimeType[2048];
-extern char strPluginversion[100];
-extern char strPluginName[256];
-extern char strPluginDescription[1024];
-
-extern uint32_t  	eventTimerID;
-extern NPP 			eventTimerInstance;
-extern pthread_t 	eventThread;
-
-extern sem_t		eventThreadSemRequestAsyncCall;
-extern sem_t		eventThreadSemScheduledAsyncCall;
-
-extern pid_t 		winePid;
-extern bool 		initOkay;
-
-extern PluginConfig config;
 
 /* XEMBED messages */
 #define XEMBED_EMBEDDED_NOTIFY			0
@@ -79,42 +55,33 @@ void sendXembedMessage(Display* display, Window win, long message, long detail, 
 
 void setXembedWindowInfo(Display* display, Window win, int flags){
 	CARD32 list[2];
+	Atom xembedInfo = XInternAtom(display, "_XEMBED_INFO", False);
+
 	list[0] = 0;
 	list[1] = flags;
-
-	Atom xembedInfo = XInternAtom(display, "_XEMBED_INFO", False);
 
 	XChangeProperty(display, win, xembedInfo, xembedInfo, 32, PropModeReplace, (unsigned char *)list, 2);
 }
 
-void pokeString(std::string str, char *dest, unsigned int maxLength){
-	if(maxLength > 0){
-		unsigned int length = std::min((unsigned int)str.length(), maxLength-1);
-
-		// Always at least one byte to copy (nullbyte)
-		memcpy(dest, str.c_str(), length);
-		dest[length] = 0;
-	}
-}
 
 NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 {
 	DBG_TRACE("( bFuncs=%p, pFuncs=%p )", bFuncs, pFuncs);
 
-	if( bFuncs == NULL || pFuncs == NULL )
+	if (bFuncs == NULL || pFuncs == NULL)
 		return NPERR_INVALID_PARAM;
 
-	if( (bFuncs->version >> 8) > NP_VERSION_MAJOR ){
+	if ((bFuncs->version >> 8) > NP_VERSION_MAJOR){
 		DBG_ERROR("incompatible browser version!");
 		return NPERR_INCOMPATIBLE_VERSION_ERROR;
 	}
 
 	// Copy browser functions instead of saving the pointer
-	if(!sBrowserFuncs){
+	if (!sBrowserFuncs){
 		sBrowserFuncs = (NPNetscapeFuncs*)malloc( sizeof(NPNetscapeFuncs) );
 	}
 
-	if(!sBrowserFuncs){
+	if (!sBrowserFuncs){
 		return NPERR_OUT_OF_MEMORY_ERROR;
 	}
 
@@ -122,7 +89,7 @@ NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 	memcpy(sBrowserFuncs, bFuncs, ((bFuncs->size < sizeof(NPNetscapeFuncs)) ? bFuncs->size : sizeof(NPNetscapeFuncs)) );
 
 	// Check if all required browser functions are available
-	if( !sBrowserFuncs->geturl ||
+	if (!sBrowserFuncs->geturl ||
 		!sBrowserFuncs->posturl ||
 		!sBrowserFuncs->requestread ||
 		!sBrowserFuncs->newstream ||
@@ -153,57 +120,19 @@ NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 		!sBrowserFuncs->releasevariantvalue ||
 		!sBrowserFuncs->setexception ||
 		!sBrowserFuncs->enumerate ){
+
 		DBG_ERROR("your browser doesn't support all required functions!");
-
-		/*
-		Uncomment this in order to debug missing browser functions ...
-
-		std::cerr << "sBrowserFuncs->geturl = " << (void*)sBrowserFuncs->geturl << std::endl;
-		std::cerr << "sBrowserFuncs->posturl = " << (void*)sBrowserFuncs->posturl << std::endl;
-		std::cerr << "sBrowserFuncs->requestread = " << (void*)sBrowserFuncs->requestread << std::endl;
-		std::cerr << "sBrowserFuncs->newstream = " << (void*)sBrowserFuncs->newstream << std::endl;
-		std::cerr << "sBrowserFuncs->write = " << (void*)sBrowserFuncs->write << std::endl;
-		std::cerr << "sBrowserFuncs->destroystream = " << (void*)sBrowserFuncs->destroystream << std::endl;
-		std::cerr << "sBrowserFuncs->status = " << (void*)sBrowserFuncs->status << std::endl;
-		std::cerr << "sBrowserFuncs->uagen = t" << (void*)sBrowserFuncs->uagent << std::endl;
-		std::cerr << "sBrowserFuncs->memalloc = " << (void*)sBrowserFuncs->memalloc << std::endl;
-		std::cerr << "sBrowserFuncs->memfree = " << (void*)sBrowserFuncs->memfree << std::endl;
-		std::cerr << "sBrowserFuncs->geturlnotify = " << (void*)sBrowserFuncs->geturlnotify << std::endl;
-		std::cerr << "sBrowserFuncs->posturlnotify = " << (void*)sBrowserFuncs->posturlnotify << std::endl;
-		std::cerr << "sBrowserFuncs->getvalue = " << (void*)sBrowserFuncs->getvalue << std::endl;
-		std::cerr << "sBrowserFuncs->getstringidentifier = " << (void*)sBrowserFuncs->getstringidentifier << std::endl;
-		std::cerr << "sBrowserFuncs->getintidentifier = " << (void*)sBrowserFuncs->getintidentifier << std::endl;
-		std::cerr << "sBrowserFuncs->identifierisstring = " << (void*)sBrowserFuncs->identifierisstring << std::endl;
-		std::cerr << "sBrowserFuncs->utf8fromidentifier = " << (void*)sBrowserFuncs->utf8fromidentifier << std::endl;
-		std::cerr << "sBrowserFuncs->intfromidentifier = " << (void*)sBrowserFuncs->intfromidentifier << std::endl;
-		std::cerr << "sBrowserFuncs->createobject = " << (void*)sBrowserFuncs->createobject << std::endl;
-		std::cerr << "sBrowserFuncs->retainobject = " << (void*)sBrowserFuncs->retainobject << std::endl;
-		std::cerr << "sBrowserFuncs->releaseobject = " << (void*)sBrowserFuncs->releaseobject << std::endl;
-		std::cerr << "sBrowserFuncs->invoke = " << (void*)sBrowserFuncs->invoke << std::endl;
-		std::cerr << "sBrowserFuncs->invokeDefault = " << (void*)sBrowserFuncs->invokeDefault << std::endl;
-		std::cerr << "sBrowserFuncs->evaluate = " << (void*)sBrowserFuncs->evaluate << std::endl;
-		std::cerr << "sBrowserFuncs->getproperty = " << (void*)sBrowserFuncs->getproperty << std::endl;
-		std::cerr << "sBrowserFuncs->setproperty = " << (void*)sBrowserFuncs->setproperty << std::endl;
-		std::cerr << "sBrowserFuncs->removeproperty = " << (void*)sBrowserFuncs->removeproperty << std::endl;
-		std::cerr << "sBrowserFuncs->hasproperty = " << (void*)sBrowserFuncs->hasproperty << std::endl;
-		std::cerr << "sBrowserFuncs->releasevariantvalue = " << (void*)sBrowserFuncs->releasevariantvalue << std::endl;
-		std::cerr << "sBrowserFuncs->setexception = " << (void*)sBrowserFuncs->setexception << std::endl;
-		std::cerr << "sBrowserFuncs->enumerate = " << (void*)sBrowserFuncs->enumerate << std::endl;
-		std::cerr << "sBrowserFuncs->scheduletimer = " << (void*)sBrowserFuncs->scheduletimer << std::endl;
-		std::cerr << "sBrowserFuncs->unscheduletimer = " << (void*)sBrowserFuncs->unscheduletimer << std::endl;
-		std::cerr << "sBrowserFuncs->pluginthreadasynccall = " << (void*)sBrowserFuncs->pluginthreadasynccall << std::endl;*/
-
 		return NPERR_INCOMPATIBLE_VERSION_ERROR;
 	}
 
-	if( pFuncs->size < (offsetof(NPPluginFuncs, setvalue) + sizeof(void*)) )
+	if (pFuncs->size < (offsetof(NPPluginFuncs, setvalue) + sizeof(void*)))
 		return NPERR_INVALID_FUNCTABLE_ERROR;
 
 	// Select which event handling method should be used
-	if( !config.eventAsyncCall && sBrowserFuncs->scheduletimer && sBrowserFuncs->unscheduletimer ){
+	if (!config.eventAsyncCall && sBrowserFuncs->scheduletimer && sBrowserFuncs->unscheduletimer){
 		DBG_INFO("using timer based event handling.");
 
-	}else if( sBrowserFuncs->pluginthreadasynccall ){
+	}else if (sBrowserFuncs->pluginthreadasynccall){
 		DBG_INFO("using thread asynccall event handling.");
 		config.eventAsyncCall = true;
 
@@ -237,15 +166,15 @@ NP_EXPORT(char*) NP_GetPluginVersion()
 {
 	DBG_TRACE("()");
 
-	if(!initOkay){
-		pokeString("0.0", strPluginversion, sizeof(strPluginversion));
+	if (!initOkay){
+		pokeString(strPluginversion, "0.0", sizeof(strPluginversion));
 		return strPluginversion;
 	}
 
 	callFunction(FUNCTION_GET_VERSION);
 
 	std::string result = readResultString();
-	pokeString(result, strPluginversion, sizeof(strPluginversion));
+	pokeString(strPluginversion, result, sizeof(strPluginversion));
 
 	return strPluginversion;
 }
@@ -254,61 +183,61 @@ NP_EXPORT(const char*) NP_GetMIMEDescription()
 {
 	DBG_TRACE("()");
 
-	if(!initOkay){
-		pokeString("application/x-pipelight-error:pipelighterror:Error during initialization", strMimeType, sizeof(strMimeType));
+	if (!initOkay){
+		pokeString(strMimeType, "application/x-pipelight-error:pipelighterror:Error during initialization", sizeof(strMimeType));
 		return strMimeType;
 	}
 
 	callFunction(FUNCTION_GET_MIMETYPE);
 
 	std::string result = readResultString();
-	pokeString(result, strMimeType, sizeof(strMimeType));
+	pokeString(strMimeType, result, sizeof(strMimeType));
 
 	return strMimeType;
 }
 
-NP_EXPORT(NPError) NP_GetValue(void* future, NPPVariable aVariable, void* aValue) {
-	DBG_TRACE("( future=%p, aVariable=%d, aValue=%p )", future, aVariable, aValue);
-
+NP_EXPORT(NPError) NP_GetValue(void* future, NPPVariable variable, void* value) {
 	NPError result = NPERR_GENERIC_ERROR;
 	std::string resultStr;
 
-	switch (aVariable) {
+	DBG_TRACE("( future=%p, variable=%d, value=%p )", future, variable, value);
+
+	switch (variable) {
 
 		case NPPVpluginNameString:
 
-			if(!initOkay){
+			if (!initOkay){
 				resultStr = "Pipelight Error!";
 			}else{
 				callFunction(FUNCTION_GET_NAME);
 				resultStr = readResultString();
 			}
 
-			pokeString(resultStr, strPluginName, sizeof(strPluginName));
+			pokeString(strPluginName, resultStr, sizeof(strPluginName));
 
-			*((char**)aValue) 	= strPluginName;
+			*((char**)value) 	= strPluginName;
 			result 				= NPERR_NO_ERROR;
 			break;
 
 		case NPPVpluginDescriptionString:
 
-			if(!initOkay){
+			if (!initOkay){
 				resultStr = "Something went wrong, check the terminal output";
-			}else if(config.fakeVersion != ""){
+			}else if (config.fakeVersion != ""){
 				resultStr = config.fakeVersion;
 			}else{
 				callFunction(FUNCTION_GET_DESCRIPTION);
 				resultStr = readResultString();
 			}
 
-			pokeString(resultStr, strPluginDescription, sizeof(strPluginDescription));		
+			pokeString(strPluginDescription, resultStr, sizeof(strPluginDescription));		
 
-			*((char**)aValue) 	= strPluginDescription;
+			*((char**)value) 	= strPluginDescription;
 			result 				= NPERR_NO_ERROR;
 			break;
 
 		default:
-			NOTIMPLEMENTED("( aVariable=%d )", aVariable);
+			NOTIMPLEMENTED("( variable=%d )", variable);
 			result = NPERR_INVALID_PARAM;
 			break;
 
@@ -320,9 +249,9 @@ NP_EXPORT(NPError) NP_GetValue(void* future, NPPVariable aVariable, void* aValue
 NP_EXPORT(NPError) NP_Shutdown() {
 	DBG_TRACE("NP_Shutdown()");
 
-	if(initOkay){
+	if (initOkay){
 		callFunction(NP_SHUTDOWN);
-		waitReturn();
+		readResultVoid();
 	}
 
 	return NPERR_NO_ERROR;
@@ -330,36 +259,36 @@ NP_EXPORT(NPError) NP_Shutdown() {
 
 void timerFunc(NPP instance, uint32_t timerID){
 
-	writeInt64( handlemanager.handleCount() );
+	writeInt64( handleManager_count() );
 	callFunction(PROCESS_WINDOW_EVENTS);
-	waitReturn();
+	readResultVoid();
 }
 
 void timerThreadAsyncFunc(void* argument){
 
 	// Has been cancelled if we cannot acquire this lock
-	if( sem_trywait(&eventThreadSemScheduledAsyncCall) ) return;
+	if (sem_trywait(&eventThreadSemScheduledAsyncCall)) return;
 
 	// Update the window
-	writeInt64( handlemanager.handleCount() );
+	writeInt64( handleManager_count() );
 	callFunction(PROCESS_WINDOW_EVENTS);
-	waitReturn();
+	readResultVoid();
 
 	// Request event handling again
 	sem_post(&eventThreadSemRequestAsyncCall);
 }
 
 void* timerThread(void* argument){
-	while(true){
+	while (true){
 		sem_wait(&eventThreadSemRequestAsyncCall);
 
 		// 10 ms of sleeping before requesting again
 		usleep(10000);
 
 		// If no instance is running, just terminate
-		if(!eventTimerInstance){
+		if (!eventTimerInstance){
 			sem_wait(&eventThreadSemRequestAsyncCall);
-			if(!eventTimerInstance)	break;
+			if (!eventTimerInstance) break;
 		}
 
 		// Request an asynccall
@@ -378,19 +307,19 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	instance->pdata 	= (void*)pipelightError;
 
 	// Run diagnostic stuff if its the wrong mimetype
-	if( config.diagnosticMode && pipelightError ){
+	if (config.diagnosticMode && pipelightError){
 		runDiagnostic(instance);
 		return NPERR_GENERIC_ERROR;
 	}
 
-	if(!initOkay || pipelightError)
+	if (!initOkay || pipelightError)
 		return NPERR_GENERIC_ERROR;
 
 	bool startAsyncCall = false;
 
 	// Detect opera browsers and set eventAsyncCall to true in this case
-	if( !config.eventAsyncCall && config.operaDetection ){
-		if( std::string(sBrowserFuncs->uagent(instance)).find("Opera") != std::string::npos ){
+	if (!config.eventAsyncCall && config.operaDetection){
+		if (std::string(sBrowserFuncs->uagent(instance)).find("Opera") != std::string::npos){
 			config.eventAsyncCall = true;
 
 			DBG_INFO("Opera browser detected, changed eventAsyncCall to true.");
@@ -398,7 +327,7 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	}
 
 	// Execute javascript if defined
-	if( config.executeJavascript != "" ){
+	if (config.executeJavascript != ""){
 		NPObject 		*windowObj;
 		NPString		script;
 		script.UTF8Characters 	= config.executeJavascript.c_str();
@@ -408,9 +337,9 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 		resultVariant.type 				= NPVariantType_Void;
 		resultVariant.value.objectValue = NULL;
 
-		if( sBrowserFuncs->getvalue(instance, NPNVWindowNPObject, &windowObj) == NPERR_NO_ERROR ){
+		if (sBrowserFuncs->getvalue(instance, NPNVWindowNPObject, &windowObj) == NPERR_NO_ERROR){
 			
-			if( sBrowserFuncs->evaluate(instance, windowObj, &script, &resultVariant) ){
+			if (sBrowserFuncs->evaluate(instance, windowObj, &script, &resultVariant)){
 				sBrowserFuncs->releasevariantvalue(&resultVariant);
 
 				DBG_INFO("successfully executed JavaScript.");
@@ -424,11 +353,11 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	}
 
 	// Setup eventhandling
-	if( config.eventAsyncCall ){
-		if(!eventThread){
+	if (config.eventAsyncCall){
+		if (!eventThread){
 			eventTimerInstance = instance;
 
-			if(pthread_create(&eventThread, NULL, timerThread, NULL) == 0){ // failed
+			if (pthread_create(&eventThread, NULL, timerThread, NULL) == 0){ // failed
 				startAsyncCall = true;
 
 			}else{
@@ -442,7 +371,7 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 
 	}else{
 		// TODO: For Chrome this should be ~0, for Firefox a value of 5-10 is better.
-		if( eventTimerInstance == NULL ){
+		if (eventTimerInstance == NULL){
 			eventTimerInstance 	= instance;
 			eventTimerID 		= sBrowserFuncs->scheduletimer(instance, 5, true, timerFunc);
 		}else{
@@ -451,7 +380,7 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 
 	}
 
-	if(saved){
+	if (saved){
 		writeMemory((char*)saved->buf, saved->len);
 	}else{
 		writeMemory(NULL, 0);
@@ -465,32 +394,32 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	std::map<std::string, std::string>::iterator it;
 
 	// argv
-	for(int i = argc - 1; i >= 0; i--){
+	for (int i = argc - 1; i >= 0; i--){
 		std::string key(argn[i]);
 
 		it = config.overwriteArgs.find(key);
-		if(it == config.overwriteArgs.end()){
+		if (it == config.overwriteArgs.end()){
 			realArgCount++;
 			writeString(argv[i]);
 		}
 	}
 
-	for(it = config.overwriteArgs.begin(); it != config.overwriteArgs.end(); it++){
+	for (it = config.overwriteArgs.begin(); it != config.overwriteArgs.end(); it++){
 		realArgCount++;
 		writeString(it->second);
 	}
 
 	//argn
-	for(int i = argc - 1; i >= 0; i--){
+	for (int i = argc - 1; i >= 0; i--){
 		std::string key(argn[i]);
 
 		it = config.overwriteArgs.find(key);
-		if(it == config.overwriteArgs.end()){
+		if (it == config.overwriteArgs.end()){
 			writeString(argn[i]);
 		}
 	}
 
-	for(it = config.overwriteArgs.begin(); it != config.overwriteArgs.end(); it++){
+	for (it = config.overwriteArgs.begin(); it != config.overwriteArgs.end(); it++){
 		writeString(it->first);
 	}
 
@@ -504,14 +433,14 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 
 	// The plugin is responsible for freeing *saved
 	// The other side has its own copy of this memory
-	if(saved){
+	if (saved){
 		sBrowserFuncs->memfree(saved->buf);
 		saved->buf = NULL;
 		saved->len = 0;
 	}
 
 	// Begin scheduling events
-	if(startAsyncCall) sem_post(&eventThreadSemRequestAsyncCall);
+	if (startAsyncCall) sem_post(&eventThreadSemRequestAsyncCall);
 
 	return result;
 }
@@ -521,14 +450,14 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 
 	// Initialization failed or diagnostic mode
 	bool pipelightError = (bool)instance->pdata;
-	if( !initOkay || pipelightError )
+	if (!initOkay || pipelightError)
 		return NPERR_GENERIC_ERROR;
 
 	bool unscheduleCurrentTimer = (eventTimerInstance && eventTimerInstance == instance);
 
-	if(unscheduleCurrentTimer){
-		if( config.eventAsyncCall ){
-			if(eventThread){
+	if (unscheduleCurrentTimer){
+		if (config.eventAsyncCall){
+			if (eventThread){
 				
 				// Do synchronization with the main thread
 				sem_wait(&eventThreadSemScheduledAsyncCall);
@@ -554,31 +483,28 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 
 	Stack stack;
 
-	try {
-		readCommands(stack, true, 5000);
-
-	} catch(std::runtime_error &error){
+	if (!readCommands(stack, true, 5000)){
 		DBG_ERROR("plugin did not deinitialize properly, killing it!");
 
 		// Kill the wine process (if it still exists) ...
 		int status;
-		if(winePid > 0 && !waitpid(winePid, &status, WNOHANG)){
+		if (winePid > 0 && !waitpid(winePid, &status, WNOHANG)){
 			kill(winePid, SIGTERM);
 		}
 
-		throw std::runtime_error("Killed wine process");
+		DBG_ABORT("terminating.");
 	}
 
 	NPError result 	= readInt32(stack);
 
-	if(result == NPERR_NO_ERROR){
-		if(save){
+	if (result == NPERR_NO_ERROR){
+		if (save){
 			size_t save_length;
 			char* save_data = readMemoryBrowserAlloc(stack, save_length);
 
-			if(save_data && save){
+			if (save_data && save){
 				*save = (NPSavedData*) sBrowserFuncs->memalloc(sizeof(NPSavedData));
-				if(*save){
+				if (*save){
 
 					(*save)->buf = save_data;
 					(*save)->len = save_length;
@@ -594,23 +520,23 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 			stack.pop_back();
 		}
 
-	}else if(save){
+	}else if (save){
 		*save = NULL; // Nothing to save
 	}
 
-	handlemanager.removeHandleByReal((uint64_t)instance, TYPE_NPPInstance);
+	handleManager_removeByPtr(HMGR_TYPE_NPPInstance, instance);
 
-	if(unscheduleCurrentTimer){
-		NPP nextInstance = handlemanager.findInstance();
-		if( config.eventAsyncCall ){
-			if(eventThread){
+	if (unscheduleCurrentTimer){
+		NPP nextInstance = handleManager_findInstance();
+		if (config.eventAsyncCall){
+			if (eventThread){
 				eventTimerInstance = nextInstance;
 				
 				// Start again requesting async calls
 				sem_post(&eventThreadSemRequestAsyncCall);
 
 				// If nextInstance == 0 then the thread will terminate itself as soon as it recognizes that eventTimerInstace == NULL
-				if(nextInstance == 0){
+				if (nextInstance == 0){
 					eventThread = 0;
 				}else{
 					DBG_INFO("started timer thread for instance %p.", nextInstance);
@@ -620,7 +546,7 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 
 		}else{
 			// In this event handling model we explicitly schedule a new timer
-			if( nextInstance ){
+			if (nextInstance){
 				eventTimerID 		= sBrowserFuncs->scheduletimer(nextInstance, 5, true, timerFunc);
 				eventTimerInstance 	= instance;
 
@@ -649,12 +575,12 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window) {
 	// Embed window if we get a valid x11 window ID back
 	Window win = (Window)readResultInt32();
 
-	if(win){
-		if(window->window){
+	if (win){
+		if (window->window){
 
 			Display *display = XOpenDisplay(NULL);
 
-			if(display){
+			if (display){
 				setXembedWindowInfo(display, win, XEMBED_MAPPED);
 
 				XReparentWindow(display, win, (Window)window->window, 0, 0);
@@ -675,7 +601,7 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window) {
 			// Show the window after it has been embedded
 			writeHandleInstance(instance);
 			callFunction(SHOW_UPDATE_WINDOW);
-			waitReturn();
+			readResultVoid();
 
 		}
 	}
@@ -697,11 +623,11 @@ NPError NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool se
 
 	NPError result 	= readInt32(stack);
 
-	if(result == NPERR_NO_ERROR){
+	if (result == NPERR_NO_ERROR){
 		*stype 			= (uint16_t)readInt32(stack);
 
 	}else{ // Handle is now invalid because of this error
-		handlemanager.removeHandleByReal((uint64_t)stream, TYPE_NPStream);
+		handleManager_removeByPtr(HMGR_TYPE_NPStream, stream);
 
 		// We get another request using our notifyData after everything
 	}
@@ -712,21 +638,21 @@ NPError NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool se
 NPError NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
 	DBG_TRACE("( instance=%p, stream=%p, reason=%d )", instance, stream, reason);
 
-	if( !handlemanager.existsHandleByReal((uint64_t)stream, TYPE_NPStream) ){
+	if (!handleManager_existsByPtr(HMGR_TYPE_NPStream, stream)){
 		// Affects Opera
 		// std::cerr << "[PIPELIGHT] Browser Use-After-Free bug in NPP_DestroyStream" << std::endl;
 		return NPERR_NO_ERROR;
 	}
 
 	writeInt32(reason);
-	writeHandleStream(stream, HANDLE_SHOULD_EXIST);
+	writeHandleStream(stream, HMGR_SHOULD_EXIST);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_DESTROY_STREAM);
 
 	NPError result = readResultInt32();
 
 	// Remove the handle by the corresponding stream real object
-	handlemanager.removeHandleByReal((uint64_t)stream, TYPE_NPStream);
+	handleManager_removeByPtr(HMGR_TYPE_NPStream, stream);
 
 	return result;
 }
@@ -734,20 +660,20 @@ NPError NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
 int32_t NPP_WriteReady(NPP instance, NPStream* stream) {
 	DBG_TRACE("( instance=%p, stream=%p )", instance, stream);
 
-	if( !handlemanager.existsHandleByReal((uint64_t)stream, TYPE_NPStream) ){
+	if (!handleManager_existsByPtr(HMGR_TYPE_NPStream, stream)){
 		// Affects Chrome
 		// std::cerr << "[PIPELIGHT] Browser Use-After-Free bug in NPP_WriteReady" << std::endl;
 		return 0x7FFFFFFF;
 	}
 
-	writeHandleStream(stream, HANDLE_SHOULD_EXIST);
+	writeHandleStream(stream, HMGR_SHOULD_EXIST);
 	writeHandleInstance(instance);	
 	callFunction(FUNCTION_NPP_WRITE_READY);
 	
 	int32_t result = readResultInt32();
 
 	// Ensure that the program doesn't want too much data at once - this might cause the communication to hang
-	if(result > 0xFFFFFF){
+	if (result > 0xFFFFFF){
 		result = 0xFFFFFF;
 	}
 
@@ -757,7 +683,7 @@ int32_t NPP_WriteReady(NPP instance, NPStream* stream) {
 int32_t NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, void* buffer) {
 	DBG_TRACE("( instance=%p, stream=%p, offset=%d, len=%d, buffer=%p )", instance, stream, offset, len, buffer);
 
-	if( !handlemanager.existsHandleByReal((uint64_t)stream, TYPE_NPStream) ){
+	if (!handleManager_existsByPtr(HMGR_TYPE_NPStream, stream)){
 		// Affects Chrome
 		// std::cerr << "[PIPELIGHT] Browser Use-After-Free bug in NPP_WriteReady" << std::endl;
 		return len;
@@ -765,7 +691,7 @@ int32_t NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, v
 
 	writeMemory((char*)buffer, len);
 	writeInt32(offset);
-	writeHandleStream(stream, HANDLE_SHOULD_EXIST);
+	writeHandleStream(stream, HMGR_SHOULD_EXIST);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_WRITE);
 	
@@ -791,32 +717,29 @@ int16_t NPP_HandleEvent(NPP instance, void* event) {
 void NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyData) {
 	DBG_TRACE("( instance=%p, URL='%s', reason=%d, notifyData=%p )", instance, URL, reason, notifyData);
 
-	writeHandleNotify(notifyData, HANDLE_SHOULD_EXIST);
+	writeHandleNotify(notifyData, HMGR_SHOULD_EXIST);
 	writeInt32(reason);
 	writeString(URL);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_URL_NOTIFY);
-	waitReturn();
+	readResultVoid();
 
 	// Free all the notifydata stuff
 	NotifyDataRefCount* myNotifyData = (NotifyDataRefCount*)notifyData;
-	if(myNotifyData){
-
-		if(myNotifyData->referenceCount == 0){
-			throw std::runtime_error("Reference count is zero when calling NPP_URLNotify!");
-		}
+	if (myNotifyData){
+		DBG_ASSERT(myNotifyData->referenceCount != 0, "reference count is zero.");
 
 		// Decrement refcount
 		myNotifyData->referenceCount--;
 
-		if(myNotifyData->referenceCount == 0){
+		if (myNotifyData->referenceCount == 0){
 
 			// Free everything
 			writeHandleNotify(myNotifyData);
 			callFunction(WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA);
-			waitReturn();
+			readResultVoid();
 
-			handlemanager.removeHandleByReal((uint64_t)myNotifyData, TYPE_NotifyData);
+			handleManager_removeByPtr(HMGR_TYPE_NotifyData, myNotifyData);
 
 			free(myNotifyData);
 		}
@@ -830,7 +753,7 @@ NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 	NPError result = NPERR_GENERIC_ERROR;
 	std::vector<ParameterInfo> stack;
 
-	switch(variable){
+	switch (variable){
 
 		case NPPVpluginNeedsXEmbed:
 			result 						= NPERR_NO_ERROR;
@@ -865,7 +788,7 @@ NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 
 			result 						= readInt32(stack);
 
-			if(result == NPERR_NO_ERROR)
+			if (result == NPERR_NO_ERROR)
 				*((NPObject**)value) 	= readHandleObj(stack);
 			break;
 
