@@ -4,4 +4,4 @@
 # Source debconf library.
 . /usr/share/debconf/confmodule
 
-pipelight-plugin --create-hardlinks
+pipelight-plugin --create-mozilla-plugins
