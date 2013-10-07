@@ -548,7 +548,7 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 			// In this event handling model we explicitly schedule a new timer
 			if (nextInstance){
 				eventTimerID 		= sBrowserFuncs->scheduletimer(nextInstance, 5, true, timerFunc);
-				eventTimerInstance 	= instance;
+				eventTimerInstance 	= nextInstance;
 
 				DBG_INFO("started timer for instance %p.", nextInstance);
 			}
