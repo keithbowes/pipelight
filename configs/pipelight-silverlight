@@ -50,18 +50,21 @@ pluginLoaderPath    = PLUGIN_LOADER_PATH
 gccRuntimeDlls      = /usr/lib/gcc/i686-w64-mingw32/4.6/
 
 #
-# Path to the Silverlight directory
-# Must be changed if a different version should be used.
-# The standard installation Path is:
-# c:\Program Files\Microsoft Silverlight\5.1.20513.0\
+# Path and name to the Silverlight directory
+# You should prefer using regKey to make it easier to switch between
+# different versions.
 #
-dllPath             = c:\Program Files\Silverlight\5.1.20513.0\
+# dllPath             = c:\Program Files\Silverlight\5.1.20513.0\
+# dllName             = npctrl.dll
 
 #
-# Name of the Silverlight library to load
-# (relative to the path specified above)
+# Name of the registry key at HKCU\Software\MozillaPlugins\ or
+# HKLM\Software\MozillaPlugins\ where to search for the plugin path.
 #
-dllName             = npctrl.dll
+# You should use this option instead of dllPath/dllName in most cases
+# since you do not need to alter dllPath on a program update.
+#
+regKey                = @Microsoft.com/NpCtrl,version=1.0
 
 #
 # fakeVersion allows to fake the version string of Silverlight
@@ -136,7 +139,7 @@ dependency          = wine-mpg2splt-installer
 # the installation process, like EULA or DRM dialogs.
 # [default: true]
 #
-quietInstallation = true
+quietInstallation   = true
 
 #
 # In order to support browsers without NPAPI timer support

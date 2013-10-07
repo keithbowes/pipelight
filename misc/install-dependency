@@ -22,6 +22,8 @@ usage()
 	echo ""
 }
 
+PRG=$(basename "$0")
+
 # > Marks a file in order to delete it at program termination
 # arguments:
 # $1	- File to delete
@@ -42,13 +44,13 @@ atexit()
 
 # > Checks if a dependency is already installed
 # arguments:
-# $1	- DEP
-# $2	- SHA256
+# $1	- SHA256
+# $DEP
 is_installed()
 {
-	local DEP="$1";	local SHA="$2"
+	local SHA="$1"
 	local ckfile="$WINEPREFIX/$DEP.installed"
-	[ -f "$ckfile" ] && [ "$SHA" == $(cat "$ckfile") ]
+	[ -f "$ckfile" ] && [ "$SHA" == ""$(cat "$ckfile") ]
 	return $?
 }
 
@@ -56,23 +58,22 @@ is_installed()
 # arguments: same as is_installed
 mark_installed()
 {
-	local DEP="$1";	local SHA="$2"
+	local SHA="$1"
 	local ckfile="$WINEPREFIX/$DEP.installed"
 	echo "$SHA" > "$ckfile"
 }
 
 # > Download a given dependency file
 # arguments:
-# $1	- DEP
-# $2	- URL
-# $3	- SHA256
-# $4	- Overwrite file extension
+# $1	- URL
+# $2	- SHA256
+# $3	- Overwrite file extension
 # returns:
 # $DOWNLOADFILE
 DOWNLOADFILE=""
 download()
 {
-	local DEP="$1";	local URL="$2";	local SHA="$3";	local EXT="$4"
+	local URL="$1";	local SHA="$2";	local EXT="$3"
 
 	if [ -z "$EXT" ]; then
 		EXT=$(echo "$URL" | sed 's/.*\.//')
@@ -93,7 +94,7 @@ download()
 	while true; do
 		if [ "$trycount" -le 0 ]; then
 			rm "$tmpfile"
-			echo "ERROR: Downloading failed multiple times - please check your internet connection." >&2
+			echo "[$PRG] ERROR: Downloading failed multiple times - please check your internet connection." >&2
 			return 1
 		fi
 
@@ -131,6 +132,35 @@ wait_wineserver()
 	done
 }
 
+# > Sets a registry key
+# arguments:
+# $1	- key
+# $2	- path
+register_mozilla_plugin()
+{
+	local KEY="$1"; local VAL="$2"
+
+	local tmpfile=$(mktemp)
+	[ -f "$tmpfile" ] || return 1
+
+	local valfile=$("$WINE" winepath --windows "$VAL" | sed 's/\\/\\\\/g')
+
+	( 	echo "REGEDIT4"
+		echo ""
+		echo "[HKEY_LOCAL_MACHINE\\Software\\MozillaPlugins\\$KEY]"
+		echo "\"Path\"=\"$valfile\""
+	) > "$tmpfile"
+
+	"$WINE" regedit "$tmpfile"
+	local res=$?
+
+	# Cleanup
+	rm "$tmpfile"
+
+	# Successful
+	return $?
+}
+
 # > Installer for Silverlight
 # arguments:
 # $1	- version
@@ -151,7 +181,7 @@ install_silverlight()
 
 	local programfiles="$WINEPREFIX/drive_c/Program Files"
 	if [ ! -d "$programfiles/Microsoft Silverlight/$VER" ]; then
-		echo "ERROR: Installer for $DEP did not run correctly or was aborted." >&2
+		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
 		return 1
 	fi
 
@@ -173,6 +203,31 @@ install_silverlight()
 	return 0
 }
 
+# > Configure Silverlight
+# arguments:
+# $1	- version
+# $DEP
+configure_silverlight()
+{
+	local VER="$1"
+	local cfgfile="$WINEPREFIX/silverlight.configured"
+
+	# Already configured before to the same version
+	if [ -f "$cfgfile" ] && [ "$VER" == ""$(cat "$cfgfile") ]; then return 0; fi
+	echo "[$PRG] Configure $DEP."
+
+	local programfiles="$WINEPREFIX/drive_c/Program Files"
+
+	# Try to register this plugin
+	if ! register_mozilla_plugin "@Microsoft.com/NpCtrl,version=1.0" "$programfiles/Silverlight/$VER/npctrl.dll"; then
+		echo "[$PRG] ERROR: Failed to configure $DEP." >&2
+		return 1
+	fi
+
+	echo "$VER" > "$cfgfile"
+	return 0
+}
+
 # > Extract cab library
 # arguments:
 # $1	- file to extract
@@ -184,7 +239,7 @@ install_cabextract()
 	local system32="$WINEPREFIX/drive_c/windows/system32"
 	cabextract -d "$system32" "$DOWNLOADFILE" -F "$FILE"
 	if [ ! -f "$system32/$FILE" ]; then
-		echo "ERROR: Failed to extract $FILE from cab file." >&2
+		echo "[$PRG] ERROR: Failed to extract $FILE from cab file." >&2
 		return 1
 	fi
 
@@ -208,7 +263,6 @@ install_firefox()
 		echo "StartMenuShortcuts=false"
 		echo "MaintenanceService=false"
 	) > "$tmpfile"
-
 
 	local inifile=$("$WINE" winepath --windows "$tmpfile")
 	"$WINE" "$DOWNLOADFILE" "/INI=$inifile" 2>&1 | progressbar "Please wait, installing ..." "Installing $DEP"
@@ -237,7 +291,7 @@ install_flash()
 
 	local installdir="$WINEPREFIX/drive_c/windows/system32/Macromed/Flash"
 	if [ ! -f "$installdir/NPSWF32_$VER.dll" ]; then
-		echo "ERROR: Installer for $DEP did not run correctly or was aborted." >&2
+		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
 		return 1
 	fi
 
@@ -302,13 +356,13 @@ fi
 
 # Check for environment variables
 if [ -z "$WINE" ] || [ -z "$WINEPREFIX" ]; then
-	echo "ERROR: Missing necessary environment variables WINE and WINEPREFIX." >&2
+	echo "[$PRG] ERROR: Missing necessary environment variables WINE and WINEPREFIX." >&2
 	exit 1
 fi
 
 if [ -z "$WINESERVER" ]; then
 	if [ ! -f "${WINE}server" ]; then
-		echo "ERROR: Missing necessary environment variable WINESERVER." >&2
+		echo "[$PRG] ERROR: Missing necessary environment variable WINESERVER." >&2
 		exit 1
 	fi
 	export WINESERVER="${WINE}server"
@@ -325,7 +379,7 @@ LOCKFILE="/tmp/wine-$LOCKFILE.tmp"
 
 LOCKFD=9; eval "exec $LOCKFD> \"\$LOCKFILE\""
 if ! flock -x -w 360 "$LOCKFD"; then
-	echo "ERROR: Failed to obtain an installation lock in 6 minutes." >&2
+	echo "[$PRG] ERROR: Failed to obtain an installation lock in 6 minutes." >&2
 	exit 1;
 fi
 
@@ -341,72 +395,88 @@ fi
 RET=0
 
 while [ $# -gt 0 ] ; do
-	DEP="$1"; INS=""; URL=""; SHA=""; EXT=""; DOWNLOADFILE=""; shift
+	DEP="$1"; INS=""; CFG=""; URL=""; SHA=""; EXT=""; DOWNLOADFILE=""; shift
 	case "$DEP" in
 		wine-prefix)
 			continue # The wine-prefix is created automatically for all packages
 			;;
 		wine-silverlight4-installer)
-			INS=("install_silverlight" "4.1.10329.0")
+			INS=("install_silverlight"   "4.1.10329.0")
+			CFG=("configure_silverlight" "4.1.10329.0")
 			URL="http://silverlight.dlservice.microsoft.com/download/6/A/1/6A13C54D-3F35-4082-977A-27F30ECE0F34/10329.00/runtime/Silverlight.exe"
 			SHA="b0e476090206b2e61ba897de9151a31e0182c0e62e8abd528c35d3857ad6131c"
 			;;
 		wine-silverlight5.0-installer)
-			INS=("install_silverlight" "5.0.61118.0")
+			INS=("install_silverlight"   "5.0.61118.0")
+			CFG=("configure_silverlight" "5.0.61118.0")
 			URL="http://silverlight.dlservice.microsoft.com/download/5/5/7/55748E53-D673-4225-8072-4C7A377BB513/runtime/Silverlight.exe"
 			SHA="dd45a55419026c592f8b6fc848dceface7e1ce98720bf13848a2e8ae366b29e8"
 			;;
 		wine-silverlight5.1-installer)
-			INS=("install_silverlight" "5.1.20513.0")
+			INS=("install_silverlight"   "5.1.20513.0")
+			CFG=("configure_silverlight" "5.1.20513.0")
 			URL="http://silverlight.dlservice.microsoft.com/download/B/3/C/B3CF6815-40B1-4E36-8746-C4A0381AD260/20513.00/runtime/Silverlight.exe"
 			SHA="8c5d1ddaefd629670033841fb88188789f2f63170b2fe1aaddb2c9b33d4532ea"
 			;;
 		wine-mpg2splt-installer)
 			INS=("install_cabextract" "mpg2splt.ax")
+			CFG=()
 			URL="http://download.microsoft.com/download/8/0/D/80D7E79D-C0E4-415A-BCCA-E229EAFE2679/dshow_nt.cab"
 			SHA="984ed15e23a00a33113f0012277e1e680c95782ce2c44f414e7af14e28e3f1a2"
 			;;
 		wine-browser-installer)
 			INS=("install_firefox")
+			CFG=()
 			URL="http://download.mozilla.org/?product=firefox-22.0&os=win&lang=en-US"
 			SHA="abb189f17e65e73d61843247ad1af7c997318b7854fa850a04e5f9d9a20cdd03"
 			EXT="exe"
 			;;
 		wine-flash-installer)
 			INS=("install_flash" "11_8_800_168")
+			CFG=()
 			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/11.8.800.168/install_flash_player.exe"
 			SHA="2213027430edb7c0b90860c54bd5d797db9e32bb2ce6470c7b162adb58c421c7"
 			;;
 
 		*)
-			echo "ERROR: No installer script found for $DEP." >&2
+			echo "[$PRG] ERROR: No installer script found for $DEP." >&2
 			RET=1
 			continue
 			;;
 	esac
 
 	# Is already installed?
-	if is_installed "$DEP" "$SHA"; then
-		echo "$DEP is already installed in '$WINEPREFIX'."
-		continue
+	if ! is_installed "$SHA"; then
+		echo "[$PRG] Installing $DEP."
+
+		# Fetch the download
+		if ! download "$URL" "$SHA" "$EXT"; then
+			echo "[$PRG] ERROR: Download of $DEP failed." >&2
+			RET=1
+			continue
+		fi
+
+		# Do the installation
+		if ! eval "${INS[@]}"; then
+			echo "[$PRG] ERROR: Installation of $DEP failed." >&2
+			RET=1
+			continue
+		fi
+
+		# Mark the package as installed
+		mark_installed "$SHA"
+
+	else
+		echo "[$PRG] $DEP is already installed in '$WINEPREFIX'."
 	fi
 
-	# Fetch the download
-	if ! download "$DEP" "$URL" "$SHA" "$EXT"; then
-		echo "ERROR: Download of $DEP failed." >&2
+	# Do the configure step
+	if [ "${#CFG[*]}" -gt 0 ] && ! eval "${CFG[@]}"; then
+		echo "[$PRG] ERROR: Configuration of $DEP failed." >&2
 		RET=1
 		continue
 	fi
 
-	# Do the installation
-	if ! eval "${INS[@]}"; then
-		echo "ERROR: Installation of $DEP failed." >&2
-		RET=1
-		continue
-	fi
-
-	# Mark the package as installed
-	mark_installed "$DEP" "$SHA"
 done
 
 exit "$RET"

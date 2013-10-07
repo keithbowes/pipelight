@@ -405,7 +405,7 @@ int main(int argc, char *argv[]){
 
 		dllPath = path.substr(0, pos);
 		dllName = path.substr(pos+1, std::string::npos);
-		DBG_INFO("Read dllPath %s and dllName %s from registry", dllPath.c_str(), dllName.c_str());
+		DBG_INFO("Read dllPath '%s' and dllName '%s' from registry", dllPath.c_str(), dllName.c_str());
 	}
 
 	DBG_INFO("windowless mode is %s.", (isWindowlessMode ? "on" : "off"));
