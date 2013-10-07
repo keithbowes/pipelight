@@ -320,6 +320,17 @@ bool checkGraphicDriver(){
 		return false;
 	}
 
+	// Speed up in this case
+	if (config.graphicDriverCheck == "/bin/true"){
+		DBG_INFO("GPU driver check - Manually set to /bin/true.");
+		return true;
+	}
+		
+	if (config.graphicDriverCheck == "/bin/false"){
+		DBG_INFO("GPU driver check - Manually set to /bin/false.");
+		return true;
+	}
+
 	if (!checkIfExists(config.graphicDriverCheck)){
 		DBG_ERROR("GPU driver check script not found - treating test as failure.");
 		return false;
@@ -343,7 +354,7 @@ bool checkGraphicDriver(){
 			return false;
 
 		}else if (WEXITSTATUS(status) == 0){
-			DBG_ERROR("GPU driver check - Your driver is supported, hardware acceleration enabled.");
+			DBG_INFO("GPU driver check - Your driver is supported, hardware acceleration enabled.");
 			return true;
 
 		}else if (WEXITSTATUS(status) == 1){

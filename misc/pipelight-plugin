@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Global configuration
-SYSTEMDIR="PLUGIN_SYSTEM_DIR"
+SYSTEMDIR="@@PLUGIN_SYSTEM_DIR@@"
 PLUGINDIR="/usr/lib/mozilla/plugins"
 LIBPIPELIGHT="libpipelight"
 
