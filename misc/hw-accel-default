@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# Return the OpenGL vendor information
+OGL_VENDOR=$(glxinfo | sed -n 's|OpenGL vendor string: ||p');
+
+case "${OGL_VENDOR}" in
+	"Intel Open Source Technology Center")
+		# tested with OGL_RENDERER "Mesa DRI Intel(R) Sandybridge Mobile", OGL_VERSION "3.0 Mesa 9.0"
+		exit 0;
+	;;
+	"NVIDIA Corporation")
+		# tested with OGL_RENDERER "GeForce GTX 260/PCIe/SSE2", OGL_VERSION "3.3.0 NVIDIA 319.32"
+		# tested with OGL_RENDERER "GeForce GTX 560M/PCIe/SSE2", OGL_VERSION "4.3.0 NVIDIA 319.32"
+		exit 0;
+	;;
+esac
+
+# tested systems known NOT to work:
+# OGL_VENDOR                   OGL_RENDERER              OGL_VERSION
+# X.Org                        Gallium 0.4 on AMD RV770  2.1 Mesa 8.0.4
+# X.Org                        Gallium 0.4 on AMD RV770  3.0 Mesa 9.0.3
+# Advanced Micro Devices, Inc. AMD Radeon HD 6800 Series 4.2.12002 Compatibility Profile Context 9.01
+exit 1;
