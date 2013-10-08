@@ -16,8 +16,8 @@ Description: allows usage of Silverlight through Wine
 Package: pipelight-multi
 Architecture: amd64 i386
 Depends: ${shlibs:Depends}, ${misc:Depends}, libx11-6,
-	g++-mingw-w64-i686
-Recommends: wine-compholio (>= 1.7.0-3), wine-silverlight5.1-installer (>> 0.8.2), wine-mpg2splt-installer
+	g++-mingw-w64-i686, bash, mesa-utils
+Recommends: wine-compholio (>= 1.7.0-3)
 Description: allows usage of Windows NPAPI plugins through Wine
 	Pipelight allows one to use NPAPI plugins inside a Linux browser 
 	with the help of Wine.
