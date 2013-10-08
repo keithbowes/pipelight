@@ -1,21 +1,27 @@
 #!/usr/bin/env bash
 
 # Global configuration
-SYSTEMDIR="@@PLUGIN_SYSTEM_DIR@@"
-PLUGINDIR="/usr/lib/mozilla/plugins"
+SYSTEMDIR="@@PLUGIN_SYSTEM_PATH@@"
+PLUGINDIR="@@MOZ_PLGIN_PATH@@"
 LIBPIPELIGHT="libpipelight"
 
 # Supported plugins
 PLUGINS=("silverlight" "flash")
 
 # Fallback to Ubuntu path if not installed via make install
-if [[ "$SYSTEMDIR" =~ ^[P]LUGIN_SYSTEM_DIR$ ]] && [ -f "/usr/lib/pipelight/$LIBPIPELIGHT.so" ]; then
+if [[ "$SYSTEMDIR" =~ ^@@.*@@$ ]] && [ -f "/usr/lib/pipelight/$LIBPIPELIGHT.so" ]; then
 	SYSTEMDIR="/usr/lib/pipelight"
 elif [ ! -d "$SYSTEMDIR" ]; then
 	echo "ERROR: Failed to find $SYSTEMDIR." >&2
 	exit 1
 else
 	SYSTEMDIR=$(readlink -m "$SYSTEMDIR")	
+fi
+
+if [[ "$PLUGINDIR" =~ ^@@.*@@$ ]]; then
+	PLUGINDIR="/usr/lib/mozilla/plugins"
+else
+	PLUGINDIR=$(readlink -m "$PLUGINDIR")
 fi
 
 usage()

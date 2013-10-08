@@ -2,7 +2,11 @@ SUBDIRS= src/linux src/windows
 .PHONY:	all $(SUBDIRS) clean install uninstall
 
 CONFIGS=$(wildcard configs/*)
+
 prefix=/usr/local/
+mozpluginpath=/usr/lib/mozilla/plugins
+gccruntimedlls=/usr/lib/gcc/i686-w64-mingw32/4.6/
+
 -include config.make
 
 export
@@ -15,10 +19,11 @@ install: all
 	test -d "$(DESTDIR)$(prefix)/share/pipelight" || mkdir -p "$(DESTDIR)$(prefix)/share/pipelight"
 	install -m 0644 src/windows/pluginloader.exe "$(DESTDIR)$(prefix)/share/pipelight/pluginloader.exe"
 	
-	@for config in $(notdir $(CONFIGS)) ; do \
+	for config in $(notdir $(CONFIGS)) ; do \
 		sed    's|@@PLUGIN_LOADER_PATH@@|$(prefix)/share/pipelight/pluginloader.exe|g' configs/$${config} > pipelight-config.tmp; \
 		sed -i 's|@@DEPENDENCY_INSTALLER@@|$(prefix)/share/pipelight/install-dependency|g' pipelight-config.tmp; \
 		sed -i 's|@@GRAPHIC_DRIVER_CHECK@@|$(prefix)/share/pipelight/hw-accel-default|g' pipelight-config.tmp; \
+		sed -i 's|@@GCC_RUNTIME_DLLS@@|$(gccruntimedlls)|g' pipelight-config.tmp; \
 		install -m 0644 pipelight-config.tmp "$(DESTDIR)$(prefix)/share/pipelight/$${config}"; \
 		rm pipelight-config.tmp; \
 	done
@@ -27,7 +32,8 @@ install: all
 	install -m 0755 misc/hw-accel-default "$(DESTDIR)$(prefix)/share/pipelight/hw-accel-default"
 
 	test -d "$(DESTDIR)$(prefix)/bin/" || mkdir -p "$(DESTDIR)$(prefix)/bin/"
-	sed 's|@@PLUGIN_SYSTEM_DIR@@|$(prefix)/lib/pipelight/|g' misc/pipelight-plugin > pipelight-plugin.tmp
+	sed    's|@@PLUGIN_SYSTEM_PATH@@|$(prefix)/lib/pipelight/|g' misc/pipelight-plugin > pipelight-plugin.tmp
+	sed -i 's|@@MOZ_PLUGIN_PATH@@|$(mozpluginpath)|g' pipelight-plugin.tmp
 	install -m 0755 pipelight-plugin.tmp "$(DESTDIR)$(prefix)/bin/pipelight-plugin"
 	rm pipelight-plugin.tmp
 

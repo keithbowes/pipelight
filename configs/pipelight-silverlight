@@ -47,15 +47,15 @@ pluginLoaderPath    = @@PLUGIN_LOADER_PATH@@
 # libstdc++-6.dll). Only necessary when these DLLs are not in the same
 # directory as the pluginloader executable.
 #
-gccRuntimeDlls      = /usr/lib/gcc/i686-w64-mingw32/4.6/
+gccRuntimeDlls      = @@GCC_RUNTIME_DLLS@@
 
 #
 # Path and name to the Silverlight directory
 # You should prefer using regKey to make it easier to switch between
 # different versions.
 #
-# dllPath             = c:\Program Files\Silverlight\5.1.20513.0\
-# dllName             = npctrl.dll
+# dllPath           = c:\Program Files\Silverlight\5.1.20513.0\
+# dllName           = npctrl.dll
 
 #
 # Name of the registry key at HKCU\Software\MozillaPlugins\ or
@@ -64,7 +64,7 @@ gccRuntimeDlls      = /usr/lib/gcc/i686-w64-mingw32/4.6/
 # You should use this option instead of dllPath/dllName in most cases
 # since you do not need to alter dllPath on a program update.
 #
-regKey                = @Microsoft.com/NpCtrl,version=1.0
+regKey              = @Microsoft.com/NpCtrl,version=1.0
 
 #
 # fakeVersion allows to fake the version string of Silverlight

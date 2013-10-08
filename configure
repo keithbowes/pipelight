@@ -2,11 +2,13 @@
 
 # Default configuration
 prefix=/usr/local/
+mozpluginpath=/usr/lib/mozilla/plugins
+gccruntimedlls=/usr/lib/gcc/i686-w64-mingw32/4.6/
 
 usage ()
 {
 	echo ""
-	echo "Usage: ./configure [--prefix=PREFIX]"
+	echo "Usage: ./configure [--prefix=PREFIX] [--moz-plugin-path=PATH] [--gcc-runtime-dlls=PATH]"
 	echo ""
 }
 
@@ -18,6 +20,20 @@ while [[ $# > 0 ]] ; do
 			;;
 		--prefix)
 			prefix="$1"; shift
+			;;
+
+		--moz-plugin-path=*)
+			mozpluginpath=${CMD#*=}
+			;;
+		--moz-plugin-path)
+			mozpluginpath="$1"; shift
+			;;
+
+		--gcc-runtime-dlls=*)
+			gccruntimedlls=${CMD#*=}
+			;;
+		--gcc-runtime-dlls)
+			gccruntimedlls="$1"; shift
 			;;
 
 		--help)
@@ -35,13 +51,17 @@ prefix=$(readlink -m "$prefix")
 
 echo "Configuration Summary"
 echo "---------------------"
-echo
+echo ""
 echo "Pipelight has been configured with"
-echo "    prefix = $prefix"
+echo "  prefix        = '$prefix'"
+echo "  mozpluginpath = '$mozpluginpath'"
+echo " gccruntimedlls = '$gccruntimedlls'"
 echo ""
 echo "IMPORTANT: Please ensure you have XATTR support enabled for both wine and"
 echo "           your file system (required to watch DRM protected content)!"
-echo
+echo ""
 
-echo "prefix=$prefix" > config.make
+echo "prefix=$prefix" 					>  config.make
+echo "mozpluginpath=$mozpluginpath"		>> config.make
+echo "gccruntimedlls=$gccruntimedlls"	>> config.make
 exit 0
