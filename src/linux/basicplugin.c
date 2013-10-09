@@ -635,7 +635,7 @@ void dispatcher(int function, Stack &stack){
 		case FUNCTION_NPN_RELEASEOBJECT:
 			{
 				NPObject* obj 		= readHandleObj(stack);
-				DBG_TRACE("FUNCTION_NPN_GETVALUE_OBJECT( obj=%p )", obj);
+				DBG_TRACE("FUNCTION_NPN_RELEASEOBJECT( obj=%p )", obj);
 
 				// We do this check always, although its not really required, but this makes it easier to find errors
 				if (obj->referenceCount == 1 && handleManager_existsByPtr(HMGR_TYPE_NPObject, obj)){
@@ -1037,7 +1037,7 @@ void dispatcher(int function, Stack &stack){
 				DBG_TRACE("FUNCTION_NPN_STATUS( instance=%p, message='%s' )", instance, message.get() );
 				sBrowserFuncs->status(instance, message.get());
 
-				DBG_TRACE("FUNCTION_NPN_DESTROY_STREAM -> void");
+				DBG_TRACE("FUNCTION_NPN_STATUS -> void");
 				returnCommand();
 			}
 			break;
@@ -1086,16 +1086,15 @@ void dispatcher(int function, Stack &stack){
 			}
 			break;
 
-
 		case FUNCTION_NPN_INT_FROM_IDENTIFIER:
 			{
 				NPIdentifier identifier = readHandleIdentifier(stack);
-				DBG_TRACE("FUNCTION_NPN_IDENTIFIER_IS_STRING( identifier=%p )", identifier );
+				DBG_TRACE("FUNCTION_NPN_INT_FROM_IDENTIFIER( identifier=%p )", identifier );
 
 				int32_t result = sBrowserFuncs->intfromidentifier(identifier);
 				writeInt32(result);
 
-				DBG_TRACE("FUNCTION_NPN_IDENTIFIER_IS_STRING -> result=%d", result );
+				DBG_TRACE("FUNCTION_NPN_INT_FROM_IDENTIFIER -> result=%d", result );
 				returnCommand();
 			}
 			break;

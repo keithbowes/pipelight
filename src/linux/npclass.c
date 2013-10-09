@@ -3,7 +3,7 @@
 #include "../common/common.h"
 
 void NPInvalidateFunction(NPObject *npobj){
-	DBG_TRACE("NPInvalidateFunction( npobj=%p )", npobj);
+	DBG_TRACE("( npobj=%p )", npobj);
 
 	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_INVALIDATE);
@@ -11,7 +11,7 @@ void NPInvalidateFunction(NPObject *npobj){
 }
 
 bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name){
-	DBG_TRACE("NPHasMethodFunction( npobj=%p, name=%p )", npobj, name);
+	DBG_TRACE("( npobj=%p, name=%p )", npobj, name);
 
 	writeHandleIdentifier(name);
 	writeHandleObj(npobj);
@@ -22,7 +22,7 @@ bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name){
 }
 
 bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args, uint32_t argCount, NPVariant *result){
-	DBG_TRACE("NPInvokeFunction( npobj=%p, name=%p, args[]=%p, argCount=%d, result=%p )", npobj, name, args, argCount, result);
+	DBG_TRACE("( npobj=%p, name=%p, args[]=%p, argCount=%d, result=%p )", npobj, name, args, argCount, result);
 
 	/* Warning: parameter order swapped! */
 	writeVariantArrayConst(args, argCount);
@@ -47,7 +47,7 @@ bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args,
 }
 
 bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result){
-	DBG_TRACE("NPInvokeDefaultFunction( npobj=%p, args=%p, argCount=%d, result=%p )", npobj, args, argCount, result);
+	DBG_TRACE("( npobj=%p, args=%p, argCount=%d, result=%p )", npobj, args, argCount, result);
 
 	writeVariantArrayConst(args, argCount);
 	writeInt32(argCount);
@@ -70,7 +70,7 @@ bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t ar
 }
 
 bool NPHasPropertyFunction(NPObject *npobj, NPIdentifier name){
-	DBG_TRACE("NPHasPropertyFunction( npobj=%p, name=%p )", npobj, name);
+	DBG_TRACE("( npobj=%p, name=%p )", npobj, name);
 
 	writeHandleIdentifier(name);
 	writeHandleObj(npobj);
@@ -80,7 +80,7 @@ bool NPHasPropertyFunction(NPObject *npobj, NPIdentifier name){
 }
 
 bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result){
-	DBG_TRACE("NPGetPropertyFunction( npobj=%p, name=%p, result=%p )", npobj, name, result);
+	DBG_TRACE("( npobj=%p, name=%p, result=%p )", npobj, name, result);
 
 	writeHandleIdentifier(name);
 	writeHandleObj(npobj);
@@ -102,7 +102,7 @@ bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result
 }
 
 bool NPSetPropertyFunction(NPObject *npobj, NPIdentifier name, const NPVariant *value){
-	DBG_TRACE("NPSetPropertyFunction( npobj=%p, name=%p, value=%p )", npobj, name, value);
+	DBG_TRACE("( npobj=%p, name=%p, value=%p )", npobj, name, value);
 
 	writeVariantConst(*value);
 	writeHandleIdentifier(name);
@@ -113,7 +113,7 @@ bool NPSetPropertyFunction(NPObject *npobj, NPIdentifier name, const NPVariant *
 }
 
 bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name){
-	DBG_TRACE("NPRemovePropertyFunction( npobj=%p, name=%p )", npobj, name);
+	DBG_TRACE("( npobj=%p, name=%p )", npobj, name);
 
 	writeHandleIdentifier(name);
 	writeHandleObj(npobj);
@@ -123,7 +123,7 @@ bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name){
 }
 
 bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *count){
-	DBG_TRACE("NPEnumerationFunction( npobj=%p, value=%p, count=%p )", npobj, value, count);
+	DBG_TRACE("( npobj=%p, value=%p, count=%p )", npobj, value, count);
 
 	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_ENUMERATE);
@@ -158,13 +158,13 @@ bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *coun
 }
 
 bool NPConstructFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result){
-	DBG_TRACE("NPConstructFunction( npobj=%p, args=%p, argCount=%d, result=%p )", npobj, args, argCount, result);
+	DBG_TRACE("( npobj=%p, args=%p, argCount=%d, result=%p )", npobj, args, argCount, result);
 	NOTIMPLEMENTED();
 	return false;
 }
 
 NPObject * NPAllocateFunction(NPP npp, NPClass *aClass){
-	DBG_TRACE("NPAllocateFunction( npp=%p, aClass=%p )", npp, aClass);
+	DBG_TRACE("( npp=%p, aClass=%p )", npp, aClass);
 
 	NPObject* obj = (NPObject*)malloc(sizeof(NPObject));
 	if (obj){
@@ -175,7 +175,7 @@ NPObject * NPAllocateFunction(NPP npp, NPClass *aClass){
 }
 
 void NPDeallocateFunction(NPObject *npobj){
-	DBG_TRACE("NPDeallocateFunction( npp=%p )", npobj);
+	DBG_TRACE("( npp=%p )", npobj);
 
 	if (npobj){
 		if (handleManager_existsByPtr(HMGR_TYPE_NPObject, npobj)){

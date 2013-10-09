@@ -196,10 +196,10 @@ void runDiagnostic(NPP instance){
 	if (dllPathSet) unixPath= convertWinePath(config.dllPath + "\\" + config.dllName);
 	bool dllPathFound 		= (unixPath != "" && checkIfExists(unixPath));
 
-	if(config.regKey == ""){
+	if (config.regKey == ""){
 		debugStatusMessage(instance, "Checking if dllPath/dllname is set and exists", \
 			dllPathFound ? "okay" : "failed");
-		debugSimpleMessage(instance, "You need to define either a valid dllPath/dllname or regKey");
+		debugSimpleMessage(instance, "You need to define either a valid dllPath/dllName or regKey");
 
 		if (config.winePrefix != "" && !checkIfExists(config.winePrefix)){
 			debugSimpleMessage(instance, "The whole wine prefix " + config.winePrefix + " doesn't exist");
@@ -215,7 +215,7 @@ void runDiagnostic(NPP instance){
 
 	}else{
 		debugStatusMessage(instance, "Checking if dllPath/dllname is set and exists", "not used");
-		debugSimpleMessage(instance, "You defined the regKey option which is preferred over dllPath/dllname");
+		debugSimpleMessage(instance, "You defined the regKey option which is preferred over dllPath/dllName");
 
 		debugStatusMessage(instance, "Checking if regKey is set and exists", "unknown");
 		debugSimpleMessage(instance, "The regKey is set, but you need to manually check if the key exists");
