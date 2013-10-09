@@ -44,8 +44,27 @@
 
 #ifdef PIPELIGHT_DEBUG
 
-	#define DBG_TRACE(fmt, ...) \
-		do{ fprintf(stderr, PIPELIGHT_DEBUG_MSG " %s:%d:%s(): " fmt "\n", __FILE__, __LINE__, __func__, ##__VA_ARGS__); }while(0)
+	#if !defined(PIPELIGHT_DBGSYNC)
+
+		#define DBG_TRACE(fmt, ...) \
+			do{ fprintf(stderr, PIPELIGHT_DEBUG_MSG " %s:%d:%s(): " fmt "\n", __FILE__, __LINE__, __func__, ##__VA_ARGS__); }while(0)
+
+	#elif PIPELIGHT_DBGSYNC == 1
+
+		#define DBG_TRACE(fmt, ...) \
+			do{ \
+				char __buffer[4096]; \
+				int  __res = snprintf(__buffer, sizeof(__buffer), PIPELIGHT_DEBUG_MSG " %s:%d:%s(): " fmt "\n", __FILE__, __LINE__, __func__, ##__VA_ARGS__); \
+				if (__res >= 0 && __res <= (signed)sizeof(__buffer)){ \
+					if (__res == (signed)sizeof(__buffer)){ \
+						__buffer[ sizeof(__buffer) - 2 ] = '$'; \
+						__buffer[ sizeof(__buffer) - 1 ] = '\n'; \
+					} \
+					fwrite(__buffer, sizeof(char), __res, stderr); \
+				} \
+			}while(0)
+
+	#endif
 
 	#define DBG_INFO \
 		DBG_TRACE
@@ -82,7 +101,7 @@
 	do{ if (!(res)) DBG_ABORT(fmt, ##__VA_ARGS__); }while(0)
 
 #define NOTIMPLEMENTED(fmt, ...) \
-	do{ fprintf(stderr, PIPELIGHT_DEBUG_MSG " %s:%d:%s(): STUB! " fmt "\n", __FILE__, __LINE__, __func__, ##__VA_ARGS__); }while(0)
+	DBG_ERROR("STUB! " fmt, ##__VA_ARGS__)
 
 /* common.c */
 
