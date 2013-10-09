@@ -36,7 +36,7 @@ static std::string getWineUser(){
 	return std::string(uid_string);
 }
 
-static void getConfigNameFromLibrary(std::string &configName, std::string &configEnv){
+static void getConfigNameFromLibrary(std::string &configName, std::string &configEnv, std::string &pluginName){
 	Dl_info 	libinfo;
 	size_t 		pos;
 
@@ -44,6 +44,7 @@ static void getConfigNameFromLibrary(std::string &configName, std::string &confi
 	if (!dladdr((void*)getConfigNameFromLibrary, &libinfo) || !libinfo.dli_fname){
 		configName = "pipelight";
 		configEnv  = "PIPELIGHT_CONFIG";
+		pluginName = "";
 		return;
 
 	}
@@ -69,11 +70,13 @@ static void getConfigNameFromLibrary(std::string &configName, std::string &confi
 		std::transform(configName.begin(), configName.end(), configName.begin(), ::tolower);
 		std::transform(configEnv.begin(), configEnv.end(), configEnv.begin(), ::toupper);
 
+		pluginName = configName;
 		configName = "pipelight-" + configName;
 		configEnv  = "PIPELIGHT_" + configEnv + "_CONFIG";
 		return;
 	}
 
+	pluginName = "";
 	configName = "pipelight";
 	configEnv  = "PIPELIGHT_CONFIG";
 	return;
@@ -151,9 +154,9 @@ static std::string replaceVariables(const std::map<std::string, std::string> &va
 }
 
 /* Tries to open the config and returns true on success */
-static  bool openConfig(std::ifstream &configFile, std::string &configPath){
+static  bool openConfig(std::ifstream &configFile, std::string &configPath, std::string &pluginName){
 	std::string configName, configEnv, homeDir 	= getHomeDirectory();
-	getConfigNameFromLibrary(configName, configEnv);
+	getConfigNameFromLibrary(configName, configEnv, pluginName);
 
 	/* use environment variable */
 	if (configEnv != ""){
@@ -209,6 +212,7 @@ bool loadConfig(PluginConfig &config){
 
 	/* Initialize config variables with default values */
 	config.configPath			= "";
+	config.pluginName 			= "";
 	config.diagnosticMode 		= false;
 
 	config.sandboxPath			= "";
@@ -244,11 +248,10 @@ bool loadConfig(PluginConfig &config){
 
 	std::ifstream 	configFile;
 
-	if (!openConfig(configFile, config.configPath)){
+	if (!openConfig(configFile, config.configPath, config.pluginName)){
 		DBG_ERROR("couldn't find any configuration file.");
 		return false;
 	}
-
 
 	while (configFile.good()){
 		std::string line;
