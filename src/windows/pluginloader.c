@@ -659,13 +659,13 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPObject *obj 		= readHandleObjIncRef(stack);
 				NPIdentifier name 	= readHandleIdentifier(stack);	
-				DBG_TRACE("FUNCTION_NP_INVOKE_DEFAULT( obj=%p, name=%p )", obj, name);
+				DBG_TRACE("FUNCTION_NP_HAS_PROPERTY( obj=%p, name=%p )", obj, name);
 
 				bool result = obj->_class->hasProperty(obj, name);
 				writeInt32(result);
 				objectDecRef(obj);
 			
-				DBG_TRACE("FUNCTION_NP_INVOKE_DEFAULT -> result=%d", result);
+				DBG_TRACE("FUNCTION_NP_HAS_PROPERTY -> result=%d", result);
 				returnCommand();
 			}
 			break;		
