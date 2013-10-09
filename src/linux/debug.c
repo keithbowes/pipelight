@@ -190,59 +190,54 @@ void runDiagnostic(NPP instance){
 		debugSimpleMessage(instance, "This script is not able to check if everything is okay with your wine prefix!");	
 	}
 
-	// Check dllPath / dllname
+	// Check dllPath / dllname / regKey
 	std::string unixPath 	= "";
 	bool dllPathSet 		= (config.dllPath != "" && config.dllName != "");
 	if (dllPathSet) unixPath= convertWinePath(config.dllPath + "\\" + config.dllName);
 	bool dllPathFound 		= (unixPath != "" && checkIfExists(unixPath));
 
-	debugStatusMessage(instance, "Checking if dllPath/dllname is set and exists", \
-		dllPathFound ? "okay" : "failed");
+	if(config.regKey == ""){
+		debugStatusMessage(instance, "Checking if dllPath/dllname is set and exists", \
+			dllPathFound ? "okay" : "failed");
+		debugSimpleMessage(instance, "You need to define either a valid dllPath/dllname or regKey");
 
-	if (config.winePrefix != "" && !checkIfExists(config.winePrefix)){
-		debugSimpleMessage(instance, "The whole wine prefix " + config.winePrefix + " doesn't exist");
+		if (config.winePrefix != "" && !checkIfExists(config.winePrefix)){
+			debugSimpleMessage(instance, "The whole wine prefix " + config.winePrefix + " doesn't exist");
 
-	}else if (unixPath == ""){
-		debugSimpleMessage(instance, "Unable to verify if the DLL exists, please check this manually!");
-
-	}else{
-		debugSimpleMessage(instance, unixPath);
-	}
-
-	debugSimpleMessage(instance, "(dllPath = " + config.dllPath + ")");
-	debugSimpleMessage(instance, "(dllName = " + config.dllName + ")");
-
-	if (!winePrefixFound || !dllPathFound){
-		bool dependencyInstallerFound = (config.dependencyInstaller != "" && checkIfExists(config.dependencyInstaller));
-
-		debugStatusMessage(instance, "Checking if dependencyInstaller is set and exists", \
-			dependencyInstallerFound ? "okay" : "failed", \
-			(config.dependencyInstaller != "") ? config.dependencyInstaller : "not set");
-
-		if (!dependencyInstallerFound){
-			bool silverlightVersionOkay = false;
-
-			for (std::string &dep: config.dependencies){
-				if ( 	dep == "wine-silverlight4-installer" 	|| \
-						dep == "wine-silverlight5.0-installer" 	|| \
-						dep == "wine-silverlight5.1-installer" ){
-					silverlightVersionOkay = true;
-				}
-			}
-
-			debugStatusMessage(instance, \
-				"Checking if silverlightVersion is correct", \
-				silverlightVersionOkay ? "okay" : "failed");
-
-			if (!silverlightVersionOkay){
-				debugSimpleMessage(instance, "The version you have specified is none of the default ones!");
-			}
+		}else if (unixPath == ""){
+			debugSimpleMessage(instance, "Unable to verify if the DLL exists, please check this manually!");
 
 		}else{
-			debugSimpleMessage(instance, "You either have to install the dependencyInstaller script or setup your wine prefix manually.");
-			debugSimpleMessage(instance, "Depending on the distribution you probably will have to execute some post-installation script to do that.");
+			debugSimpleMessage(instance, unixPath);
 		}
+		debugSimpleMessage(instance, "(dllPath = " + config.dllPath + ")");
+		debugSimpleMessage(instance, "(dllName = " + config.dllName + ")");
+
+	}else{
+		debugStatusMessage(instance, "Checking if dllPath/dllname is set and exists", "not used");
+		debugSimpleMessage(instance, "You defined the regKey option which is preferred over dllPath/dllname");
+
+		debugStatusMessage(instance, "Checking if regKey is set and exists", "unknown");
+		debugSimpleMessage(instance, "The regKey is set, but you need to manually check if the key exists");
+		debugSimpleMessage(instance, "(regKey = " + config.regKey + ")");
 	}
+
+	bool dependencyInstallerFound = (config.dependencyInstaller != "" && checkIfExists(config.dependencyInstaller));
+
+	debugStatusMessage(instance, "Checking if dependencyInstaller is set and exists", \
+		dependencyInstallerFound ? "okay" : "failed", \
+		(config.dependencyInstaller != "") ? config.dependencyInstaller : "not set");
+
+	if (dependencyInstallerFound){
+		debugStatusMessage(instance, "Checking if dependencies are defined", \
+			config.dependencies.empty() ? "failed" : "okay", \
+			config.dependencies.empty() ? "not set" : "");
+
+	}else{
+		debugSimpleMessage(instance, "You either have to install the dependencyInstaller script or setup your wine prefix manually.");
+		debugSimpleMessage(instance, "Depending on the distribution you probably will have to execute some post-installation script to do that.");
+	}
+
 
 	debugSection(instance, "Distribution");
 	debugFile(instance, "/etc/issue");

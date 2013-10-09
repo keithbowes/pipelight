@@ -184,7 +184,11 @@ NP_EXPORT(const char*) NP_GetMIMEDescription()
 	DBG_TRACE("()");
 
 	if (!initOkay){
-		pokeString(strMimeType, "application/x-pipelight-error:pipelighterror:Error during initialization", sizeof(strMimeType));
+		if(config.pluginName == ""){
+			pokeString(strMimeType, "application/x-pipelight-error:pipelighterror:Error during initialization", sizeof(strMimeType));
+		}else{
+			pokeString(strMimeType, "application/x-pipelight-error-"+config.pluginName+":pipelighterror-"+config.pluginName+":Error during initialization", sizeof(strMimeType));
+		}
 		return strMimeType;
 	}
 
@@ -207,7 +211,11 @@ NP_EXPORT(NPError) NP_GetValue(void* future, NPPVariable variable, void* value) 
 		case NPPVpluginNameString:
 
 			if (!initOkay){
-				resultStr = "Pipelight Error!";
+				if(config.pluginName == ""){
+					resultStr = "Pipelight Error!";
+				}else{
+					resultStr = "Pipelight Error (" + config.pluginName +")!";
+				}
 			}else{
 				callFunction(FUNCTION_GET_NAME);
 				resultStr = readResultString();
@@ -303,7 +311,15 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	DBG_TRACE("( pluginType='%s', instance=%p, mode=%d, argc=%d, argn=%p, argv=%p, saved=%p )", pluginType, instance, mode, argc, argn, argv, saved);
 
 	// Remember if this was an error, in this case we shouldn't call the original destroy function
-	bool pipelightError = (strcmp(pluginType, "application/x-pipelight-error") == 0);
+	std::string mimeType(pluginType);
+
+	bool pipelightError;
+	if(config.pluginName == ""){
+		pipelightError = (mimeType == "application/x-pipelight-error");
+	}else{
+		pipelightError = (mimeType == "application/x-pipelight-error-" + config.pluginName);
+	}
+
 	instance->pdata 	= (void*)pipelightError;
 
 	// Run diagnostic stuff if its the wrong mimetype
