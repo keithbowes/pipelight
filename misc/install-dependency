@@ -395,7 +395,7 @@ fi
 RET=0
 
 while [ $# -gt 0 ] ; do
-	DEP="$1"; INS=""; CFG=""; URL=""; SHA=""; EXT=""; DOWNLOADFILE=""; shift
+	DEP="$1"; INS=(); CFG=(); URL=""; SHA=""; EXT=""; DOWNLOADFILE=""; shift
 	case "$DEP" in
 		wine-prefix)
 			continue # The wine-prefix is created automatically for all packages
@@ -420,20 +420,17 @@ while [ $# -gt 0 ] ; do
 			;;
 		wine-mpg2splt-installer)
 			INS=("install_cabextract" "mpg2splt.ax")
-			CFG=()
 			URL="http://download.microsoft.com/download/8/0/D/80D7E79D-C0E4-415A-BCCA-E229EAFE2679/dshow_nt.cab"
 			SHA="984ed15e23a00a33113f0012277e1e680c95782ce2c44f414e7af14e28e3f1a2"
 			;;
 		wine-browser-installer)
 			INS=("install_firefox")
-			CFG=()
 			URL="http://download.mozilla.org/?product=firefox-22.0&os=win&lang=en-US"
 			SHA="abb189f17e65e73d61843247ad1af7c997318b7854fa850a04e5f9d9a20cdd03"
 			EXT="exe"
 			;;
 		wine-flash-installer)
 			INS=("install_flash" "11_8_800_168")
-			CFG=()
 			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/11.8.800.168/install_flash_player.exe"
 			SHA="2213027430edb7c0b90860c54bd5d797db9e32bb2ce6470c7b162adb58c421c7"
 			;;
@@ -447,7 +444,7 @@ while [ $# -gt 0 ] ; do
 
 	# Is already installed?
 	if ! is_installed "$SHA"; then
-		echo "[$PRG] Installing $DEP."
+		echo "[$PRG] Downloading and running $DEP."
 
 		# Fetch the download
 		if ! download "$URL" "$SHA" "$EXT"; then
@@ -458,7 +455,7 @@ while [ $# -gt 0 ] ; do
 
 		# Do the installation
 		if ! eval "${INS[@]}"; then
-			echo "[$PRG] ERROR: Installation of $DEP failed." >&2
+			echo "[$PRG] ERROR: Execution of $DEP failed." >&2
 			RET=1
 			continue
 		fi
