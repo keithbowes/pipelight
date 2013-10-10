@@ -113,8 +113,8 @@ void NPDeallocateFunction(NPObject *npobj);
 
 /* public */
 extern std::string convertWinePath(std::string path, bool direction = false);
-extern bool checkSilverlightInstallation();
-extern bool checkGraphicDriver();
+extern bool checkPluginInstallation();
+extern bool checkSilverlightGraphicDriver();
 extern bool startWineProcess();
 
 #endif // BasicPlugin_h_

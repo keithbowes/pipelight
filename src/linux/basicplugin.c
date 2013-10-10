@@ -123,16 +123,18 @@ void attach(){
 	}
 
 	// Check if we should enable hardware acceleration
-	if (config.overwriteArgs.find("enableGPUAcceleration") == config.overwriteArgs.end()){
-		if (!checkGraphicDriver())
-			config.overwriteArgs["enableGPUAcceleration"] = "false";
-	}else{
-		DBG_INFO("enableGPUAcceleration set manually - skipping compatibility check.");
+	if (config.silverlightGraphicDriverCheck != ""){
+		if (config.overwriteArgs.find("enableGPUAcceleration") == config.overwriteArgs.end()){
+			if (!checkSilverlightGraphicDriver())
+				config.overwriteArgs["enableGPUAcceleration"] = "false";
+		}else{
+			DBG_INFO("enableGPUAcceleration set manually - skipping compatibility check.");
+		}
 	}
 
 	// Check for correct installation
-	if (!checkSilverlightInstallation()){
-		DBG_ERROR("Silverlight not correctly installed - aborting.");
+	if (!checkPluginInstallation()){
+		DBG_ERROR("Plugin not correctly installed - aborting.");
 		return;
 	}
 
@@ -242,7 +244,7 @@ std::string convertWinePath(std::string path, bool direction){
 	return resultPath;
 }
 
-bool checkSilverlightInstallation(){
+bool checkPluginInstallation(){
 
 	// Output wine prefix
 	DBG_INFO("using wine prefix directory %s.", config.winePrefix.c_str());
@@ -255,7 +257,7 @@ bool checkSilverlightInstallation(){
 	}
 
 	// Run the installer ...
-	DBG_INFO("checking Silverlight installation - this might take some time.");
+	DBG_INFO("checking plugin installation - this might take some time.");
 
 	pid_t pidInstall = fork();
 	if (pidInstall == 0){
@@ -297,11 +299,11 @@ bool checkSilverlightInstallation(){
 
 		int status;
 		if (waitpid(pidInstall, &status, 0) == -1 || !WIFEXITED(status) ){
-			DBG_ERROR("Silverlight installer did not run correctly (error occured).");
+			DBG_ERROR("Plugin installer did not run correctly (error occured).");
 			return false;
 
 		}else if (WEXITSTATUS(status) != 0){
-			DBG_ERROR("Silverlight installer did not run correctly (exitcode = %d).", WEXITSTATUS(status));
+			DBG_ERROR("Plugin installer did not run correctly (exitcode = %d).", WEXITSTATUS(status));
 			return false;
 		}
 
@@ -315,26 +317,25 @@ bool checkSilverlightInstallation(){
 	return true;
 }
 
-bool checkGraphicDriver(){
+bool checkSilverlightGraphicDriver(){
 
-	// Checking the silverlight installation is only possible if the user has defined a winePrefix
-	if (config.graphicDriverCheck == ""){
+	if (config.silverlightGraphicDriverCheck == ""){
 		DBG_ERROR("no GPU driver check script defined - treating test as failure.");
 		return false;
 	}
 
 	// Speed up in this case
-	if (config.graphicDriverCheck == "/bin/true"){
+	if (config.silverlightGraphicDriverCheck == "/bin/true"){
 		DBG_INFO("GPU driver check - Manually set to /bin/true.");
 		return true;
 	}
 		
-	if (config.graphicDriverCheck == "/bin/false"){
+	if (config.silverlightGraphicDriverCheck == "/bin/false"){
 		DBG_INFO("GPU driver check - Manually set to /bin/false.");
 		return true;
 	}
 
-	if (!checkIfExists(config.graphicDriverCheck)){
+	if (!checkIfExists(config.silverlightGraphicDriverCheck)){
 		DBG_ERROR("GPU driver check script not found - treating test as failure.");
 		return false;
 	}
@@ -346,8 +347,8 @@ bool checkGraphicDriver(){
 
 		// The graphic driver check doesn't need any environment variables at all.
 
-		execlp(config.graphicDriverCheck.c_str(), config.graphicDriverCheck.c_str(), NULL);
-		DBG_ABORT("error in execlp command - probably graphicDriverCheck not found or missing execute permission.");
+		execlp(config.silverlightGraphicDriverCheck.c_str(), config.silverlightGraphicDriverCheck.c_str(), NULL);
+		DBG_ABORT("error in execlp command - probably silverlightGraphicDriverCheck not found or missing execute permission.");
 
 	}else if (pidCheck != -1){
 
