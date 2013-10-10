@@ -131,8 +131,8 @@ void attach(){
 	}
 
 	// Check for correct installation
-	if (!checkSilverlightInstallation()){
-		DBG_ERROR("Silverlight not correctly installed - aborting.");
+	if (!checkPluginInstallation()){
+		DBG_ERROR("Plugin not correctly installed - aborting.");
 		return;
 	}
 
@@ -242,7 +242,7 @@ std::string convertWinePath(std::string path, bool direction){
 	return resultPath;
 }
 
-bool checkSilverlightInstallation(){
+bool checkPluginInstallation(){
 
 	// Output wine prefix
 	DBG_INFO("using wine prefix directory %s.", config.winePrefix.c_str());
@@ -255,7 +255,7 @@ bool checkSilverlightInstallation(){
 	}
 
 	// Run the installer ...
-	DBG_INFO("checking Silverlight installation - this might take some time.");
+	DBG_INFO("checking plugin installation - this might take some time.");
 
 	pid_t pidInstall = fork();
 	if (pidInstall == 0){
@@ -297,11 +297,11 @@ bool checkSilverlightInstallation(){
 
 		int status;
 		if (waitpid(pidInstall, &status, 0) == -1 || !WIFEXITED(status) ){
-			DBG_ERROR("Silverlight installer did not run correctly (error occured).");
+			DBG_ERROR("Plugin installer did not run correctly (error occured).");
 			return false;
 
 		}else if (WEXITSTATUS(status) != 0){
-			DBG_ERROR("Silverlight installer did not run correctly (exitcode = %d).", WEXITSTATUS(status));
+			DBG_ERROR("Plugin installer did not run correctly (exitcode = %d).", WEXITSTATUS(status));
 			return false;
 		}
 
@@ -317,7 +317,6 @@ bool checkSilverlightInstallation(){
 
 bool checkGraphicDriver(){
 
-	// Checking the silverlight installation is only possible if the user has defined a winePrefix
 	if (config.graphicDriverCheck == ""){
 		DBG_ERROR("no GPU driver check script defined - treating test as failure.");
 		return false;
