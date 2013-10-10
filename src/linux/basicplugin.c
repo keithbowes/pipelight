@@ -419,17 +419,24 @@ bool startWineProcess(){
 		argv.push_back( config.winePath.c_str() );
 		argv.push_back( config.pluginLoaderPath.c_str() );
 
-		if(config.dllPath != "")
+		/* send the plugin name to the other side */
+		argv.push_back( "--pluginName" );
+		argv.push_back( strMultiPluginName );
+
+		if (config.dllPath != ""){
 			argv.push_back( "--dllPath" );
 			argv.push_back( config.dllPath.c_str() );
+		}
 
-		if(config.dllName != "")
+		if (config.dllName != ""){
 			argv.push_back( "--dllName" );
 			argv.push_back( config.dllName.c_str() );
+		}
 
-		if(config.regKey != "")
+		if (config.regKey != ""){
 			argv.push_back( "--regKey" );
 			argv.push_back( config.regKey.c_str() );
+		}
 
 		if (config.windowlessMode)
 			argv.push_back( "--windowless" );

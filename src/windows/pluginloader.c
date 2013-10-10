@@ -357,24 +357,28 @@ int main(int argc, char *argv[]){
 		std::string arg = std::string(argv[i]);
 		std::transform(arg.begin(), arg.end(), arg.begin(), ::tolower);
 
-		if (		arg == "--windowless"){
+		if       (arg == "--pluginname"){
+			if (i + 1 >= argc) break;
+			setMultiPluginName(argv[++i]);
+
+		}else if (arg == "--windowless"){
 			isWindowlessMode 	= true;
 
-		}else if (	arg == "--embed"){
+		}else if (arg == "--embed"){
 			isEmbeddedMode 		= true;
 
-		}else if (	arg == "--usermodetimer"){
+		}else if (arg == "--usermodetimer"){
 			usermodeTimer 		= true;
 
-		}else if (	arg == "--dllpath"){
+		}else if (arg == "--dllpath"){
 			if (i + 1 >= argc) break;
 			dllPath = std::string(argv[++i]);
 
-		}else if (	arg == "--dllname"){
+		}else if (arg == "--dllname"){
 			if (i + 1 >= argc) break;
 			dllName = std::string(argv[++i]);
 
-		}else if (	arg == "--regkey"){
+		}else if (arg == "--regkey"){
 			if (i + 1 >= argc) break;
 			regKey  = std::string(argv[++i]);
 

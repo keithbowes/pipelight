@@ -33,28 +33,29 @@
 #endif
 
 /* debug */
-
 #ifdef __WIN32__
-	#define PIPELIGHT_DEBUG_MSG "[PIPELIGHT:WIN]"
+	#define PIPELIGHT_DEBUG_MSG "PIPELIGHT:WIN"
 #else
-	#define PIPELIGHT_DEBUG_MSG "[PIPELIGHT:LIN]"
+	#define PIPELIGHT_DEBUG_MSG "PIPELIGHT:LIN"
 #endif
 
 /* #define PIPELIGHT_DEBUG */
+
+extern char strMultiPluginName[64];
 
 #ifdef PIPELIGHT_DEBUG
 
 	#if !defined(PIPELIGHT_DBGSYNC)
 
 		#define DBG_TRACE(fmt, ...) \
-			do{ fprintf(stderr, PIPELIGHT_DEBUG_MSG " %s:%d:%s(): " fmt "\n", __FILE__, __LINE__, __func__, ##__VA_ARGS__); }while(0)
+			do{ fprintf(stderr, "[" PIPELIGHT_DEBUG_MSG ":%s] %s:%d:%s(): " fmt "\n", strMultiPluginName, __FILE__, __LINE__, __func__, ##__VA_ARGS__); }while(0)
 
 	#elif PIPELIGHT_DBGSYNC == 1
 
 		#define DBG_TRACE(fmt, ...) \
 			do{ \
 				char __buffer[4096]; \
-				int  __res = snprintf(__buffer, sizeof(__buffer), PIPELIGHT_DEBUG_MSG " %s:%d:%s(): " fmt "\n", __FILE__, __LINE__, __func__, ##__VA_ARGS__); \
+				int  __res = snprintf(__buffer, sizeof(__buffer), "[" PIPELIGHT_DEBUG_MSG ":%s] %s:%d:%s(): " fmt "\n", strMultiPluginName, __FILE__, __LINE__, __func__, ##__VA_ARGS__); \
 				if (__res >= 0 && __res <= (signed)sizeof(__buffer)){ \
 					if (__res == (signed)sizeof(__buffer)){ \
 						__buffer[ sizeof(__buffer) - 2 ] = '$'; \
@@ -81,13 +82,13 @@
 		do{ }while(0)
 
 	#define DBG_INFO(fmt, ...) \
-		do{ fprintf(stderr, PIPELIGHT_DEBUG_MSG " " fmt "\n", ##__VA_ARGS__); }while(0)
+		do{ fprintf(stderr, "[" PIPELIGHT_DEBUG_MSG ":%s] " fmt "\n", strMultiPluginName, ##__VA_ARGS__); }while(0)
 
 	#define DBG_WARN \
 		DBG_INFO
 
 	#define DBG_ERROR(fmt, ...) \
-		do{ fprintf(stderr, PIPELIGHT_DEBUG_MSG " %s:%d:%s(): " fmt "\n", __FILE__, __LINE__, __func__, ##__VA_ARGS__); }while(0)
+		do{ fprintf(stderr, "[" PIPELIGHT_DEBUG_MSG ":%s] %s:%d:%s(): " fmt "\n", strMultiPluginName, __FILE__, __LINE__, __func__, ##__VA_ARGS__); }while(0)
 
 #endif
 
@@ -253,6 +254,9 @@ enum{
 
 extern bool initCommPipes(int out, int in);
 extern bool initCommIO();
+
+extern void setMultiPluginName(const std::string str);
+extern void setMultiPluginName(const char* str);
 
 extern bool transmitData(const char* data, size_t length);
 extern bool writeCommand(char command, const char* data = NULL, size_t length = 0);
@@ -662,17 +666,20 @@ inline std::string trim(std::string str){
 	return str;
 }
 
-inline void pokeString(char *dest, const std::string str, size_t maxLength){
+inline void pokeString(char *dest, const char* str, size_t maxLength){
 	if (maxLength > 0){
-		size_t length = str.length();
+		size_t length = strlen(str);
 
-		if (maxLength < length + 1)
+		if (length > maxLength - 1)
 			length = maxLength - 1;
 
-		// Always at least one byte to copy (nullbyte)
-		memcpy(dest, str.c_str(), length);
+		memcpy(dest, str, length);
 		dest[length] = 0;
 	}
+}
+
+inline void pokeString(char *dest, const std::string str, size_t maxLength){
+	pokeString(dest, str.c_str(), maxLength);
 }
 
 #define isAlphaNumericChar(c) \

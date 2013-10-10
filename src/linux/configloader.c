@@ -49,36 +49,37 @@ static void getConfigNameFromLibrary(std::string &configName, std::string &confi
 
 	}
 
-	configName = std::string(libinfo.dli_fname);
+	pluginName = std::string(libinfo.dli_fname);
 
 	// strip directory name
-	if ((pos = configName.find_last_of('/')) != std::string::npos)
-		configName = configName.substr(pos + 1, std::string::npos);
+	if ((pos = pluginName.find_last_of('/')) != std::string::npos)
+		pluginName = pluginName.substr(pos + 1, std::string::npos);
 
 	// strip extension (.so)
-	if ((pos = configName.find_last_of('.')) != std::string::npos)
-		configName = configName.substr(0, pos);
+	if ((pos = pluginName.find_last_of('.')) != std::string::npos)
+		pluginName = pluginName.substr(0, pos);
 
 	// get last component
-	pos = configName.find_last_of('-');
-	configName = (pos != std::string::npos) ? configName.substr(pos + 1, std::string::npos) : "";
+	pos = pluginName.find_last_of('-');
+	pluginName = (pos != std::string::npos) ? pluginName.substr(pos + 1, std::string::npos) : "";
 
-	if (configName.length()){
-		configEnv = configName;
+	if (pluginName.length()){
+		configEnv = pluginName;
 
 		// convert to lower/upper case
-		std::transform(configName.begin(), configName.end(), configName.begin(), ::tolower);
+		std::transform(pluginName.begin(), pluginName.end(), pluginName.begin(), ::tolower);
 		std::transform(configEnv.begin(), configEnv.end(), configEnv.begin(), ::toupper);
 
-		pluginName = configName;
-		configName = "pipelight-" + configName;
+		configName = "pipelight-" + pluginName;
 		configEnv  = "PIPELIGHT_" + configEnv + "_CONFIG";
+		/* pluginName already set */
 		return;
 	}
 
-	pluginName = "";
+
 	configName = "pipelight";
 	configEnv  = "PIPELIGHT_CONFIG";
+	pluginName = "";
 	return;
 }
 
@@ -384,6 +385,9 @@ bool loadConfig(PluginConfig &config){
 		}
 
 	}
+
+	/* set the multiplugin name */
+	setMultiPluginName(config.pluginName);
 
 	return true;
 }

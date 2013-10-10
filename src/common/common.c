@@ -14,6 +14,8 @@
 FILE *commPipeOut	= NULL;
 FILE *commPipeIn	= NULL;
 
+char strMultiPluginName[64] = "unknown";
+
 /* global mappings */
 static inline std::map<HMGR_HANDLE, void*>& __idToPtr(int type){
 	static std::map<HMGR_HANDLE, void*> idToPtr[HMGR_NUMTYPES];
@@ -84,6 +86,17 @@ bool initCommIO(){
 	#else
 		return initCommPipes(_dup(1), _dup(0));
 	#endif
+}
+
+/*
+	Initializes the plugin name
+*/
+void setMultiPluginName(const std::string str){
+	pokeString(strMultiPluginName, str, sizeof(strMultiPluginName));
+}
+
+void setMultiPluginName(const char* str){
+	pokeString(strMultiPluginName, str, sizeof(strMultiPluginName));
 }
 
 /*
@@ -193,7 +206,7 @@ bool readCommands(Stack &stack, bool allowReturn, int abortTimeout){
 		return false;
 
 	while (1){
-		DBG_TRACE("waiting for next command.");
+		/* DBG_TRACE("waiting for next command."); */
 
 		for (pos = 0; pos < sizeof(uint32_t); pos += numBytes){
 
@@ -254,7 +267,7 @@ bool readCommands(Stack &stack, bool allowReturn, int abortTimeout){
 
 		}
 
-		DBG_TRACE("received command %d with length %d.", blockCommand, blockLength);
+		/* DBG_TRACE("received command %d with length %d.", blockCommand, blockLength); */
 
 		/* call command */
 		if (blockCommand == BLOCKCMD_CALL_DIRECT){
