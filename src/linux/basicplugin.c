@@ -95,6 +95,9 @@ void attach(){
 	// Fix for Opera: Dont sync stdio
 	std::ios_base::sync_with_stdio(false);
 
+	// Disable stderr buffering
+	setbuf(stderr, NULL);
+
 	DBG_INFO("attached to process.");
 
 	// Initialize semaphore

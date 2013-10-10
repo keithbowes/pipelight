@@ -241,8 +241,10 @@ bool readCommands(Stack &stack, bool allowReturn, int abortTimeout){
 			if (numBytes == 0){
 
 				/* broken pipe */
-				if (abortTimeout)
+				if (abortTimeout){
+					DBG_ERROR("unable to receive data.");
 					return false;
+				}
 
 				#ifdef __WIN32__
 					if (!handleManager_findInstance()) exit(0);

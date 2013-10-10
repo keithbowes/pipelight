@@ -349,6 +349,9 @@ int main(int argc, char *argv[]){
 		_controlfp_s(&control_word, _CW_DEFAULT, MCW_PC);
 	#endif
 
+	// Disable stderr buffering
+	setbuf(stderr, NULL);
+
 	std::string dllPath;
 	std::string dllName;
 	std::string regKey;
@@ -418,7 +421,7 @@ int main(int argc, char *argv[]){
 
 	DBG_ASSERT(initCommIO(), "unable to initialize communication channel.");
 
-	//Redirect STDOUT to STDERR
+	// Redirect STDOUT to STDERR
 	SetStdHandle(STD_OUTPUT_HANDLE, GetStdHandle(STD_ERROR_HANDLE));
 
 	// Create the application window
