@@ -238,11 +238,11 @@ bool loadConfig(PluginConfig &config){
 	config.dependencies.clear();
 	config.quietInstallation 	= true;
 
-	config.graphicDriverCheck 	= "";
-
 	config.eventAsyncCall		= false;
 	config.operaDetection 		= true;
 	config.executeJavascript 	= "";
+
+	config.silverlightGraphicDriverCheck = "";
 
 	config.experimental_usermodeTimer = false;
 
@@ -362,8 +362,10 @@ bool loadConfig(PluginConfig &config){
 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 			config.quietInstallation = (value == "true" || value == "yes");
 
-		}else if (key == "graphicdrivercheck"){
-			config.graphicDriverCheck = value;
+		}else if (key == "silverlightgraphicdrivercheck" || key == "graphicdrivercheck"){
+			if (key == "graphicdrivercheck")
+				DBG_WARN("the configuration parameter graphicDriverCheck is deprecated.");
+			config.silverlightGraphicDriverCheck = value;
 
 		}else if (key == "eventasynccall"){
 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);

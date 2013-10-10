@@ -39,11 +39,11 @@ struct PluginConfig{
 	std::vector<std::string> dependencies;
 	bool 			quietInstallation;
 
-	std::string		graphicDriverCheck;
-
 	bool 			eventAsyncCall;
 	bool			operaDetection;
 	std::string 	executeJavascript;
+
+	std::string		silverlightGraphicDriverCheck;
 
 	bool 			experimental_usermodeTimer;
 };
