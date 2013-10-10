@@ -239,6 +239,11 @@ bool readCommands(Stack &stack, bool allowReturn, int abortTimeout){
 
 			numBytes = fread( (char*)&blockInfo + pos, sizeof(char), sizeof(uint32_t) - pos, commPipeIn);
 			if (numBytes == 0){
+
+				/* broken pipe */
+				if (abortTimeout)
+					return false;
+
 				#ifdef __WIN32__
 					if (!handleManager_findInstance()) exit(0);
 				#endif
