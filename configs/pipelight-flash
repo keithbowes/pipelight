@@ -156,14 +156,6 @@ operaDetection      = true
 # executejavascript = navigator.__proto__ = __originalNavigator;
 # executejavascript = navigator.__defineGetter__('userAgent', function () { return 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:15.0) Gecko/20120427 Firefox/15.0a1'; });
 
-#
-# The graphic driver check is not used for Flash and should be set to
-# /bin/true which will prevent Pipelight from passing any variables to
-# Flash. Not defining the script would cause Pipelight to assume a 
-# failure and pass a parameter which is not understood by Flash.
-#
-graphicDriverCheck  = /bin/true
-
 #------------------------- EXPERIMENTAL -------------------------
 # Watch out: The following section contains highly experimental
 # stuff! These functions are likely not working properly yet and

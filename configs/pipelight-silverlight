@@ -186,9 +186,9 @@ operaDetection      = true
 # overwriteArg      = enableGPUAcceleration=false/true
 #
 # to overwrite the check results. If you really want to skip this test
-# you can use: graphicDriverCheck = /bin/true
+# you can use: silverlightGraphicDriverCheck = /bin/true
 #
-graphicDriverCheck  = @@GRAPHIC_DRIVER_CHECK@@
+silverlightGraphicDriverCheck  = @@GRAPHIC_DRIVER_CHECK@@
 
 #------------------------- EXPERIMENTAL -------------------------
 # Watch out: The following section contains highly experimental
