@@ -402,13 +402,13 @@ while [ $# -gt 0 ] ; do
 			;;
 		wine-silverlight4-installer)
 			INS=("install_silverlight"   "4.1.10329.0")
-			CFG=("configure_silverlight" "4.1.10329.0")
+			#CFG=("configure_silverlight" "4.1.10329.0")
 			URL="http://silverlight.dlservice.microsoft.com/download/6/A/1/6A13C54D-3F35-4082-977A-27F30ECE0F34/10329.00/runtime/Silverlight.exe"
 			SHA="b0e476090206b2e61ba897de9151a31e0182c0e62e8abd528c35d3857ad6131c"
 			;;
 		wine-silverlight5.0-installer)
 			INS=("install_silverlight"   "5.0.61118.0")
-			CFG=("configure_silverlight" "5.0.61118.0")
+			#CFG=("configure_silverlight" "5.0.61118.0")
 			URL="http://silverlight.dlservice.microsoft.com/download/5/5/7/55748E53-D673-4225-8072-4C7A377BB513/runtime/Silverlight.exe"
 			SHA="dd45a55419026c592f8b6fc848dceface7e1ce98720bf13848a2e8ae366b29e8"
 			;;
