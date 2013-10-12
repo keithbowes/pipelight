@@ -2,3 +2,8 @@
 #DEBHELPER#
 
 pipelight-plugin --remove-mozilla-plugins
+
+# Keep the previous configuration on an update
+if [ "$1" != "upgrade" ]; then
+	pipelight-plugin --disable-all
+fi
