@@ -1,3 +1,25 @@
+pipelight-multi (0.2.0) UNRELEASED; urgency=low
+
+  * Implemented possibility to use multiple windows plugins
+  * Renamed package to pipelight-multi, converted pipelight into a meta package
+    (contains only a readme file and enables Silverlight to be backwards
+    compatible)
+  * Dropped dependencies on other packages than wine-compholio and moved all
+    required scripts into pipelight-multi
+  * Added config and downloader for Flash
+  * Added several wine patches to fix deadlocks and race conditions when using
+    hardware acceleration with Silverlight
+  * Removed all Silverlight specific config options (except graphicDriverCheck)
+  * Added possibility to read plugin path from the registry, so that it is not
+    necessary to update the configuration on a plugin update
+  * Added pipelight-plugin script which allows the user to enable or disable
+    specific plugins for either his account or system-wide
+  * Code refactoring (renamed files, moved shared code into common.h, use of
+    inline functions when appropriate, ...)
+  * Fixed several smaller bugs
+
+ -- Michael Mueller <michael@fds-team.de>  Thu, 10 Oct 2013 17:14:00 +0200
+
 pipelight (0.1-4) RELEASED; urgency=low
 
   * Add unofficial flash support by fixing some bugs and implementing
