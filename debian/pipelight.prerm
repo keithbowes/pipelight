@@ -1,7 +1,12 @@
 #!/bin/sh -e
 #DEBHELPER#
 
-# Disable all Silverlight related plugins
-for silverlight in $(pipelight-plugin --list-enabled | grep "^silverlight.*$" 2>/dev/null); do
-	pipelight-plugin --disable "$silverlight"
-done
+# Keep the previous configuration on an update
+if [ "$1" != "upgrade" ]; then
+
+	# Disable all Silverlight related plugins
+	for silverlight in $(pipelight-plugin --list-enabled | grep "^silverlight.*$" 2>/dev/null); do
+		pipelight-plugin --disable "$silverlight"
+	done
+
+fi
