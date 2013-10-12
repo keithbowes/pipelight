@@ -6,7 +6,11 @@ PLUGINDIR="@@MOZ_PLGIN_PATH@@"
 LIBPIPELIGHT="libpipelight"
 
 # Supported plugins
-PLUGINS=("silverlight" "flash")
+PLUGINS=("silverlight5.1" "silverlight5.0" "flash")
+
+# Aliases
+declare -A PLUGINALIAS
+PLUGINALIAS[silverlight]="silverlight5.1"
 
 # Fallback to Ubuntu path if not installed via make install
 if [[ "$SYSTEMDIR" =~ ^@@.*@@$ ]] && [ -f "/usr/lib/pipelight/$LIBPIPELIGHT.so" ]; then
@@ -36,6 +40,7 @@ usage()
 	echo "  --enable  PLUGIN            enable plugin"
 	echo "  --disable PLUGIN            disable plugin"
 	echo "  --disable-all               disable all plugins"
+	echo "  --list-enabled              list enabled plugins"
 	echo ""
 	echo "Global options (requires root rights):"
 	echo "  --create-mozilla-plugins    create copies of libpipelight.so"
@@ -69,6 +74,22 @@ get_installdir()
 	fi
 }
 
+# > Resolve plugin alias
+# arguments:
+# $1	- name of the plugin
+resolve_plugin_alias()
+{
+	local PLUGIN="$1"
+
+	if [ ! -z "${PLUGINALIAS[$PLUGIN]}" ]; then
+		echo "${PLUGINALIAS[$PLUGIN]}"
+	else
+		echo "$PLUGIN"
+	fi
+
+	exit 0
+}
+
 # > Checks if a given plugin is supported
 # arguments:
 # $1	- name of the plugin
@@ -88,6 +109,9 @@ enable_plugin()
 {
 	local PLUGIN="$1"
 	[ ! -z "$INSTALLDIR" ] || return 1
+
+	PLUGIN=$(resolve_plugin_alias "$PLUGIN")
+	[ $? -eq 0 ] || return 1;
 
 	if ! is_supported_plugin "$PLUGIN"; then
 		echo "ERROR: Plugin $PLUGIN is unknown" >&2
@@ -132,6 +156,9 @@ disable_plugin()
 	local PLUGIN="$1"
 	[ ! -z "$INSTALLDIR" ] || return 1
 
+	PLUGIN=$(resolve_plugin_alias "$PLUGIN")
+	[ $? -eq 0 ] || return 1;
+
 	if ! is_supported_plugin "$PLUGIN"; then
 		echo "ERROR: Plugin $PLUGIN is unknown" >&2
 		return 1
@@ -162,11 +189,49 @@ disable_plugin()
 	return 0
 }
 
+# > Checks if a plugin is enabled
+# arguments:
+# $1	- name of the plugin
+is_enabled_plugin()
+{
+	local PLUGIN="$1"
+	[ ! -z "$INSTALLDIR" ] || return 1
+
+	PLUGIN=$(resolve_plugin_alias "$PLUGIN")
+	[ $? -eq 0 ] || return 1;
+
+	if ! is_supported_plugin "$PLUGIN"; then
+		echo "ERROR: Plugin $PLUGIN is unknown" >&2
+		return 1
+	fi
+
+	if [ ! -d "$INSTALLDIR" ]; then
+		echo "ERROR: Your plugin dir $INSTALLDIR does not exist - are you running this as a wrong user?" >&2
+		return 1
+	fi
+
+	local dst="$INSTALLDIR/$LIBPIPELIGHT-$PLUGIN.so"
+
+	# check if there is a file
+	[ -e "$dst" ] && [ -L "$dst" ]
+	return $?
+}
+
 # > Disables all plugins
 disable_all_plugin()
 {
 	for entry in "${PLUGINS[@]}"; do
 		if ! disable_plugin "$entry"; then return 1; fi
+	done
+
+	return 0
+}
+
+# > List enabled plugins
+list_enabled_plugins()
+{
+	for entry in "${PLUGINS[@]}"; do
+		if is_enabled_plugin "$entry"; then	echo "$entry"; fi
 	done
 
 	return 0
@@ -235,12 +300,24 @@ while [[ $# > 0 ]] ; do
 			if ! enable_plugin "$1"; then RET=1; fi
 			shift
 			;;
+		--enable=*)
+			if ! enable_plugin "${CMD#*=}"; then RET=1; fi
+			;;
+
 		--disable)
 			if ! disable_plugin "$1"; then RET=1; fi
 			shift
 			;;
+		--disable=*)
+			if ! disable_plugin "${CMD#*=}"; then RET=1; fi
+			;;
+
 		--disable-all)
 			if ! disable_all_plugin; then RET=1; fi
+			;;
+
+		--list-enabled)
+			if ! list_enabled_plugins; then RET=1; fi
 			;;
 
 		--create-mozilla-plugins)

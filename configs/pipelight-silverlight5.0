@@ -54,8 +54,8 @@ gccRuntimeDlls      = @@GCC_RUNTIME_DLLS@@
 # You should prefer using regKey to make it easier to switch between
 # different versions.
 #
-# dllPath           = c:\Program Files\Silverlight\5.1.20513.0\
-# dllName           = npctrl.dll
+dllPath           = c:\Program Files\Silverlight\5.0.61118.0\
+dllName           = npctrl.dll
 
 #
 # Name of the registry key at HKCU\Software\MozillaPlugins\ or
@@ -64,7 +64,7 @@ gccRuntimeDlls      = @@GCC_RUNTIME_DLLS@@
 # You should use this option instead of dllPath/dllName in most cases
 # since you do not need to alter dllPath on a program update.
 #
-regKey              = @Microsoft.com/NpCtrl,version=1.0
+# regKey              = @Microsoft.com/NpCtrl,version=1.0
 
 #
 # fakeVersion allows to fake the version string of Silverlight
@@ -131,7 +131,7 @@ dependencyInstaller = @@DEPENDENCY_INSTALLER@@
 #   -> optional depependencies (required by some streaming sites)
 #   wine-mpg2splt-installer
 #
-dependency          = wine-silverlight5.1-installer
+dependency          = wine-silverlight5.0-installer
 dependency          = wine-mpg2splt-installer
 
 #
