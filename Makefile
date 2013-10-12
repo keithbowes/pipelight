@@ -4,6 +4,7 @@ SUBDIRS= src/linux src/windows
 CONFIGS=$(wildcard configs/*)
 
 prefix=/usr/local/
+winepath=/opt/wine-compholio/bin/wine
 mozpluginpath=/usr/lib/mozilla/plugins
 gccruntimedlls=/usr/lib/gcc/i686-w64-mingw32/4.6/
 
@@ -23,6 +24,7 @@ install: all
 		sed    's|@@PLUGIN_LOADER_PATH@@|$(prefix)/share/pipelight/pluginloader.exe|g' configs/$${config} > pipelight-config.tmp; \
 		sed -i 's|@@DEPENDENCY_INSTALLER@@|$(prefix)/share/pipelight/install-dependency|g' pipelight-config.tmp; \
 		sed -i 's|@@GRAPHIC_DRIVER_CHECK@@|$(prefix)/share/pipelight/hw-accel-default|g' pipelight-config.tmp; \
+		sed -i 's|@@WINE_PATH@@|$(winepath)|g' pipelight-config.tmp; \
 		sed -i 's|@@GCC_RUNTIME_DLLS@@|$(gccruntimedlls)|g' pipelight-config.tmp; \
 		install -m 0644 pipelight-config.tmp "$(DESTDIR)$(prefix)/share/pipelight/$${config}"; \
 		rm pipelight-config.tmp; \

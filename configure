@@ -4,11 +4,12 @@
 prefix=/usr/local/
 mozpluginpath=/usr/lib/mozilla/plugins
 gccruntimedlls=/usr/lib/gcc/i686-w64-mingw32/4.6/
+winepath=/opt/wine-compholio/bin/wine
 
 usage ()
 {
 	echo ""
-	echo "Usage: ./configure [--prefix=PREFIX] [--moz-plugin-path=PATH] [--gcc-runtime-dlls=PATH]"
+	echo "Usage: ./configure [--prefix=PREFIX] [--wine-path=PATH] [--moz-plugin-path=PATH] [--gcc-runtime-dlls=PATH]"
 	echo ""
 }
 
@@ -20,6 +21,13 @@ while [[ $# > 0 ]] ; do
 			;;
 		--prefix)
 			prefix="$1"; shift
+			;;
+
+		--wine-path=*)
+			winepath=${CMD#*=}
+			;;
+		--wine-path)
+			winepath="$1"; shift
 			;;
 
 		--moz-plugin-path=*)
@@ -54,6 +62,7 @@ echo "---------------------"
 echo ""
 echo "Pipelight has been configured with"
 echo "  prefix        = '$prefix'"
+echo "  winepath      = '$winepath'"
 echo "  mozpluginpath = '$mozpluginpath'"
 echo " gccruntimedlls = '$gccruntimedlls'"
 echo ""
@@ -62,6 +71,7 @@ echo "           your file system (required to watch DRM protected content)!"
 echo ""
 
 echo "prefix=$prefix" 					>  config.make
+echo "winepath=$winepath"				>> config.make
 echo "mozpluginpath=$mozpluginpath"		>> config.make
 echo "gccruntimedlls=$gccruntimedlls"	>> config.make
 exit 0
