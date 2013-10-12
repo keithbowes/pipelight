@@ -1,0 +1,250 @@
+            SOURCE: http://go2.microsoft.com/fwlink/?LinkID=200620
+_______________________________________________________________________________
+
+
+
+Microsoft Silverlight 4 Privacy Statement
+
+Last updated: June 2011
+
+At Microsoft, we're working hard to help protect your privacy, while delivering
+software that brings you the performance, power, and convenience you desire in
+your personal computing. This privacy statement explains the data collection
+and use practices of Microsoft Silverlight 4 (“Silverlight”). It does not apply
+to other online or offline Microsoft Web sites, products, or services.
+
+Silverlight helps you to access and enjoy rich content on Web sites while using
+your Internet browsers. This privacy statement describes how Silverlight
+interacts with Microsoft in order to offer you Silverlight updates and other
+Internet-enabled features.
+
+Collection and Use of Information About Your Computer
+
+Internet-enabled features in software will send information about your computer
+("standard computer information") to the Web sites you visit and Web services
+you use. This information is generally not personally identifiable. Standard
+computer information typically includes information such as your IP address,
+operating system version, browser version, your hardware ID which indicates the
+device manufacturer, device name, and device version, application version and
+your regional and language settings. In this case, the application version
+would be the version of Silverlight installed on your device. Silverlight
+contains an update notification feature that sends standard computer
+information to Microsoft.
+
+Information that is sent to Microsoft by this software will be used to provide
+you with Silverlight features and services. This information may be used to
+improve Silverlight and our other products and services, as well as for
+analysis purposes. Except as described in this statement, information you
+provide will not be transferred to third parties without your consent. We
+occasionally hire other companies to provide limited services on our behalf,
+such as packaging, sending, and delivering purchases and other mailings,
+answering customer questions about software or services, processing event
+registration, or performing statistical analysis of our services. We will only
+provide those companies the information they need to deliver the service, and
+they are prohibited from using that information for any other purpose.
+
+Microsoft may access or disclose information about you, including the content
+of your communications, in order to: (a) comply with the law or respond to
+lawful requests or legal process; (b) protect the rights or property of
+Microsoft or our customers, including the enforcement of our agreements or
+policies governing your use of the services; or (c) act on a good faith belief
+that such access or disclosure is necessary to protect the personal safety of
+Microsoft employees, customers or the public.
+
+Information that is collected by or sent to Microsoft may be stored and
+processed in the United States or any other country/region in which Microsoft
+or its affiliates, subsidiaries, or service providers maintain facilities.
+Microsoft abides by the safe harbor framework as set forth by the U.S.
+Department of Commerce regarding the collection, use, and retention of data
+from the European Union, the European Economic Area, and Switzerland.
+
+Silverlight Application Storage
+
+Silverlight-based applications can store data files locally on your computer
+for a variety of purposes: saving your custom settings, storing large files for
+graphically intensive features (such as games, maps, and images), and storing
+content that you create within certain applications.  Application storage is
+turned on by default, but Web sites are initially limited to a total of 1
+megabyte of storage.  If the application requires more than 1 megabyte,
+Silverlight will ask you if you want to increase the available storage for the
+Web site hosting the application.
+
+To configure application storage
+
+1.       Right click on content that is currently being displayed by
+Silverlight and select Silverlight or follow the instructions below to start
+the Silverlight Configuration tool while offline.
+
+2.       Select the Application Storage tab.
+
+3.       Delete storage for individual Web sites or all Web sites using the
+Delete or Delete All buttons
+
+4.       To turn off application storage, uncheck Enable application storage
+and click OK.
+
+Silverlight Updates
+
+Unless you change the settings in the Silverlight Configuration panel,
+Silverlight will periodically check a Microsoft Web site for updates to provide
+you with the latest features and improvements. When it does so, a request is
+sent to Microsoft that contains standard computer information, as described
+above. A small file containing information about the latest Silverlight version
+will be downloaded to your computer and compared to your currently installed
+version. If a newer version is available, it will be downloaded and installed
+on your computer.
+
+To change your update settings
+
+ 1. Right click on content that is currently being displayed by Silverlight and
+    select Silverlight or follow the instructions below to start the
+    Silverlight Configuration tool while offline.
+ 2. Select the Updates tab.
+ 3. Chose to either install updates automatically, check for updates and prompt
+    you to download and install them, or never check for updates
+ 4. Click the OK button
+
+Note: Silverlight may also be updated via Microsoft Update or Windows Server
+Update Services.
+
+Silverlight and Your Media Devices
+
+Some Silverlight-based applications may provide features that use media devices
+connected to your computer.    For example, a Silverlight video editing
+application may allow you to use your computer’s camera and/or microphone to
+record video and/or audio.  Silverlight will ask you before allowing
+Silverlight-based applications to access your media devices.
+
+Microsoft Digital Rights Management
+
+Silverlight uses Microsoft Digital Rights Management (DRM) technology to
+preserve the rights of content owners who protect their music or video products
+in this manner. You must have the media usage rights required to play protected
+DRM content.
+
+Updating Media Usage Rights. If you access DRM protected content in a
+Silverlight application (typically on a Web site), Silverlight will
+automatically request media usage rights from a rights server on the Internet.
+You will not be prompted before Silverlight sends the request to the rights
+server. This helps to ensure that you have a seamless playback experience. When
+requesting media usage rights, Silverlight will provide the rights server with
+standard computer information, an ID for the DRM protected content (music or
+video) file, a request for permission to play the content, information about
+the DRM components on your computer such as their revision and security levels,
+and a unique identifier for your computer.
+
+Player Revocation. If the security of your version of Silverlight is
+compromised, owners of secure content may request that Microsoft revoke the
+right of Silverlight to copy, display, and/or play secure content. If your
+version of Silverlight has been revoked, it will not be able to play secure
+content until you update Silverlight to a more recent and more secure version.
+Revocation does not alter the ability of Silverlight to play unprotected
+content.
+
+DRM Component Updates. Updates to the DRM components on your computer may be
+required in order to access content that is protected by DRM technology. When
+you attempt to play content that requires a DRM update, Silverlight will send a
+request to a Microsoft server containing standard computer information,
+standard troubleshooting data, information about the DRM components on your
+computer, such as their revision and security levels, and a unique identifier
+for your computer that is based on your hardware configuration. The Microsoft
+server uses this identifier to return a unique DRM update for your computer,
+which will then be installed by Silverlight.
+
+To change your DRM settings
+
+ 1. Right click on content that is currently being displayed by Microsoft
+    Silverlight and select Silverlight or follow the instructions below to
+    start the Silverlight Configuration tool while offline.
+ 2. Select the Playback tab.
+ 3. Check or uncheck the Enable download and updates to components required for
+    protected content playback checkbox
+ 4. Click the OK button.
+
+Accessing Silverlight Controls Without Silverlight Content
+
+The Silverlight Configuration settings can be configured without right-clicking
+Silverlight content by running the Silverlight Configuration tool directly. 
+See the instructions below to run the Silverlight Configuration tool on your
+computer.
+
+In Microsoft Windows:
+
+1.       Click the Start button on the taskbar.
+
+2.       Click All Programs.
+
+3.       From the expanded menu of programs and folders, click on the
+“Microsoft Silverlight” folder.
+
+4.       Click on the “Microsoft Silverlight” program shown in the “Microsoft
+Silverlight” folder to open the configuration tool.
+
+Apple Mac OS X:
+
+1.       Open the Finder.
+
+2.       Navigate to Applications.
+
+3.       Double-click the “Microsoft Silverlight” shortcut to open the
+configuration tool.
+
+Enterprise Administrator Controls
+
+In an enterprise environment, administrators can configure group policy to
+disable Silverlight updates and DRM playback by following the instructions
+provided below.  CAUTION: Incorrectly editing the registry may severely damage
+your system. Before making changes to the registry, you should back up any
+valued data on the computer. You can also use the Last Known Good Configuration
+startup option if you encounter problems after manual changes have been
+applied.
+
+Disabling Silverlight Updates
+
+A registry key HKLM\Software\Microsoft\Silverlight can be created with the
+Value Name UpdateMode with a Value Type of DWORD and given a value of
+0x00000002. This sets the machine to never check for automatic updates,
+although updates may be provided through other means, such as Microsoft Update.
+
+Disabling Silverlight DRM Playback
+
+A registry key, HKLM\Software\Microsoft\Silverlight, can be created with the
+Value Name DRMEnabled with a Value Type of REG_DWORD and given a value of
+0x00000000. This sets the machine to never download or update components
+required for protected content playback.
+
+Disabling Silverlight Unique Client Identification
+
+A registry key HKLM\Software\Microsoft\Silverlight can be created with the
+Value Name EnableClientInformation with a Value Type of REG_DWORD and given a
+value of 0x00000000. This sets the machine to never provide the unique
+identifier associated with the Unique Client Identification feature to any Web
+site regardless of the DRM setting.
+
+Security of your information
+
+Microsoft is committed to protecting the security of your information. We use a
+variety of security technologies and procedures to help protect your
+information from unauthorized access, use, or disclosure. For example, the
+information that is sent to Microsoft when Silverlight automatically updates is
+stored on computer systems with limited access, which are located in controlled
+facilities.
+
+Changes to the Privacy Statement
+
+We may occasionally update this privacy statement. When we do, we will revise
+the "last updated" date at the top of the privacy statement. We encourage you
+to periodically review this privacy statement to be informed of how Microsoft
+is protecting your information.
+
+Contact Information
+
+Microsoft welcomes your comments regarding this privacy statement. If you have
+questions about this statement or believe that we have not adhered to it,
+please contact us by using our Web form.
+
+Microsoft Privacy, Microsoft Corporation, One Microsoft Way, Redmond,
+Washington 98052 • 425-882-8080
+
+ 
+
