@@ -1,4 +1,4 @@
-SUBDIRS= src/linux src/windows third-party-licenses
+SUBDIRS= src/linux src/windows
 .PHONY:	all $(SUBDIRS) clean install uninstall
 
 CONFIGS=$(wildcard configs/*)

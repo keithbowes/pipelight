@@ -6,7 +6,19 @@
 
 db_get pipelight/system-wide-installation
 if [ "$RET" = "true" ]; then
-	pipelight-plugin --enable silverlight
+
+	# Enable Silverlight (if not enabled yet)
+	if pipelight-plugin --list-enabled | grep "^silverlight.*$" &>/dev/null; then
+		echo "You already have one (or more) Silverlight versions enabled." >&2
+	else
+		pipelight-plugin --enable silverlight
+	fi
+
 else
-	pipelight-plugin --disable silverlight
+
+	# Disable all Silverlight related plugins
+	for silverlight in $(pipelight-plugin --list-enabled | grep "^silverlight.*$" 2>/dev/null); do
+		pipelight-plugin --disable "$silverlight"
+	done
+
 fi

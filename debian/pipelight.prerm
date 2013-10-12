@@ -1,4 +1,7 @@
 #!/bin/sh -e
 #DEBHELPER#
 
-pipelight-plugin --disable silverlight
+# Disable all Silverlight related plugins
+for silverlight in $(pipelight-plugin --list-enabled | grep "^silverlight.*$" 2>/dev/null); do
+	pipelight-plugin --disable "$silverlight"
+done
