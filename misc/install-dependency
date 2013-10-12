@@ -176,7 +176,7 @@ install_silverlight()
 	if [ "$QUIETINSTALLATION" -eq 0 ]; then
 		"$WINE" "$DOWNLOADFILE" /noupdate 2>&1
 	else
-		"$WINE" "$DOWNLOADFILE" /q /doNotRequireDRMPrompt /noupdate 2>&1 | progressbar "Please wait, installing ..." "Installing $DEP"
+		"$WINE" "$DOWNLOADFILE" /q /doNotRequireDRMPrompt /noupdate 2>&1 | progressbar "Please wait, installing ..." "Running $DEP"
 	fi
 
 	local programfiles="$WINEPREFIX/drive_c/Program Files"
@@ -265,7 +265,7 @@ install_firefox()
 	) > "$tmpfile"
 
 	local inifile=$("$WINE" winepath --windows "$tmpfile")
-	"$WINE" "$DOWNLOADFILE" "/INI=$inifile" 2>&1 | progressbar "Please wait, installing ..." "Installing $DEP"
+	"$WINE" "$DOWNLOADFILE" "/INI=$inifile" 2>&1 | progressbar "Please wait, installing ..." "Running $DEP"
 
 	# Cleanup
 	rm "$tmpfile"
@@ -286,7 +286,7 @@ install_flash()
 	if [ "$QUIETINSTALLATION" -eq 0 ]; then
 		"$WINE" "$DOWNLOADFILE" 2>&1
 	else
-		"$WINE" "$DOWNLOADFILE" -install 2>&1 | progressbar "Please wait, installing ..." "Installing $DEP"
+		"$WINE" "$DOWNLOADFILE" -install 2>&1 | progressbar "Please wait, installing ..." "Running $DEP"
 	fi
 
 	local installdir="$WINEPREFIX/drive_c/windows/system32/Macromed/Flash"
