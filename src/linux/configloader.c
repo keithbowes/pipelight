@@ -68,7 +68,9 @@ static void getConfigNameFromLibrary(std::string &configName, std::string &confi
 
 		// convert to lower/upper case
 		std::transform(pluginName.begin(), pluginName.end(), pluginName.begin(), ::tolower);
+
 		std::transform(configEnv.begin(), configEnv.end(), configEnv.begin(), ::toupper);
+		std::replace(configEnv.begin(), configEnv.end(), '.', '_');
 
 		configName = "pipelight-" + pluginName;
 		configEnv  = "PIPELIGHT_" + configEnv + "_CONFIG";
