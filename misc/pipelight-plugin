@@ -6,7 +6,7 @@ PLUGINDIR="@@MOZ_PLGIN_PATH@@"
 LIBPIPELIGHT="libpipelight"
 
 # Supported plugins
-PLUGINS=("silverlight5.1" "silverlight5.0" "flash")
+PLUGINS=("silverlight5.1" "silverlight5.0" "silverlight4" "flash")
 
 # Aliases
 declare -A PLUGINALIAS
