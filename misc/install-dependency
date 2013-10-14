@@ -86,6 +86,13 @@ download()
 		return 0
 	fi
 
+	# Reuse files from the netflix-desktop package if available
+	local dlfile="/var/lib/wine-browser-installer/$DEP.$EXT"
+	if [ -f "$dlfile" ] && [ "$SHA" == ""$(sha256sum "$dlfile" | cut -d' ' -f1) ]; then
+		DOWNLOADFILE="$dlfile"
+		return 0
+	fi
+
 	local trycount=3
 	local tmpfile=$(mktemp --suffix=".$EXT")
 	[ -f "$tmpfile" ] || return 1
