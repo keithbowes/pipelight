@@ -124,9 +124,14 @@ void attach(){
 
 	// Check if we should enable hardware acceleration
 	if (config.silverlightGraphicDriverCheck != ""){
-		if (config.overwriteArgs.find("enableGPUAcceleration") == config.overwriteArgs.end()){
+		if (getEnvironmentInteger("PIPELIGHT_FORCE_GPUACCELERATION")){
+			DBG_INFO("enableGPUAcceleration forced via commandline");
+			config.overwriteArgs["enableGPUAcceleration"] = "true";
+
+		}else if (config.overwriteArgs.find("enableGPUAcceleration") == config.overwriteArgs.end()){
 			if (!checkSilverlightGraphicDriver())
 				config.overwriteArgs["enableGPUAcceleration"] = "false";
+			
 		}else{
 			DBG_INFO("enableGPUAcceleration set manually - skipping compatibility check.");
 		}
