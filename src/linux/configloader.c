@@ -176,6 +176,14 @@ static  bool openConfig(std::ifstream &configFile, std::string &configPath, std:
 	if (configName != ""){
 		DBG_INFO("searching for config file %s.", configName.c_str());
 
+		/* environment path */
+		if ((configPath = getEnvironmentString("PIPELIGHT_CONFIG_PATH")) != ""){
+			configPath = configPath + "/" + configName;
+			DBG_INFO("trying to load config file from '%s'.", configPath.c_str());
+			configFile.open(configPath);
+			if (configFile.is_open()) return true;
+		}
+
 		/* local config */
 		if (homeDir != ""){
 			configPath = homeDir + "/.config/" + configName;
