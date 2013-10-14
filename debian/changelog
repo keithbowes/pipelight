@@ -1,4 +1,4 @@
-pipelight-multi (0.2.0) UNRELEASED; urgency=low
+pipelight-multi (0.2.0) RELEASED; urgency=low
 
   * Implemented possibility to use multiple windows plugins
   * Renamed package to pipelight-multi, converted pipelight into a meta package
@@ -18,7 +18,7 @@ pipelight-multi (0.2.0) UNRELEASED; urgency=low
     inline functions when appropriate, ...)
   * Fixed several smaller bugs
 
- -- Michael Mueller <michael@fds-team.de>  Thu, 10 Oct 2013 17:14:00 +0200
+ -- Michael Mueller <michael@fds-team.de>  Mon, 14 Oct 2013 23:35:37 +0200
 
 pipelight (0.1-4) RELEASED; urgency=low
 
