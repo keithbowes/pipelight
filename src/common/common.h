@@ -650,6 +650,11 @@ inline std::string getEnvironmentString(const std::string variable){
 	return str ? std::string(str) : "";
 }
 
+inline long int getEnvironmentInteger(const std::string variable) {
+	char *str = getenv(variable.c_str());
+	return str ? strtol(str, NULL, 10) : 0;
+}
+
 #endif
 
 inline std::string trim(std::string str){

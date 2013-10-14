@@ -599,8 +599,14 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window) {
 			if (display){
 				setXembedWindowInfo(display, win, XEMBED_MAPPED);
 
-				XReparentWindow(display, win, (Window)window->window, 0, 0);
-				sendXembedMessage(display, win, XEMBED_EMBEDDED_NOTIFY, 0, (Window)window->window, 0);
+				Window parentWindow = (Window)getEnvironmentInteger("PIPELIGHT_X11WINDOW");
+
+				if (!parentWindow) {
+					parentWindow = (Window)window->window;
+				}
+
+				XReparentWindow(display, win, parentWindow, 0, 0);
+				sendXembedMessage(display, win, XEMBED_EMBEDDED_NOTIFY, 0, parentWindow, 0);
 
 				// Synchronize xembed state
 				/*sendXembedMessage(display, win, XEMBED_FOCUS_IN, 		XEMBED_FOCUS_CURRENT, 0, 0);
