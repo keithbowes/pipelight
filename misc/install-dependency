@@ -430,9 +430,9 @@ while [ $# -gt 0 ] ; do
 			EXT="exe"
 			;;
 		wine-flash-installer)
-			INS=("install_flash" "11_8_800_168")
-			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/11.8.800.168/install_flash_player.exe"
-			SHA="2213027430edb7c0b90860c54bd5d797db9e32bb2ce6470c7b162adb58c421c7"
+			INS=("install_flash" "11_9_900_117")
+			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/11.9.900.117/install_flash_player.exe"
+			SHA="3e8d832591aff54510f9904b6348e2e2351a28a4ef137f4f19535b747c00c89e"
 			;;
 
 		*)
