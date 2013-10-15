@@ -2,7 +2,7 @@
 
 # Global configuration
 SYSTEMDIR="@@PLUGIN_SYSTEM_PATH@@"
-PLUGINDIR="@@MOZ_PLGIN_PATH@@"
+PLUGINDIR="@@MOZ_PLUGIN_PATH@@"
 LIBPIPELIGHT="libpipelight"
 
 # Supported plugins
