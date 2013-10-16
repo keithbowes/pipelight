@@ -5,6 +5,7 @@ ORIG_SYSTEMDIR="@@PLUGIN_SYSTEM_PATH@@"
 ORIG_PLUGINDIR="@@MOZ_PLUGIN_PATH@@"
 LIBPIPELIGHT="libpipelight"
 DESTDIR=""
+DEBUG=1
 
 # Supported plugins
 PLUGINS=("silverlight5.1" "silverlight5.0" "silverlight4" "flash")
@@ -23,6 +24,7 @@ usage()
 	echo ""
 	echo "Options:"
 	echo "  --destdir=DIRECTORY         set fakeroot directory"
+	echo "  --debug                     show debug info"
 	echo ""
 	echo "  --enable  PLUGIN            enable plugin"
 	echo "  --disable PLUGIN            disable plugin"
@@ -76,6 +78,12 @@ get_directories()
 		INSTALLDIR="$HOME/.mozilla/plugins"
 	fi
 
+	if [ "$DEBUG" -eq 0 ]; then
+		echo "[*] SYSTEMDIR:  $SYSTEMDIR"
+		echo "[*] PLUGINDIR:  $PLUGINDIR"
+		echo "[*] INSTALLDIR: $INSTALLDIR"
+	fi
+
 	[ ! -z "$INSTALLDIR" ]
 	return $?
 }
@@ -124,7 +132,7 @@ enable_plugin()
 		return 1
 	fi
 
-	local src="$ORIG_SYSTEMDIR/$LIBPIPELIGHT-$PLUGIN.so"
+	local src="$SYSTEMDIR/$LIBPIPELIGHT-$PLUGIN.so"
 	local dst="$INSTALLDIR/$LIBPIPELIGHT-$PLUGIN.so"
 
 	if [ ! -f "$src" ]; then
@@ -139,16 +147,16 @@ enable_plugin()
 	fi
 
 	# check if there is already a file
-	if [ -e "$dst" ]; then
-		if [ ! -L "$dst" ]; then
-			echo "ERROR: $dst exists but is not a symlink, aborting - delete or rename this file manually." >&2
-			return 1
-		fi
-
+	if [ -L "$dst" ]; then
 		rm "$dst"
+	elif [ -e "$dst" ]; then
+		echo "ERROR: $dst exists but is not a symlink, aborting - delete or rename this file manually." >&2
+		return 1
 	fi
 
-	if ! ln -s "$src" "$dst"; then
+	local srclnk="$ORIG_SYSTEMDIR/$LIBPIPELIGHT-$PLUGIN.so"
+
+	if ! ln -s "$srclnk" "$dst"; then
 		echo "ERROR: Failed to create symlink from $src to $dst." >&2
 		return 1
 	fi
@@ -265,7 +273,7 @@ create_mozilla_plugins()
 			return 1
 		fi
 
-		if ! cp "$src" "$dst" 2>/dev/null; then
+		if ! install -m 0644 "$src" "$dst" 2>/dev/null; then
 			echo "ERROR: failed to create copy of $src at $dst" >&2
 			echo "ERROR: are you running this program with root rights?" >&2
 			return 1
@@ -309,6 +317,10 @@ while [[ $# > 0 ]] ; do
 			;;
 		--destdir=*)
 			DESTDIR="${CMD#*=}"
+			;;
+
+		--debug)
+			DEBUG=0
 			;;
 
 		--enable)
