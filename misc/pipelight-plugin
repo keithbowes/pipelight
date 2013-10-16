@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
 # Global configuration
-SYSTEMDIR="@@PLUGIN_SYSTEM_PATH@@"
-PLUGINDIR="@@MOZ_PLUGIN_PATH@@"
+ORIG_SYSTEMDIR="@@PLUGIN_SYSTEM_PATH@@"
+ORIG_PLUGINDIR="@@MOZ_PLUGIN_PATH@@"
 LIBPIPELIGHT="libpipelight"
+DESTDIR=""
 
 # Supported plugins
 PLUGINS=("silverlight5.1" "silverlight5.0" "silverlight4" "flash")
@@ -11,22 +12,6 @@ PLUGINS=("silverlight5.1" "silverlight5.0" "silverlight4" "flash")
 # Aliases
 declare -A PLUGINALIAS
 PLUGINALIAS[silverlight]="silverlight5.1"
-
-# Fallback to Ubuntu path if not installed via make install
-if [[ "$SYSTEMDIR" =~ ^@@.*@@$ ]] && [ -f "/usr/lib/pipelight/$LIBPIPELIGHT.so" ]; then
-	SYSTEMDIR="/usr/lib/pipelight"
-elif [ ! -d "$SYSTEMDIR" ]; then
-	echo "ERROR: Failed to find $SYSTEMDIR." >&2
-	exit 1
-else
-	SYSTEMDIR=$(readlink -m "$SYSTEMDIR")	
-fi
-
-if [[ "$PLUGINDIR" =~ ^@@.*@@$ ]]; then
-	PLUGINDIR="/usr/lib/mozilla/plugins"
-else
-	PLUGINDIR=$(readlink -m "$PLUGINDIR")
-fi
 
 usage()
 {
@@ -37,6 +22,8 @@ usage()
 	echo "  MOZ_PLUGIN_PATH             overwrite plugin path"
 	echo ""
 	echo "Options:"
+	echo "  --destdir=DIRECTORY         set fakeroot directory"
+	echo ""
 	echo "  --enable  PLUGIN            enable plugin"
 	echo "  --disable PLUGIN            disable plugin"
 	echo "  --disable-all               disable all plugins"
@@ -53,12 +40,28 @@ usage()
 	echo ""
 }
 
-# > Get install directory
+# > Get directories
 # returns:
 # $INSTALLDIR
 INSTALLDIR=""
-get_installdir()
+get_directories()
 {
+	if [ ! -z "$INSTALLDIR" ]; then return 0; fi
+
+	# Fallback to Ubuntu path if not installed via make install
+	if [[ "$ORIG_SYSTEMDIR" =~ ^@@.*@@$ ]] && [ -f "$DESTDIR/usr/lib/pipelight/$LIBPIPELIGHT.so" ]; then
+		ORIG_SYSTEMDIR="/usr/lib/pipelight"
+	elif [ ! -d "$DESTDIR$ORIG_SYSTEMDIR" ]; then
+		echo "ERROR: Failed to find $DESTDIR$ORIG_SYSTEMDIR." >&2
+		exit 1
+	fi
+
+	if [[ "$ORIG_PLUGINDIR" =~ ^@@.*@@$ ]]; then
+		ORIG_PLUGINDIR="/usr/lib/mozilla/plugins"
+	fi
+
+	ORIG_SYSTEMDIR=$(readlink -m "$ORIG_SYSTEMDIR"); SYSTEMDIR="$DESTDIR$ORIG_SYSTEMDIR"
+	ORIG_PLUGINDIR=$(readlink -m "$ORIG_PLUGINDIR"); PLUGINDIR="$DESTDIR$ORIG_PLUGINDIR"
 
 	# Global installation
 	if [ $(/usr/bin/id -u) -eq 0 ]; then
@@ -72,6 +75,9 @@ get_installdir()
 	else
 		INSTALLDIR="$HOME/.mozilla/plugins"
 	fi
+
+	[ ! -z "$INSTALLDIR" ]
+	return $?
 }
 
 # > Resolve plugin alias
@@ -108,7 +114,7 @@ is_supported_plugin()
 enable_plugin()
 {
 	local PLUGIN="$1"
-	[ ! -z "$INSTALLDIR" ] || return 1
+	if ! get_directories; then return 1; fi
 
 	PLUGIN=$(resolve_plugin_alias "$PLUGIN")
 	[ $? -eq 0 ] || return 1;
@@ -118,7 +124,7 @@ enable_plugin()
 		return 1
 	fi
 
-	local src="$SYSTEMDIR/$LIBPIPELIGHT-$PLUGIN.so"
+	local src="$ORIG_SYSTEMDIR/$LIBPIPELIGHT-$PLUGIN.so"
 	local dst="$INSTALLDIR/$LIBPIPELIGHT-$PLUGIN.so"
 
 	if [ ! -f "$src" ]; then
@@ -154,7 +160,7 @@ enable_plugin()
 disable_plugin()
 {
 	local PLUGIN="$1"
-	[ ! -z "$INSTALLDIR" ] || return 1
+	if ! get_directories; then return 1; fi
 
 	PLUGIN=$(resolve_plugin_alias "$PLUGIN")
 	[ $? -eq 0 ] || return 1;
@@ -195,7 +201,7 @@ disable_plugin()
 is_enabled_plugin()
 {
 	local PLUGIN="$1"
-	[ ! -z "$INSTALLDIR" ] || return 1
+	if ! get_directories; then return 1; fi
 
 	PLUGIN=$(resolve_plugin_alias "$PLUGIN")
 	[ $? -eq 0 ] || return 1;
@@ -240,6 +246,8 @@ list_enabled_plugins()
 # > Create/Remove mozilla plugin copies
 create_mozilla_plugins()
 {
+	if ! get_directories; then return 1; fi
+
 	local src="$SYSTEMDIR/$LIBPIPELIGHT.so"
 
 	if [ ! -f "$src" ]; then
@@ -269,6 +277,8 @@ create_mozilla_plugins()
 
 remove_mozilla_plugins()
 {
+	if ! get_directories; then return 1; fi
+
 	for entry in "${PLUGINS[@]}"; do
 		local dst="$SYSTEMDIR/$LIBPIPELIGHT-$entry.so"
 
@@ -288,14 +298,19 @@ if [ $# -eq 0 ]; then
 	exit 0
 fi
 
-# Get the installation directory
-get_installdir
-
 RET=0
 
 while [[ $# > 0 ]] ; do
 	CMD="$1"; shift
 	case "$CMD" in
+		--destdir)
+			DESTDIR="$1"
+			shift
+			;;
+		--destdir=*)
+			DESTDIR="${CMD#*=}"
+			;;
+
 		--enable)
 			if ! enable_plugin "$1"; then RET=1; fi
 			shift
