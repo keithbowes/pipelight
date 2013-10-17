@@ -121,7 +121,7 @@ dependency          = wine-flash-installer
 # the installation process, like EULA or DRM dialogs.
 # [default: true]
 #
-quietInstallation   = true
+quietInstallation   = @@QUIET_INSTALLATION@@
 
 #
 # In order to support browsers without NPAPI timer support
