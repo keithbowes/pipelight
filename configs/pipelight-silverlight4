@@ -133,6 +133,7 @@ dependencyInstaller = @@DEPENDENCY_INSTALLER@@
 #
 dependency          = wine-silverlight4-installer
 dependency          = wine-mpg2splt-installer
+dependency          = wine-wininet-installer
 
 #
 # Doesn't show any dialogs which require manual confirmation during
