@@ -23,9 +23,6 @@ usage()
 	echo "  MOZ_PLUGIN_PATH             overwrite plugin path"
 	echo ""
 	echo "Options:"
-	echo "  --destdir=DIRECTORY         set fakeroot directory"
-	echo "  --debug                     show debug info"
-	echo ""
 	echo "  --enable  PLUGIN            enable plugin"
 	echo "  --disable PLUGIN            disable plugin"
 	echo "  --disable-all               disable all plugins"
@@ -34,6 +31,10 @@ usage()
 	echo "Global options (requires root rights):"
 	echo "  --create-mozilla-plugins    create copies of libpipelight.so"
 	echo "  --remove-mozilla-plugins    remove copies of libpipelight.so"
+	echo ""
+	echo "Advanced options:"
+	echo "  --destdir=DIRECTORY         set fakeroot directory"
+	echo "  --debug                     show debug info"
 	echo ""
 	echo "Supported plugins:"
 	for entry in "${PLUGINS[@]}"; do
@@ -49,6 +50,10 @@ INSTALLDIR=""
 get_directories()
 {
 	if [ ! -z "$INSTALLDIR" ]; then return 0; fi
+
+	if [ ! -z "$DESTDIR" ]; then
+		DESTDIR=$(readlink -m "$DESTDIR")
+	fi
 
 	# Fallback to Ubuntu path if not installed via make install
 	if [[ "$ORIG_SYSTEMDIR" =~ ^@@.*@@$ ]] && [ -f "$DESTDIR/usr/lib/pipelight/$LIBPIPELIGHT.so" ]; then
