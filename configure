@@ -5,11 +5,14 @@ prefix=/usr/local/
 mozpluginpath=/usr/lib/mozilla/plugins
 gccruntimedlls=/usr/lib/gcc/i686-w64-mingw32/4.6/
 winepath=/opt/wine-compholio/bin/wine
+quietinstallation=true
 
 usage ()
 {
 	echo ""
-	echo "Usage: ./configure [--prefix=PREFIX] [--wine-path=PATH] [--moz-plugin-path=PATH] [--gcc-runtime-dlls=PATH]"
+	echo "Usage: ./configure [--prefix=PREFIX] [--wine-path=PATH]"
+	echo "                   [--moz-plugin-path=PATH] [--gcc-runtime-dlls=PATH]"
+	echo "                   [--show-installation-dialogs]"
 	echo ""
 }
 
@@ -44,6 +47,10 @@ while [[ $# > 0 ]] ; do
 			gccruntimedlls="$1"; shift
 			;;
 
+		--show-installation-dialogs)
+			quietinstallation=false
+			;;
+
 		--help)
 			usage
 			exit
@@ -61,17 +68,19 @@ echo "Configuration Summary"
 echo "---------------------"
 echo ""
 echo "Pipelight has been configured with"
-echo "  prefix        = '$prefix'"
-echo "  winepath      = '$winepath'"
-echo "  mozpluginpath = '$mozpluginpath'"
-echo " gccruntimedlls = '$gccruntimedlls'"
+echo " prefix            = '$prefix'"
+echo " winepath          = '$winepath'"
+echo " mozpluginpath     = '$mozpluginpath'"
+echo " gccruntimedlls    = '$gccruntimedlls'"
+echo " quietinstallation = '$quietinstallation'"
 echo ""
 echo "IMPORTANT: Please ensure you have XATTR support enabled for both wine and"
 echo "           your file system (required to watch DRM protected content)!"
 echo ""
 
-echo "prefix=$prefix" 					>  config.make
-echo "winepath=$winepath"				>> config.make
-echo "mozpluginpath=$mozpluginpath"		>> config.make
-echo "gccruntimedlls=$gccruntimedlls"	>> config.make
+echo "prefix=$prefix" 						>  config.make
+echo "winepath=$winepath"					>> config.make
+echo "mozpluginpath=$mozpluginpath"			>> config.make
+echo "gccruntimedlls=$gccruntimedlls"		>> config.make
+echo "quietinstallation=$quietinstallation" >> config.make
 exit 0

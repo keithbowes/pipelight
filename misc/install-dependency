@@ -17,6 +17,7 @@ usage()
 	echo "	wine-silverlight5.0-installer"
 	echo "	wine-silverlight5.1-installer"
 	echo "	wine-mpg2splt-installer"
+	echo "	wine-wininet-installer"
 	echo "	wine-browser-installer"
 	echo "	wine-flash-installer"
 	echo ""
@@ -79,15 +80,15 @@ download()
 		EXT=$(echo "$URL" | sed 's/.*\.//')
 	fi
 
-	# Reuse existing download
-	local dlfile="/tmp/pipelight-$DEP.$EXT"
+	# Reuse files from the netflix-desktop package if available
+	local dlfile="/var/lib/wine-browser-installer/$DEP.$EXT"
 	if [ -f "$dlfile" ] && [ "$SHA" == ""$(sha256sum "$dlfile" | cut -d' ' -f1) ]; then
 		DOWNLOADFILE="$dlfile"
 		return 0
 	fi
 
-	# Reuse files from the netflix-desktop package if available
-	local dlfile="/var/lib/wine-browser-installer/$DEP.$EXT"
+	# Reuse existing download
+	local dlfile="/tmp/pipelight-$DEP.$EXT"
 	if [ -f "$dlfile" ] && [ "$SHA" == ""$(sha256sum "$dlfile" | cut -d' ' -f1) ]; then
 		DOWNLOADFILE="$dlfile"
 		return 0
@@ -239,9 +240,12 @@ configure_silverlight()
 # arguments:
 # $1	- file to extract
 # $DOWNLOADFILE
+#
+# optional arguments:
+# --reg - run regsvr32.dll to register the dll
 install_cabextract()
 {
-	local FILE="$1"
+	local FILE="$1"; shift
 
 	local system32="$WINEPREFIX/drive_c/windows/system32"
 	cabextract -d "$system32" "$DOWNLOADFILE" -F "$FILE"
@@ -250,10 +254,54 @@ install_cabextract()
 		return 1
 	fi
 
-	"$WINE" regsvr32.exe "$FILE"
+	# Process additional args
+	while [ $# -gt 0 ] ; do
+		local cmd=$1; shift
+		case "$cmd" in
+			--reg)
+				"$WINE" regsvr32.exe "$FILE"
+				;;
+			*)
+				echo "[$PRG] ERROR: Internal error, install_cabextract called with argument: $cmd" >&2
+				return 1
+				;;
+		esac
+	done
 
 	# Successful
 	return 0
+}
+
+# > Install wininet.dll
+# arguments:
+# $DOWNLOADFILE
+install_wininet()
+{
+	if ! install_cabextract wininet.dll; then return 1; fi
+
+	# Setup wine dlloverride and adjust some wininet.dll related settings
+	local tmpfile=$(mktemp)
+	[ -f "$tmpfile" ] || return 1
+
+	( 	echo "REGEDIT4"
+		echo ""
+		echo "[HKEY_CURRENT_USER\Software\Wine\DllOverrides]"
+		echo "\"*wininet\"=\"native,builtin\""
+		echo ""
+		echo "[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings]"
+		echo "\"MaxConnectionsPerServer\"=dword:7fffffff"
+		echo "\"MaxConnectionsPer1_0Server\"=dword:7fffffff"
+	) > "$tmpfile"
+
+	"$WINE" regedit "$tmpfile"
+	local res=$?
+
+	# Cleanup
+	rm "$tmpfile"
+
+	# Successful
+	return $?
+
 }
 
 # > Install firefox
@@ -408,36 +456,41 @@ while [ $# -gt 0 ] ; do
 			continue # The wine-prefix is created automatically for all packages
 			;;
 		wine-silverlight4-installer)
-			INS=("install_silverlight"   "4.1.10329.0")
-			#CFG=("configure_silverlight" "4.1.10329.0")
+			INS=(install_silverlight    "4.1.10329.0")
+			#CFG=(configure_silverlight "4.1.10329.0")
 			URL="http://silverlight.dlservice.microsoft.com/download/6/A/1/6A13C54D-3F35-4082-977A-27F30ECE0F34/10329.00/runtime/Silverlight.exe"
 			SHA="b0e476090206b2e61ba897de9151a31e0182c0e62e8abd528c35d3857ad6131c"
 			;;
 		wine-silverlight5.0-installer)
-			INS=("install_silverlight"   "5.0.61118.0")
-			#CFG=("configure_silverlight" "5.0.61118.0")
+			INS=(install_silverlight    "5.0.61118.0")
+			#CFG=(configure_silverlight "5.0.61118.0")
 			URL="http://silverlight.dlservice.microsoft.com/download/5/5/7/55748E53-D673-4225-8072-4C7A377BB513/runtime/Silverlight.exe"
 			SHA="dd45a55419026c592f8b6fc848dceface7e1ce98720bf13848a2e8ae366b29e8"
 			;;
 		wine-silverlight5.1-installer)
-			INS=("install_silverlight"   "5.1.20513.0")
-			CFG=("configure_silverlight" "5.1.20513.0")
+			INS=(install_silverlight   "5.1.20513.0")
+			CFG=(configure_silverlight "5.1.20513.0")
 			URL="http://silverlight.dlservice.microsoft.com/download/B/3/C/B3CF6815-40B1-4E36-8746-C4A0381AD260/20513.00/runtime/Silverlight.exe"
 			SHA="8c5d1ddaefd629670033841fb88188789f2f63170b2fe1aaddb2c9b33d4532ea"
 			;;
 		wine-mpg2splt-installer)
-			INS=("install_cabextract" "mpg2splt.ax")
+			INS=(install_cabextract mpg2splt.ax --reg)
 			URL="http://download.microsoft.com/download/8/0/D/80D7E79D-C0E4-415A-BCCA-E229EAFE2679/dshow_nt.cab"
 			SHA="984ed15e23a00a33113f0012277e1e680c95782ce2c44f414e7af14e28e3f1a2"
 			;;
+		wine-wininet-installer)
+			INS=(install_wininet)
+			URL="http://download.microsoft.com/download/6/a/a/6aa52757-8531-41dc-9a87-e050d6b99106/IE5.01sp4-KB890923-Windows2000sp4-x86-ENU.exe"
+			SHA="a1dd58d0ae1fddfdb1ea93b3d3cf2d768de64e6e622f03abe99ca60aee9e83e3"
+			;;
 		wine-browser-installer)
-			INS=("install_firefox")
+			INS=(install_firefox)
 			URL="http://download.mozilla.org/?product=firefox-22.0&os=win&lang=en-US"
 			SHA="abb189f17e65e73d61843247ad1af7c997318b7854fa850a04e5f9d9a20cdd03"
 			EXT="exe"
 			;;
 		wine-flash-installer)
-			INS=("install_flash" "11_9_900_117")
+			INS=(install_flash "11_9_900_117")
 			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/11.9.900.117/install_flash_player.exe"
 			SHA="3e8d832591aff54510f9904b6348e2e2351a28a4ef137f4f19535b747c00c89e"
 			;;

@@ -1,3 +1,18 @@
+pipelight-multi (0.2.1) UNRELEASED; urgency=low
+
+  * Added wine-wininet-installer to work around some bugs in the wine
+    implementation (eg. authentication dialogs not working)
+  * Fixed a bug in install-dep that the downloads were not cached anymore
+  * Added --destdir and --debug to install-dep script (required for
+    distributions without postinstallation step)
+  * Added workaround for archlinux, which seems to set always the
+    environment variable MOZ_PLUGIN_PATH
+  * Added PIPELIGHT_X11WINDOW environment variable (required for XMBC-like
+    plugins based on pipelight)
+
+ -- Michael Mueller <michael@fds-team.de>  Mon, 14 Oct 2013 23:35:37 +0200
+
+
 pipelight-multi (0.2.0) RELEASED; urgency=low
 
   * Implemented possibility to use multiple windows plugins
@@ -19,6 +34,7 @@ pipelight-multi (0.2.0) RELEASED; urgency=low
   * Fixed several smaller bugs
 
  -- Michael Mueller <michael@fds-team.de>  Mon, 14 Oct 2013 23:35:37 +0200
+
 
 pipelight (0.1-4) RELEASED; urgency=low
 

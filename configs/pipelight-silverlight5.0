@@ -133,13 +133,14 @@ dependencyInstaller = @@DEPENDENCY_INSTALLER@@
 #
 dependency          = wine-silverlight5.0-installer
 dependency          = wine-mpg2splt-installer
+dependency          = wine-wininet-installer
 
 #
 # Doesn't show any dialogs which require manual confirmation during
 # the installation process, like EULA or DRM dialogs.
 # [default: true]
 #
-quietInstallation   = true
+quietInstallation   = @@QUIET_INSTALLATION@@
 
 #
 # In order to support browsers without NPAPI timer support

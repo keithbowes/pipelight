@@ -7,6 +7,7 @@ prefix=/usr/local/
 winepath=/opt/wine-compholio/bin/wine
 mozpluginpath=/usr/lib/mozilla/plugins
 gccruntimedlls=/usr/lib/gcc/i686-w64-mingw32/4.6/
+quietinstallation=true
 
 -include config.make
 
@@ -26,6 +27,7 @@ install: all
 		sed -i 's|@@GRAPHIC_DRIVER_CHECK@@|$(prefix)/share/pipelight/hw-accel-default|g' pipelight-config.tmp; \
 		sed -i 's|@@WINE_PATH@@|$(winepath)|g' pipelight-config.tmp; \
 		sed -i 's|@@GCC_RUNTIME_DLLS@@|$(gccruntimedlls)|g' pipelight-config.tmp; \
+		sed -i 's|@@QUIET_INSTALLATION@@|$(quietinstallation)|g' pipelight-config.tmp; \
 		install -m 0644 pipelight-config.tmp "$(DESTDIR)$(prefix)/share/pipelight/$${config}"; \
 		rm pipelight-config.tmp; \
 	done
