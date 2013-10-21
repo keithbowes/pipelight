@@ -3,6 +3,7 @@ SUBDIRS= src/linux src/windows
 
 CONFIGS=$(wildcard configs/*)
 
+version=unknown
 prefix=/usr/local/
 winepath=/opt/wine-compholio/bin/wine
 mozpluginpath=/usr/lib/mozilla/plugins

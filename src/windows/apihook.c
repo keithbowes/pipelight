@@ -175,48 +175,55 @@ bool installTimerHook(){
 /* -------- Popup menu hook --------*/
 
 enum MenuAction{
-	MENU_ACTION_SEPARATOR,
+	MENU_ACTION_NONE,
 	MENU_ACTION_ABOUT_PIPELIGHT
 };
 
 struct MenuEntry{
 	UINT 		identifier;
 	MenuAction 	action;
+
+	MenuEntry(UINT identifier, MenuAction action){
+		this->identifier = identifier;
+		this->action 	 = action;
+	}
 };
 
 #define MENUID_OFFSET 0x50495045 // 'PIPE'
 
 std::vector<MenuEntry> menuAddEntries(HMENU hMenu, HWND hwnd){
 	std::vector<MenuEntry> 	entries;
-	MenuEntry 				entry;
 	MENUITEMINFO			entryInfo;
 
 	int count = GetMenuItemCount(hMenu);
 	if(count == -1)
 		return entries;
 
-	// ------- Separator ------- //
 	memset(&entryInfo, 0, sizeof(MENUITEMINFO));
 	entryInfo.cbSize	= sizeof(MENUITEMINFO);
+	entryInfo.wID 		= MENUID_OFFSET;
+
+	// ------- Separator ------- //
 	entryInfo.fMask		= MIIM_FTYPE | MIIM_ID;
 	entryInfo.fType		= MFT_SEPARATOR;
-	entryInfo.wID 		= MENUID_OFFSET;
-	InsertMenuItem(hMenu, ++count, true, &entryInfo);
+	InsertMenuItemA(hMenu, count, true, &entryInfo);
+	entries.emplace_back(entryInfo.wID, MENU_ACTION_NONE);
+	count++; entryInfo.wID++;
 
-	entry.identifier 	= entryInfo.wID;
-	entry.action 		= MENU_ACTION_SEPARATOR;
-	entries.push_back(entry);
+	// ------- Separator ------- //
+	entryInfo.fMask		= MIIM_FTYPE | MIIM_ID;
+	entryInfo.fType		= MFT_SEPARATOR;
+	InsertMenuItemA(hMenu, count, true, &entryInfo);
+	entries.emplace_back(entryInfo.wID, MENU_ACTION_NONE);
+	count++; entryInfo.wID++;
 
 	// ------- About Pipelight ------- //
 	entryInfo.fMask			= MIIM_FTYPE | MIIM_STRING | MIIM_ID;
 	entryInfo.fType			= MFT_STRING;
-	entryInfo.wID 			= MENUID_OFFSET+1;
-	entryInfo.dwTypeData 	= (char*)"About Pipelight";
-	InsertMenuItem(hMenu, ++count, true, &entryInfo);
-
-	entry.identifier 	= entryInfo.wID;
-	entry.action 		= MENU_ACTION_ABOUT_PIPELIGHT;
-	entries.push_back(entry);
+	entryInfo.dwTypeData 	= (char*)"Pipelight\t" PIPELIGHT_VERSION;
+	InsertMenuItemA(hMenu, count, true, &entryInfo);
+	entries.emplace_back(entryInfo.wID, MENU_ACTION_ABOUT_PIPELIGHT);
+	count++; entryInfo.wID++;
 
 	return entries;
 

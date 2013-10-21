@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 # Default configuration
+version=unknown
 prefix=/usr/local/
 mozpluginpath=/usr/lib/mozilla/plugins
 gccruntimedlls=/usr/lib/gcc/i686-w64-mingw32/4.6/
@@ -66,6 +67,15 @@ while [[ $# > 0 ]] ; do
 	esac
 done
 
+# Get the version number
+changelog=$(head -n1 debian/changelog)
+if [[ "$changelog" =~ \((.*)\)\ (UNRELEASED)? ]]; then
+	version="${BASH_REMATCH[1]}"
+	if [ "${BASH_REMATCH[2]}" == "UNRELEASED" ]; then
+		version="$version-daily"
+	fi
+fi
+
 # Normalize the path
 prefix=$(readlink -m "$prefix")
 
@@ -73,6 +83,7 @@ echo "Configuration Summary"
 echo "---------------------"
 echo ""
 echo "Pipelight has been configured with"
+echo " version           = '$version'"
 echo " prefix            = '$prefix'"
 echo " winepath          = '$winepath'"
 echo " mozpluginpath     = '$mozpluginpath'"
@@ -84,7 +95,8 @@ echo "IMPORTANT: Please ensure you have XATTR support enabled for both wine and"
 echo "           your file system (required to watch DRM protected content)!"
 echo ""
 
-echo "prefix=$prefix" 						>  config.make
+echo "version=$version"						> config.make
+echo "prefix=$prefix" 						>> config.make
 echo "winepath=$winepath"					>> config.make
 echo "mozpluginpath=$mozpluginpath"			>> config.make
 echo "gccruntimedlls=$gccruntimedlls"		>> config.make

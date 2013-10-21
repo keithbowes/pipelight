@@ -23,7 +23,7 @@ npnfunctions.o: npnfunctions.c pluginloader.h $(COMMONHDR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c npnfunctions.c -o npnfunctions.o
 
 apihook.o: apihook.c apihook.h pluginloader.h $(COMMONHDR)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c apihook.c -o apihook.o
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -DPIPELIGHT_VERSION='"$(version)"' -c apihook.c -o apihook.o
 
 .PHONY: all
 all: pluginloader.exe
