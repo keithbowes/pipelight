@@ -9,7 +9,10 @@ pipelight-multi (0.2.1) UNRELEASED; urgency=low
     environment variable MOZ_PLUGIN_PATH
   * Added PIPELIGHT_X11WINDOW environment variable (required for XMBC-like
     plugins based on pipelight)
-
+  * The win32 part is now statically linked against the mingw32 runtime
+    and we therefore dropped the dependency on mingw for end users
+    which should save a lot of space
+    
  -- Michael Mueller <michael@fds-team.de>  Mon, 14 Oct 2013 23:35:37 +0200
 
 

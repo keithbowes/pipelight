@@ -5,7 +5,7 @@ else
 	CXX 	:= i686-w64-mingw32-g++
 endif
 
-CXXFLAGS	:= -Wall -DXP_WIN=1 -std=gnu++0x -D_WIN32_WINNT=0x0502 $(CXXFLAGS)
+CXXFLAGS	:= -Wall -DXP_WIN=1 -std=gnu++0x -D_WIN32_WINNT=0x0502 $(win32flags) $(CXXFLAGS)
 LDFLAGS 	:= -lversion -lgdi32 -lole32 #$(LDFLAGS)
 OBJECTS 	:= common.o npclass.o npnfunctions.o apihook.o
 COMMONHDR	:= ../common/common.h ../npapi-headers/npapi.h ../npapi-headers/npfunctions.h ../npapi-headers/npruntime.h ../npapi-headers/nptypes.h
