@@ -6,13 +6,14 @@ mozpluginpath=/usr/lib/mozilla/plugins
 gccruntimedlls=/usr/lib/gcc/i686-w64-mingw32/4.6/
 winepath=/opt/wine-compholio/bin/wine
 quietinstallation=true
+win32flags=
 
 usage ()
 {
 	echo ""
 	echo "Usage: ./configure [--prefix=PREFIX] [--wine-path=PATH]"
 	echo "                   [--moz-plugin-path=PATH] [--gcc-runtime-dlls=PATH]"
-	echo "                   [--show-installation-dialogs]"
+	echo "                   [--show-installation-dialogs] [--win32-static]"
 	echo ""
 }
 
@@ -51,6 +52,10 @@ while [[ $# > 0 ]] ; do
 			quietinstallation=false
 			;;
 
+		--win32-static)
+			win32flags="-static-libgcc -static-libstdc++"
+			;;
+
 		--help)
 			usage
 			exit
@@ -73,6 +78,7 @@ echo " winepath          = '$winepath'"
 echo " mozpluginpath     = '$mozpluginpath'"
 echo " gccruntimedlls    = '$gccruntimedlls'"
 echo " quietinstallation = '$quietinstallation'"
+echo " win32flags        = '$win32flags'"
 echo ""
 echo "IMPORTANT: Please ensure you have XATTR support enabled for both wine and"
 echo "           your file system (required to watch DRM protected content)!"
@@ -83,4 +89,6 @@ echo "winepath=$winepath"					>> config.make
 echo "mozpluginpath=$mozpluginpath"			>> config.make
 echo "gccruntimedlls=$gccruntimedlls"		>> config.make
 echo "quietinstallation=$quietinstallation" >> config.make
+echo "win32flags=$win32flags" 				>> config.make
+
 exit 0

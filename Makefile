@@ -8,6 +8,7 @@ winepath=/opt/wine-compholio/bin/wine
 mozpluginpath=/usr/lib/mozilla/plugins
 gccruntimedlls=/usr/lib/gcc/i686-w64-mingw32/4.6/
 quietinstallation=true
+win32flags=
 
 -include config.make
 
