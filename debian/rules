@@ -2,6 +2,9 @@
 %:
 		dh $@
 
+override_dh_auto_configure:
+	dh_auto_configure -- --win32-static --gcc-runtime-dlls=""
+
 override_dh_auto_install:
 		$(MAKE) DESTDIR=$$(pwd)/debian/pipelight-multi install
 		mkdir -p $$(pwd)/debian/pipelight/usr/share/pipelight
