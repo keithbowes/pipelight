@@ -448,6 +448,8 @@ int main(int argc, char *argv[]){
 	// Install hooks
 	if (usermodeTimer) installTimerHook();
 
+	installPopupHook();
+
 	// Load the DLL
 	if (!initDLL(dllPath, dllName)){
 		DBG_ERROR("failed to initialize DLL.");

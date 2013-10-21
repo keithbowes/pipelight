@@ -2,6 +2,7 @@
 #include "../common/common.h"
 
 #include <windows.h>							// for PVOID and other types
+#include <string.h>								// for memset
 
 void* patchDLLExport(PVOID ModuleBase, const char* functionName, void* newFunctionPtr){
 	// Based on the following source code:
@@ -166,4 +167,160 @@ bool installTimerHook(){
 		originalKillTimer   = (KillTimerPtr)patchDLLExport(user32,  "KillTimer", (void*)&myKillTimer);
 
 	return (originalSetTimer && originalKillTimer);
+}
+
+/* -------- Menu Hook --------*/
+
+enum MenuAction{
+	MENU_SEPERATOR,
+	MENU_ABOUT_PIPELIGHT
+};
+
+struct MenuEntry{
+	UINT 		identifier;
+	MenuAction 	action;
+};
+
+#define MENUID_OFFSET 0x50495045 // 'PIPE'
+
+std::vector<MenuEntry> menuAddEntries(HMENU hMenu, HWND hwnd){
+	std::vector<MenuEntry> 	entries;
+	MenuEntry 				entry;
+	MENUITEMINFO			entryInfo;
+
+	int count = GetMenuItemCount(hMenu);
+	if(count == -1)
+		return entries;
+
+	// ------- Seperator ------- //
+	memset(&entryInfo, 0, sizeof(MENUITEMINFO));
+	entryInfo.cbSize	= sizeof(MENUITEMINFO);
+	entryInfo.fMask		= MIIM_FTYPE | MIIM_ID;
+	entryInfo.fType		= MFT_SEPARATOR;
+	entryInfo.wID 		= MENUID_OFFSET;
+
+	InsertMenuItem(hMenu, count, true, &entryInfo);
+
+
+	entry.identifier 	= entryInfo.wID;
+	entry.action 		= MENU_SEPERATOR;
+	entries.push_back(entry);
+
+	count++;
+
+	// ------- About Pipelight ------- //
+	entryInfo.fMask			= MIIM_FTYPE | MIIM_STRING | MIIM_ID;
+	entryInfo.fType			= MFT_STRING;
+	entryInfo.wID 			= MENUID_OFFSET+1;
+	entryInfo.dwTypeData 	= (char*)&"About Pipelight";
+
+	InsertMenuItem(hMenu, count, true, &entryInfo);
+
+	entry.identifier 	= entryInfo.wID;
+	entry.action 		= MENU_ABOUT_PIPELIGHT;
+	entries.push_back(entry);
+
+	return entries;
+
+}
+
+void menuRemoveEntries(HMENU hMenu, std::vector<MenuEntry> entries){
+	for (MenuEntry &entry : entries){
+		RemoveMenu(hMenu, entry.identifier, MF_BYCOMMAND);
+	}
+}
+
+bool menuHandle(UINT identifier, std::vector<MenuEntry> entries){
+	for (MenuEntry &entry : entries){
+
+		if(entry.identifier == identifier){
+
+			switch (entry.action){
+
+				case MENU_ABOUT_PIPELIGHT:
+					MessageBox(NULL, "Pipelight by FDS-Team", "Pipelight", MB_OK);
+					return true;
+
+				default:
+					return false;
+			}
+		}
+	}
+	return false;
+}
+
+typedef BOOL (* WINAPI TrackPopupMenuExPtr)(HMENU hMenu, UINT fuFlags, int x, int y, HWND hwnd, LPTPMPARAMS lptpm);
+typedef BOOL (* WINAPI TrackPopupMenuPtr)(HMENU hMenu, UINT uFlags, int x, int y, int nReserved, HWND hWnd, const RECT *prcRect);
+
+TrackPopupMenuExPtr originalTrackPopupMenuEx    = NULL;
+TrackPopupMenuPtr 	originalTrackPopupMenu  	= NULL;
+
+/*
+	One disadvantage of our current implementation of the hook is that the
+	return value is not completely correct since we are using TPM_RETURNCMD
+	and we can not distinguish whether the user didn't not select anything
+	or if there was an error. Both cases would return 0 when using
+	TPM_RETURNCMD. So we always return true (assuming that there is no error)
+	if the hook was call without TPM_RETURNCMD as flag and the return value of
+	originalTrackPopupMenu(Ex) is 0.
+
+	The return value of TrackPopupMenu(Ex) is really defined as BOOL although
+	it can contain an ID, which may look wrong on the first sight.
+*/
+
+BOOL WINAPI myTrackPopupMenuEx(HMENU hMenu, UINT fuFlags, int x, int y, HWND hwnd, LPTPMPARAMS lptpm){
+
+	// Don't send messages to windows, but return the identifier as return value
+	UINT newFlags = (fuFlags & ~TPM_NONOTIFY) | TPM_RETURNCMD;
+
+	std::vector<MenuEntry> entries = menuAddEntries(hMenu, hwnd);
+	BOOL identifier = originalTrackPopupMenuEx(hMenu, newFlags, x, y, hwnd, lptpm);
+	menuRemoveEntries(hMenu, entries);
+
+	if(!identifier)
+		return (fuFlags & TPM_RETURNCMD) ? identifier : true;
+
+	if(menuHandle(identifier, entries))
+		return (fuFlags & TPM_RETURNCMD) ? 0 : true;
+
+	if(!(fuFlags & TPM_NONOTIFY))
+		PostMessage(hwnd, WM_COMMAND, 0, identifier);
+
+	return (fuFlags & TPM_RETURNCMD) ? identifier : true;
+}
+
+BOOL WINAPI myTrackPopupMenu(HMENU hMenu, UINT uFlags, int x, int y, int nReserved, HWND hWnd, const RECT *prcRect){
+
+	// Don't send messages to windows, but return the identifier as return value
+	UINT newFlags = (uFlags & ~TPM_NONOTIFY) | TPM_RETURNCMD;
+
+	std::vector<MenuEntry> entries = menuAddEntries(hMenu, hWnd);
+	BOOL identifier = originalTrackPopupMenu(hMenu, newFlags, x, y, nReserved, hWnd, prcRect);
+	menuRemoveEntries(hMenu, entries);
+
+	if(!identifier)
+		return (uFlags & TPM_RETURNCMD) ? identifier : true;
+
+	if(menuHandle(identifier, entries))
+		return (uFlags & TPM_RETURNCMD) ? 0 : true;
+
+	if(!(uFlags & TPM_NONOTIFY))
+		PostMessage(hWnd, WM_COMMAND, 0, identifier);
+
+	return (uFlags & TPM_RETURNCMD) ? identifier : true;
+}
+
+bool installPopupHook(){
+	HMODULE user32 = LoadLibrary("user32.dll");
+
+	if (!user32)
+		return false;
+
+	if (!originalTrackPopupMenuEx)
+		originalTrackPopupMenuEx    = (TrackPopupMenuExPtr)	patchDLLExport(user32, "TrackPopupMenuEx", (void*)&myTrackPopupMenuEx);
+
+	if (!originalTrackPopupMenu)
+		originalTrackPopupMenu   	= (TrackPopupMenuPtr)	patchDLLExport(user32, "TrackPopupMenu", (void*)&myTrackPopupMenu);
+
+	return (originalTrackPopupMenuEx && originalTrackPopupMenu);
 }
