@@ -134,7 +134,7 @@ void attach(){
 			DBG_INFO("enableGPUAcceleration set via commandline to 'true'");
 			config.overwriteArgs["enableGPUAcceleration"] = "true";
 
-			if (gpuAcceleration >= 1)
+			if (gpuAcceleration > 1)
 				config.experimental_renderTopLevelWindow = true;
 			
 		}else if (config.overwriteArgs.find("enableGPUAcceleration") == config.overwriteArgs.end()){
