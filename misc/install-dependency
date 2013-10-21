@@ -361,7 +361,7 @@ if command -v zenity >/dev/null 2>&1; then
 		WINDOWID="" zenity --progress --title="$1" --text="$2" --pulsate --width=400 --auto-close --no-cancel
 	}
 
-elif command -v kdialog >/dev/null 2>&1; then
+elif command -v kdialog >/dev/null 2>&1 && command -v qdbus >/dev/null 2>&1; then
 	#Check if qdbus is symlinked to qtchooser (for Arch Linux)
 	QDBUSPATH=$(which qdbus)
 	QDBUSPATH=$(readlink "$QDBUSPATH")
