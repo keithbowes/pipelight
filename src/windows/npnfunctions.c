@@ -677,12 +677,19 @@ void NP_LOADDS NPN_SetException(NPObject *obj, const NPUTF8 *message){
 
 void NP_LOADDS NPN_PushPopupsEnabledState(NPP instance, NPBool enabled){
 	DBG_TRACE("( instance=%p, enabled=%d )", instance, enabled);
-	NOTIMPLEMENTED();
+
+	writeInt32(enabled);
+	writeHandleInstance(instance);
+	callFunction(FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE);
+	readResultVoid();
 }
 
 void NP_LOADDS NPN_PopPopupsEnabledState(NPP instance){
 	DBG_TRACE("( instance=%p )", instance);
-	NOTIMPLEMENTED();
+
+	writeHandleInstance(instance);
+	callFunction(FUNCTION_NPN_POP_POPUPS_ENABLED_STATE);
+	readResultVoid();
 }
 
 bool NP_LOADDS NPN_Enumerate(NPP instance, NPObject *obj, NPIdentifier **identifier, uint32_t *count){

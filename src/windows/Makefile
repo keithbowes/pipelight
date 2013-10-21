@@ -22,7 +22,7 @@ npclass.o: npclass.c $(COMMONHDR)
 npnfunctions.o: npnfunctions.c pluginloader.h $(COMMONHDR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c npnfunctions.c -o npnfunctions.o
 
-apihook.o: apihook.c apihook.h $(COMMONHDR)
+apihook.o: apihook.c apihook.h pluginloader.h $(COMMONHDR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c apihook.c -o apihook.o
 
 .PHONY: all

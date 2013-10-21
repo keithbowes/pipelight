@@ -7,6 +7,8 @@
 
 extern std::map<HWND, NPP> hwndToInstance;
 
+extern DWORD mainThreadID;
+
 extern bool isWindowlessMode;
 extern bool isEmbeddedMode;
 extern bool usermodeTimer;

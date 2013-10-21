@@ -1153,6 +1153,31 @@ void dispatcher(int function, Stack &stack){
 			}
 			break;
 
+		case FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE:
+			{
+				NPP instance 					= readHandleInstance(stack);
+				bool enabled 					= (bool)readInt32(stack);
+				DBG_TRACE("FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE( instance=%p, enabled=%d )", instance, enabled );
+
+				sBrowserFuncs->pushpopupsenabledstate(instance, enabled);
+
+				DBG_TRACE("FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE -> void");
+				returnCommand();
+			}
+			break;
+
+		case FUNCTION_NPN_POP_POPUPS_ENABLED_STATE:
+			{
+				NPP instance 					= readHandleInstance(stack);
+				DBG_TRACE("FUNCTION_NPN_POP_POPUPS_ENABLED_STATE( instance=%p )", instance );
+
+				sBrowserFuncs->poppopupsenabledstate(instance);
+
+				DBG_TRACE("FUNCTION_NPN_POP_POPUPS_ENABLED_STATE -> void");
+				returnCommand();
+			}
+			break;
+
 		default:
 			DBG_ABORT("specified function not found!");
 			break;

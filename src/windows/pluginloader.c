@@ -24,6 +24,8 @@ LPCTSTR ClsName = "VirtualBrowser";
 
 std::map<HWND, NPP> hwndToInstance;
 
+DWORD mainThreadID 		= 0;
+
 bool isWindowlessMode	= false;
 bool isEmbeddedMode		= false;
 bool usermodeTimer      = false;
@@ -342,6 +344,9 @@ std::string readPathFromRegistry(HKEY hKey, std::string regKey){
 }
 
 int main(int argc, char *argv[]){
+
+	// Get the main thread ID
+	mainThreadID = GetCurrentThreadId();
 
 	// When compiling with wineg++ the _controlfp_s isn't available
 	// We should find a workaround for this (asm implementation) as soon as wineg++ support works properly
