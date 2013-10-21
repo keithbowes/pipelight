@@ -27,6 +27,7 @@ std::map<HWND, NPP> hwndToInstance;
 bool isWindowlessMode	= false;
 bool isEmbeddedMode		= false;
 bool usermodeTimer      = false;
+bool renderTopLevelWindow = false;
 
 char strUserAgent[1024] = {0};
 
@@ -364,15 +365,6 @@ int main(int argc, char *argv[]){
 			if (i + 1 >= argc) break;
 			setMultiPluginName(argv[++i]);
 
-		}else if (arg == "--windowless"){
-			isWindowlessMode 	= true;
-
-		}else if (arg == "--embed"){
-			isEmbeddedMode 		= true;
-
-		}else if (arg == "--usermodetimer"){
-			usermodeTimer 		= true;
-
 		}else if (arg == "--dllpath"){
 			if (i + 1 >= argc) break;
 			dllPath = std::string(argv[++i]);
@@ -384,6 +376,18 @@ int main(int argc, char *argv[]){
 		}else if (arg == "--regkey"){
 			if (i + 1 >= argc) break;
 			regKey  = std::string(argv[++i]);
+
+		}else if (arg == "--windowless"){
+			isWindowlessMode 	= true;
+
+		}else if (arg == "--embed"){
+			isEmbeddedMode 		= true;
+
+		}else if (arg == "--usermodetimer"){
+			usermodeTimer 		= true;
+
+		}else if (arg == "--rendertoplevelwindow"){
+			renderTopLevelWindow = true;
 
 		}
 	}
@@ -415,9 +419,10 @@ int main(int argc, char *argv[]){
 		DBG_INFO("Read dllPath '%s' and dllName '%s' from registry", dllPath.c_str(), dllName.c_str());
 	}
 
-	DBG_INFO("windowless mode is %s.", (isWindowlessMode ? "on" : "off"));
-	DBG_INFO("embedded mode   is %s.", (isEmbeddedMode ? "on" : "off"));
-	DBG_INFO("usermode Timer  is %s.", (usermodeTimer ? "on" : "off"));
+	DBG_INFO("windowless mode       is %s.", (isWindowlessMode ? "on" : "off"));
+	DBG_INFO("embedded mode         is %s.", (isEmbeddedMode ? "on" : "off"));
+	DBG_INFO("usermode timer        is %s.", (usermodeTimer ? "on" : "off"));
+	DBG_INFO("render toplevelwindow is %s.", (renderTopLevelWindow ? "on" : "off"));
 
 	DBG_ASSERT(initCommIO(), "unable to initialize communication channel.");
 
@@ -1001,6 +1006,9 @@ void dispatcher(int functionid, Stack &stack){
 						ndata->hWnd = CreateWindowEx(extStyle, ClsName, "Plugin", style, posX, posY, rect.right - rect.left, rect.bottom - rect.top, 0, 0, 0, 0);
 						if (ndata->hWnd){
 							hwndToInstance.insert( std::pair<HWND, NPP>(ndata->hWnd, instance) );
+
+							/*if (renderTopLevelWindow)
+								SetPropA(ndata->hWnd, "__wine_x11_render_toplevelwindow", (HANDLE)1);*/
 
 							if (isEmbeddedMode){
 								windowIDX11 = (int32_t) GetPropA(ndata->hWnd, "__wine_x11_whole_window");

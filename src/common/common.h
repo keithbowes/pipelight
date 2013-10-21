@@ -650,9 +650,20 @@ inline std::string getEnvironmentString(const std::string variable){
 	return str ? std::string(str) : "";
 }
 
-inline long int getEnvironmentInteger(const std::string variable) {
-	char *str = getenv(variable.c_str());
-	return str ? strtol(str, NULL, 10) : 0;
+inline long int getEnvironmentInteger(const std::string variable, long int defaultInt = 0) {
+	long int res;
+	char *endp, *str;
+
+	if ( !(str = getenv(variable.c_str())) )
+		return defaultInt;
+
+	res = strtol(str, &endp, 10);
+
+	// Not a valid string
+	if (endp == str || *endp != 0)
+		return defaultInt;
+
+	return res;
 }
 
 #endif
