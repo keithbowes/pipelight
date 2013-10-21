@@ -169,7 +169,9 @@ enum{
 
 	/* Additional commands on the windows side */
 	PROCESS_WINDOW_EVENTS,
-	SHOW_UPDATE_WINDOW,
+
+	/* Change embedding of window */
+	CHANGE_EMBEDDED_MODE,
 
 	/* ------- Plugin ------- */
 	FUNCTION_GET_VERSION,

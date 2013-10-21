@@ -4,65 +4,10 @@
 #include <unistd.h>
 #include <signal.h>								// waitpid, kill, ...
 #include <string.h>								// for memcpy, ...
-#include <X11/Xlib.h>							// for XSendEvent, ...
-#include <X11/Xmd.h>							// for CARD32
 
 #include "../common/common.h"
 #include "basicplugin.h"
 #include "debug.h"
-
-/* XEMBED messages */
-#define XEMBED_EMBEDDED_NOTIFY			0
-#define XEMBED_WINDOW_ACTIVATE  		1
-#define XEMBED_WINDOW_DEACTIVATE  		2
-#define XEMBED_REQUEST_FOCUS	 		3
-#define XEMBED_FOCUS_IN 				4
-#define XEMBED_FOCUS_OUT  				5
-#define XEMBED_FOCUS_NEXT 				6
-#define XEMBED_FOCUS_PREV 				7
-/* 8-9 were used for XEMBED_GRAB_KEY/XEMBED_UNGRAB_KEY */
-#define XEMBED_MODALITY_ON 				10
-#define XEMBED_MODALITY_OFF 			11
-#define XEMBED_REGISTER_ACCELERATOR     12
-#define XEMBED_UNREGISTER_ACCELERATOR   13
-#define XEMBED_ACTIVATE_ACCELERATOR     14
-
-/* Details for  XEMBED_FOCUS_IN: */
-#define XEMBED_FOCUS_CURRENT			0
-#define XEMBED_FOCUS_FIRST 				1
-#define XEMBED_FOCUS_LAST				2
-
-#define XEMBED_MAPPED 					(1 << 0)
-
-void sendXembedMessage(Display* display, Window win, long message, long detail, long data1, long data2){
-	XEvent ev;
-	memset(&ev, 0, sizeof(ev));
-
-	ev.xclient.type 		= ClientMessage;
-	ev.xclient.window 		= win;
-	ev.xclient.message_type = XInternAtom(display, "_XEMBED", False);
-	ev.xclient.format 		= 32;
-
-	ev.xclient.data.l[0] 	= CurrentTime;
-	ev.xclient.data.l[1] 	= message;
-	ev.xclient.data.l[2] 	= detail;
-	ev.xclient.data.l[3] 	= data1;
-	ev.xclient.data.l[4] 	= data2;
-
-	XSendEvent(display, win, False, NoEventMask, &ev);
-	XSync(display, False);
-}
-
-void setXembedWindowInfo(Display* display, Window win, int flags){
-	CARD32 list[2];
-	Atom xembedInfo = XInternAtom(display, "_XEMBED_INFO", False);
-
-	list[0] = 0;
-	list[1] = flags;
-
-	XChangeProperty(display, win, xembedInfo, xembedInfo, 32, PropModeReplace, (unsigned char *)list, 2);
-}
-
 
 NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 {
@@ -308,28 +253,29 @@ void* timerThread(void* argument){
 }
 
 NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* argn[], char* argv[], NPSavedData* saved) {
-	DBG_TRACE("( pluginType='%s', instance=%p, mode=%d, argc=%d, argn=%p, argv=%p, saved=%p )", pluginType, instance, mode, argc, argn, argv, saved);
-
-	// Remember if this was an error, in this case we shouldn't call the original destroy function
 	std::string mimeType(pluginType);
 
-	bool pipelightError;
-	if(config.pluginName == ""){
-		pipelightError = (mimeType == "application/x-pipelight-error");
-	}else{
-		pipelightError = (mimeType == "application/x-pipelight-error-" + config.pluginName);
-	}
+	DBG_TRACE("( pluginType='%s', instance=%p, mode=%d, argc=%d, argn=%p, argv=%p, saved=%p )", pluginType, instance, mode, argc, argn, argv, saved);
 
-	instance->pdata 	= (void*)pipelightError;
+	PluginData *pdata = (PluginData*)malloc(sizeof(PluginData));
+	if (!pdata)
+		return NPERR_OUT_OF_MEMORY_ERROR;
 
-	// Run diagnostic stuff if its the wrong mimetype
-	if (config.diagnosticMode && pipelightError){
-		runDiagnostic(instance);
+	bool invalidMimeType  	= (mimeType == "application/x-pipelight-error" || mimeType == "application/x-pipelight-error-" + config.pluginName);
+
+	// Setup plugin data structure
+	pdata->pipelightError 	= (!initOkay || invalidMimeType);
+	pdata->container      	= 0;
+	instance->pdata 		= pdata;
+
+	if (pdata->pipelightError){
+
+		// Run diagnostic stuff if its the wrong mimetype
+		if (invalidMimeType && config.diagnosticMode)
+			runDiagnostic(instance);
+
 		return NPERR_GENERIC_ERROR;
 	}
-
-	if (!initOkay || pipelightError)
-		return NPERR_GENERIC_ERROR;
 
 	bool startAsyncCall = false;
 
@@ -465,8 +411,17 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 	DBG_TRACE("( instance=%p, save=%p )", instance, save);
 
 	// Initialization failed or diagnostic mode
-	bool pipelightError = (bool)instance->pdata;
-	if (!initOkay || pipelightError)
+	PluginData *pdata = (PluginData*)instance->pdata;
+	if (!pdata)
+		return NPERR_GENERIC_ERROR;
+
+	bool pipelightError = pdata->pipelightError;
+
+	// Free instance data, not required anymore
+	free(pdata);
+	instance->pdata = NULL;
+
+	if (pipelightError)
 		return NPERR_GENERIC_ERROR;
 
 	bool unscheduleCurrentTimer = (eventTimerInstance && eventTimerInstance == instance);
@@ -578,6 +533,12 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 NPError NPP_SetWindow(NPP instance, NPWindow* window) {
 	DBG_TRACE("( instance=%p, window=%p )", instance, window);
 
+	PluginData *pdata = (PluginData*)instance->pdata;
+
+	// Save the embed container
+	if (pdata)
+		pdata->container = (Window)window->window;
+
 	// TODO: translate to Screen coordinates
 	// TODO: Use all parameters
 
@@ -587,48 +548,7 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window) {
 	writeInt32(window->x);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_SET_WINDOW);
-
-	// Embed window if we get a valid x11 window ID back
-	Window win = (Window)readResultInt32();
-
-	if (win){
-		if (window->window){
-
-			Display *display = XOpenDisplay(NULL);
-
-			if (display){
-				Window parentWindow;
-
-				setXembedWindowInfo(display, win, XEMBED_MAPPED);
-
-				parentWindow 		= (Window)getEnvironmentInteger("PIPELIGHT_X11WINDOW");
-				if (!parentWindow)
-					parentWindow 	= (Window)window->window;
-
-				XReparentWindow(display, win, parentWindow, 0, 0);
-
-				/*
-				sendXembedMessage(display, win, XEMBED_EMBEDDED_NOTIFY, 0, parentWindow, 0);
-				sendXembedMessage(display, win, XEMBED_FOCUS_IN, 		XEMBED_FOCUS_CURRENT, 0, 0);
-				sendXembedMessage(display, win, XEMBED_WINDOW_ACTIVATE, 0, 0, 0);
-				sendXembedMessage(display, win, XEMBED_MODALITY_ON, 	0, 0, 0);
-				*/
-
-				sendXembedMessage(display, win, XEMBED_FOCUS_OUT, 		0, 0, 0);
-
-				XCloseDisplay(display);
-
-			}else{
-				DBG_ERROR("could not open Display!");
-			}
-
-			// Show the window after it has been embedded
-			writeHandleInstance(instance);
-			callFunction(SHOW_UPDATE_WINDOW);
-			readResultVoid();
-
-		}
-	}
+	readResultVoid();
 
 	return NPERR_NO_ERROR;
 }

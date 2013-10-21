@@ -110,4 +110,6 @@ struct NetscapeData{
 	NPWindow* 	window;
 };
 
+extern void changeEmbeddedMode(bool newEmbed);
+
 #endif // PluginLoader_h_

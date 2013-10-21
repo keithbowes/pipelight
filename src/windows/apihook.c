@@ -176,6 +176,7 @@ bool installTimerHook(){
 
 enum MenuAction{
 	MENU_ACTION_NONE,
+	MENU_ACTION_TOGGLE_EMBED,
 	MENU_ACTION_ABOUT_PIPELIGHT
 };
 
@@ -210,6 +211,15 @@ std::vector<MenuEntry> menuAddEntries(HMENU hMenu, HWND hwnd){
 	entries.emplace_back(entryInfo.wID, MENU_ACTION_NONE);
 	count++; entryInfo.wID++;
 
+	// ------- Toggle embedding ------- //
+	entryInfo.fMask			= MIIM_FTYPE | MIIM_STRING | MIIM_ID | MIIM_STATE;
+	entryInfo.fType			= MFT_STRING;
+	entryInfo.fState        = isEmbeddedMode ? MFS_CHECKED : 0;
+	entryInfo.dwTypeData 	= (char*)"Embed into browser";
+	InsertMenuItemA(hMenu, count, true, &entryInfo);
+	entries.emplace_back(entryInfo.wID, MENU_ACTION_TOGGLE_EMBED);
+	count++; entryInfo.wID++;
+
 	// ------- Separator ------- //
 	entryInfo.fMask		= MIIM_FTYPE | MIIM_ID;
 	entryInfo.fType		= MFT_SEPARATOR;
@@ -230,27 +240,31 @@ std::vector<MenuEntry> menuAddEntries(HMENU hMenu, HWND hwnd){
 }
 
 void menuRemoveEntries(HMENU hMenu, const std::vector<MenuEntry> &entries){
-	for (const MenuEntry &entry : entries)
-		RemoveMenu(hMenu, entry.identifier, MF_BYCOMMAND);
+	for (std::vector<MenuEntry>::const_iterator it = entries.begin(); it != entries.end(); it++)
+		RemoveMenu(hMenu, it->identifier, MF_BYCOMMAND);
 }
 
 bool menuHandler(NPP instance, UINT identifier, const std::vector<MenuEntry> &entries){
-	for (const MenuEntry &entry : entries){
-		if (entry.identifier == identifier){
-			switch (entry.action){
+	for (std::vector<MenuEntry>::const_iterator it = entries.begin(); it != entries.end(); it++){
+		if (it->identifier != identifier) continue;
 
-				case MENU_ACTION_ABOUT_PIPELIGHT:
-					NPN_PushPopupsEnabledState(instance, PR_TRUE);
-					NPN_GetURL(instance, "https://launchpad.net/pipelight", "_blank");
-					NPN_PopPopupsEnabledState(instance);
-					break;
+		switch (it->action){
 
-				default:
-					break;
+			case MENU_ACTION_TOGGLE_EMBED:
+				changeEmbeddedMode(!isEmbeddedMode);
+				break;
 
-			}
-			return true;
+			case MENU_ACTION_ABOUT_PIPELIGHT:
+				NPN_PushPopupsEnabledState(instance, PR_TRUE);
+				NPN_GetURL(instance, "https://launchpad.net/pipelight", "_blank");
+				NPN_PopPopupsEnabledState(instance);
+				break;
+
+			default:
+				break;
+
 		}
+		return true;
 	}
 
 	return false;

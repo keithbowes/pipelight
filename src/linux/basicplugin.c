@@ -52,6 +52,8 @@
 #include <unistd.h>								// for POSIX api
 #include <iostream>								// for std::ios_base
 #include <string>								// for std::string
+#include <X11/Xlib.h>							// for XSendEvent, ...
+#include <X11/Xmd.h>							// for CARD32
 
 #include "../common/common.h"
 #include "basicplugin.h"
@@ -491,11 +493,39 @@ bool startWineProcess(){
 	return true;
 }
 
+void sendXembedMessage(Display* display, Window win, long message, long detail, long data1, long data2){
+	XEvent ev;
+	memset(&ev, 0, sizeof(ev));
 
-void dispatcher(int function, Stack &stack){
+	ev.xclient.type 		= ClientMessage;
+	ev.xclient.window 		= win;
+	ev.xclient.message_type = XInternAtom(display, "_XEMBED", False);
+	ev.xclient.format 		= 32;
+
+	ev.xclient.data.l[0] 	= CurrentTime;
+	ev.xclient.data.l[1] 	= message;
+	ev.xclient.data.l[2] 	= detail;
+	ev.xclient.data.l[3] 	= data1;
+	ev.xclient.data.l[4] 	= data2;
+
+	XSendEvent(display, win, False, NoEventMask, &ev);
+	XSync(display, False);
+}
+
+void setXembedWindowInfo(Display* display, Window win, int flags){
+	CARD32 list[2];
+	Atom xembedInfo = XInternAtom(display, "_XEMBED_INFO", False);
+
+	list[0] = 0;
+	list[1] = flags;
+
+	XChangeProperty(display, win, xembedInfo, xembedInfo, 32, PropModeReplace, (unsigned char *)list, 2);
+}
+
+void dispatcher(int functionid, Stack &stack){
 	DBG_ASSERT(sBrowserFuncs != NULL, "browser didn't correctly initialize the plugin!");
 
-	switch (function){
+	switch (functionid){
 		
 		case LIN_HANDLE_MANAGER_REQUEST_STREAM_INFO:
 			{
@@ -528,18 +558,17 @@ void dispatcher(int function, Stack &stack){
 
 		case GET_WINDOW_RECT:
 			{
-				Window win 			= (Window)readInt32(stack);
+				Window win 				= (Window)readInt32(stack);
 				XWindowAttributes winattr;
-				bool result         = false;
+				bool result         	= false;
 				Window dummy;
 				DBG_TRACE("GET_WINDOW_RECT( win=%lu )", win);
 
-				Display *display 	= XOpenDisplay(NULL);
+				Display *display 		= XOpenDisplay(NULL);
 
 				if (display){
 					result 				= XGetWindowAttributes(display, win, &winattr);
 					if (result) result 	= XTranslateCoordinates(display, win, RootWindow(display, 0), winattr.x, winattr.y, &winattr.x, &winattr.y, &dummy);
-
 
 					XCloseDisplay(display);
 
@@ -557,6 +586,51 @@ void dispatcher(int function, Stack &stack){
 				writeInt32(result);
 
 				DBG_TRACE("GET_WINDOW_RECT -> ( result=%d, ... )", result);
+				returnCommand();
+			}
+			break;
+
+		case CHANGE_EMBEDDED_MODE:
+			{
+				NPP instance 			= readHandleInstance(stack);
+				Window win 				= (Window)readInt32(stack);
+				bool embed 				= (bool)readInt32(stack);
+				DBG_TRACE("CHANGE_EMBEDDED_MODE( instance=%p, win=%lu, embed=%d )", instance, win, embed);
+
+				PluginData *pdata 		= (PluginData*)instance->pdata;
+				if (pdata && pdata->container){
+					Display *display = XOpenDisplay(NULL);
+
+					if (display){
+						Window parentWindow;
+
+						if (embed){
+							parentWindow = (Window)getEnvironmentInteger("PIPELIGHT_X11WINDOW");
+							if (!parentWindow)
+								parentWindow = pdata->container;
+						}else{
+							parentWindow = RootWindow(display, 0);
+						}
+
+						XReparentWindow(display, win, parentWindow, 0, 0);
+
+						/*
+						sendXembedMessage(display, win, XEMBED_EMBEDDED_NOTIFY, 0, parentWindow, 0);
+						sendXembedMessage(display, win, XEMBED_FOCUS_IN, 		XEMBED_FOCUS_CURRENT, 0, 0);
+						sendXembedMessage(display, win, XEMBED_WINDOW_ACTIVATE, 0, 0, 0);
+						sendXembedMessage(display, win, XEMBED_MODALITY_ON, 	0, 0, 0);
+						*/
+
+						sendXembedMessage(display, win, XEMBED_FOCUS_OUT, 0, 0, 0);
+
+						XCloseDisplay(display);
+
+					}else{
+						DBG_ERROR("could not open Display!");
+					}
+				}
+
+				DBG_TRACE("CHANGE_EMBEDDED_MODE -> void");
 				returnCommand();
 			}
 			break;
@@ -1179,7 +1253,7 @@ void dispatcher(int function, Stack &stack){
 			break;
 
 		default:
-			DBG_ABORT("specified function not found!");
+			DBG_ABORT("specified function %d not found!", functionid);
 			break;
 	}
 }

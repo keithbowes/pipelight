@@ -49,6 +49,6 @@ struct PluginConfig{
 	bool 			experimental_renderTopLevelWindow;
 };
 
-bool loadConfig(PluginConfig &config);
+extern bool loadConfig(PluginConfig &config);
 
 #endif // ConfigLoader_h_

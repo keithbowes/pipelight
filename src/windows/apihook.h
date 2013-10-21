@@ -1,8 +1,8 @@
 #ifndef ApiHook_h_
 #define ApiHook_h_
 
-bool installTimerHook();
-bool handleTimerEvents();
-bool installPopupHook();
+extern bool installTimerHook();
+extern bool handleTimerEvents();
+extern bool installPopupHook();
 
 #endif // ApiHook_h_

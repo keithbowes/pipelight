@@ -475,6 +475,46 @@ int main(int argc, char *argv[]){
 }
 
 
+bool makeWindowEmbedded(NPP instance, HWND hWnd, bool embed = true){
+	int32_t windowIDX11 = (int32_t)GetPropA(hWnd, "__wine_x11_whole_window");
+
+	if (!windowIDX11){
+		DBG_ERROR("Unable to find X11 window ID, embedding not possible");
+		return false;
+	}
+
+	// Request change of embedded mode
+	writeInt32(embed);
+	writeInt32(windowIDX11);
+	writeHandleInstance(instance);
+
+	callFunction(CHANGE_EMBEDDED_MODE);
+	readResultVoid();
+
+	return true;
+}
+
+void changeEmbeddedMode(bool newEmbed){
+	
+	// Nothing to change
+	if (isEmbeddedMode == newEmbed)
+		return;
+
+	for (std::map<HWND, NPP>::iterator it = hwndToInstance.begin(); it != hwndToInstance.end(); it++){
+		HWND hWnd = it->first;
+
+		ShowWindow(hWnd, SW_HIDE);
+
+		makeWindowEmbedded(it->second, hWnd, newEmbed);
+
+		ShowWindow(hWnd, SW_SHOW);
+		UpdateWindow(hWnd);
+
+	}
+
+	isEmbeddedMode = newEmbed;
+}
+
 void dispatcher(int functionid, Stack &stack){
 	switch (functionid){
 
@@ -547,27 +587,6 @@ void dispatcher(int functionid, Stack &stack){
 				}
 
 				DBG_TRACE("PROCESS_WINDOW_EVENTS -> void");
-				returnCommand();
-			}
-			break;
-
-		case SHOW_UPDATE_WINDOW:
-			{
-				NPP instance = readHandleInstance(stack);
-				DBG_TRACE("SHOW_UPDATE_WINDOW( instance=%p )", instance);
-
-				// Only used when isEmbeddedMode is set
-				if (isEmbeddedMode){
-					NetscapeData* ndata = (NetscapeData*)instance->ndata;
-					if (ndata){
-						if (ndata->hWnd){
-							ShowWindow(ndata->hWnd, SW_SHOW);
-							UpdateWindow(ndata->hWnd);
-						}
-					}
-				}
-
-				DBG_TRACE("SHOW_UPDATE_WINDOW -> void");
 				returnCommand();
 			}
 			break;
@@ -972,9 +991,6 @@ void dispatcher(int functionid, Stack &stack){
 				int32_t height 	= readInt32(stack);
 				DBG_TRACE("FUNCTION_NPP_SET_WINDOW( instance=%p, x=%d, y=%d, width=%d, height=%d )", instance, x, y, width, height);
 
-				// Only used in XEMBED mode
-				int32_t windowIDX11 = 0;
-
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
 				if (ndata){
 
@@ -1012,18 +1028,11 @@ void dispatcher(int functionid, Stack &stack){
 						if (ndata->hWnd){
 							hwndToInstance.insert( std::pair<HWND, NPP>(ndata->hWnd, instance) );
 
-							/*if (renderTopLevelWindow)
-								SetPropA(ndata->hWnd, "__wine_x11_render_toplevelwindow", (HANDLE)1);*/
+							if (isEmbeddedMode)
+								makeWindowEmbedded(instance, ndata->hWnd);
 
-							if (isEmbeddedMode){
-								windowIDX11 = (int32_t) GetPropA(ndata->hWnd, "__wine_x11_whole_window");
-								// Its better not to show the window until its at the final position
-
-							}else{
-
-								ShowWindow(ndata->hWnd, SW_SHOW);
-								UpdateWindow (ndata->hWnd);
-							}
+							ShowWindow(ndata->hWnd, SW_SHOW);
+							UpdateWindow(ndata->hWnd);
 
 						}
 					}
@@ -1071,9 +1080,7 @@ void dispatcher(int functionid, Stack &stack){
 					DBG_ERROR("unable to allocate window because of missing ndata.");
 				}
 
-				writeInt32(windowIDX11);
-
-				DBG_TRACE("FUNCTION_NPP_SET_WINDOW -> windowIDX11=%d", windowIDX11);
+				DBG_TRACE("FUNCTION_NPP_SET_WINDOW -> void");
 				returnCommand();
 
 				// These parameters currently are not required
@@ -1193,7 +1200,7 @@ void dispatcher(int functionid, Stack &stack){
 			break;
 
 		default:
-			DBG_ABORT("specified function not found!");
+			DBG_ABORT("specified function %d not found!", functionid);
 			break;
 
 	}
