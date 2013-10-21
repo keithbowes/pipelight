@@ -597,21 +597,23 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window) {
 			Display *display = XOpenDisplay(NULL);
 
 			if (display){
+				Window parentWindow;
+
 				setXembedWindowInfo(display, win, XEMBED_MAPPED);
 
-				Window parentWindow = (Window)getEnvironmentInteger("PIPELIGHT_X11WINDOW");
-
-				if (!parentWindow) {
-					parentWindow = (Window)window->window;
-				}
+				parentWindow 		= (Window)getEnvironmentInteger("PIPELIGHT_X11WINDOW");
+				if (!parentWindow)
+					parentWindow 	= (Window)window->window;
 
 				XReparentWindow(display, win, parentWindow, 0, 0);
-				sendXembedMessage(display, win, XEMBED_EMBEDDED_NOTIFY, 0, parentWindow, 0);
 
-				// Synchronize xembed state
-				/*sendXembedMessage(display, win, XEMBED_FOCUS_IN, 		XEMBED_FOCUS_CURRENT, 0, 0);
+				/*
+				sendXembedMessage(display, win, XEMBED_EMBEDDED_NOTIFY, 0, parentWindow, 0);
+				sendXembedMessage(display, win, XEMBED_FOCUS_IN, 		XEMBED_FOCUS_CURRENT, 0, 0);
 				sendXembedMessage(display, win, XEMBED_WINDOW_ACTIVATE, 0, 0, 0);
-				sendXembedMessage(display, win, XEMBED_MODALITY_ON, 	0, 0, 0);*/
+				sendXembedMessage(display, win, XEMBED_MODALITY_ON, 	0, 0, 0);
+				*/
+
 				sendXembedMessage(display, win, XEMBED_FOCUS_OUT, 		0, 0, 0);
 
 				XCloseDisplay(display);

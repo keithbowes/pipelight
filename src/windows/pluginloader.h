@@ -10,6 +10,7 @@ extern std::map<HWND, NPP> hwndToInstance;
 extern bool isWindowlessMode;
 extern bool isEmbeddedMode;
 extern bool usermodeTimer;
+extern bool renderTopLevelWindow;
 
 extern char strUserAgent[1024];
 

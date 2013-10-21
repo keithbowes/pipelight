@@ -124,10 +124,19 @@ void attach(){
 
 	// Check if we should enable hardware acceleration
 	if (config.silverlightGraphicDriverCheck != ""){
-		if (getEnvironmentInteger("PIPELIGHT_FORCE_GPUACCELERATION")){
-			DBG_INFO("enableGPUAcceleration forced via commandline");
+		int gpuAcceleration = getEnvironmentInteger("PIPELIGHT_GPUACCELERATION", -1);
+
+		if (gpuAcceleration == 0){
+			DBG_INFO("enableGPUAcceleration set via commandline to 'false'");
+			config.overwriteArgs["enableGPUAcceleration"] = "false";
+
+		}else if (gpuAcceleration > 0){
+			DBG_INFO("enableGPUAcceleration set via commandline to 'true'");
 			config.overwriteArgs["enableGPUAcceleration"] = "true";
 
+			if (gpuAcceleration >= 1)
+				config.experimental_renderTopLevelWindow = true;
+			
 		}else if (config.overwriteArgs.find("enableGPUAcceleration") == config.overwriteArgs.end()){
 			if (!checkSilverlightGraphicDriver())
 				config.overwriteArgs["enableGPUAcceleration"] = "false";
@@ -455,6 +464,9 @@ bool startWineProcess(){
 
 		if (config.experimental_usermodeTimer)
 			argv.push_back( "--usermodetimer" );
+
+		if (config.experimental_renderTopLevelWindow)
+			argv.push_back( "--rendertoplevelwindow" );
 
 		argv.push_back(NULL);	
 
