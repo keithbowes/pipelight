@@ -176,8 +176,8 @@ bool installTimerHook(){
 
 enum MenuAction{
 	MENU_ACTION_NONE,
-	MENU_ACTION_TOGGLE_EMBED,
-	MENU_ACTION_ABOUT_PIPELIGHT
+	MENU_ACTION_ABOUT_PIPELIGHT,
+	MENU_ACTION_TOGGLE_EMBED
 };
 
 struct MenuEntry{
@@ -211,7 +211,15 @@ std::vector<MenuEntry> menuAddEntries(HMENU hMenu, HWND hwnd){
 	entries.emplace_back(entryInfo.wID, MENU_ACTION_NONE);
 	count++; entryInfo.wID++;
 
-	// ------- Toggle embedding ------- //
+	// ------- About Pipelight ------- //
+	entryInfo.fMask			= MIIM_FTYPE | MIIM_STRING | MIIM_ID;
+	entryInfo.fType			= MFT_STRING;
+	entryInfo.dwTypeData 	= (char*)"Pipelight\t" PIPELIGHT_VERSION;
+	InsertMenuItemA(hMenu, count, true, &entryInfo);
+	entries.emplace_back(entryInfo.wID, MENU_ACTION_ABOUT_PIPELIGHT);
+	count++; entryInfo.wID++;
+
+	// ------- Embed into browser ------- //
 	entryInfo.fMask			= MIIM_FTYPE | MIIM_STRING | MIIM_ID | MIIM_STATE;
 	entryInfo.fType			= MFT_STRING;
 	entryInfo.fState        = isEmbeddedMode ? MFS_CHECKED : 0;
@@ -220,20 +228,6 @@ std::vector<MenuEntry> menuAddEntries(HMENU hMenu, HWND hwnd){
 	entries.emplace_back(entryInfo.wID, MENU_ACTION_TOGGLE_EMBED);
 	count++; entryInfo.wID++;
 
-	// ------- Separator ------- //
-	entryInfo.fMask		= MIIM_FTYPE | MIIM_ID;
-	entryInfo.fType		= MFT_SEPARATOR;
-	InsertMenuItemA(hMenu, count, true, &entryInfo);
-	entries.emplace_back(entryInfo.wID, MENU_ACTION_NONE);
-	count++; entryInfo.wID++;
-
-	// ------- About Pipelight ------- //
-	entryInfo.fMask			= MIIM_FTYPE | MIIM_STRING | MIIM_ID;
-	entryInfo.fType			= MFT_STRING;
-	entryInfo.dwTypeData 	= (char*)"Pipelight\t" PIPELIGHT_VERSION;
-	InsertMenuItemA(hMenu, count, true, &entryInfo);
-	entries.emplace_back(entryInfo.wID, MENU_ACTION_ABOUT_PIPELIGHT);
-	count++; entryInfo.wID++;
 
 	return entries;
 
