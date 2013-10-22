@@ -54,7 +54,7 @@ while [[ $# > 0 ]] ; do
 			;;
 
 		--win32-static)
-			win32flags="-static-libgcc -static-libstdc++"
+			win32flags="-static-libgcc -static-libstdc++ -static"
 			;;
 
 		--help)
