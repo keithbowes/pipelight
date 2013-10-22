@@ -15,6 +15,12 @@ NPError NP_LOADDS NPN_GetURL(NPP instance, const char* url, const char* window){
 	DBG_TRACE("( instance=%p, url='%s', window='%s' )", instance, url, window);
 	DBG_CHECKTHREAD();
 
+	// Shockwave bug
+	if (!handleManager_existsByPtr(HMGR_TYPE_NPPInstance, instance)){
+		DBG_TRACE("Shockwave player wrong instance bug!");
+		return NPERR_GENERIC_ERROR;
+	}
+
 	writeString(window);
 	writeString(url);
 	writeHandleInstance(instance);
@@ -32,6 +38,12 @@ NPError NP_LOADDS NPN_PostURL(NPP instance, const char* url, const char* window,
 	if (file){
 		NOTIMPLEMENTED("file argument not supported.");
 		return NPERR_FILE_NOT_FOUND;
+	}
+
+	// Shockwave bug
+	if (!handleManager_existsByPtr(HMGR_TYPE_NPPInstance, instance)){
+		DBG_TRACE("Shockwave player wrong instance bug!");
+		return NPERR_GENERIC_ERROR;
 	}
 
 	writeInt32(file);
@@ -143,7 +155,6 @@ const char*  NP_LOADDS NPN_UserAgent(NPP instance){
 		std::string result = readResultString();
 	*/
 
-	// TODO: Remove this if it doesnt cause problems
 	std::string result = "Mozilla/5.0 (Windows NT 5.1; rv:18.0) Gecko/20100101 Firefox/18.0";
 
 	pokeString(strUserAgent, result, sizeof(strUserAgent));
@@ -195,6 +206,13 @@ NPError NP_LOADDS NPN_GetURLNotify(NPP instance, const  char* url, const char* t
 	DBG_TRACE("( instance=%p, url='%s', target='%s', notifyData=%p )", instance, url, target, notifyData);
 	DBG_CHECKTHREAD();
 
+	// Shockwave bug
+	if (!handleManager_existsByPtr(HMGR_TYPE_NPPInstance, instance)){
+		DBG_TRACE("Shockwave player wrong instance bug - selecting random instance!");
+		instance = handleManager_findInstance();
+		if (!instance) return NPERR_GENERIC_ERROR;
+	}
+
 	writeHandleNotify(notifyData);
 	writeString(target);
 	writeString(url);
@@ -213,6 +231,13 @@ NPError NP_LOADDS NPN_PostURLNotify(NPP instance, const char* url, const char* t
 	if (file){
 		NOTIMPLEMENTED("file argument not supported.");
 		return NPERR_FILE_NOT_FOUND;
+	}
+
+	// Shockwave bug
+	if (!handleManager_existsByPtr(HMGR_TYPE_NPPInstance, instance)){
+		DBG_TRACE("Shockwave player wrong instance bug - selecting random instance!");
+		instance = handleManager_findInstance();
+		if (!instance) return NPERR_GENERIC_ERROR;
 	}
 
 	writeHandleNotify(notifyData);
@@ -475,6 +500,12 @@ int32_t NP_LOADDS NPN_IntFromIdentifier(NPIdentifier identifier){
 NPObject* NP_LOADDS NPN_CreateObject(NPP instance, NPClass *aClass){
 	DBG_TRACE("( instance=%p, aClass=%p )", instance, aClass);
 	DBG_CHECKTHREAD();
+
+	// Shockwave bug
+	if (!handleManager_existsByPtr(HMGR_TYPE_NPPInstance, instance)){
+		DBG_TRACE("Shockwave player wrong instance bug!");
+		return NULL;
+	}
 
 	// The other side doesnt need to know aClass
 	writeHandleInstance(instance);

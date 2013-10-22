@@ -42,6 +42,12 @@ NPPluginFuncs pluginFuncs = {sizeof(pluginFuncs), (NP_VERSION_MAJOR << 8) + NP_V
 
 /* END GLOBAL VARIABLES */
 
+
+// required for wine_get_dos_file_name
+typedef WCHAR* (* CDECL wine_get_dos_file_namePtr)(LPCSTR str);
+#define CP_UNIXCP 65010
+
+
 LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam){
 
 	// Only messages with a hwnd can be relevant in windowlessmode mode
@@ -310,7 +316,6 @@ bool initDLL(std::string dllPath, std::string dllName){
 	return false;
 }
 
-
 std::string readPathFromRegistry(HKEY hKey, std::string regKey){
 
 	std::string fullKey = "Software\\MozillaPlugins\\" + regKey + "\\";
@@ -472,7 +477,6 @@ int main(int argc, char *argv[]){
 	return 0;
 }
 
-
 bool makeWindowEmbedded(NPP instance, HWND hWnd, bool embed = true){
 	int32_t windowIDX11 = (int32_t)GetPropA(hWnd, "__wine_x11_whole_window");
 
@@ -514,6 +518,31 @@ void changeEmbeddedMode(bool newEmbed){
 	}*/
 
 	isEmbeddedMode = newEmbed;
+}
+
+
+std::string convertToWindowsPath(const std::string &linux_path){
+	static wine_get_dos_file_namePtr wine_get_dos_file_name = NULL;
+	WCHAR* windows_path;
+	char path[MAX_PATH];
+
+	if (!wine_get_dos_file_name)
+		wine_get_dos_file_name = (wine_get_dos_file_namePtr)GetProcAddress(GetModuleHandleA("kernel32.dll"), "wine_get_dos_file_name");
+
+	if (!wine_get_dos_file_name){
+		DBG_ERROR("Unable to find wine function 'wine_get_dos_file_name'.");
+		return "";
+	}
+
+	if (!(windows_path = wine_get_dos_file_name(linux_path.c_str()))){
+		DBG_ERROR("Unable to convert '%s' to a windows path.", linux_path.c_str());
+		return "";
+	}
+
+	WideCharToMultiByte(CP_UNIXCP, 0, windows_path, -1, (char*)&path, sizeof(path), NULL, NULL);
+	HeapFree(GetProcessHeap(), 0, windows_path);
+
+	return std::string(path);
 }
 
 void dispatcher(int functionid, Stack &stack){
@@ -571,7 +600,7 @@ void dispatcher(int functionid, Stack &stack){
 
 				// Process window events
 				MSG msg;
-				DBG_TRACE("PROCESS_WINDOW_EVENTS()");
+				//DBG_TRACE("PROCESS_WINDOW_EVENTS()");
 
 				DWORD abortTime = GetTickCount() + 80;
 				while (GetTickCount() < abortTime){
@@ -587,7 +616,7 @@ void dispatcher(int functionid, Stack &stack){
 					}
 				}
 
-				DBG_TRACE("PROCESS_WINDOW_EVENTS -> void");
+				//DBG_TRACE("PROCESS_WINDOW_EVENTS -> void");
 				returnCommand();
 			}
 			break;
@@ -1185,6 +1214,28 @@ void dispatcher(int functionid, Stack &stack){
 				pluginFuncs.urlnotify(instance, url.get(), reason, notifyData);
 
 				DBG_TRACE("FUNCTION_NPP_URL_NOTIFY -> void");
+				returnCommand();
+			}
+			break;
+
+		case FUNCTION_NPP_STREAM_AS_FILE:
+			{
+				NPP instance 				= readHandleInstance(stack);
+				NPStream* stream 			= readHandleStream(stack, HMGR_SHOULD_EXIST);
+				std::string fname_lin       = readString(stack);
+				DBG_TRACE("FUNCTION_NPP_STREAM_AS_FILE( instance=%p, stream=%p, fname='%s' )", instance, stream, fname_lin.c_str());
+
+				std::string fname 			= convertToWindowsPath(fname_lin);
+				if (fname != "" && checkIsFile(fname)){
+					DBG_TRACE("windows filename: '%s'.", fname.c_str());
+
+					pluginFuncs.asfile(instance, stream, fname.c_str());
+
+				}else{
+					DBG_ERROR("unable to access linux stream '%s' as file.", fname_lin.c_str());
+				}
+
+				DBG_TRACE("FUNCTION_NPP_STREAM_AS_FILE -> void");
 				returnCommand();
 			}
 			break;

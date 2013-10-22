@@ -17,7 +17,10 @@
 #include "../npapi-headers/npruntime.h"
 #include "../npapi-headers/nptypes.h"
 
-#ifndef __WIN32__
+#ifdef __WIN32__
+	#include <windows.h>						/* for GetFileAttributes */
+
+#else
 	#include <sys/stat.h>						/* for stat */
 
 	extern NPNetscapeFuncs *sBrowserFuncs;
@@ -217,6 +220,7 @@ enum{
 	FUNCTION_NPP_WRITE_READY,
 	FUNCTION_NPP_WRITE,
 	FUNCTION_NPP_URL_NOTIFY,
+	FUNCTION_NPP_STREAM_AS_FILE,
 
 	NP_SHUTDOWN,
 
@@ -656,7 +660,14 @@ extern NPClass myClass;
 
 /* misc */
 
-#ifndef __WIN32__
+#ifdef __WIN32__
+
+inline bool checkIsFile(const std::string path){
+	DWORD attrib = GetFileAttributesA(path.c_str());
+	return (attrib != INVALID_FILE_ATTRIBUTES && !(attrib & FILE_ATTRIBUTE_DIRECTORY));
+}
+
+#else
 
 inline bool checkIfExists(const std::string path){
 	struct stat fileInfo;

@@ -583,8 +583,7 @@ NPError NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
 	DBG_TRACE("( instance=%p, stream=%p, reason=%d )", instance, stream, reason);
 
 	if (!handleManager_existsByPtr(HMGR_TYPE_NPStream, stream)){
-		// Affects Opera
-		// std::cerr << "[PIPELIGHT] Browser Use-After-Free bug in NPP_DestroyStream" << std::endl;
+		DBG_TRACE("Opera use-after-free bug!");
 		return NPERR_NO_ERROR;
 	}
 
@@ -605,8 +604,7 @@ int32_t NPP_WriteReady(NPP instance, NPStream* stream) {
 	DBG_TRACE("( instance=%p, stream=%p )", instance, stream);
 
 	if (!handleManager_existsByPtr(HMGR_TYPE_NPStream, stream)){
-		// Affects Chrome
-		// std::cerr << "[PIPELIGHT] Browser Use-After-Free bug in NPP_WriteReady" << std::endl;
+		DBG_TRACE("Chrome use-after-free bug!");
 		return 0x7FFFFFFF;
 	}
 
@@ -628,8 +626,7 @@ int32_t NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, v
 	DBG_TRACE("( instance=%p, stream=%p, offset=%d, len=%d, buffer=%p )", instance, stream, offset, len, buffer);
 
 	if (!handleManager_existsByPtr(HMGR_TYPE_NPStream, stream)){
-		// Affects Chrome
-		// std::cerr << "[PIPELIGHT] Browser Use-After-Free bug in NPP_WriteReady" << std::endl;
+		DBG_TRACE("Chrome use-after-free bug!");
 		return len;
 	}
 
@@ -644,7 +641,12 @@ int32_t NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, v
 
 void NPP_StreamAsFile(NPP instance, NPStream* stream, const char* fname) {
 	DBG_TRACE("( instance=%p, stream=%p, fname=%p )", instance, stream, fname);
-	NOTIMPLEMENTED();
+
+	writeString(fname);
+	writeHandleStream(stream, HMGR_SHOULD_EXIST);
+	writeHandleInstance(instance);
+	callFunction(FUNCTION_NPP_STREAM_AS_FILE);
+	readResultVoid();
 }
 
 void NPP_Print(NPP instance, NPPrint* platformPrint) {

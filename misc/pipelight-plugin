@@ -8,7 +8,7 @@ DESTDIR=""
 DEBUG=1
 
 # Supported plugins
-PLUGINS=("silverlight5.1" "silverlight5.0" "silverlight4" "flash")
+PLUGINS=("silverlight5.1" "silverlight5.0" "silverlight4" "flash" "shockwave")
 
 # Aliases
 declare -A PLUGINALIAS
