@@ -16,6 +16,10 @@ FILE *commPipeIn	= NULL;
 
 char strMultiPluginName[64] = "unknown";
 
+#ifdef __WIN32__
+	DWORD mainThreadID 		= 0;
+#endif
+
 /* global mappings */
 static inline std::map<HMGR_HANDLE, void*>& __idToPtr(int type){
 	static std::map<HMGR_HANDLE, void*> idToPtr[HMGR_NUMTYPES];

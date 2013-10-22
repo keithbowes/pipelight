@@ -13,6 +13,7 @@ extern NPPluginFuncs pluginFuncs;
 
 NPError NP_LOADDS NPN_GetURL(NPP instance, const char* url, const char* window){
 	DBG_TRACE("( instance=%p, url='%s', window='%s' )", instance, url, window);
+	DBG_CHECKTHREAD();
 
 	writeString(window);
 	writeString(url);
@@ -25,6 +26,7 @@ NPError NP_LOADDS NPN_GetURL(NPP instance, const char* url, const char* window){
 
 NPError NP_LOADDS NPN_PostURL(NPP instance, const char* url, const char* window, uint32_t len, const char* buf, NPBool file){
 	DBG_TRACE("( instance=%p, url='%s', window='%s', len=%d, buf=%p, file=%d )", instance, url, window, len, buf, file);
+	DBG_CHECKTHREAD();
 
 	// File upload would require to convert the wine path to a linux path - too complicated as this function isnt used in many plugins
 	if (file){
@@ -45,6 +47,7 @@ NPError NP_LOADDS NPN_PostURL(NPP instance, const char* url, const char* window,
 
 NPError NP_LOADDS NPN_RequestRead(NPStream* stream, NPByteRange* rangeList){
 	DBG_TRACE("( stream=%p, rangeList=%p )", stream, rangeList);
+	DBG_CHECKTHREAD();
 
 	// Count the number of elements in the linked list
 	uint32_t rangeCount = 0;
@@ -68,6 +71,7 @@ NPError NP_LOADDS NPN_RequestRead(NPStream* stream, NPByteRange* rangeList){
 
 NPError NP_LOADDS NPN_NewStream(NPP instance, NPMIMEType type, const char* window, NPStream** stream){
 	DBG_TRACE("( instance=%p, type='%s', window='%s', stream=%p )", instance, type, window, stream);
+	DBG_CHECKTHREAD();
 
 	writeString(window);
 	writeString(type);
@@ -87,6 +91,7 @@ NPError NP_LOADDS NPN_NewStream(NPP instance, NPMIMEType type, const char* windo
 
 int32_t NP_LOADDS NPN_Write(NPP instance, NPStream* stream, int32_t len, void* buffer){
 	DBG_TRACE("( instance=%p, stream=%p, len=%d, buffer=%p )", instance, stream, len, buffer);
+	DBG_CHECKTHREAD();
 
 	writeMemory((char*)buffer, len);
 	writeHandleStream(stream, HMGR_SHOULD_EXIST);
@@ -99,6 +104,7 @@ int32_t NP_LOADDS NPN_Write(NPP instance, NPStream* stream, int32_t len, void* b
 
 NPError NP_LOADDS NPN_DestroyStream(NPP instance, NPStream* stream, NPReason reason){
 	DBG_TRACE("( instance=%p, stream=%p, reason=%d )", instance, stream, reason);
+	DBG_CHECKTHREAD();
 
 	writeInt32(reason);
 	writeHandleStream(stream, HMGR_SHOULD_EXIST);
@@ -112,6 +118,7 @@ NPError NP_LOADDS NPN_DestroyStream(NPP instance, NPStream* stream, NPReason rea
 // Verified, everything okay
 void NP_LOADDS NPN_Status(NPP instance, const char* message){
 	DBG_TRACE("( instance=%p, message='%s' )", instance, message);
+	DBG_CHECKTHREAD();
 
 	writeString(message);
 	writeHandleInstance(instance);
@@ -122,6 +129,7 @@ void NP_LOADDS NPN_Status(NPP instance, const char* message){
 // Verified, everything okay
 const char*  NP_LOADDS NPN_UserAgent(NPP instance){
 	DBG_TRACE("( instance=%p )", instance);
+	DBG_CHECKTHREAD();
 
 	/*
 		The following code is not used currently since we set a hardcoded user agent.
@@ -185,6 +193,7 @@ void* NP_LOADDS NPN_GetJavaPeer(NPP instance){
 // Verified, everything okay
 NPError NP_LOADDS NPN_GetURLNotify(NPP instance, const  char* url, const char* target, void* notifyData){
 	DBG_TRACE("( instance=%p, url='%s', target='%s', notifyData=%p )", instance, url, target, notifyData);
+	DBG_CHECKTHREAD();
 
 	writeHandleNotify(notifyData);
 	writeString(target);
@@ -198,6 +207,7 @@ NPError NP_LOADDS NPN_GetURLNotify(NPP instance, const  char* url, const char* t
 
 NPError NP_LOADDS NPN_PostURLNotify(NPP instance, const char* url, const char* target, uint32_t len, const char* buf, NPBool file, void* notifyData){
 	DBG_TRACE("( instance=%p, url='%s', target='%s', len=%d, buf=%p, file=%d, notifyData=%p )", instance, url, target, len, buf, file, notifyData);
+	DBG_CHECKTHREAD();
 
 	// File upload would require to convert the wine path to a linux path - too complicated as this function isnt used in many plugins
 	if (file){
@@ -220,6 +230,7 @@ NPError NP_LOADDS NPN_PostURLNotify(NPP instance, const char* url, const char* t
 
 NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 	DBG_TRACE("( instance=%p, variable=%d, value=%p )", instance, variable, value);
+	DBG_CHECKTHREAD();
 
 	NPError result = NPERR_GENERIC_ERROR;
 	std::vector<ParameterInfo> stack;
@@ -294,6 +305,7 @@ NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 
 NPError NP_LOADDS NPN_SetValue(NPP instance, NPPVariable variable, void *value){
 	DBG_TRACE("( instance=%p, variable=%d, value=%p )", instance, variable, value);
+	DBG_CHECKTHREAD();
 
 	NPError result = NPERR_GENERIC_ERROR;
 
@@ -342,6 +354,7 @@ NPError NP_LOADDS NPN_SetValue(NPP instance, NPPVariable variable, void *value){
 
 void NP_LOADDS NPN_InvalidateRect(NPP instance, NPRect *rect){
 	DBG_TRACE("( instance=%p, rect=%p )", instance, rect);
+	DBG_CHECKTHREAD();
 
 	NetscapeData* ndata = (NetscapeData*)instance->ndata;
 	if (ndata){
@@ -365,6 +378,7 @@ void NP_LOADDS NPN_InvalidateRect(NPP instance, NPRect *rect){
 
 void NP_LOADDS NPN_InvalidateRegion(NPP instance, NPRegion region){
 	DBG_TRACE("( instance=%p, region=%p )", instance, region);
+	DBG_CHECKTHREAD();
 
 	NetscapeData* ndata = (NetscapeData*)instance->ndata;
 	if (ndata){
@@ -376,6 +390,7 @@ void NP_LOADDS NPN_InvalidateRegion(NPP instance, NPRegion region){
 
 void NP_LOADDS NPN_ForceRedraw(NPP instance){
 	DBG_TRACE("( instance=%p )", instance);
+	DBG_CHECKTHREAD();
 
 	NetscapeData* ndata = (NetscapeData*)instance->ndata;
 	if (ndata){
@@ -387,6 +402,7 @@ void NP_LOADDS NPN_ForceRedraw(NPP instance){
 
 NPIdentifier NP_LOADDS NPN_GetStringIdentifier(const NPUTF8* name){
 	DBG_TRACE("( name='%s' )", name);
+	DBG_CHECKTHREAD();
 
 	writeString(name);
 	callFunction(FUNCTION_NPN_GET_STRINGIDENTIFIER);
@@ -399,6 +415,7 @@ NPIdentifier NP_LOADDS NPN_GetStringIdentifier(const NPUTF8* name){
 
 void NP_LOADDS NPN_GetStringIdentifiers(const NPUTF8** names, int32_t nameCount, NPIdentifier* identifiers){
 	DBG_TRACE("( names=%p, nameCount=%d, identifier=%p )", names, nameCount, identifiers);
+	DBG_CHECKTHREAD();
 
 	// Lazy implementation ;-)
 	for (int i = 0; i < nameCount; i++){
@@ -408,6 +425,7 @@ void NP_LOADDS NPN_GetStringIdentifiers(const NPUTF8** names, int32_t nameCount,
 
 NPIdentifier NP_LOADDS NPN_GetIntIdentifier(int32_t intid){
 	DBG_TRACE("( intid=%d )", intid);
+	DBG_CHECKTHREAD();
 
 	writeInt32(intid);
 	callFunction(FUNCTION_NPN_GET_INTIDENTIFIER);
@@ -420,6 +438,7 @@ NPIdentifier NP_LOADDS NPN_GetIntIdentifier(int32_t intid){
 
 bool NP_LOADDS NPN_IdentifierIsString(NPIdentifier identifier){
 	DBG_TRACE("( identifier=%p )", identifier);
+	DBG_CHECKTHREAD();
 
 	writeHandleIdentifier(identifier);
 	callFunction(FUNCTION_NPN_IDENTIFIER_IS_STRING);
@@ -431,6 +450,7 @@ bool NP_LOADDS NPN_IdentifierIsString(NPIdentifier identifier){
 
 NPUTF8* NP_LOADDS NPN_UTF8FromIdentifier(NPIdentifier identifier){
 	DBG_TRACE("( identifier=%p )", identifier);
+	DBG_CHECKTHREAD();
 
 	writeHandleIdentifier(identifier);
 	callFunction(FUNCTION_NPN_UTF8_FROM_IDENTIFIER);
@@ -444,6 +464,7 @@ NPUTF8* NP_LOADDS NPN_UTF8FromIdentifier(NPIdentifier identifier){
 
 int32_t NP_LOADDS NPN_IntFromIdentifier(NPIdentifier identifier){
 	DBG_TRACE("( identifier=%p )", identifier);
+	DBG_CHECKTHREAD();
 
 	writeHandleIdentifier(identifier);
 	callFunction(FUNCTION_NPN_INT_FROM_IDENTIFIER);
@@ -453,6 +474,7 @@ int32_t NP_LOADDS NPN_IntFromIdentifier(NPIdentifier identifier){
 
 NPObject* NP_LOADDS NPN_CreateObject(NPP instance, NPClass *aClass){
 	DBG_TRACE("( instance=%p, aClass=%p )", instance, aClass);
+	DBG_CHECKTHREAD();
 
 	// The other side doesnt need to know aClass
 	writeHandleInstance(instance);
@@ -470,6 +492,7 @@ NPObject* NP_LOADDS NPN_CreateObject(NPP instance, NPClass *aClass){
 
 NPObject* NP_LOADDS NPN_RetainObject(NPObject *obj){
 	DBG_TRACE("( obj=%p )", obj);
+	DBG_CHECKTHREAD();
 
 	if (obj){
 
@@ -490,6 +513,7 @@ NPObject* NP_LOADDS NPN_RetainObject(NPObject *obj){
 
 void NP_LOADDS NPN_ReleaseObject(NPObject *obj){
 	DBG_TRACE("( obj=%p )", obj);
+	DBG_CHECKTHREAD();
 
 	if (obj){
 
@@ -501,6 +525,7 @@ void NP_LOADDS NPN_ReleaseObject(NPObject *obj){
 
 bool NP_LOADDS NPN_Invoke(NPP instance, NPObject* obj, NPIdentifier methodName, const NPVariant *args, uint32_t argCount, NPVariant *result){
 	DBG_TRACE("( instance=%p, obj=%p, methodName=%p, args=%p, argCount=%d, result=%p )", instance, obj, methodName, args, argCount, result);
+	DBG_CHECKTHREAD();
 
 	writeVariantArrayConst(args, argCount);
 	writeInt32(argCount);
@@ -526,6 +551,7 @@ bool NP_LOADDS NPN_Invoke(NPP instance, NPObject* obj, NPIdentifier methodName, 
 
 bool NP_LOADDS NPN_InvokeDefault(NPP instance, NPObject* obj, const NPVariant *args, uint32_t argCount, NPVariant *result){ // UNTESTED!
 	DBG_TRACE("( instance=%p, obj=%p, args=%p, argCount=%d, result=%p )", instance, obj, args, argCount, result);
+	DBG_CHECKTHREAD();
 
 	writeVariantArrayConst(args, argCount);
 	writeInt32(argCount);
@@ -550,6 +576,7 @@ bool NP_LOADDS NPN_InvokeDefault(NPP instance, NPObject* obj, const NPVariant *a
 
 bool NP_LOADDS NPN_Evaluate(NPP instance, NPObject *obj, NPString *script, NPVariant *result){
 	DBG_TRACE("( instance=%p, obj=%p, script=%p, result=%p )", instance, obj, script, result);
+	DBG_CHECKTHREAD();
 
 	writeNPString(script);
 	writeHandleObj(obj);
@@ -573,6 +600,7 @@ bool NP_LOADDS NPN_Evaluate(NPP instance, NPObject *obj, NPString *script, NPVar
 
 bool NP_LOADDS NPN_GetProperty(NPP instance, NPObject *obj, NPIdentifier propertyName, NPVariant *result){
 	DBG_TRACE("( instance=%p, obj=%p, propertyName=%p, result=%p )", instance, obj, propertyName, result);
+	DBG_CHECKTHREAD();
 
 	writeHandleIdentifier(propertyName);
 	writeHandleObj(obj);
@@ -597,6 +625,7 @@ bool NP_LOADDS NPN_GetProperty(NPP instance, NPObject *obj, NPIdentifier propert
 
 bool NP_LOADDS NPN_SetProperty(NPP instance, NPObject *obj, NPIdentifier propertyName, const NPVariant *value){
 	DBG_TRACE("( instance=%p, obj=%p, propertyName=%p, value=%p )", instance, obj, propertyName, value);
+	DBG_CHECKTHREAD();
 
 	writeVariantConst(*value);
 	writeHandleIdentifier(propertyName);
@@ -610,6 +639,7 @@ bool NP_LOADDS NPN_SetProperty(NPP instance, NPObject *obj, NPIdentifier propert
 
 bool NP_LOADDS NPN_RemoveProperty(NPP instance, NPObject *obj, NPIdentifier propertyName){
 	DBG_TRACE("( instance=%p, obj=%p, propertyName=%p )", instance, obj, propertyName);
+	DBG_CHECKTHREAD();
 
 	writeHandleIdentifier(propertyName);
 	writeHandleObj(obj);
@@ -622,6 +652,7 @@ bool NP_LOADDS NPN_RemoveProperty(NPP instance, NPObject *obj, NPIdentifier prop
 
 bool NP_LOADDS NPN_HasProperty(NPP instance, NPObject *obj, NPIdentifier propertyName){
 	DBG_TRACE("( instance=%p, obj=%p, propertyName=%p )", instance, obj, propertyName);
+	DBG_CHECKTHREAD();
 
 	writeHandleIdentifier(propertyName);
 	writeHandleObj(obj);
@@ -634,6 +665,7 @@ bool NP_LOADDS NPN_HasProperty(NPP instance, NPObject *obj, NPIdentifier propert
 
 bool NP_LOADDS NPN_HasMethod(NPP instance, NPObject *obj, NPIdentifier propertyName){
 	DBG_TRACE("( instance=%p, obj=%p, propertyName=%p )", instance, obj, propertyName);
+	DBG_CHECKTHREAD();
 
 	writeHandleIdentifier(propertyName);
 	writeHandleObj(obj);
@@ -646,6 +678,7 @@ bool NP_LOADDS NPN_HasMethod(NPP instance, NPObject *obj, NPIdentifier propertyN
 
 void NP_LOADDS NPN_ReleaseVariantValue(NPVariant *variant){
 	DBG_TRACE("( variant=%p )", variant);
+	DBG_CHECKTHREAD();
 
 	switch (variant->type){
 
@@ -668,6 +701,7 @@ void NP_LOADDS NPN_ReleaseVariantValue(NPVariant *variant){
 
 void NP_LOADDS NPN_SetException(NPObject *obj, const NPUTF8 *message){
 	DBG_TRACE("( obj=%p, message='%s' )", obj, message);
+	DBG_CHECKTHREAD();
 
 	writeString(message);
 	writeHandleObj(obj);
@@ -677,6 +711,7 @@ void NP_LOADDS NPN_SetException(NPObject *obj, const NPUTF8 *message){
 
 void NP_LOADDS NPN_PushPopupsEnabledState(NPP instance, NPBool enabled){
 	DBG_TRACE("( instance=%p, enabled=%d )", instance, enabled);
+	DBG_CHECKTHREAD();
 
 	writeInt32(enabled);
 	writeHandleInstance(instance);
@@ -686,6 +721,7 @@ void NP_LOADDS NPN_PushPopupsEnabledState(NPP instance, NPBool enabled){
 
 void NP_LOADDS NPN_PopPopupsEnabledState(NPP instance){
 	DBG_TRACE("( instance=%p )", instance);
+	DBG_CHECKTHREAD();
 
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_POP_POPUPS_ENABLED_STATE);
@@ -694,6 +730,7 @@ void NP_LOADDS NPN_PopPopupsEnabledState(NPP instance){
 
 bool NP_LOADDS NPN_Enumerate(NPP instance, NPObject *obj, NPIdentifier **identifier, uint32_t *count){
 	DBG_TRACE("( instance=%p, obj=%p, identifier=%p, count=%p )", instance, obj, identifier, count);
+	DBG_CHECKTHREAD();
 
 	writeHandleObj(obj);
 	writeHandleInstance(instance);

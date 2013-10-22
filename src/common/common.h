@@ -43,6 +43,10 @@
 
 extern char strMultiPluginName[64];
 
+#ifdef __WIN32__
+	extern DWORD mainThreadID;
+#endif
+
 #ifdef PIPELIGHT_DEBUG
 
 	#if !defined(PIPELIGHT_DBGSYNC)
@@ -103,6 +107,20 @@ extern char strMultiPluginName[64];
 
 #define NOTIMPLEMENTED(fmt, ...) \
 	DBG_ERROR("STUB! " fmt, ##__VA_ARGS__)
+
+#ifdef __WIN32__
+	#ifdef PIPELIGHT_DEBUG
+
+		#define DBG_CHECKTHREAD() \
+			DBG_ASSERT( GetCurrentThreadId() == mainThreadID, "NPAPI command called from wrong thread!" )
+
+	#else
+
+		#define DBG_CHECKTHREAD() \
+			do{ }while(0)
+
+	#endif
+#endif
 
 /* common.c */
 

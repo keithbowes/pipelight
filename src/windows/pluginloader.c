@@ -24,8 +24,6 @@ LPCTSTR ClsName = "VirtualBrowser";
 
 std::map<HWND, NPP> hwndToInstance;
 
-DWORD mainThreadID 		= 0;
-
 bool isWindowlessMode	= false;
 bool isEmbeddedMode		= false;
 bool usermodeTimer      = false;
