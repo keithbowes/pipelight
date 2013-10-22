@@ -285,10 +285,10 @@ install_wininet()
 
 	( 	echo "REGEDIT4"
 		echo ""
-		echo "[HKEY_CURRENT_USER\Software\Wine\DllOverrides]"
+		echo "[HKEY_CURRENT_USER\\Software\\Wine\\DllOverrides]"
 		echo "\"*wininet\"=\"native,builtin\""
 		echo ""
-		echo "[HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Internet Settings]"
+		echo "[HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings]"
 		echo "\"MaxConnectionsPerServer\"=dword:7fffffff"
 		echo "\"MaxConnectionsPer1_0Server\"=dword:7fffffff"
 	) > "$tmpfile"
