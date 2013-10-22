@@ -500,7 +500,10 @@ void changeEmbeddedMode(bool newEmbed){
 	if (isEmbeddedMode == newEmbed)
 		return;
 
-	for (std::map<HWND, NPP>::iterator it = hwndToInstance.begin(); it != hwndToInstance.end(); it++){
+	// TODO: The following code should theoretically work, but doesn't work yet because of additional wine bugs
+	// when they are fixed we can allow to toggle embedded mode on-the-fly without restart
+
+	/*for (std::map<HWND, NPP>::iterator it = hwndToInstance.begin(); it != hwndToInstance.end(); it++){
 		HWND hWnd = it->first;
 
 		ShowWindow(hWnd, SW_HIDE);
@@ -510,7 +513,7 @@ void changeEmbeddedMode(bool newEmbed){
 		ShowWindow(hWnd, SW_SHOW);
 		UpdateWindow(hWnd);
 
-	}
+	}*/
 
 	isEmbeddedMode = newEmbed;
 }
