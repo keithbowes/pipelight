@@ -11,15 +11,22 @@ extern NPPluginFuncs pluginFuncs;
 
 #include <windows.h>
 
+// Shockwave sometimes calls the function with a wrong instance? Is this a wine bug?
+NPP shockwaveInstanceBug = NULL;
+
+#define shockwaveInstanceWorkaround() \
+	do{ \
+		if (shockwaveInstanceBug && instance == shockwaveInstanceBug){ \
+			instance = handleManager_findInstance(); \
+			DBG_TRACE("Replaced wrong instance %p with %p", shockwaveInstanceBug, instance); \
+		} \
+	}while(0)
+
 NPError NP_LOADDS NPN_GetURL(NPP instance, const char* url, const char* window){
 	DBG_TRACE("( instance=%p, url='%s', window='%s' )", instance, url, window);
 	DBG_CHECKTHREAD();
 
-	// Shockwave bug
-	if (!handleManager_existsByPtr(HMGR_TYPE_NPPInstance, instance)){
-		DBG_TRACE("Shockwave player wrong instance bug!");
-		return NPERR_GENERIC_ERROR;
-	}
+	shockwaveInstanceWorkaround();
 
 	writeString(window);
 	writeString(url);
@@ -34,16 +41,12 @@ NPError NP_LOADDS NPN_PostURL(NPP instance, const char* url, const char* window,
 	DBG_TRACE("( instance=%p, url='%s', window='%s', len=%d, buf=%p, file=%d )", instance, url, window, len, buf, file);
 	DBG_CHECKTHREAD();
 
+	shockwaveInstanceWorkaround();
+
 	// File upload would require to convert the wine path to a linux path - too complicated as this function isnt used in many plugins
 	if (file){
 		NOTIMPLEMENTED("file argument not supported.");
 		return NPERR_FILE_NOT_FOUND;
-	}
-
-	// Shockwave bug
-	if (!handleManager_existsByPtr(HMGR_TYPE_NPPInstance, instance)){
-		DBG_TRACE("Shockwave player wrong instance bug!");
-		return NPERR_GENERIC_ERROR;
 	}
 
 	writeInt32(file);
@@ -85,6 +88,8 @@ NPError NP_LOADDS NPN_NewStream(NPP instance, NPMIMEType type, const char* windo
 	DBG_TRACE("( instance=%p, type='%s', window='%s', stream=%p )", instance, type, window, stream);
 	DBG_CHECKTHREAD();
 
+	shockwaveInstanceWorkaround();
+
 	writeString(window);
 	writeString(type);
 	writeHandleInstance(instance);
@@ -105,6 +110,8 @@ int32_t NP_LOADDS NPN_Write(NPP instance, NPStream* stream, int32_t len, void* b
 	DBG_TRACE("( instance=%p, stream=%p, len=%d, buffer=%p )", instance, stream, len, buffer);
 	DBG_CHECKTHREAD();
 
+	shockwaveInstanceWorkaround();
+
 	writeMemory((char*)buffer, len);
 	writeHandleStream(stream, HMGR_SHOULD_EXIST);
 	writeHandleInstance(instance);
@@ -117,6 +124,8 @@ int32_t NP_LOADDS NPN_Write(NPP instance, NPStream* stream, int32_t len, void* b
 NPError NP_LOADDS NPN_DestroyStream(NPP instance, NPStream* stream, NPReason reason){
 	DBG_TRACE("( instance=%p, stream=%p, reason=%d )", instance, stream, reason);
 	DBG_CHECKTHREAD();
+
+	shockwaveInstanceWorkaround();
 
 	writeInt32(reason);
 	writeHandleStream(stream, HMGR_SHOULD_EXIST);
@@ -131,6 +140,8 @@ NPError NP_LOADDS NPN_DestroyStream(NPP instance, NPStream* stream, NPReason rea
 void NP_LOADDS NPN_Status(NPP instance, const char* message){
 	DBG_TRACE("( instance=%p, message='%s' )", instance, message);
 	DBG_CHECKTHREAD();
+
+	shockwaveInstanceWorkaround();
 
 	writeString(message);
 	writeHandleInstance(instance);
@@ -154,6 +165,11 @@ const char*  NP_LOADDS NPN_UserAgent(NPP instance){
 
 		std::string result = readResultString();
 	*/
+
+	if (instance && !handleManager_existsByPtr(HMGR_TYPE_NPPInstance, instance)){
+		DBG_ERROR("Shockwave player wrong instance bug - called with unknown instance %p.", instance);
+		shockwaveInstanceBug = instance;
+	}
 
 	std::string result = "Mozilla/5.0 (Windows NT 5.1; rv:18.0) Gecko/20100101 Firefox/18.0";
 
@@ -198,7 +214,7 @@ void* NP_LOADDS NPN_GetJavaEnv(void){
 void* NP_LOADDS NPN_GetJavaPeer(NPP instance){
 	DBG_TRACE("( instance=%p )", instance);
 	NOTIMPLEMENTED();
-	return NULL;		
+	return NULL;
 }
 
 // Verified, everything okay
@@ -206,12 +222,7 @@ NPError NP_LOADDS NPN_GetURLNotify(NPP instance, const  char* url, const char* t
 	DBG_TRACE("( instance=%p, url='%s', target='%s', notifyData=%p )", instance, url, target, notifyData);
 	DBG_CHECKTHREAD();
 
-	// Shockwave bug
-	if (!handleManager_existsByPtr(HMGR_TYPE_NPPInstance, instance)){
-		DBG_TRACE("Shockwave player wrong instance bug - selecting random instance!");
-		instance = handleManager_findInstance();
-		if (!instance) return NPERR_GENERIC_ERROR;
-	}
+	shockwaveInstanceWorkaround();
 
 	writeHandleNotify(notifyData);
 	writeString(target);
@@ -227,17 +238,12 @@ NPError NP_LOADDS NPN_PostURLNotify(NPP instance, const char* url, const char* t
 	DBG_TRACE("( instance=%p, url='%s', target='%s', len=%d, buf=%p, file=%d, notifyData=%p )", instance, url, target, len, buf, file, notifyData);
 	DBG_CHECKTHREAD();
 
+	shockwaveInstanceWorkaround();
+
 	// File upload would require to convert the wine path to a linux path - too complicated as this function isnt used in many plugins
 	if (file){
 		NOTIMPLEMENTED("file argument not supported.");
 		return NPERR_FILE_NOT_FOUND;
-	}
-
-	// Shockwave bug
-	if (!handleManager_existsByPtr(HMGR_TYPE_NPPInstance, instance)){
-		DBG_TRACE("Shockwave player wrong instance bug - selecting random instance!");
-		instance = handleManager_findInstance();
-		if (!instance) return NPERR_GENERIC_ERROR;
 	}
 
 	writeHandleNotify(notifyData);
@@ -256,6 +262,8 @@ NPError NP_LOADDS NPN_PostURLNotify(NPP instance, const char* url, const char* t
 NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 	DBG_TRACE("( instance=%p, variable=%d, value=%p )", instance, variable, value);
 	DBG_CHECKTHREAD();
+
+	shockwaveInstanceWorkaround();
 
 	NPError result = NPERR_GENERIC_ERROR;
 	std::vector<ParameterInfo> stack;
@@ -332,6 +340,8 @@ NPError NP_LOADDS NPN_SetValue(NPP instance, NPPVariable variable, void *value){
 	DBG_TRACE("( instance=%p, variable=%d, value=%p )", instance, variable, value);
 	DBG_CHECKTHREAD();
 
+	shockwaveInstanceWorkaround();
+
 	NPError result = NPERR_GENERIC_ERROR;
 
 	switch (variable){
@@ -381,6 +391,8 @@ void NP_LOADDS NPN_InvalidateRect(NPP instance, NPRect *rect){
 	DBG_TRACE("( instance=%p, rect=%p )", instance, rect);
 	DBG_CHECKTHREAD();
 
+	shockwaveInstanceWorkaround();
+
 	NetscapeData* ndata = (NetscapeData*)instance->ndata;
 	if (ndata){
 		if (ndata->hWnd){
@@ -405,6 +417,8 @@ void NP_LOADDS NPN_InvalidateRegion(NPP instance, NPRegion region){
 	DBG_TRACE("( instance=%p, region=%p )", instance, region);
 	DBG_CHECKTHREAD();
 
+	shockwaveInstanceWorkaround();
+
 	NetscapeData* ndata = (NetscapeData*)instance->ndata;
 	if (ndata){
 		if (ndata->hWnd){
@@ -416,6 +430,8 @@ void NP_LOADDS NPN_InvalidateRegion(NPP instance, NPRegion region){
 void NP_LOADDS NPN_ForceRedraw(NPP instance){
 	DBG_TRACE("( instance=%p )", instance);
 	DBG_CHECKTHREAD();
+
+	shockwaveInstanceWorkaround();
 
 	NetscapeData* ndata = (NetscapeData*)instance->ndata;
 	if (ndata){
@@ -501,11 +517,7 @@ NPObject* NP_LOADDS NPN_CreateObject(NPP instance, NPClass *aClass){
 	DBG_TRACE("( instance=%p, aClass=%p )", instance, aClass);
 	DBG_CHECKTHREAD();
 
-	// Shockwave bug
-	if (!handleManager_existsByPtr(HMGR_TYPE_NPPInstance, instance)){
-		DBG_TRACE("Shockwave player wrong instance bug!");
-		return NULL;
-	}
+	shockwaveInstanceWorkaround();
 
 	// The other side doesnt need to know aClass
 	writeHandleInstance(instance);
@@ -558,6 +570,8 @@ bool NP_LOADDS NPN_Invoke(NPP instance, NPObject* obj, NPIdentifier methodName, 
 	DBG_TRACE("( instance=%p, obj=%p, methodName=%p, args=%p, argCount=%d, result=%p )", instance, obj, methodName, args, argCount, result);
 	DBG_CHECKTHREAD();
 
+	shockwaveInstanceWorkaround();
+
 	writeVariantArrayConst(args, argCount);
 	writeInt32(argCount);
 	writeHandleIdentifier(methodName);
@@ -584,6 +598,8 @@ bool NP_LOADDS NPN_InvokeDefault(NPP instance, NPObject* obj, const NPVariant *a
 	DBG_TRACE("( instance=%p, obj=%p, args=%p, argCount=%d, result=%p )", instance, obj, args, argCount, result);
 	DBG_CHECKTHREAD();
 
+	shockwaveInstanceWorkaround();
+
 	writeVariantArrayConst(args, argCount);
 	writeInt32(argCount);
 	writeHandleObj(obj);
@@ -609,6 +625,8 @@ bool NP_LOADDS NPN_Evaluate(NPP instance, NPObject *obj, NPString *script, NPVar
 	DBG_TRACE("( instance=%p, obj=%p, script=%p, result=%p )", instance, obj, script, result);
 	DBG_CHECKTHREAD();
 
+	shockwaveInstanceWorkaround();
+
 	writeNPString(script);
 	writeHandleObj(obj);
 	writeHandleInstance(instance);
@@ -632,6 +650,8 @@ bool NP_LOADDS NPN_Evaluate(NPP instance, NPObject *obj, NPString *script, NPVar
 bool NP_LOADDS NPN_GetProperty(NPP instance, NPObject *obj, NPIdentifier propertyName, NPVariant *result){
 	DBG_TRACE("( instance=%p, obj=%p, propertyName=%p, result=%p )", instance, obj, propertyName, result);
 	DBG_CHECKTHREAD();
+
+	shockwaveInstanceWorkaround();
 
 	writeHandleIdentifier(propertyName);
 	writeHandleObj(obj);
@@ -658,6 +678,8 @@ bool NP_LOADDS NPN_SetProperty(NPP instance, NPObject *obj, NPIdentifier propert
 	DBG_TRACE("( instance=%p, obj=%p, propertyName=%p, value=%p )", instance, obj, propertyName, value);
 	DBG_CHECKTHREAD();
 
+	shockwaveInstanceWorkaround();
+
 	writeVariantConst(*value);
 	writeHandleIdentifier(propertyName);
 	writeHandleObj(obj);
@@ -672,6 +694,8 @@ bool NP_LOADDS NPN_RemoveProperty(NPP instance, NPObject *obj, NPIdentifier prop
 	DBG_TRACE("( instance=%p, obj=%p, propertyName=%p )", instance, obj, propertyName);
 	DBG_CHECKTHREAD();
 
+	shockwaveInstanceWorkaround();
+
 	writeHandleIdentifier(propertyName);
 	writeHandleObj(obj);
 	writeHandleInstance(instance);
@@ -685,6 +709,8 @@ bool NP_LOADDS NPN_HasProperty(NPP instance, NPObject *obj, NPIdentifier propert
 	DBG_TRACE("( instance=%p, obj=%p, propertyName=%p )", instance, obj, propertyName);
 	DBG_CHECKTHREAD();
 
+	shockwaveInstanceWorkaround();
+
 	writeHandleIdentifier(propertyName);
 	writeHandleObj(obj);
 	writeHandleInstance(instance);
@@ -697,6 +723,8 @@ bool NP_LOADDS NPN_HasProperty(NPP instance, NPObject *obj, NPIdentifier propert
 bool NP_LOADDS NPN_HasMethod(NPP instance, NPObject *obj, NPIdentifier propertyName){
 	DBG_TRACE("( instance=%p, obj=%p, propertyName=%p )", instance, obj, propertyName);
 	DBG_CHECKTHREAD();
+
+	shockwaveInstanceWorkaround();
 
 	writeHandleIdentifier(propertyName);
 	writeHandleObj(obj);
@@ -744,6 +772,8 @@ void NP_LOADDS NPN_PushPopupsEnabledState(NPP instance, NPBool enabled){
 	DBG_TRACE("( instance=%p, enabled=%d )", instance, enabled);
 	DBG_CHECKTHREAD();
 
+	shockwaveInstanceWorkaround();
+
 	writeInt32(enabled);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE);
@@ -754,6 +784,8 @@ void NP_LOADDS NPN_PopPopupsEnabledState(NPP instance){
 	DBG_TRACE("( instance=%p )", instance);
 	DBG_CHECKTHREAD();
 
+	shockwaveInstanceWorkaround();
+
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_POP_POPUPS_ENABLED_STATE);
 	readResultVoid();
@@ -762,6 +794,8 @@ void NP_LOADDS NPN_PopPopupsEnabledState(NPP instance){
 bool NP_LOADDS NPN_Enumerate(NPP instance, NPObject *obj, NPIdentifier **identifier, uint32_t *count){
 	DBG_TRACE("( instance=%p, obj=%p, identifier=%p, count=%p )", instance, obj, identifier, count);
 	DBG_CHECKTHREAD();
+
+	shockwaveInstanceWorkaround();
 
 	writeHandleObj(obj);
 	writeHandleInstance(instance);
