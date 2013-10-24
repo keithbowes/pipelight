@@ -23,6 +23,7 @@ void* patchDLLExport(PVOID ModuleBase, const char* functionName, void* newFuncti
 	ULONG  max_func  =  exports->NumberOfFunctions;
 
 	ULONG i;
+	DWORD oldProtect;
 
 	for (i = 0; i < max_name; i++)
 	{
@@ -31,10 +32,15 @@ void* patchDLLExport(PVOID ModuleBase, const char* functionName, void* newFuncti
 			break;
 
 		if (strcmp( (PCHAR) ModuleBase + names[i], functionName ) == 0){
+			if (!VirtualProtect(&functions[ord], sizeof(ULONG), PAGE_EXECUTE_READWRITE, &oldProtect))
+				return NULL;
+
 			DBG_INFO("replaced API function %s.", functionName);
 
 			void* oldFunctionPtr = (PVOID)((PCHAR) ModuleBase + functions[ord]);
 			functions[ord] = (ULONG)newFunctionPtr - (ULONG)ModuleBase;
+
+			VirtualProtect(&functions[ord], sizeof(ULONG), oldProtect, &oldProtect);
 			return oldFunctionPtr;
 		}
 
