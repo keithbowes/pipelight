@@ -1,7 +1,8 @@
 SUBDIRS= src/linux src/windows
 .PHONY:	all $(SUBDIRS) clean install uninstall
 
-CONFIGS=$(wildcard configs/*)
+PLUGIN_CONFIGS=$(wildcard plugin-configs/*)
+PLUGIN_SCRIPTS=$(wildcard plugin-scripts/*)
 
 version=unknown
 prefix=/usr/local/
@@ -21,10 +22,13 @@ all: $(SUBDIRS)
 
 install: all
 	test -d "$(DESTDIR)$(prefix)/share/pipelight" || mkdir -p "$(DESTDIR)$(prefix)/share/pipelight"
+	test -d "$(DESTDIR)$(prefix)/bin/" || mkdir -p "$(DESTDIR)$(prefix)/bin/"
+	test -d "$(DESTDIR)$(prefix)/lib/pipelight" || mkdir -p "$(DESTDIR)$(prefix)/lib/pipelight"
+
 	install -m 0644 src/windows/pluginloader.exe "$(DESTDIR)$(prefix)/share/pipelight/pluginloader.exe"
 	
-	for config in $(notdir $(CONFIGS)) ; do \
-		sed    's|@@PLUGIN_LOADER_PATH@@|$(prefix)/share/pipelight/pluginloader.exe|g' configs/$${config} > pipelight-config.tmp; \
+	for config in $(notdir $(PLUGIN_CONFIGS)); do \
+		sed    's|@@PLUGIN_LOADER_PATH@@|$(prefix)/share/pipelight/pluginloader.exe|g' plugin-configs/$${config} > pipelight-config.tmp; \
 		sed -i 's|@@DEPENDENCY_INSTALLER@@|$(prefix)/share/pipelight/install-dependency|g' pipelight-config.tmp; \
 		sed -i 's|@@GRAPHIC_DRIVER_CHECK@@|$(prefix)/share/pipelight/hw-accel-default|g' pipelight-config.tmp; \
 		sed -i 's|@@WINE_PATH@@|$(winepath)|g' pipelight-config.tmp; \
@@ -34,28 +38,32 @@ install: all
 		rm pipelight-config.tmp; \
 	done
 
-	install -m 0755 misc/install-dependency "$(DESTDIR)$(prefix)/share/pipelight/install-dependency"
-	install -m 0755 misc/hw-accel-default "$(DESTDIR)$(prefix)/share/pipelight/hw-accel-default"
+	for script in $(notdir $(PLUGIN_SCRIPTS)); do \
+		sed    's|@@WINE_PATH@@|$(winepath)|g' plugin-scripts/$${script} > pipelight-script.tmp; \
+		install -m 0755 pipelight-script.tmp "$(DESTDIR)$(prefix)/share/pipelight/$${script}"; \
+		rm pipelight-script.tmp; \
+	done
 
-	test -d "$(DESTDIR)$(prefix)/bin/" || mkdir -p "$(DESTDIR)$(prefix)/bin/"
-	sed    's|@@PLUGIN_SYSTEM_PATH@@|$(prefix)/lib/pipelight/|g' misc/pipelight-plugin > pipelight-plugin.tmp
+	install -m 0755 internal-scripts/install-dependency "$(DESTDIR)$(prefix)/share/pipelight/install-dependency"
+	install -m 0755 internal-scripts/hw-accel-default "$(DESTDIR)$(prefix)/share/pipelight/hw-accel-default"
+
+	sed    's|@@PLUGIN_SYSTEM_PATH@@|$(prefix)/lib/pipelight/|g' public-scripts/pipelight-plugin > pipelight-plugin.tmp
 	sed -i 's|@@MOZ_PLUGIN_PATH@@|$(mozpluginpath)|g' pipelight-plugin.tmp
 	install -m 0755 pipelight-plugin.tmp "$(DESTDIR)$(prefix)/bin/pipelight-plugin"
 	rm pipelight-plugin.tmp
 
-	test -d "$(DESTDIR)$(prefix)/lib/pipelight" || mkdir -p "$(DESTDIR)$(prefix)/lib/pipelight"
 	install -m 0644 src/linux/libpipelight.so "$(DESTDIR)$(prefix)/lib/pipelight/libpipelight.so"
 
 uninstall:
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/pluginloader.exe"
-	rm -f "$(DESTDIR)$(prefix)/share/pipelight/pipelight-*"
+	rm -f $(DESTDIR)$(prefix)/share/pipelight/pipelight-*
+	rm -f $(DESTDIR)$(prefix)/share/pipelight/configure-*
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/install-dependency"
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/hw-accel-default"
-	rmdir --ignore-fail-on-non-empty "$(DESTDIR)$(prefix)/share/pipelight"
-
 	rm -f "$(DESTDIR)$(prefix)/bin/pipelight-plugin"
-
 	rm -f "$(DESTDIR)$(prefix)/lib/pipelight/libpipelight.so"
+
+	rmdir --ignore-fail-on-non-empty "$(DESTDIR)$(prefix)/share/pipelight"
 	rmdir --ignore-fail-on-non-empty "$(DESTDIR)$(prefix)/lib/pipelight"
 
 clean:
