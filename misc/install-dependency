@@ -153,7 +153,8 @@ register_mozilla_plugin()
 
 	local valfile=$("$WINE" winepath --windows "$VAL" | sed 's/\\/\\\\/g')
 
-	( 	echo "REGEDIT4"
+	(
+		echo "REGEDIT4"
 		echo ""
 		echo "[HKEY_LOCAL_MACHINE\\Software\\MozillaPlugins\\$KEY]"
 		echo "\"Path\"=\"$valfile\""
@@ -283,7 +284,8 @@ install_wininet()
 	local tmpfile=$(mktemp)
 	[ -f "$tmpfile" ] || return 1
 
-	( 	echo "REGEDIT4"
+	(
+		echo "REGEDIT4"
 		echo ""
 		echo "[HKEY_CURRENT_USER\\Software\\Wine\\DllOverrides]"
 		echo "\"*wininet\"=\"native,builtin\""
@@ -312,7 +314,8 @@ install_firefox()
 	local tmpfile=$(mktemp)
 	[ -f "$tmpfile" ] || return 1
 
-	( 	echo "[Install]"
+	(
+		echo "[Install]"
 		echo "QuickLaunchShortcut=false"
 		echo "DesktopShortcut=false"
 		echo "StartMenuShortcuts=false"
@@ -348,6 +351,17 @@ install_flash()
 	if [ ! -f "$installdir/NPSWF32_$VER.dll" ]; then
 		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
 		return 1
+	fi
+
+	if ! grep -q "^OverrideGPUValidation=" "$flashconfig" 2>/dev/null; then
+		(
+			grep -v "^OverrideGPUValidation=" "$flashconfig" 2>/dev/null
+			echo "OverrideGPUValidation=true"
+		) > "$flashconfig.bak"
+
+		if ! mv "$flashconfig.bak" "$flashconfig"; then
+			echo "[$PRG] ERROR: Unable to change $DEP plugin settings." >&2
+		fi
 	fi
 
 	# Successful
