@@ -368,6 +368,48 @@ install_flash()
 	return 0
 }
 
+# > Install shockwave
+# arguments:
+# $1	- version path component
+# $DOWNLOADFILE
+install_shockwave()
+{
+	VER="$1"
+
+	# Launch the installer
+	if [ "$QUIETINSTALLATION" -eq 0 ]; then
+		"$WINE" "$DOWNLOADFILE" 2>&1
+	else
+		"$WINE" "$DOWNLOADFILE" /S 2>&1 | progressbar "Please wait, installing ..." "Running $DEP"
+	fi
+
+	local installdir="$WINEPREFIX/drive_c/windows/system32/Adobe/Director"
+	if [ ! -f "$installdir/np32dsw_$VER.dll" ]; then
+		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
+		return 1
+	fi
+
+	# Switch to OpenGL mode
+	local tmpfile=$(mktemp)
+	[ -f "$tmpfile" ] || return 1
+
+	(
+		echo "REGEDIT4"
+		echo ""
+		echo "[HKEY_CURRENT_USER\\Software\\Macromedia\\Shockwave 12\\renderer3dsetting]"
+		echo "@=\"2\""
+		echo ""
+		echo "[HKEY_CURRENT_USER\\Software\\Macromedia\\Shockwave 12\\renderer3dsettingPerm]"
+		echo "@=\"2\""
+	) > "$tmpfile"
+
+	"$WINE" regedit "$tmpfile"
+	local res=$?
+
+	# Successful
+	return 0
+}
+
 # Check if some visual feedback is possible
 if command -v zenity >/dev/null 2>&1; then
 	progressbar()
@@ -508,7 +550,11 @@ while [ $# -gt 0 ] ; do
 			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/11.9.900.117/install_flash_player.exe"
 			SHA="3e8d832591aff54510f9904b6348e2e2351a28a4ef137f4f19535b747c00c89e"
 			;;
-
+		wine-shockwave-installer)
+			INS=(install_shockwave "1204144")
+			URL="http://fpdownload.macromedia.com/get/shockwave/default/english/win95nt/latest/sw_lic_full_installer.exe"
+			SHA="d75fc76df87fb9991cf021dd08d2a558ffa6c47b1ac133e3f33efe65fc6dfa39"
+			;;
 		*)
 			echo "[$PRG] ERROR: No installer script found for $DEP." >&2
 			RET=1
