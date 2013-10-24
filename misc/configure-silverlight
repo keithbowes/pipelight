@@ -8,7 +8,10 @@ fi
 
 # Check for environment variables
 if [ -z "$WINE" ]; then
-	export WINE="/opt/wine-compholio/bin/wine"
+	WINE="@@WINE_PATH@@"
+	if [[ "$WINE" =~ ^@@.*@@$ ]]; then
+		WINE="/opt/wine-compholio/bin/wine"
+	fi
 fi
 if [ -z "$WINEPREFIX" ]; then
 	export WINEPREFIX="$HOME/.wine-pipelight"
