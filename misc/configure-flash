@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+# Don't run this as root
+if [ $(/usr/bin/id -u) -eq 0 ]; then
+	echo "ERROR: You should not run this as root!" >&2
+	exit 1
+fi
+
+# Check for environment variables
+if [ -z "$WINE" ]; then
+	export WINE="/opt/wine-compholio/bin/wine"
+fi
+if [ -z "$WINEPREFIX" ]; then
+	export WINEPREFIX="$HOME/.wine-pipelight"
+fi
+if [ -z "$WINEARCH" ]; then
+	export WINEARCH="win32"
+fi
+
+system32="$WINEPREFIX/drive_c/windows/system32"
+flashconfig="$system32/Macromed/Flash/mms.cfg"
+
+while true; do
+	hwaccel="disabled"
+	if grep -q "OverrideGPUValidation=true" "$flashconfig" 2>/dev/null; then
+		hwaccel="enabled"
+	fi
+
+	echo ""
+	echo "Flash hardware acceleration is currently $hwaccel in the config file."
+
+	read -p "[enable/disable/abort]? " hwaccel_new
+	if [ -z "$hwaccel_new" ] || [ "$hwaccel_new" == "abort" ]; then break; fi
+
+	(
+		grep -v "^OverrideGPUValidation=" "$flashconfig" 2>/dev/null
+		if [ "$hwaccel_new" == "disable" ]; then
+			echo "OverrideGPUValidation=false"
+		else
+			echo "OverrideGPUValidation=true"
+		fi
+	) > "$flashconfig.new"
+
+	if ! mv "$flashconfig.new" "$flashconfig"; then
+		echo "ERROR: Unable to change Flash plugin settings." >&2
+	fi
+done
+

@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+
+# Don't run this as root
+if [ $(/usr/bin/id -u) -eq 0 ]; then
+	echo "ERROR: You should not run this as root!" >&2
+	exit 1
+fi
+
+# Check for environment variables
+if [ -z "$WINE" ]; then
+	export WINE="/opt/wine-compholio/bin/wine"
+fi
+if [ -z "$WINEPREFIX" ]; then
+	export WINEPREFIX="$HOME/.wine-pipelight"
+fi
+if [ -z "$WINEARCH" ]; then
+	export WINEARCH="win32"
+fi
+
+tmpfile=$(mktemp)
+[ -f "$tmpfile" ] || exit 1
+
+while true; do
+	hwaccel="enabled"
+	"$WINE" regedit /E "$tmpfile" "HKEY_CURRENT_USER\\Software\\Microsoft\\Silverlight"
+	if [ $? -eq 0 ]; then
+		if grep -q "\"DisableGPUAcceleration\"=dword:00000001" "$tmpfile"; then
+			hwaccel="disabled"
+		elif grep -q "\"ForceGPUAcceleration\"=dword:00000001" "$tmpfile"; then
+			hwaccel="forced"
+		fi
+	fi
+
+	echo ""
+	echo "Silverlight hardware acceleration is currently $hwaccel in the registry."
+	if [ "$hwaccel" == "enabled" ]; then
+		echo "Please note that it will not be used unless your graphic card is whitelisted."
+	fi
+
+	read -p "[enable/disable/force/abort]? " hwaccel_new
+	if [ -z "$hwaccel_new" ] || [ "$hwaccel_new" == "abort" ]; then break; fi
+
+	( 
+		echo "REGEDIT4"
+		echo ""
+		echo "[HKEY_CURRENT_USER\\Software\\Microsoft\\Silverlight]"
+		[ "$hwaccel_new" != "disable" ]
+		echo "\"DisableGPUAcceleration\"=dword:0000000$?"
+		[ "$hwaccel_new" != "force" ]
+		echo "\"ForceGPUAcceleration\"=dword:0000000$?"
+	) > "$tmpfile"
+
+	"$WINE" regedit "$tmpfile"
+	if [ $? -ne 0 ]; then
+		echo "ERROR: Unable to change Silverlight plugin settings." >&2
+	fi
+done
+
+# Cleanup
+rm "$tmpfile"
+
+exit 0

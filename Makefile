@@ -36,7 +36,6 @@ install: all
 
 	install -m 0755 misc/install-dependency "$(DESTDIR)$(prefix)/share/pipelight/install-dependency"
 	install -m 0755 misc/hw-accel-default "$(DESTDIR)$(prefix)/share/pipelight/hw-accel-default"
-	install -m 0755 misc/hw-accel-change "$(DESTDIR)$(prefix)/share/pipelight/hw-accel-change"
 
 	test -d "$(DESTDIR)$(prefix)/bin/" || mkdir -p "$(DESTDIR)$(prefix)/bin/"
 	sed    's|@@PLUGIN_SYSTEM_PATH@@|$(prefix)/lib/pipelight/|g' misc/pipelight-plugin > pipelight-plugin.tmp
@@ -52,7 +51,6 @@ uninstall:
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/pipelight-*"
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/install-dependency"
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/hw-accel-default"
-	rm -f "$(DESTDIR)$(prefix)/share/pipelight/hw-accel-change"
 	rmdir --ignore-fail-on-non-empty "$(DESTDIR)$(prefix)/share/pipelight"
 
 	rm -f "$(DESTDIR)$(prefix)/bin/pipelight-plugin"
