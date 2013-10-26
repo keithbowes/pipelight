@@ -47,6 +47,7 @@ struct PluginConfig{
 
 	bool 			experimental_usermodeTimer;
 	bool 			experimental_renderTopLevelWindow;
+	bool 			experimental_unityHacks;
 };
 
 extern bool loadConfig(PluginConfig &config);

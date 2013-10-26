@@ -470,6 +470,9 @@ bool startWineProcess(){
 		if (config.experimental_renderTopLevelWindow)
 			argv.push_back( "--rendertoplevelwindow" );
 
+		if (config.experimental_unityHacks)
+			argv.push_back( "--unityhacks" );
+
 		argv.push_back(NULL);	
 
 		// Execute wine

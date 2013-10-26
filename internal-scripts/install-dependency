@@ -20,6 +20,8 @@ usage()
 	echo "	wine-wininet-installer"
 	echo "	wine-browser-installer"
 	echo "	wine-flash-installer"
+	echo "	wine-shockwave-installer"
+	echo "	wine-unity3d-installer"
 	echo ""
 }
 
@@ -409,6 +411,30 @@ install_shockwave()
 	return 0
 }
 
+# > Install Unity3D
+# arguments: None
+# $DOWNLOADFILE
+install_unity3d()
+{
+	VER="$1"
+
+	# Launch the installer
+	if [ "$QUIETINSTALLATION" -eq 0 ]; then
+		"$WINE" "$DOWNLOADFILE" /AllUsers 2>&1
+	else
+		"$WINE" "$DOWNLOADFILE" /S /AllUsers 2>&1 | progressbar "Please wait, installing ..." "Running $DEP"
+	fi
+
+	local installdir="$WINEPREFIX/drive_c/Program Files/Unity/WebPlayer/loader"
+	if [ ! -f "$installdir/npUnity3D32.dll" ]; then
+		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
+		return 1
+	fi
+
+	# Successful
+	return 0
+}
+
 # Check if some visual feedback is possible
 if command -v zenity >/dev/null 2>&1; then
 	progressbar()
@@ -553,6 +579,11 @@ while [ $# -gt 0 ] ; do
 			INS=(install_shockwave "1204144")
 			URL="http://fpdownload.macromedia.com/get/shockwave/default/english/win95nt/latest/sw_lic_full_installer.exe"
 			SHA="d75fc76df87fb9991cf021dd08d2a558ffa6c47b1ac133e3f33efe65fc6dfa39"
+			;;
+		wine-unity3d-installer)
+			INS=(install_unity3d)
+			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayer.exe"
+			SHA="cd1d1a492b1b6c4891902f76477809b696cd812c1edb85085135d46fb1c10b38"
 			;;
 		*)
 			echo "[$PRG] ERROR: No installer script found for $DEP." >&2

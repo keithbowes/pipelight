@@ -28,6 +28,7 @@ bool isWindowlessMode	= false;
 bool isEmbeddedMode		= false;
 bool usermodeTimer      = false;
 bool renderTopLevelWindow = false;
+bool unityHacks 		= false;
 
 char strUserAgent[1024] = {0};
 
@@ -397,6 +398,9 @@ int main(int argc, char *argv[]){
 		}else if (arg == "--rendertoplevelwindow"){
 			renderTopLevelWindow = true;
 
+		}else if (arg == "--unityhacks"){
+			unityHacks = true;
+
 		}
 	}
 
@@ -460,6 +464,7 @@ int main(int argc, char *argv[]){
 
 	// Install hooks
 	if (usermodeTimer) installTimerHook();
+	if (unityHacks) installUnityHooks();
 
 	installPopupHook();
 

@@ -4,5 +4,6 @@
 extern bool installTimerHook();
 extern bool handleTimerEvents();
 extern bool installPopupHook();
+extern bool installUnityHooks();
 
 #endif // ApiHook_h_
