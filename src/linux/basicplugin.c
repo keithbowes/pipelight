@@ -617,6 +617,10 @@ void dispatcher(int functionid, Stack &stack){
 
 						XReparentWindow(display, win, parentWindow, 0, 0);
 
+						// QtGui.QX11EmbedContainer doesn't send this on an Reparent event, so we do this on our own
+						if (parentWindow != pdata->container)
+							sendXembedMessage(display, win, XEMBED_EMBEDDED_NOTIFY, 0, parentWindow, 0);
+
 						/*
 						sendXembedMessage(display, win, XEMBED_EMBEDDED_NOTIFY, 0, parentWindow, 0);
 						sendXembedMessage(display, win, XEMBED_FOCUS_IN, 		XEMBED_FOCUS_CURRENT, 0, 0);
