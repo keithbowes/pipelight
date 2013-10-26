@@ -380,6 +380,7 @@ OpenInputDesktopPtr originalOpenInputDesktop = NULL;
 	but I tested it several times and Unity was always able to update.
 */
 BOOL WINAPI mySetNamedPipeHandleState(HANDLE hNamedPipe, LPDWORD lpMode, LPDWORD lpMaxCollectionCount, LPDWORD lpCollectDataTimeout){
+	originalSetNamedPipeHandleState(hNamedPipe, lpMode, lpMaxCollectionCount, lpCollectDataTimeout);
 	return true;
 }
 
@@ -389,7 +390,13 @@ BOOL WINAPI mySetNamedPipeHandleState(HANDLE hNamedPipe, LPDWORD lpMode, LPDWORD
 	all functions which use an input desktop we simply return a fake handle.
 */
 HDESK WINAPI myOpenInputDesktop(DWORD dwFlags, BOOL fInherit, ACCESS_MASK dwDesiredAccess){
-	return (HDESK)0xFFFFFFFF;
+	HDESK res = originalOpenInputDesktop(dwFlags, fInherit, dwDesiredAccess);
+
+	// Return value 0 will cause problems, return fake handle instead
+	if (!res)
+		res = (HDESK)0xFFFFFFFF;
+
+	return res;
 }
 
 bool installUnityHooks(){
