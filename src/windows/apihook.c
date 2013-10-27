@@ -392,9 +392,17 @@ BOOL WINAPI mySetNamedPipeHandleState(HANDLE hNamedPipe, LPDWORD lpMode, LPDWORD
 HDESK WINAPI myOpenInputDesktop(DWORD dwFlags, BOOL fInherit, ACCESS_MASK dwDesiredAccess){
 	HDESK res = originalOpenInputDesktop(dwFlags, fInherit, dwDesiredAccess);
 
-	// Return value 0 will cause problems, return fake handle instead
+	/*
+		The Return value 0 will cause problems with some games, so we return
+		the Desktop used by the current thread instead, since this function is
+		implemented in Wine. The MSDN states that a handle returned by
+		GetThreadDesktop() does not need to be closed with CloseDesktop() in
+		contrary to OpenInputDesktop(), but Wine increases the refcounter on the
+		handle when GetThreadDesktop() is called. This bug (?) allows us to
+		treat the handle returned by GetThreadDesktop() as a new handle.
+	*/
 	if (!res)
-		res = (HDESK)0xFFFFFFFF;
+		res = GetThreadDesktop(GetCurrentThreadId());
 
 	return res;
 }
