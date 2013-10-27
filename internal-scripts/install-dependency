@@ -355,6 +355,7 @@ install_flash()
 		return 1
 	fi
 
+	local flashconfig="$installdir/mms.cfg"
 	if ! grep -q "^OverrideGPUValidation=" "$flashconfig" 2>/dev/null; then
 		(
 			grep -v "^OverrideGPUValidation=" "$flashconfig" 2>/dev/null
@@ -460,8 +461,8 @@ elif command -v kdialog >/dev/null 2>&1 && command -v qdbus >/dev/null 2>&1; the
 		(
 			local progress=1
 			while true; do
-				local err=$($QDBUSPATH $dcopref org.freedesktop.DBus.Properties.Set org.kde.kdialog.ProgressDialog value "$PROGRESS" 2>&1)
-				#if [ ! -z "$err" ]; then break; fi
+				$QDBUSPATH $dcopref org.freedesktop.DBus.Properties.Set org.kde.kdialog.ProgressDialog value "$progress" 2>&1 | grep -q "org.freedesktop.DBus.Properties.Set"
+				if [ $? -eq 0 ]; then break; fi
 
 				sleep 1
 
