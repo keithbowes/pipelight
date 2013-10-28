@@ -523,6 +523,7 @@ void setXembedWindowInfo(Display* display, Window win, int flags){
 	list[1] = flags;
 
 	XChangeProperty(display, win, xembedInfo, xembedInfo, 32, PropModeReplace, (unsigned char *)list, 2);
+	XSync(display, False);
 }
 
 void dispatcher(int functionid, Stack &stack){

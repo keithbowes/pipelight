@@ -325,7 +325,15 @@ BOOL WINAPI myTrackPopupMenu(HMENU hMenu, UINT uFlags, int x, int y, int nReserv
 		return originalTrackPopupMenu(hMenu, uFlags, x, y, nReserved, hWnd, prcRect);
 
 	// Find the specific instance
-	std::map<HWND, NPP>::iterator it = hwndToInstance.find(hWnd);
+	std::map<HWND, NPP>::iterator it;
+	HWND instancehWnd = hWnd;
+
+	while (instancehWnd && instancehWnd != GetDesktopWindow()){
+		it = hwndToInstance.find(instancehWnd);
+		if (it != hwndToInstance.end()) break;
+		instancehWnd = GetParent(instancehWnd);
+	}
+
 	if (it == hwndToInstance.end())
 		return originalTrackPopupMenu(hMenu, uFlags, x, y, nReserved, hWnd, prcRect);
 
