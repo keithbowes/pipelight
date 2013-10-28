@@ -472,7 +472,7 @@ elif command -v kdialog >/dev/null 2>&1 && command -v qdbus >/dev/null 2>&1; the
 		) &
 		local dialogpid="$!"
 
-		cat - > /dev/null
+		cat -
 		
 		kill "$dialogpid"
 		$QDBUSPATH $dcopref org.kde.kdialog.ProgressDialog.close  &> /dev/null

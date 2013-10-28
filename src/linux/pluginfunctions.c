@@ -556,6 +556,11 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window) {
 NPError NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool seekable, uint16_t* stype) {
 	DBG_TRACE("( instance=%p, type='%s', stream=%p, seekable=%d, stype=%p )", instance, type, stream, seekable, stype);
 
+	if (handleManager_existsByPtr(HMGR_TYPE_NPStream, stream)){
+		DBG_ERROR("Chrome notification for existing stream bug!");
+		NPP_DestroyStream(instance, stream, NPRES_DONE);
+	}
+
 	writeInt32(seekable);
 	writeHandleStream(stream);
 	writeString(type);
