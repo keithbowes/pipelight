@@ -399,13 +399,13 @@ install_shockwave()
 	(
 		echo "REGEDIT4"
 		echo ""
-		echo "[HKEY_CURRENT_USER\Software\Adobe\Shockwave 12\allowfallback]"
+		echo "[HKEY_CURRENT_USER\\Software\\Adobe\\Shockwave 12\\allowfallback]"
 		echo "@=\"n\""
 		echo ""
-		echo "[HKEY_CURRENT_USER\Software\Adobe\Shockwave 12\renderer3dsetting]"
+		echo "[HKEY_CURRENT_USER\\Software\\Adobe\\Shockwave 12\\renderer3dsetting]"
 		echo "@=\"2\""
 		echo ""
-		echo "[HKEY_CURRENT_USER\Software\Adobe\Shockwave 12\renderer3dsettingPerm]"
+		echo "[HKEY_CURRENT_USER\\Software\\Adobe\\Shockwave 12\\renderer3dsettingPerm]"
 		echo "@=\"2\""
 	) > "$tmpfile"
 
