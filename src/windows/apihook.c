@@ -385,25 +385,56 @@ bool installPopupHook(){
 	return (originalTrackPopupMenuEx && originalTrackPopupMenu);
 }
 
-/* -------- RegisterClass(Ex) hooks --------*/
+/* -------- CreateWindowEx hooks --------*/
 
-static const char original_wnd_proc[] = "__pipelight_original_wnd_proc";
+typedef HWND (* WINAPI CreateWindowExAPtr)(DWORD dwExStyle, LPCTSTR lpClassName, LPCTSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
+typedef HWND (* WINAPI CreateWindowExWPtr)(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
+
+CreateWindowExAPtr originalCreateWindowExA = NULL;
+CreateWindowExWPtr originalCreateWindowExW = NULL;
+
+std::map<HWND, WNDPROC> prevWndProcMap;
+CRITICAL_SECTION        prevWndProcCS;
 
 LRESULT CALLBACK wndHookProcedureA(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam){
-	WNDPROC prevWndProc = (WNDPROC)GetPropA(hWnd, original_wnd_proc);
-	if (!prevWndProc) return 0;
+	WNDPROC prevWndProc = NULL;
 
-	if (stayInFullscreen && Msg == WM_KILLFOCUS)
+	EnterCriticalSection(&prevWndProcCS);
+
+	std::map<HWND, WNDPROC>::iterator it = prevWndProcMap.find(hWnd);
+	if (it != prevWndProcMap.end()){
+		prevWndProc = it->second;
+		if (Msg == WM_DESTROY){
+			prevWndProcMap.erase(it);
+			DBG_TRACE("fullscreen window %p has been destroyed.", hWnd);
+		}
+	}
+
+	LeaveCriticalSection(&prevWndProcCS);
+
+	if (!prevWndProc || (stayInFullscreen && Msg == WM_KILLFOCUS))
 		return 0;
 
 	return CallWindowProcA(prevWndProc, hWnd, Msg, wParam, lParam);
 }
 
 LRESULT CALLBACK wndHookProcedureW(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam){
-	WNDPROC prevWndProc = (WNDPROC)GetPropA(hWnd, original_wnd_proc);
-	if (!prevWndProc) return 0;
+	WNDPROC prevWndProc = NULL;
 
-	if (stayInFullscreen && Msg == WM_KILLFOCUS)
+	EnterCriticalSection(&prevWndProcCS);
+
+	std::map<HWND, WNDPROC>::iterator it = prevWndProcMap.find(hWnd);
+	if (it != prevWndProcMap.end()){
+		prevWndProc = it->second;
+		if (Msg == WM_DESTROY){
+			prevWndProcMap.erase(it);
+			DBG_TRACE("fullscreen window %p has been destroyed.", hWnd);
+		}
+	}
+
+	LeaveCriticalSection(&prevWndProcCS);
+
+	if (!prevWndProc || (stayInFullscreen && Msg == WM_KILLFOCUS))
 		return 0;
 
 	return CallWindowProcW(prevWndProc, hWnd, Msg, wParam, lParam);
@@ -414,17 +445,17 @@ bool hookFullscreenClass(HWND hWnd, std::string classname, bool unicode){
 	if (classname != "AGFullScreenWinClass" && classname != "ShockwaveFlashFullScreen")
 		return false;
 
-	DBG_INFO("hooking hWnd %p with classname '%s'", hWnd, classname.c_str());
+	DBG_INFO("hooking fullscreen window with hWnd %p and classname '%s'.", hWnd, classname.c_str());
+
+	// Create the actual hook
 	WNDPROC prevWndProc = (WNDPROC)SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR)(unicode ? &wndHookProcedureW : &wndHookProcedureA));
-	SetPropA(hWnd, original_wnd_proc, (HANDLE)prevWndProc);
+	
+	EnterCriticalSection(&prevWndProcCS);
+	prevWndProcMap[hWnd] = prevWndProc;
+	LeaveCriticalSection(&prevWndProcCS);
+
 	return true;
 }
-
-typedef HWND (* WINAPI CreateWindowExAPtr)(DWORD dwExStyle, LPCTSTR lpClassName, LPCTSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
-typedef HWND (* WINAPI CreateWindowExWPtr)(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
-
-CreateWindowExAPtr originalCreateWindowExA = NULL;
-CreateWindowExWPtr originalCreateWindowExW = NULL;
 
 HWND WINAPI myCreateWindowExA(DWORD dwExStyle, LPCTSTR lpClassName, LPCTSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam){
 	HWND hWnd = originalCreateWindowExA(dwExStyle, lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
@@ -450,34 +481,6 @@ HWND WINAPI myCreateWindowExW(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWi
 	return hWnd;
 }
 
-/*typedef ATOM (* WINAPI RegisterClassExAPtr)(WNDCLASSEXA *lpWndCls);
-typedef ATOM (* WINAPI RegisterClassExWPtr)(WNDCLASSEXW *lpWndCls);
-typedef ATOM (* WINAPI RegisterClassAPtr)(WNDCLASSA *lpWndCls);
-typedef ATOM (* WINAPI RegisterClassWPtr)(WNDCLASSW *lpWndCls);
-
-RegisterClassExAPtr originalRegisterClassExA = NULL;
-RegisterClassExWPtr originalRegisterClassExW = NULL;
-RegisterClassAPtr   originalRegisterClassA = NULL;
-RegisterClassWPtr   originalRegisterClassW = NULL;
-
-ATOM WINAPI myRegisterClassExA(WNDCLASSEXA *lpWndCls){
-	return originalRegisterClassExA(lpWndCls);
-}
-
-ATOM WINAPI myRegisterClassExW(WNDCLASSEXW *lpWndCls){
-	return originalRegisterClassExW(lpWndCls);
-}
-
-ATOM WINAPI myRegisterClassA(WNDCLASSA *lpWndCls){
-	return originalRegisterClassA(lpWndCls);
-}
-
-ATOM WINAPI myRegisterClassW(WNDCLASSW *lpWndCls){
-	return originalRegisterClassW(lpWndCls);
-}
-*/
-
-
 bool installWindowClassHook(){
 	HMODULE user32 = LoadLibrary("user32.dll");
 
@@ -490,19 +493,7 @@ bool installWindowClassHook(){
 	if (!originalCreateWindowExW)
 		originalCreateWindowExW     = (CreateWindowExWPtr)patchDLLExport(user32, "CreateWindowExW", (void*)&myCreateWindowExW);
 
-	/*
-	if(!originalRegisterClassExA)
-		originalRegisterClassExA    = (RegisterClassExAPtr)patchDLLExport(user32,   "RegisterClassExA", (void*)&myRegisterClassExA);
-
-	if(!originalRegisterClassExW)
-		originalRegisterClassExW    = (RegisterClassExWPtr)patchDLLExport(user32,   "RegisterClassExW", (void*)&myRegisterClassExW);
-
-	if(!originalRegisterClassA)
-		originalRegisterClassA    	= (RegisterClassAPtr)patchDLLExport(user32,   "RegisterClassA", (void*)&myRegisterClassA);
-
-	if(!originalRegisterClassW)
-		originalRegisterClassW    	= (RegisterClassWPtr)patchDLLExport(user32,   "RegisterClassW", (void*)&myRegisterClassW);
-	*/
+	InitializeCriticalSection(&prevWndProcCS);
 
 	return (originalCreateWindowExA && originalCreateWindowExW);
 }
