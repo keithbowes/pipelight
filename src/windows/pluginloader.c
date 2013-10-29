@@ -60,107 +60,98 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 
 	// Only messages with a hwnd can be relevant in windowlessmode mode
 	if (hWnd){
-
-		// Find the specific instance
 		std::map<HWND, NPP>::iterator it = hwndToInstance.find(hWnd);
 		if (it != hwndToInstance.end()){
-			NPP instance = it->second;
-
-			// Get netscape data
+			NPP instance 		= it->second;
 			NetscapeData* ndata = (NetscapeData*)instance->ndata;
-			if (ndata && ndata->window){
 
-				// Handle events in windowless mode
-				if (ndata->windowlessMode && ndata->window){
-					NPWindow* window = ndata->window;
+			if (ndata && ndata->windowlessMode && ndata->window){
+				NPWindow* window = ndata->window;
 
-					// Paint event
-					if (Msg == WM_PAINT){
+				// Paint event
+				if (Msg == WM_PAINT){
+					RECT rect;
+					PAINTSTRUCT paint;
+					HDC hDC;
 
-						RECT rect;
-						PAINTSTRUCT paint;
-						HDC hDC;
+					if (GetClientRect(hWnd, &rect)) {
+						
+						hDC = BeginPaint(hWnd, &paint);
+						if (hDC != NULL){
 
-						if (GetClientRect(hWnd, &rect)) {
-							
-							hDC = BeginPaint(hWnd, &paint);
-							if (hDC != NULL){
-
-								// Save the previous DC (or allocate a new one)
-								HDC previousDC;
-								if (window->type == NPWindowTypeDrawable){
-									previousDC = (HDC)window->window;
-								}else{
-									previousDC = GetDC(hWnd);
-								}
-
-								window->window 				= hDC;
-								window->x 					= 0;
-								window->y 					= 0;
-								window->width 				= rect.right;
-								window->height 				= rect.bottom;
-								window->clipRect.top 		= 0;
-								window->clipRect.left 		= 0;
-								window->clipRect.right 		= rect.right;
-								window->clipRect.bottom 	= rect.bottom;
-								window->type 				= NPWindowTypeDrawable;
-								pluginFuncs.setwindow(instance, window);
-
-								NPRect nRect;
-								nRect.top 		= paint.rcPaint.top;
-								nRect.left 		= paint.rcPaint.left;
-								nRect.bottom 	= paint.rcPaint.bottom;
-								nRect.right 	= paint.rcPaint.right;
-
-								NPEvent event;
-								event.event 	= Msg;
-								event.wParam 	= (uintptr_t)hDC;
-								event.lParam 	= (uintptr_t)&nRect;
-								pluginFuncs.event(instance, &event);
-
-								EndPaint(hWnd, &paint);
-
-								// Restore the previous DC
-								window->window = previousDC;
-								pluginFuncs.setwindow(instance, window);
-
+							// Save the previous DC (or allocate a new one)
+							HDC previousDC;
+							if (window->type == NPWindowTypeDrawable){
+								previousDC = (HDC)window->window;
+							}else{
+								previousDC = GetDC(hWnd);
 							}
 
-							return 0;
-						}
+							window->window 				= hDC;
+							window->x 					= 0;
+							window->y 					= 0;
+							window->width 				= rect.right;
+							window->height 				= rect.bottom;
+							window->clipRect.top 		= 0;
+							window->clipRect.left 		= 0;
+							window->clipRect.right 		= rect.right;
+							window->clipRect.bottom 	= rect.bottom;
+							window->type 				= NPWindowTypeDrawable;
+							pluginFuncs.setwindow(instance, window);
 
-					// All other events
-					}else{
+							NPRect nRect;
+							nRect.top 		= paint.rcPaint.top;
+							nRect.left 		= paint.rcPaint.left;
+							nRect.bottom 	= paint.rcPaint.bottom;
+							nRect.right 	= paint.rcPaint.right;
 
-						// Workaround for Silverlight - the events are not correctly handled if
-						// window->window is nonzero
-						// Set it to zero before calling the event handler in this case
+							NPEvent event;
+							event.event 	= Msg;
+							event.wParam 	= (uintptr_t)hDC;
+							event.lParam 	= (uintptr_t)&nRect;
+							pluginFuncs.event(instance, &event);
 
-						HDC previousDC = NULL;
+							EndPaint(hWnd, &paint);
 
-						if (window->type == NPWindowTypeDrawable &&
-							((Msg >= WM_KEYFIRST && Msg <= WM_KEYLAST) || (Msg >= WM_MOUSEFIRST && Msg <= WM_MOUSELAST )) ){
-
-							previousDC = (HDC)window->window;
-							window->window = NULL;
-						}
-
-						// Request the focus for the plugin window
-						if (Msg == WM_LBUTTONDOWN)
-							SetFocus(hWnd);
-
-						NPEvent event;
-						event.event 	= Msg;
-						event.wParam 	= wParam;
-						event.lParam 	= lParam;
-						int16_t result = pluginFuncs.event(instance, &event);
-
-						if (previousDC)
+							// Restore the previous DC
 							window->window = previousDC;
+							pluginFuncs.setwindow(instance, window);
 
-						if (result == kNPEventHandled) return 0;
+						}
 
+						return 0;
 					}
+
+				// All other events
+				}else{
+
+					// Workaround for Silverlight - the events are not correctly handled if
+					// window->window is nonzero
+					// Set it to zero before calling the event handler in this case
+
+					HDC previousDC = NULL;
+
+					if (window->type == NPWindowTypeDrawable &&
+						((Msg >= WM_KEYFIRST && Msg <= WM_KEYLAST) || (Msg >= WM_MOUSEFIRST && Msg <= WM_MOUSELAST )) ){
+
+						previousDC = (HDC)window->window;
+						window->window = NULL;
+					}
+
+					// Request the focus for the plugin window
+					if (Msg == WM_LBUTTONDOWN)
+						SetFocus(hWnd);
+
+					NPEvent event;
+					event.event 	= Msg;
+					event.wParam 	= wParam;
+					event.lParam 	= lParam;
+					int16_t result = pluginFuncs.event(instance, &event);
+
+					if (previousDC)
+						window->window = previousDC;
+
+					if (result == kNPEventHandled) return 0;
 
 				}
 
@@ -196,13 +187,11 @@ std::vector<std::string> splitMimeType(std::string input){
 	unsigned int i 		= 0;
 
 	while (i < input.length()){
-		while (i < input.length() && input[i] != '|'){
+		while (i < input.length() && input[i] != '|')
 			i++;
-		}
 
-		if (i - start > 0){
+		if (i - start > 0)
 			result.push_back(input.substr(start, i-start));
-		}
 
 		i++;
 		start = i;
