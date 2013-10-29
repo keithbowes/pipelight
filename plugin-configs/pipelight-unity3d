@@ -54,8 +54,8 @@ gccRuntimeDlls      = @@GCC_RUNTIME_DLLS@@
 # You should prefer using regKey and consider this option only if you have
 # multiple versions of the Unity3D plugin installed inside the Wineprefix.
 #
-# dllPath           = 
-# dllName           = 
+# dllPath           = C:\Program Files\Unity\WebPlayer\loader
+# dllName           = npUnity3D32.dll
 
 #
 # Name of the registry key at HKCU\Software\MozillaPlugins\ or
@@ -70,17 +70,18 @@ regKey              = @unity3d.com/UnityPlayer,version=1.0
 # fakeVersion allows to fake the version string of Unity3D
 # We don't know any reason why it would be necessary for Unity3D
 #
-# fakeVersion       = 
+# fakeVersion       = Unity Player 4.2.2f1
 
 #
 # overwriteArg allows to overwrite/add initialization arguments
 # passed by websites to Unity3D applications. You can
 # use this option as often as you want to overwrite multiple
 # parameters. For a list of useful values for Unity3D take a look at
-# TODO!
+# http://docs.unity3d.com/Documentation/Manual/WorkingwithUnityObject.html#constructor
+# under params
 #
 # Examples:
-# TODO!
+# overwriteArg      = disableContextMenu=false
 #
 
 #
