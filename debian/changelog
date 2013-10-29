@@ -20,6 +20,7 @@ pipelight-multi (0.2.1) UNRELEASED; urgency=low
     QT XEmbed libraries
   * Added experimental "Stay in fullscreen" context menu for Silverlight and
     Flash
+  * Fixed a bug where in windowlessmode the focus is not always set correctly
 
  -- Michael Mueller <michael@fds-team.de>  Mon, 14 Oct 2013 23:35:37 +0200
 
