@@ -422,13 +422,9 @@ bool hookFullscreenClass(HWND hWnd, std::string classname, bool unicode){
 
 typedef HWND (* WINAPI CreateWindowExAPtr)(DWORD dwExStyle, LPCTSTR lpClassName, LPCTSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
 typedef HWND (* WINAPI CreateWindowExWPtr)(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
-typedef HWND (* WINAPI CreateWindowAPtr)(LPCTSTR lpClassName, LPCTSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
-typedef HWND (* WINAPI CreateWindowWPtr)(LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
 
 CreateWindowExAPtr originalCreateWindowExA = NULL;
 CreateWindowExWPtr originalCreateWindowExW = NULL;
-CreateWindowAPtr   originalCreateWindowA = NULL;
-CreateWindowWPtr   originalCreateWindowW = NULL;
 
 HWND WINAPI myCreateWindowExA(DWORD dwExStyle, LPCTSTR lpClassName, LPCTSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam){
 	HWND hWnd = originalCreateWindowExA(dwExStyle, lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
@@ -448,36 +444,11 @@ HWND WINAPI myCreateWindowExW(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWi
 		char name[256];
 		WideCharToMultiByte(CP_ACP, 0, lpClassName, -1, name, sizeof(name), NULL, NULL);
 		std::string classname(name);
-		hookFullscreenClass(hWnd, classname, false);
+		hookFullscreenClass(hWnd, classname, true);
 	}
 
 	return hWnd;
 }
-
-HWND WINAPI myCreateWindowA(LPCTSTR lpClassName, LPCTSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam){
-	HWND hWnd = originalCreateWindowA(lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);	
-
-	if (!IS_INTRESOURCE(lpClassName)){
-		std::string classname(lpClassName);
-		hookFullscreenClass(hWnd, classname, false);
-	}
-
-	return hWnd;
-}
-
-HWND WINAPI myCreateWindowW(LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam){
-	HWND hWnd = originalCreateWindowW(lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);	
-
-	if (!IS_INTRESOURCE(lpClassName)){
-		char name[256];
-		WideCharToMultiByte(CP_ACP, 0, lpClassName, -1, name, sizeof(name), NULL, NULL);
-		std::string classname(name);
-		hookFullscreenClass(hWnd, classname, false);
-	}
-
-	return hWnd;
-}
-
 
 /*typedef ATOM (* WINAPI RegisterClassExAPtr)(WNDCLASSEXA *lpWndCls);
 typedef ATOM (* WINAPI RegisterClassExWPtr)(WNDCLASSEXW *lpWndCls);
@@ -519,12 +490,6 @@ bool installWindowClassHook(){
 	if (!originalCreateWindowExW)
 		originalCreateWindowExW     = (CreateWindowExWPtr)patchDLLExport(user32, "CreateWindowExW", (void*)&myCreateWindowExW);
 
-	if (!originalCreateWindowA)
-		originalCreateWindowA       = (CreateWindowAPtr)patchDLLExport(user32, "CreateWindowA", (void*)&myCreateWindowA);
-
-	if (!originalCreateWindowW)
-		originalCreateWindowW       = (CreateWindowWPtr)patchDLLExport(user32, "CreateWindowW", (void*)&myCreateWindowW);
-
 	/*
 	if(!originalRegisterClassExA)
 		originalRegisterClassExA    = (RegisterClassExAPtr)patchDLLExport(user32,   "RegisterClassExA", (void*)&myRegisterClassExA);
@@ -539,7 +504,7 @@ bool installWindowClassHook(){
 		originalRegisterClassW    	= (RegisterClassWPtr)patchDLLExport(user32,   "RegisterClassW", (void*)&myRegisterClassW);
 	*/
 
-	return (originalCreateWindowExA && originalCreateWindowExW && originalCreateWindowA && originalCreateWindowW);
+	return (originalCreateWindowExA && originalCreateWindowExW);
 }
 
 /* -------- Unity hooks --------*/
