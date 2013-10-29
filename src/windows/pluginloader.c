@@ -24,11 +24,18 @@ LPCTSTR ClsName = "VirtualBrowser";
 
 std::map<HWND, NPP> hwndToInstance;
 
+/* variables */
 bool isWindowlessMode	= false;
 bool isEmbeddedMode		= false;
+bool stayInFullscreen   = false;
+
+/* hooks */
 bool usermodeTimer      = false;
-bool renderTopLevelWindow = false;
 bool unityHacks 		= false;
+bool windowClassHook    = false;
+
+/* not implemented yet */
+bool renderTopLevelWindow = false;
 
 char strUserAgent[1024] = {0};
 
@@ -386,20 +393,26 @@ int main(int argc, char *argv[]){
 			if (i + 1 >= argc) break;
 			regKey  = std::string(argv[++i]);
 
+		/* variables */
 		}else if (arg == "--windowless"){
 			isWindowlessMode 	= true;
 
 		}else if (arg == "--embed"){
 			isEmbeddedMode 		= true;
 
+		/* hooks */
 		}else if (arg == "--usermodetimer"){
 			usermodeTimer 		= true;
+
+		}else if (arg == "--unityhacks"){
+			unityHacks = true;
+
+		}else if (arg == "--windowclasshook"){
+			windowClassHook = true;
 
 		}else if (arg == "--rendertoplevelwindow"){
 			renderTopLevelWindow = true;
 
-		}else if (arg == "--unityhacks"){
-			unityHacks = true;
 
 		}
 	}
@@ -433,7 +446,11 @@ int main(int argc, char *argv[]){
 
 	DBG_INFO("windowless mode       is %s.", (isWindowlessMode ? "on" : "off"));
 	DBG_INFO("embedded mode         is %s.", (isEmbeddedMode ? "on" : "off"));
+
 	DBG_INFO("usermode timer        is %s.", (usermodeTimer ? "on" : "off"));
+	DBG_INFO("unity hacks           is %s.", (unityHacks ? "on" : "off"));
+	DBG_INFO("window class hook     is %s.", (windowClassHook ? "on" : "off"));
+
 	DBG_INFO("render toplevelwindow is %s.", (renderTopLevelWindow ? "on" : "off"));
 
 	DBG_ASSERT(initCommIO(), "unable to initialize communication channel.");
@@ -463,8 +480,9 @@ int main(int argc, char *argv[]){
 	}
 
 	// Install hooks
-	if (usermodeTimer) installTimerHook();
-	if (unityHacks) installUnityHooks();
+	if (usermodeTimer) 		installTimerHook();
+	if (unityHacks) 		installUnityHooks();
+	if (windowClassHook) 	installWindowClassHook();
 
 	installPopupHook();
 
@@ -544,7 +562,7 @@ std::string convertToWindowsPath(const std::string &linux_path){
 		return "";
 	}
 
-	WideCharToMultiByte(CP_UNIXCP, 0, windows_path, -1, (char*)&path, sizeof(path), NULL, NULL);
+	WideCharToMultiByte(CP_UNIXCP, 0, windows_path, -1, path, sizeof(path), NULL, NULL);
 	HeapFree(GetProcessHeap(), 0, windows_path);
 
 	return std::string(path);

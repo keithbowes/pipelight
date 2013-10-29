@@ -255,8 +255,9 @@ bool loadConfig(PluginConfig &config){
 	config.silverlightGraphicDriverCheck = "";
 
 	config.experimental_usermodeTimer = false;
-	config.experimental_renderTopLevelWindow = false;
 	config.experimental_unityHacks = false;
+	config.experimental_windowClassHook = false;
+	config.experimental_renderTopLevelWindow = false;
 
 	std::ifstream 	configFile;
 
@@ -393,13 +394,17 @@ bool loadConfig(PluginConfig &config){
 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 			config.experimental_usermodeTimer = (value == "true" || value == "yes");
 
-		}else if (key == "experimental-rendertoplevelwindow"){
-			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
-			config.experimental_renderTopLevelWindow = (value == "true" || value == "yes");
-
 		}else if (key == "experimental-unityhacks"){
 			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 			config.experimental_unityHacks = (value == "true" || value == "yes");
+
+		}else if (key == "experimental-windowclasshook"){
+			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+			config.experimental_windowClassHook = (value == "true" || value == "yes");
+
+		}else if (key == "experimental-rendertoplevelwindow"){
+			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+			config.experimental_renderTopLevelWindow = (value == "true" || value == "yes");
 
 		}else{
 			DBG_WARN("unrecognized configuration key '%s'.", key.c_str());

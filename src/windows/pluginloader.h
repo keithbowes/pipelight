@@ -7,9 +7,18 @@
 
 extern std::map<HWND, NPP> hwndToInstance;
 
+
+/* variables */
 extern bool isWindowlessMode;
 extern bool isEmbeddedMode;
+extern bool stayInFullscreen;
+
+/* hooks */
 extern bool usermodeTimer;
+extern bool unityHacks;
+extern bool windowClassHook;
+
+/* not implemented yet */
 extern bool renderTopLevelWindow;
 
 extern char strUserAgent[1024];

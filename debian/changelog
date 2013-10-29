@@ -18,6 +18,8 @@ pipelight-multi (0.2.1) UNRELEASED; urgency=low
   * Updated the wine-compholio patches to work around problems with multiple
     browser tabs and the flash plugin, moreover to fix a bug related to the
     QT XEmbed libraries
+  * Added experimental "Stay in fullscreen" context menu for Silverlight and
+    Flash
 
  -- Michael Mueller <michael@fds-team.de>  Mon, 14 Oct 2013 23:35:37 +0200
 

@@ -467,11 +467,14 @@ bool startWineProcess(){
 		if (config.experimental_usermodeTimer)
 			argv.push_back( "--usermodetimer" );
 
-		if (config.experimental_renderTopLevelWindow)
-			argv.push_back( "--rendertoplevelwindow" );
-
 		if (config.experimental_unityHacks)
 			argv.push_back( "--unityhacks" );
+
+		if (config.experimental_windowClassHook)
+			argv.push_back( "--windowclasshook" );
+
+		if (config.experimental_renderTopLevelWindow)
+			argv.push_back( "--rendertoplevelwindow" );
 
 		argv.push_back(NULL);	
 

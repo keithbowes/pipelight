@@ -46,8 +46,9 @@ struct PluginConfig{
 	std::string		silverlightGraphicDriverCheck;
 
 	bool 			experimental_usermodeTimer;
-	bool 			experimental_renderTopLevelWindow;
 	bool 			experimental_unityHacks;
+	bool            experimental_windowClassHook;
+	bool 			experimental_renderTopLevelWindow;
 };
 
 extern bool loadConfig(PluginConfig &config);
