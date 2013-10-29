@@ -76,11 +76,23 @@ regKey              = @adobe.com/ShockwavePlayer
 # overwriteArg allows to overwrite/add initialization arguments
 # passed by websites to Shockwave applications. You can
 # use this option as often as you want to overwrite multiple
-# parameters. For a list of useful values for Shockwave take a look at
-# TODO!
+# parameters. Shockwave encapsulates most shockwave parameters into
+# the swremote parameter. It is therefore only possible to overwrite
+# all of the swremote subkeys or none.
 #
-# Examples:
-# TODO!
+# The subkeys which we found are:
+# swSaveEnabled
+# swVolume
+# swRestart
+# swPausePlay
+# swFastForward
+# swContextMenu
+#
+# Some more information about this topic are available at
+# http://www.director-online.com/buildArticle.php?id=357
+#
+# Example:
+# overwriteArg = swremote="swSaveEnabled='true' swVolume='true' swRestart='true' swPausePlay='true' swFastForward='true' swContextMenu='true'"
 #
 
 #
