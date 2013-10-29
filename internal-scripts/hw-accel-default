@@ -17,6 +17,10 @@ case "${OGL_VENDOR}" in
 		# tested with OGL_RENDERER "Gallium 0.4 on NV94", OGL_VERSION "3.1 (Core Profile) Mesa 9.2.1"
 		exit 0;
 	;;
+	"Tungsten Graphics, Inc")
+		# tested with OGL_RENDERER "Mesa DRI Intel(R) 945GME x86/MMX/SSE2", OGL_VERSION "1.4 Mesa 8.0.4"
+		exit 0;
+	;;
 esac
 
 # tested systems known NOT to work:
