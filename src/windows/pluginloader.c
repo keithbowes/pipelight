@@ -145,6 +145,10 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 							window->window = NULL;
 						}
 
+						// Request the focus for the plugin window
+						if (Msg == WM_LBUTTONDOWN)
+							SetFocus(hWnd);
+
 						NPEvent event;
 						event.event 	= Msg;
 						event.wParam 	= wParam;
