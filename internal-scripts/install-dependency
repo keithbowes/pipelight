@@ -580,9 +580,9 @@ while [ $# -gt 0 ] ; do
 			SHA="3e8d832591aff54510f9904b6348e2e2351a28a4ef137f4f19535b747c00c89e"
 			;;
 		wine-shockwave-installer)
-			INS=(install_shockwave "1204144")
+			INS=(install_shockwave "1205146")
 			URL="http://fpdownload.macromedia.com/get/shockwave/default/english/win95nt/latest/sw_lic_full_installer.exe"
-			SHA="d75fc76df87fb9991cf021dd08d2a558ffa6c47b1ac133e3f33efe65fc6dfa39"
+			SHA="ea035a18f9895ec2212878cc554a5e804c50498025ab8f53871965a9c8e636ec"
 			;;
 		wine-unity3d-installer)
 			INS=(install_unity3d)
