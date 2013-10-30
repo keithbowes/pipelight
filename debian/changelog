@@ -1,4 +1,4 @@
-pipelight-multi (0.2.1) UNRELEASED; urgency=low
+pipelight-multi (0.2.1) RELEASED; urgency=medium
 
   * Added shockwave and unity3d plugin (including installer)
   * Added wine-wininet-installer to work around some bugs in the wine
@@ -22,7 +22,7 @@ pipelight-multi (0.2.1) UNRELEASED; urgency=low
     Flash
   * Fixed a bug where in windowlessmode the focus is not always set correctly
 
- -- Michael Mueller <michael@fds-team.de>  Mon, 14 Oct 2013 23:35:37 +0200
+ -- Michael Mueller <michael@fds-team.de>  Wed, 30 Oct 2013 18:47:18 +0100
 
 
 pipelight-multi (0.2.0) RELEASED; urgency=low
