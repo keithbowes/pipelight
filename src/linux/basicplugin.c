@@ -348,7 +348,7 @@ bool checkSilverlightGraphicDriver(){
 		
 	if (config.silverlightGraphicDriverCheck == "/bin/false"){
 		DBG_INFO("GPU driver check - Manually set to /bin/false.");
-		return true;
+		return false;
 	}
 
 	if (!checkIfExists(config.silverlightGraphicDriverCheck)){

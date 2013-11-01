@@ -1,3 +1,10 @@
+pipelight-multi (0.2.2) UNRELEASED; urgency=medium
+
+  * Fixed an error when the gpu acceleration check is set to /bin/false
+
+ -- Michael Mueller <michael@fds-team.de>  Wed, 30 Oct 2013 18:47:18 +0100
+
+
 pipelight-multi (0.2.1) RELEASED; urgency=medium
 
   * Added shockwave and unity3d plugin (including installer)
