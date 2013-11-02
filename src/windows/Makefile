@@ -1,14 +1,21 @@
-
-ifeq ($(USE_WINEGCC),1)
-	CXX 	:= wineg++ -m32
-else
-	CXX 	:= i686-w64-mingw32-g++
-endif
-
+CXX			:= $(win32cxx)
 CXXFLAGS	:= -Wall -DXP_WIN=1 -std=gnu++0x -D_WIN32_WINNT=0x0502 $(win32flags) $(CXXFLAGS)
 LDFLAGS 	:= -lversion -lgdi32 -lole32 #$(LDFLAGS)
 OBJECTS 	:= common.o npclass.o npnfunctions.o apihook.o
 COMMONHDR	:= ../common/common.h ../npapi-headers/npapi.h ../npapi-headers/npfunctions.h ../npapi-headers/npruntime.h ../npapi-headers/nptypes.h
+
+ifeq ($(win32cxx),prebuilt)
+
+pluginloader.exe:
+
+.PHONY: all
+all: pluginloader.exe
+
+.PHONY: clean
+clean:
+	rm -f *.o
+
+else
 
 pluginloader.exe: pluginloader.c pluginloader.h apihook.h $(OBJECTS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) pluginloader.c $(OBJECTS) $(LDFLAGS) -o pluginloader.exe
@@ -30,4 +37,6 @@ all: pluginloader.exe
 
 .PHONY: clean
 clean:
-	rm -f pluginloader.exe *.o
+	rm -f pluginloader.exe pluginloader.exe.so *.o
+
+endif

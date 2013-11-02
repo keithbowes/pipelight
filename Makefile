@@ -6,13 +6,23 @@ PLUGIN_SCRIPTS=$(wildcard plugin-scripts/*)
 
 version=unknown
 prefix=/usr/local/
-winepath=/opt/wine-compholio/bin/wine
 mozpluginpath=/usr/lib/mozilla/plugins
 gccruntimedlls=/usr/lib/gcc/i686-w64-mingw32/4.6/
+winepath=/opt/wine-compholio/bin/wine
 quietinstallation=true
+win32cxx=i686-w64-mingw32-g++
 win32flags=
+pluginloader=pluginloader.exe
+nogpuaccel=false
 
 -include config.make
+
+ifeq ($(nogpuaccel),true)
+	hwacceldefault=/bin/false
+else
+	hwacceldefault=$(prefix)/share/pipelight/hw-accel-default
+endif
+
 
 export
 all: $(SUBDIRS)	
@@ -25,12 +35,12 @@ install: all
 	test -d "$(DESTDIR)$(prefix)/bin/" || mkdir -p "$(DESTDIR)$(prefix)/bin/"
 	test -d "$(DESTDIR)$(prefix)/lib/pipelight" || mkdir -p "$(DESTDIR)$(prefix)/lib/pipelight"
 
-	install -m 0644 src/windows/pluginloader.exe "$(DESTDIR)$(prefix)/share/pipelight/pluginloader.exe"
+	install -m 0644 "src/windows/$(pluginloader)" "$(DESTDIR)$(prefix)/share/pipelight/$(pluginloader)"
 	
 	for config in $(notdir $(PLUGIN_CONFIGS)); do \
-		sed    's|@@PLUGIN_LOADER_PATH@@|$(prefix)/share/pipelight/pluginloader.exe|g' plugin-configs/$${config} > pipelight-config.tmp; \
+		sed    's|@@PLUGIN_LOADER_PATH@@|$(prefix)/share/pipelight/$(pluginloader)|g' plugin-configs/$${config} > pipelight-config.tmp; \
 		sed -i 's|@@DEPENDENCY_INSTALLER@@|$(prefix)/share/pipelight/install-dependency|g' pipelight-config.tmp; \
-		sed -i 's|@@GRAPHIC_DRIVER_CHECK@@|$(prefix)/share/pipelight/hw-accel-default|g' pipelight-config.tmp; \
+		sed -i 's|@@GRAPHIC_DRIVER_CHECK@@|$(hwacceldefault)|g' pipelight-config.tmp; \
 		sed -i 's|@@WINE_PATH@@|$(winepath)|g' pipelight-config.tmp; \
 		sed -i 's|@@GCC_RUNTIME_DLLS@@|$(gccruntimedlls)|g' pipelight-config.tmp; \
 		sed -i 's|@@QUIET_INSTALLATION@@|$(quietinstallation)|g' pipelight-config.tmp; \
@@ -55,7 +65,7 @@ install: all
 	install -m 0644 src/linux/libpipelight.so "$(DESTDIR)$(prefix)/lib/pipelight/libpipelight.so"
 
 uninstall:
-	rm -f "$(DESTDIR)$(prefix)/share/pipelight/pluginloader.exe"
+	rm -f "$(DESTDIR)$(prefix)/share/pipelight/$(pluginloader)"
 	rm -f $(DESTDIR)$(prefix)/share/pipelight/pipelight-*
 	rm -f $(DESTDIR)$(prefix)/share/pipelight/configure-*
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/install-dependency"
