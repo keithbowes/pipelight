@@ -52,11 +52,8 @@ ParameterInfo::~ParameterInfo(){
 	Initializes the communication pipes
 */
 bool initCommPipes(int out, int in){
-	if (commPipeOut)
-		fclose(commPipeOut);
-
-	if (commPipeIn)
-		fclose(commPipeIn);
+	if (commPipeOut) 	fclose(commPipeOut);
+	if (commPipeIn)		fclose(commPipeIn);
 
 	#if defined(__WINE__) || !defined(__WIN32__)
 		commPipeOut = fdopen(out, "wb");
@@ -67,9 +64,8 @@ bool initCommPipes(int out, int in){
 	#endif
 
 	if (!commPipeOut || !commPipeIn){
-
-		if (!commPipeOut) 	fclose(commPipeOut);
-		if (!commPipeIn)	fclose(commPipeIn);
+		if (commPipeOut) 	fclose(commPipeOut);
+		if (commPipeIn)		fclose(commPipeIn);
 
 		commPipeOut = NULL;
 		commPipeIn 	= NULL;
