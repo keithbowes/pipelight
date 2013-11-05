@@ -13,20 +13,23 @@ NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 {
 	DBG_TRACE("( bFuncs=%p, pFuncs=%p )", bFuncs, pFuncs);
 
-	if (bFuncs == NULL || pFuncs == NULL)
+	if (bFuncs == NULL || pFuncs == NULL){
+		DBG_TRACE(" -> result=NPERR_INVALID_PARAM");
 		return NPERR_INVALID_PARAM;
+	}
 
 	if ((bFuncs->version >> 8) > NP_VERSION_MAJOR){
 		DBG_ERROR("incompatible browser version!");
+		DBG_TRACE(" -> result=%d", NPERR_INCOMPATIBLE_VERSION_ERROR);
 		return NPERR_INCOMPATIBLE_VERSION_ERROR;
 	}
 
 	// Copy browser functions instead of saving the pointer
-	if (!sBrowserFuncs){
+	if (!sBrowserFuncs)
 		sBrowserFuncs = (NPNetscapeFuncs*)malloc( sizeof(NPNetscapeFuncs) );
-	}
 
 	if (!sBrowserFuncs){
+		DBG_TRACE(" -> result=%d", NPERR_OUT_OF_MEMORY_ERROR);
 		return NPERR_OUT_OF_MEMORY_ERROR;
 	}
 
@@ -67,11 +70,14 @@ NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 		!sBrowserFuncs->enumerate ){
 
 		DBG_ERROR("your browser doesn't support all required functions!");
+		DBG_TRACE(" -> result=%d", NPERR_INCOMPATIBLE_VERSION_ERROR);
 		return NPERR_INCOMPATIBLE_VERSION_ERROR;
 	}
 
-	if (pFuncs->size < (offsetof(NPPluginFuncs, setvalue) + sizeof(void*)))
+	if (pFuncs->size < (offsetof(NPPluginFuncs, setvalue) + sizeof(void*))){
+		DBG_TRACE(" -> result=%d", NPERR_INVALID_FUNCTABLE_ERROR);
 		return NPERR_INVALID_FUNCTABLE_ERROR;
+	}
 
 	// Select which event handling method should be used
 	if (!config.eventAsyncCall && sBrowserFuncs->scheduletimer && sBrowserFuncs->unscheduletimer){
@@ -83,6 +89,7 @@ NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 
 	}else{
 		DBG_ERROR("no eventhandling compatible with your browser available.");
+		DBG_TRACE(" -> result=%d", NPERR_INCOMPATIBLE_VERSION_ERROR);
 		return NPERR_INCOMPATIBLE_VERSION_ERROR;
 	}
 
@@ -104,6 +111,7 @@ NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 	pFuncs->getvalue 		= NPP_GetValue;
 	pFuncs->setvalue 		= NPP_SetValue;
 
+	DBG_TRACE(" -> result=0");
 	return NPERR_NO_ERROR;
 }
 
@@ -111,37 +119,37 @@ NP_EXPORT(char*) NP_GetPluginVersion()
 {
 	DBG_TRACE("()");
 
-	if (!initOkay){
-		pokeString(strPluginversion, "0.0", sizeof(strPluginversion));
-		return strPluginversion;
+	if (initOkay){
+		callFunction(FUNCTION_GET_VERSION);
+		std::string result = readResultString();
+		pokeString(strPluginVersion, result, sizeof(strPluginVersion));
+
+	}else{
+		pokeString(strPluginVersion, "0.0", sizeof(strPluginVersion));
 	}
 
-	callFunction(FUNCTION_GET_VERSION);
-
-	std::string result = readResultString();
-	pokeString(strPluginversion, result, sizeof(strPluginversion));
-
-	return strPluginversion;
+	DBG_TRACE(" -> version='%s'", strPluginVersion);
+	return strPluginVersion;
 }
 
 NP_EXPORT(const char*) NP_GetMIMEDescription()
 {
 	DBG_TRACE("()");
 
-	if (!initOkay){
+	if (initOkay){
+		callFunction(FUNCTION_GET_MIMETYPE);
+		std::string result = readResultString();
+		pokeString(strMimeType, result, sizeof(strMimeType));
+
+	}else{
 		if(config.pluginName == ""){
 			pokeString(strMimeType, "application/x-pipelight-error:pipelighterror:Error during initialization", sizeof(strMimeType));
 		}else{
 			pokeString(strMimeType, "application/x-pipelight-error-"+config.pluginName+":pipelighterror-"+config.pluginName+":Error during initialization", sizeof(strMimeType));
 		}
-		return strMimeType;
 	}
 
-	callFunction(FUNCTION_GET_MIMETYPE);
-
-	std::string result = readResultString();
-	pokeString(strMimeType, result, sizeof(strMimeType));
-
+	DBG_TRACE(" -> mimeType='%s'", strMimeType);
 	return strMimeType;
 }
 
@@ -196,6 +204,7 @@ NP_EXPORT(NPError) NP_GetValue(void* future, NPPVariable variable, void* value) 
 
 	}
 
+	DBG_TRACE(" -> result=%d", result);
 	return result;
 }
 
@@ -207,11 +216,11 @@ NP_EXPORT(NPError) NP_Shutdown() {
 		readResultVoid();
 	}
 
+	DBG_TRACE(" -> result=0");
 	return NPERR_NO_ERROR;
 }
 
 void timerFunc(NPP instance, uint32_t timerID){
-
 	writeInt64( handleManager_count() );
 	callFunction(PROCESS_WINDOW_EVENTS);
 	readResultVoid();
@@ -258,8 +267,10 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	DBG_TRACE("( pluginType='%s', instance=%p, mode=%d, argc=%d, argn=%p, argv=%p, saved=%p )", pluginType, instance, mode, argc, argn, argv, saved);
 
 	PluginData *pdata = (PluginData*)malloc(sizeof(PluginData));
-	if (!pdata)
+	if (!pdata){
+		DBG_ERROR(" -> result=%d", NPERR_OUT_OF_MEMORY_ERROR);
 		return NPERR_OUT_OF_MEMORY_ERROR;
+	}
 
 	bool invalidMimeType  	= (mimeType == "application/x-pipelight-error" || mimeType == "application/x-pipelight-error-" + config.pluginName);
 
@@ -274,6 +285,7 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 		if (invalidMimeType && config.diagnosticMode)
 			runDiagnostic(instance);
 
+		DBG_ERROR(" -> result=%d", NPERR_GENERIC_ERROR);
 		return NPERR_GENERIC_ERROR;
 	}
 
@@ -404,6 +416,7 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	// Begin scheduling events
 	if (startAsyncCall) sem_post(&eventThreadSemRequestAsyncCall);
 
+	DBG_TRACE(" -> result=%d", result);
 	return result;
 }
 
@@ -412,8 +425,10 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 
 	// Initialization failed or diagnostic mode
 	PluginData *pdata = (PluginData*)instance->pdata;
-	if (!pdata)
+	if (!pdata){
+		DBG_TRACE(" -> result=%d", NPERR_GENERIC_ERROR);
 		return NPERR_GENERIC_ERROR;
+	}
 
 	bool pipelightError = pdata->pipelightError;
 
@@ -421,8 +436,10 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 	free(pdata);
 	instance->pdata = NULL;
 
-	if (pipelightError)
+	if (pipelightError){
+		DBG_TRACE(" -> result=%d", NPERR_GENERIC_ERROR);
 		return NPERR_GENERIC_ERROR;
+	}
 
 	bool unscheduleCurrentTimer = (eventTimerInstance && eventTimerInstance == instance);
 
@@ -527,6 +544,7 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 		}
 	}
 
+	DBG_TRACE(" -> result=%d", result);
 	return result;
 }
 
@@ -550,6 +568,7 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window) {
 	callFunction(FUNCTION_NPP_SET_WINDOW);
 	readResultVoid();
 
+	DBG_TRACE(" -> result=0");
 	return NPERR_NO_ERROR;
 }
 
@@ -581,6 +600,7 @@ NPError NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool se
 		// We get another request using our notifyData after everything
 	}
 
+	DBG_TRACE(" -> result=%d", result);
 	return result;
 }
 
@@ -589,6 +609,7 @@ NPError NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
 
 	if (!handleManager_existsByPtr(HMGR_TYPE_NPStream, stream)){
 		DBG_TRACE("Opera use-after-free bug!");
+		DBG_TRACE(" -> result=0");
 		return NPERR_NO_ERROR;
 	}
 
@@ -602,28 +623,33 @@ NPError NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
 	// Remove the handle by the corresponding stream real object
 	handleManager_removeByPtr(HMGR_TYPE_NPStream, stream);
 
+	DBG_TRACE(" -> result=%d", result);
 	return result;
 }
 
 int32_t NPP_WriteReady(NPP instance, NPStream* stream) {
 	DBG_TRACE("( instance=%p, stream=%p )", instance, stream);
 
+	int32_t result;
+
 	if (!handleManager_existsByPtr(HMGR_TYPE_NPStream, stream)){
 		DBG_TRACE("Chrome use-after-free bug!");
-		return 0x7FFFFFFF;
+		result = 0x7FFFFFFF;
+
+	}else{
+		writeHandleStream(stream, HMGR_SHOULD_EXIST);
+		writeHandleInstance(instance);	
+		callFunction(FUNCTION_NPP_WRITE_READY);
+
+		result = readResultInt32();
+
+		// Ensure that the program doesn't want too much data at once - this might cause the communication to hang
+		if (result > 0xFFFFFF)
+			result = 0xFFFFFF;
+
 	}
 
-	writeHandleStream(stream, HMGR_SHOULD_EXIST);
-	writeHandleInstance(instance);	
-	callFunction(FUNCTION_NPP_WRITE_READY);
-	
-	int32_t result = readResultInt32();
-
-	// Ensure that the program doesn't want too much data at once - this might cause the communication to hang
-	if (result > 0xFFFFFF){
-		result = 0xFFFFFF;
-	}
-
+	DBG_TRACE(" -> result=%d", result);
 	return result;
 }
 
@@ -632,16 +658,19 @@ int32_t NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, v
 
 	if (!handleManager_existsByPtr(HMGR_TYPE_NPStream, stream)){
 		DBG_TRACE("Chrome use-after-free bug!");
-		return len;
+
+	}else{
+		writeMemory((char*)buffer, len);
+		writeInt32(offset);
+		writeHandleStream(stream, HMGR_SHOULD_EXIST);
+		writeHandleInstance(instance);
+		callFunction(FUNCTION_NPP_WRITE);
+
+		len = readResultInt32();
 	}
 
-	writeMemory((char*)buffer, len);
-	writeInt32(offset);
-	writeHandleStream(stream, HMGR_SHOULD_EXIST);
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPP_WRITE);
-	
-	return readResultInt32();
+	DBG_TRACE(" -> result=%d", len);
+	return len;
 }
 
 void NPP_StreamAsFile(NPP instance, NPStream* stream, const char* fname) {
@@ -652,16 +681,20 @@ void NPP_StreamAsFile(NPP instance, NPStream* stream, const char* fname) {
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_STREAM_AS_FILE);
 	readResultVoid();
+
+	DBG_TRACE(" -> void");
 }
 
 void NPP_Print(NPP instance, NPPrint* platformPrint) {
 	DBG_TRACE("( instance=%p, platformPrint=%p )", instance, platformPrint);
 	NOTIMPLEMENTED();
+	DBG_TRACE(" -> void");
 }
 
 int16_t NPP_HandleEvent(NPP instance, void* event) {
 	DBG_TRACE("( instance=%p, event=%p )", instance, event);
 	NOTIMPLEMENTED();
+	DBG_TRACE(" -> result=0");
 	return 0;
 }
 
@@ -696,6 +729,7 @@ void NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyD
 		}
 	}
 
+	DBG_TRACE(" -> void");
 }
 
 NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
@@ -750,11 +784,13 @@ NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 			break;
 	}
 
+	DBG_TRACE(" -> result=%d", result);
 	return result;
 }
 
 NPError NPP_SetValue(NPP instance, NPNVariable variable, void *value) {
 	DBG_TRACE("( instance=%p, variable=%d, value=%p )", instance, variable, value);
 	NOTIMPLEMENTED();
+	DBG_TRACE(" -> result=%d", NPERR_GENERIC_ERROR);
 	return NPERR_GENERIC_ERROR;
 }

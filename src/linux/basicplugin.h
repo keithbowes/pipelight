@@ -58,7 +58,7 @@
 #include "configloader.h"
 
 extern char strMimeType[2048];
-extern char strPluginversion[100];
+extern char strPluginVersion[100];
 extern char strPluginName[256];
 extern char strPluginDescription[1024];
 

@@ -8,6 +8,8 @@ void NPInvalidateFunction(NPObject *npobj){
 	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_INVALIDATE);
 	readResultVoid();
+
+	DBG_TRACE(" -> void");
 }
 
 bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name){
@@ -17,8 +19,9 @@ bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name){
 	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_HAS_METHOD);
 
-	return (bool)readResultInt32();
-
+	bool resultBool = (bool)readResultInt32();
+	DBG_TRACE(" -> result=%d", resultBool);
+	return resultBool;
 }
 
 bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args, uint32_t argCount, NPVariant *result){
@@ -43,6 +46,7 @@ bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args,
 		result->value.objectValue 	= NULL;
 	}
 
+	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
 	return resultBool;
 }
 
@@ -66,6 +70,7 @@ bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t ar
 		result->value.objectValue 	= NULL;
 	}	
 
+	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
 	return resultBool;
 }
 
@@ -76,7 +81,9 @@ bool NPHasPropertyFunction(NPObject *npobj, NPIdentifier name){
 	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_HAS_PROPERTY);
 
-	return (bool)readResultInt32();
+	bool resultBool = (bool)readResultInt32();
+	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
+	return resultBool;
 }
 
 bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result){
@@ -98,6 +105,7 @@ bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result
 		result->value.objectValue 	= NULL;
 	}	
 
+	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
 	return resultBool;
 }
 
@@ -109,7 +117,9 @@ bool NPSetPropertyFunction(NPObject *npobj, NPIdentifier name, const NPVariant *
 	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_SET_PROPERTY);
 
-	return (bool)readResultInt32();
+	bool resultBool = (bool)readResultInt32();
+	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
+	return resultBool;
 }
 
 bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name){
@@ -119,7 +129,9 @@ bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name){
 	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_REMOVE_PROPERTY);
 
-	return (bool)readResultInt32();
+	bool resultBool = (bool)readResultInt32();
+	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
+	return resultBool;
 }
 
 bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *count){
@@ -131,35 +143,39 @@ bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *coun
 	std::vector<ParameterInfo> stack;
 	readCommands(stack);
 
-	bool 	 result                         = (bool)readInt32(stack);
-	if (!result){
-		return false;
+	bool result = (bool)readInt32(stack);
+	if (result){
+
+		uint32_t identifierCount = readInt32(stack);
+		if (identifierCount == 0){
+			*value = NULL;
+			*count = 0;
+
+		}else{
+			std::vector<NPIdentifier> identifiers 	= readIdentifierArray(stack, identifierCount);
+			NPIdentifier* identifierTable 			= (NPIdentifier*)sBrowserFuncs->memalloc(identifierCount * sizeof(NPIdentifier));
+
+			if (identifierTable){
+				memcpy(identifierTable, identifiers.data(), sizeof(NPIdentifier) * identifierCount);
+
+				*value = identifierTable;
+				*count = identifierCount;
+
+			}else{
+				result = false;
+
+			}
+		}
 	}
 
-	uint32_t identifierCount 				= readInt32(stack);
-	if (identifierCount == 0){
-		*value = NULL;
-		*count = 0;
-		return result;
-	}
-
-	std::vector<NPIdentifier> identifiers 	= readIdentifierArray(stack, identifierCount);
-
-	NPIdentifier* identifierTable = (NPIdentifier*)sBrowserFuncs->memalloc(identifierCount * sizeof(NPIdentifier));
-	if (!identifierTable){
-		return false;
-	}
-
-	memcpy(identifierTable, identifiers.data(), sizeof(NPIdentifier) * identifierCount);
-
-	*value = identifierTable;
-	*count = identifierCount;
-	return true;
+	DBG_TRACE(" -> ( result=%d, ... )", result);
+	return result;
 }
 
 bool NPConstructFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result){
 	DBG_TRACE("( npobj=%p, args=%p, argCount=%d, result=%p )", npobj, args, argCount, result);
 	NOTIMPLEMENTED();
+	DBG_TRACE(" -> result=0");
 	return false;
 }
 
@@ -171,6 +187,7 @@ NPObject * NPAllocateFunction(NPP npp, NPClass *aClass){
 		obj->_class = aClass;
 	}
 
+	DBG_TRACE(" -> obj=%p", obj);
 	return obj;
 }
 
@@ -193,6 +210,8 @@ void NPDeallocateFunction(NPObject *npobj){
 		/* remove the object locally */
 		free(npobj);
 	}
+
+	DBG_TRACE(" -> void");
 }
 
 NPClass myClass = {

@@ -66,7 +66,7 @@
 */
 
 char strMimeType[2048] 				= {0};
-char strPluginversion[100]			= {0};
+char strPluginVersion[100]			= {0};
 char strPluginName[256] 			= {0};
 char strPluginDescription[1024]		= {0};
 
