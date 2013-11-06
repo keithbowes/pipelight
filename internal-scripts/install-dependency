@@ -508,6 +508,11 @@ if [ -z "$WINESERVER" ]; then
 	export WINESERVER="${WINE}server"
 fi
 
+if [ -d "$WINEPREFIX" ] && [ ! -w "$WINEPREFIX" ]; then
+	echo "[$PRG] ERROR: You're running this script as a wrong user without access to the WINEPREFIX." >&2
+	exit 1
+fi
+
 # Silent installation
 if [ -z "$QUIETINSTALLATION" ]; then
 	QUIETINSTALLATION=0
