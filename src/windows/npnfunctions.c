@@ -102,7 +102,7 @@ NPError NP_LOADDS NPN_NewStream(NPP instance, NPMIMEType type, const char* windo
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_NEW_STREAM);
 
-	std::vector<ParameterInfo> stack;
+	Stack stack;
 	readCommands(stack);
 
 	NPError result = readInt32(stack);
@@ -294,7 +294,7 @@ NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 	shockwaveInstanceWorkaround();
 
 	NPError result = NPERR_GENERIC_ERROR;
-	std::vector<ParameterInfo> stack;
+	Stack stack;
 
 	switch (variable){
 
@@ -484,7 +484,7 @@ NPIdentifier NP_LOADDS NPN_GetStringIdentifier(const NPUTF8* name){
 	writeString(name);
 	callFunction(FUNCTION_NPN_GET_STRINGIDENTIFIER);
 
-	std::vector<ParameterInfo> stack;
+	Stack stack;
 	readCommands(stack);
 
 	NPIdentifier identifier = readHandleIdentifier(stack);
@@ -512,7 +512,7 @@ NPIdentifier NP_LOADDS NPN_GetIntIdentifier(int32_t intid){
 	writeInt32(intid);
 	callFunction(FUNCTION_NPN_GET_INTIDENTIFIER);
 
-	std::vector<ParameterInfo> stack;
+	Stack stack;
 	readCommands(stack);
 
 	NPIdentifier identifier = readHandleIdentifier(stack);
@@ -542,7 +542,7 @@ NPUTF8* NP_LOADDS NPN_UTF8FromIdentifier(NPIdentifier identifier){
 	writeHandleIdentifier(identifier);
 	callFunction(FUNCTION_NPN_UTF8_FROM_IDENTIFIER);
 
-	std::vector<ParameterInfo> stack;
+	Stack stack;
 	readCommands(stack);
 
 	// The plugin is responsible for freeing this with NPN_MemFree() when done
@@ -575,7 +575,7 @@ NPObject* NP_LOADDS NPN_CreateObject(NPP instance, NPClass *aClass){
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_CREATE_OBJECT);
 
-	std::vector<ParameterInfo> stack;
+	Stack stack;
 	readCommands(stack);	
 
 	// When we get a object handle back, then allocate a local corresponding object
@@ -635,7 +635,7 @@ bool NP_LOADDS NPN_Invoke(NPP instance, NPObject* obj, NPIdentifier methodName, 
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_INVOKE);
 
-	std::vector<ParameterInfo> stack;
+	Stack stack;
 	readCommands(stack);
 
 	bool resultBool = readInt32(stack);
@@ -663,7 +663,7 @@ bool NP_LOADDS NPN_InvokeDefault(NPP instance, NPObject* obj, const NPVariant *a
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_INVOKE_DEFAULT);
 
-	std::vector<ParameterInfo> stack;
+	Stack stack;
 	readCommands(stack);
 
 	bool resultBool = readInt32(stack);
@@ -690,7 +690,7 @@ bool NP_LOADDS NPN_Evaluate(NPP instance, NPObject *obj, NPString *script, NPVar
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_EVALUATE);
 
-	std::vector<ParameterInfo> stack;
+	Stack stack;
 	readCommands(stack);
 
 	bool resultBool = readInt32(stack);
@@ -717,7 +717,7 @@ bool NP_LOADDS NPN_GetProperty(NPP instance, NPObject *obj, NPIdentifier propert
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_GET_PROPERTY);
 
-	std::vector<ParameterInfo> stack;
+	Stack stack;
 	readCommands(stack);
 
 	bool resultBool = readInt32(stack);
@@ -876,7 +876,7 @@ bool NP_LOADDS NPN_Enumerate(NPP instance, NPObject *obj, NPIdentifier **identif
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_ENUMERATE);
 
-	std::vector<ParameterInfo> stack;
+	Stack stack;
 	readCommands(stack);
 
 	bool result = (bool)readInt32(stack);

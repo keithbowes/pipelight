@@ -736,7 +736,7 @@ NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 	DBG_TRACE("( instance=%p, variable=%d, value=%p )", instance, variable, value);
 
 	NPError result = NPERR_GENERIC_ERROR;
-	std::vector<ParameterInfo> stack;
+	Stack stack;
 
 	switch (variable){
 

@@ -17,7 +17,10 @@
 #include "../npapi-headers/npruntime.h"
 #include "../npapi-headers/nptypes.h"
 
-#ifdef __WIN32__
+#ifdef __WINE__
+	#include <sys/stat.h>						/* for stat */
+
+#elif __WIN32__
 	#include <windows.h>						/* for GetFileAttributes */
 
 #else
@@ -112,7 +115,7 @@ extern char strMultiPluginName[64];
 	DBG_ERROR("STUB! " fmt, ##__VA_ARGS__)
 
 #ifdef __WIN32__
-	#ifdef PIPELIGHT_DEBUG
+	#if defined(PIPELIGHT_DEBUG) && !defined(__WINE__)
 
 		#define DBG_CHECKTHREAD() \
 			DBG_ASSERT( GetCurrentThreadId() == mainThreadID, "NPAPI command called from wrong thread!" )
@@ -660,7 +663,14 @@ extern NPClass myClass;
 
 /* misc */
 
-#ifdef __WIN32__
+#ifdef __WINE__
+
+inline bool checkIsFile(const std::string path){
+	struct stat fileInfo;
+	return (stat(path.c_str(), &fileInfo) == 0 && S_ISREG(fileInfo.st_mode));
+}
+
+#elif __WIN32__
 
 inline bool checkIsFile(const std::string path){
 	DWORD attrib = GetFileAttributesA(path.c_str());

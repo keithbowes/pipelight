@@ -34,7 +34,7 @@ bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args,
 	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_INVOKE);
 
-	std::vector<ParameterInfo> stack;
+	Stack stack;
 	readCommands(stack);
 
 	bool resultBool = (bool)readInt32(stack);
@@ -58,7 +58,7 @@ bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t ar
 	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_INVOKE_DEFAULT);
 
-	std::vector<ParameterInfo> stack;
+	Stack stack;
 	readCommands(stack);
 
 	bool resultBool = (bool)readInt32(stack);
@@ -93,7 +93,7 @@ bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result
 	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_GET_PROPERTY);
 
-	std::vector<ParameterInfo> stack;
+	Stack stack;
 	readCommands(stack);
 
 	bool resultBool = readInt32(stack); /* refcount already incremented by getProperty() */
@@ -140,7 +140,7 @@ bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *coun
 	writeHandleObj(npobj);
 	callFunction(FUNCTION_NP_ENUMERATE);
 
-	std::vector<ParameterInfo> stack;
+	Stack stack;
 	readCommands(stack);
 
 	bool result = (bool)readInt32(stack);

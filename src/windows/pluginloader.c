@@ -5,12 +5,6 @@
 #include <stdio.h>								// for _fdopen
 #include <float.h>								// _controlfp_s
 
-#ifdef __WINE__
-	#include <unistd.h>							// for dup
-#else
-	#include <io.h>								// for _dup
-#endif
-
 #include "../common/common.h"
 #include "pluginloader.h"
 #include "apihook.h"
