@@ -1,7 +1,7 @@
 CXX 		:= g++
 CXXFLAGS 	:= -Wall -DXP_UNIX=1 -DMOZ_X11=1 -fPIC -std=gnu++0x $(CXXFLAGS)
 LDFLAGS 	:= -lX11 -lpthread -ldl $(LDFLAGS)
-OBJECTS 	:= common.o basicplugin.o configloader.o debug.o npclass.o pluginfunctions.o 
+OBJECTS 	:= common.o basicplugin.o configloader.o diagnostic.o npclass.o pluginfunctions.o 
 COMMONHDR	:= ../common/common.h ../npapi-headers/npapi.h ../npapi-headers/npfunctions.h ../npapi-headers/npruntime.h ../npapi-headers/nptypes.h
 
 libpipelight.so: $(OBJECTS)
@@ -16,13 +16,13 @@ basicplugin.o: basicplugin.c basicplugin.h configloader.h $(COMMONHDR)
 configloader.o: configloader.c configloader.h $(COMMONHDR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -DPREFIX='"$(prefix)"' -c configloader.c -o configloader.o
 
-debug.o: debug.c debug.h basicplugin.h configloader.h $(COMMONHDR)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c debug.c -o debug.o
+diagnostic.o: diagnostic.c diagnostic.h basicplugin.h configloader.h $(COMMONHDR)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c diagnostic.c -o diagnostic.o
 
 npclass.o: npclass.c $(COMMONHDR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c npclass.c -o npclass.o
 
-pluginfunctions.o: pluginfunctions.c basicplugin.h configloader.h debug.h $(COMMONHDR)
+pluginfunctions.o: pluginfunctions.c basicplugin.h configloader.h diagnostic.h $(COMMONHDR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c pluginfunctions.c -o pluginfunctions.o
 
 .PHONY: all

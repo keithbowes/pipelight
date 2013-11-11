@@ -7,7 +7,7 @@
 
 #include "../common/common.h"
 #include "basicplugin.h"
-#include "debug.h"
+#include "diagnostic.h"
 
 NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 {

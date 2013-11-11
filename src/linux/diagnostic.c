@@ -3,7 +3,7 @@
 
 #include "../common/common.h"
 #include "basicplugin.h"
-#include "debug.h"
+#include "diagnostic.h"
 
 bool debugSection(NPP instance, std::string name){
 	NPObject 		*windowObj;
