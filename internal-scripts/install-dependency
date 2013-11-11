@@ -592,7 +592,7 @@ while [ $# -gt 0 ] ; do
 		wine-unity3d-installer)
 			INS=(install_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayer.exe"
-			SHA="cd1d1a492b1b6c4891902f76477809b696cd812c1edb85085135d46fb1c10b38"
+			SHA="b95608dce6b0913e619a6ad29a1f7fc652ee1f2c2c6ab7141fecc4c17458a084"
 			;;
 		*)
 			echo "[$PRG] ERROR: No installer script found for $DEP." >&2
