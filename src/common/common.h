@@ -745,4 +745,19 @@ inline void pokeString(char *dest, const std::string str, size_t maxLength){
 #define isAlphaNumericChar(c) \
 	( ((c) >= 'A' && (c) <= 'Z') || ((c) >= 'a' && (c) <= 'z') || ((c) >= '0' && (c) <= '9') || (c) == '_' )
 
+/* locale independent tolower function */
+inline int c_tolower(int c){
+	if (c >= 'A' && c <= 'Z')
+		c += ('a' - 'A');
+	return c;
+}
+
+/* locale independent toupper function */
+inline int c_toupper(int c){
+	if (c >= 'a' && c <= 'z')
+		c += ('A' - 'a');
+	return c;
+}
+
+
 #endif // Common_h_

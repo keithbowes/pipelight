@@ -67,9 +67,9 @@ static void getConfigNameFromLibrary(std::string &configName, std::string &confi
 		configEnv = pluginName;
 
 		// convert to lower/upper case
-		std::transform(pluginName.begin(), pluginName.end(), pluginName.begin(), ::tolower);
+		std::transform(pluginName.begin(), pluginName.end(), pluginName.begin(), c_tolower);
 
-		std::transform(configEnv.begin(), configEnv.end(), configEnv.begin(), ::toupper);
+		std::transform(configEnv.begin(), configEnv.end(), configEnv.begin(), c_toupper);
 		std::replace(configEnv.begin(), configEnv.end(), '.', '_');
 
 		configName = "pipelight-" + pluginName;
@@ -141,7 +141,7 @@ static std::string replaceVariables(const std::map<std::string, std::string> &va
 				varname = readUntil(str);
 			}
 
-			std::transform(varname.begin(), varname.end(), varname.begin(), ::tolower);
+			std::transform(varname.begin(), varname.end(), varname.begin(), c_tolower);
 			it = variables.find("$" + varname);
 
 			DBG_ASSERT(it != variables.end(), "variable '%s' not found.", varname.c_str());
@@ -291,7 +291,7 @@ bool loadConfig(PluginConfig &config){
 			continue;
 
 		// convert key to lower case
-		std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+		std::transform(key.begin(), key.end(), key.begin(), c_tolower);
 
 		// replace $var and ${var} inside of value
 		value = replaceVariables(variables, value.c_str());
@@ -304,7 +304,7 @@ bool loadConfig(PluginConfig &config){
 		}
 
 		if (	key == "diagnosticmode"){
-			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
 			config.diagnosticMode = (value == "true" || value == "yes");
 
 		}else if (key == "sandboxpath"){
@@ -341,11 +341,11 @@ bool loadConfig(PluginConfig &config){
 			config.gccRuntimeDLLs = value;
 
 		}else if (key == "windowlessmode"){
-			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
 			config.windowlessMode = (value == "true" || value == "yes");
 
 		}else if (key == "embed"){
-			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
 			config.embed = (value == "true" || value == "yes");
 
 		}else if (key == "fakeversion"){
@@ -371,7 +371,7 @@ bool loadConfig(PluginConfig &config){
 			if(value != "") config.dependencies.push_back(value);
 
 		}else if (key == "quietinstallation"){
-			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
 			config.quietInstallation = (value == "true" || value == "yes");
 
 		}else if (key == "silverlightgraphicdrivercheck" || key == "graphicdrivercheck"){
@@ -380,30 +380,30 @@ bool loadConfig(PluginConfig &config){
 			config.silverlightGraphicDriverCheck = value;
 
 		}else if (key == "eventasynccall"){
-			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
 			config.eventAsyncCall = (value == "true" || value == "yes");
 
 		}else if (key == "operadetection"){
-			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
 			config.operaDetection = (value == "true" || value == "yes");
 
 		}else if (key == "executejavascript"){
 			config.executeJavascript += value + "\n";
 
 		}else if (key == "experimental-usermodetimer"){
-			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
 			config.experimental_usermodeTimer = (value == "true" || value == "yes");
 
 		}else if (key == "experimental-unityhacks"){
-			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
 			config.experimental_unityHacks = (value == "true" || value == "yes");
 
 		}else if (key == "experimental-windowclasshook"){
-			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
 			config.experimental_windowClassHook = (value == "true" || value == "yes");
 
 		}else if (key == "experimental-rendertoplevelwindow"){
-			std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
 			config.experimental_renderTopLevelWindow = (value == "true" || value == "yes");
 
 		}else{

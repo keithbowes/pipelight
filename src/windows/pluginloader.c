@@ -362,7 +362,7 @@ int main(int argc, char *argv[]){
 
 	for (int i = 1; i < argc; i++){
 		std::string arg = std::string(argv[i]);
-		std::transform(arg.begin(), arg.end(), arg.begin(), ::tolower);
+		std::transform(arg.begin(), arg.end(), arg.begin(), c_tolower);
 
 		if       (arg == "--pluginname"){
 			if (i + 1 >= argc) break;
