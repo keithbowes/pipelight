@@ -18,7 +18,7 @@ clean:
 else
 
 pluginloader.exe: $(OBJECTS)
-	$(CXX) $(OBJECTS) $(LDFLAGS) -o pluginloader.exe
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS) -o pluginloader.exe
 
 common.o: ../common/common.c $(COMMONHDR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c ../common/common.c -o common.o
