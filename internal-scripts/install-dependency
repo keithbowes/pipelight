@@ -464,7 +464,7 @@ elif command -v kdialog >/dev/null 2>&1 && command -v qdbus >/dev/null 2>&1; the
 		(
 			local progress=1
 			while true; do
-				local err=$($QDBUSPATH $dcopref org.freedesktop.DBus.Properties.Set org.kde.kdialog.ProgressDialog value "$PROGRESS" 2>&1)
+				local err=$($QDBUSPATH $dcopref org.freedesktop.DBus.Properties.Set org.kde.kdialog.ProgressDialog value "$progress" 2>&1)
 				if [ ! -z "$err" ]; then break; fi
 
 				sleep 1
@@ -472,7 +472,7 @@ elif command -v kdialog >/dev/null 2>&1 && command -v qdbus >/dev/null 2>&1; the
 				(( progress++ ))
 				if [ "$progress" -gt 10 ]; then progress=0; fi
 			done
-		) &
+		) 0</dev/null &
 		local dialogpid="$!"
 
 		cat -
