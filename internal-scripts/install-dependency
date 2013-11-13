@@ -580,9 +580,9 @@ while [ $# -gt 0 ] ; do
 			EXT="exe"
 			;;
 		wine-flash-installer)
-			INS=(install_flash "11_9_900_117")
-			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/11.9.900.117/install_flash_player.exe"
-			SHA="3e8d832591aff54510f9904b6348e2e2351a28a4ef137f4f19535b747c00c89e"
+			INS=(install_flash "11_9_900_152")
+			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/11.9.900.152/install_flash_player.exe"
+			SHA="8ea6384ec8d60b2394f7cbec3e1a15cbc041d4bc0cca3f481a82de4220997342"
 			;;
 		wine-shockwave-installer)
 			INS=(install_shockwave "1205146")
@@ -592,7 +592,7 @@ while [ $# -gt 0 ] ; do
 		wine-unity3d-installer)
 			INS=(install_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayer.exe"
-			SHA="b95608dce6b0913e619a6ad29a1f7fc652ee1f2c2c6ab7141fecc4c17458a084"
+			SHA="09e7bf761dca62242b96720d86e64bfbbf6ab3b653153b00b9b97532777dd739"
 			;;
 		*)
 			echo "[$PRG] ERROR: No installer script found for $DEP." >&2
