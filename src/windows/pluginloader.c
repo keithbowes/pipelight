@@ -1,3 +1,5 @@
+#define __WINESRC__
+
 #include <cstdlib>								// for malloc, ...
 #include <string>								// for std::string
 #include <vector>								// for std::vector
@@ -14,7 +16,7 @@
 
 /* BEGIN GLOBAL VARIABLES */
 
-LPCTSTR ClsName = "VirtualBrowser";
+char clsName[] = "VirtualBrowser";
 
 std::map<HWND, NPP> hwndToInstance;
 
@@ -165,7 +167,7 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 		return 0;
 
 	}else{
-		return DefWindowProc(hWnd, Msg, wParam, lParam);
+		return DefWindowProcA(hWnd, Msg, wParam, lParam);
 	}
 }
 
@@ -226,17 +228,17 @@ bool initDLL(std::string dllPath, std::string dllName){
 	//CoInitialize(NULL);
 	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 
-	if (!SetDllDirectory(dllPath.c_str())){
+	if (!SetDllDirectoryA(dllPath.c_str())){
 		DBG_ERROR("failed to set DLL directory.");
 	}
 
-	HMODULE dll = LoadLibrary(dllName.c_str());
+	HMODULE dll = LoadLibraryA(dllName.c_str());
 	if (!dll){
 		DBG_ERROR("could not load library '%s' (last error = %lu).", dllName.c_str(), (unsigned long)GetLastError());
 		return false;
 	}
 
-	int requiredBytes = GetFileVersionInfoSize(dllName.c_str(), NULL);
+	int requiredBytes = GetFileVersionInfoSizeA(dllName.c_str(), NULL);
 	if (!requiredBytes){
 		DBG_ERROR("could not load version information.");
 		FreeLibrary(dll);
@@ -250,7 +252,7 @@ bool initDLL(std::string dllPath, std::string dllName){
 		return false;
 	}
 
-	if (!GetFileVersionInfo(dllName.c_str(), 0, requiredBytes, data.get())){
+	if (!GetFileVersionInfoA(dllName.c_str(), 0, requiredBytes, data.get())){
 		DBG_ERROR("failed to get file version.");
 		FreeLibrary(dll);
 		return false;
@@ -259,32 +261,32 @@ bool initDLL(std::string dllPath, std::string dllName){
 	char *info = NULL;
 	UINT size = 0; 
 
-	if (VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\MIMEType", (void**)&info, &size)){
+	if (VerQueryValueA(data.get(), "\\StringFileInfo\\040904E4\\MIMEType", (void**)&info, &size)){
 		while( size > 0 && info[size-1] == 0) size--;
 		np_MimeType = std::string(info, size);
 	}
 
-	if (VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\FileExtents", (void**)&info, &size)){
+	if (VerQueryValueA(data.get(), "\\StringFileInfo\\040904E4\\FileExtents", (void**)&info, &size)){
 		while( size > 0 && info[size-1] == 0) size--;
 		np_FileExtents = std::string(info, size);
 	}
 
-	if (VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\FileOpenName", (void**)&info, &size)){
+	if (VerQueryValueA(data.get(), "\\StringFileInfo\\040904E4\\FileOpenName", (void**)&info, &size)){
 		while( size > 0 && info[size-1] == 0) size--;
 		np_FileOpenName = std::string(info, size);
 	}
 
-	if (VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\ProductName", (void**)&info, &size)){
+	if (VerQueryValueA(data.get(), "\\StringFileInfo\\040904E4\\ProductName", (void**)&info, &size)){
 		while( size > 0 && info[size-1] == 0) size--;
 		np_ProductName = std::string(info, size);
 	}
 
-	if (VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\FileDescription", (void**)&info, &size)){
+	if (VerQueryValueA(data.get(), "\\StringFileInfo\\040904E4\\FileDescription", (void**)&info, &size)){
 		while( size > 0 && info[size-1] == 0) size--;
 		np_FileDescription = std::string(info, size);
 	}
 	
-	if (VerQueryValue(data.get(), "\\StringFileInfo\\040904E4\\Language", (void**)&info, &size)){
+	if (VerQueryValueA(data.get(), "\\StringFileInfo\\040904E4\\Language", (void**)&info, &size)){
 		while( size > 0 && info[size-1] == 0) size--;
 		np_Language = std::string(info, size);
 	}
@@ -319,7 +321,7 @@ std::string readPathFromRegistry(HKEY hKey, std::string regKey){
 	DWORD length;
 
 	// Check if the value exists and get required size
-	if (RegGetValue(hKey, fullKey.c_str(), "Path", RRF_RT_ANY, &type, NULL, &length) != ERROR_SUCCESS)
+	if (RegGetValueA(hKey, fullKey.c_str(), "Path", RRF_RT_ANY, &type, NULL, &length) != ERROR_SUCCESS)
 		return "";
 
 	// Check if the value is a string and the length is > 0
@@ -330,7 +332,7 @@ std::string readPathFromRegistry(HKEY hKey, std::string regKey){
 	if (!path)
 		return "";
 
-	if (RegGetValue(hKey, fullKey.c_str(), "Path", RRF_RT_REG_SZ, NULL, path, &length) != ERROR_SUCCESS){
+	if (RegGetValueA(hKey, fullKey.c_str(), "Path", RRF_RT_REG_SZ, NULL, path, &length) != ERROR_SUCCESS){
 		free(path);
 		return "";
 	}
@@ -446,21 +448,21 @@ int main(int argc, char *argv[]){
 	SetStdHandle(STD_OUTPUT_HANDLE, GetStdHandle(STD_ERROR_HANDLE));
 
 	// Create the application window
-	WNDCLASSEX WndClsEx;
-	WndClsEx.cbSize        = sizeof(WNDCLASSEX);
+	WNDCLASSEXA WndClsEx;
+	WndClsEx.cbSize        = sizeof(WndClsEx);
 	WndClsEx.style         = CS_HREDRAW | CS_VREDRAW;
 	WndClsEx.lpfnWndProc   = &wndProcedure;
 	WndClsEx.cbClsExtra    = 0;
 	WndClsEx.cbWndExtra    = 0;
-	WndClsEx.hIcon         = LoadIcon(NULL, IDI_APPLICATION);
-	WndClsEx.hCursor       = LoadCursor(NULL, IDC_ARROW);
+	WndClsEx.hIcon         = LoadIconA(NULL, (LPCSTR)IDI_APPLICATION);
+	WndClsEx.hCursor       = LoadCursorA(NULL, (LPCSTR)IDC_ARROW);
 	WndClsEx.hbrBackground = NULL; //(HBRUSH)GetStockObject(LTGRAY_BRUSH);
 	WndClsEx.lpszMenuName  = NULL;
-	WndClsEx.lpszClassName = ClsName;
-	WndClsEx.hInstance     = GetModuleHandle(NULL);
-	WndClsEx.hIconSm       = LoadIcon(NULL, IDI_APPLICATION);
+	WndClsEx.lpszClassName = clsName;
+	WndClsEx.hInstance     = GetModuleHandleA(NULL);
+	WndClsEx.hIconSm       = LoadIconA(NULL, (LPCSTR)IDI_APPLICATION);
 
-	ATOM classAtom = RegisterClassEx(&WndClsEx);
+	ATOM classAtom = RegisterClassExA(&WndClsEx);
 	if (!classAtom){
 		DBG_ERROR("failed to register class.");
 		return 1;
@@ -614,9 +616,9 @@ void dispatcher(int functionid, Stack &stack){
 
 				DWORD abortTime = GetTickCount() + 80;
 				while (GetTickCount() < abortTime){
-					if (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)){
+					if (PeekMessageA(&msg, NULL, 0, 0, PM_REMOVE)){
 						TranslateMessage(&msg);
-						DispatchMessage(&msg);
+						DispatchMessageA(&msg);
 
 					}else if (usermodeTimer && handleTimerEvents()){
 						// dummy
@@ -1064,7 +1066,7 @@ void dispatcher(int functionid, Stack &stack){
 
 						AdjustWindowRectEx(&rect, style, false, extStyle);
 
-						ndata->hWnd = CreateWindowEx(extStyle, ClsName, "Plugin", style, posX, posY, rect.right - rect.left, rect.bottom - rect.top, 0, 0, 0, 0);
+						ndata->hWnd = CreateWindowExA(extStyle, clsName, "Plugin", style, posX, posY, rect.right - rect.left, rect.bottom - rect.top, 0, 0, 0, 0);
 						if (ndata->hWnd){
 							hwndToInstance.insert( std::pair<HWND, NPP>(ndata->hWnd, instance) );
 

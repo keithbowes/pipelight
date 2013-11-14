@@ -1,10 +1,4 @@
-/*
-#include "pluginloader.h"
-
-extern HandleManager handlemanager;
-
-extern NPPluginFuncs pluginFuncs;
-*/
+#define __WINESRC__
 
 #include "../common/common.h"
 #include "pluginloader.h"

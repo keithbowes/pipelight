@@ -1,3 +1,5 @@
+#define __WINESRC__
+
 #include "../common/common.h"
 
 /*

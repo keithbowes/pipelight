@@ -1,3 +1,5 @@
+#define __WINESRC__
+
 #include <vector>								// for std::vector
 #include "../common/common.h"
 #include "pluginloader.h"
@@ -87,7 +89,7 @@ bool handleTimerEvents(){
 				msg.time    = GetTickCount();
 
 				TranslateMessage(&msg);
-				DispatchMessage(&msg);
+				DispatchMessageA(&msg);
 			}
 		}
 
@@ -162,7 +164,7 @@ BOOL WINAPI myKillTimer(HWND hWnd, UINT_PTR uIDEvent){
 }
 
 bool installTimerHook(){
-	HMODULE user32 = LoadLibrary("user32.dll");
+	HMODULE user32 = LoadLibraryA("user32.dll");
 
 	if (!user32)
 		return false;
@@ -201,14 +203,14 @@ struct MenuEntry{
 
 std::vector<MenuEntry> menuAddEntries(HMENU hMenu, HWND hwnd){
 	std::vector<MenuEntry> 	entries;
-	MENUITEMINFO			entryInfo;
+	MENUITEMINFOA			entryInfo;
 
 	int count = GetMenuItemCount(hMenu);
 	if(count == -1)
 		return entries;
 
-	memset(&entryInfo, 0, sizeof(MENUITEMINFO));
-	entryInfo.cbSize	= sizeof(MENUITEMINFO);
+	memset(&entryInfo, 0, sizeof(entryInfo));
+	entryInfo.cbSize	= sizeof(entryInfo);
 	entryInfo.wID 		= MENUID_OFFSET;
 
 	// ------- Separator ------- //
@@ -328,7 +330,7 @@ BOOL WINAPI myTrackPopupMenuEx(HMENU hMenu, UINT fuFlags, int x, int y, HWND hWn
 		return (fuFlags & TPM_RETURNCMD) ? 0 : true;
 
 	if (!(fuFlags & TPM_NONOTIFY))
-		PostMessage(hWnd, WM_COMMAND, identifier, 0);
+		PostMessageA(hWnd, WM_COMMAND, identifier, 0);
 
 	return (fuFlags & TPM_RETURNCMD) ? identifier : true;
 }
@@ -365,13 +367,13 @@ BOOL WINAPI myTrackPopupMenu(HMENU hMenu, UINT uFlags, int x, int y, int nReserv
 		return (uFlags & TPM_RETURNCMD) ? identifier : true;
 
 	if (!(uFlags & TPM_NONOTIFY))
-		PostMessage(hWnd, WM_COMMAND, identifier, 0);
+		PostMessageA(hWnd, WM_COMMAND, identifier, 0);
 
 	return (uFlags & TPM_RETURNCMD) ? identifier : true;
 }
 
 bool installPopupHook(){
-	HMODULE user32 = LoadLibrary("user32.dll");
+	HMODULE user32 = LoadLibraryA("user32.dll");
 
 	if (!user32)
 		return false;
@@ -387,7 +389,7 @@ bool installPopupHook(){
 
 /* -------- CreateWindowEx hooks --------*/
 
-typedef HWND (* WINAPI CreateWindowExAPtr)(DWORD dwExStyle, LPCTSTR lpClassName, LPCTSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
+typedef HWND (* WINAPI CreateWindowExAPtr)(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
 typedef HWND (* WINAPI CreateWindowExWPtr)(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
 
 CreateWindowExAPtr originalCreateWindowExA = NULL;
@@ -448,7 +450,7 @@ bool hookFullscreenClass(HWND hWnd, std::string classname, bool unicode){
 	DBG_INFO("hooking fullscreen window with hWnd %p and classname '%s'.", hWnd, classname.c_str());
 
 	// Create the actual hook
-	WNDPROC prevWndProc = (WNDPROC)SetWindowLongPtr(hWnd, GWLP_WNDPROC, (LONG_PTR)(unicode ? &wndHookProcedureW : &wndHookProcedureA));
+	WNDPROC prevWndProc = (WNDPROC)SetWindowLongPtrA(hWnd, GWLP_WNDPROC, (LONG_PTR)(unicode ? &wndHookProcedureW : &wndHookProcedureA));
 	
 	EnterCriticalSection(&prevWndProcCS);
 	prevWndProcMap[hWnd] = prevWndProc;
@@ -457,7 +459,7 @@ bool hookFullscreenClass(HWND hWnd, std::string classname, bool unicode){
 	return true;
 }
 
-HWND WINAPI myCreateWindowExA(DWORD dwExStyle, LPCTSTR lpClassName, LPCTSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam){
+HWND WINAPI myCreateWindowExA(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam){
 	HWND hWnd = originalCreateWindowExA(dwExStyle, lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
 	
 	if (!IS_INTRESOURCE(lpClassName)){
@@ -482,7 +484,7 @@ HWND WINAPI myCreateWindowExW(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWi
 }
 
 bool installWindowClassHook(){
-	HMODULE user32 = LoadLibrary("user32.dll");
+	HMODULE user32 = LoadLibraryA("user32.dll");
 
 	if(!user32)
 		return false;
@@ -544,7 +546,7 @@ HDESK WINAPI myOpenInputDesktop(DWORD dwFlags, BOOL fInherit, ACCESS_MASK dwDesi
 }
 
 bool installUnityHooks(){
-	HMODULE user32 = LoadLibrary("user32.dll");
+	HMODULE user32 = LoadLibraryA("user32.dll");
 
 	if(!user32)
 		return false;
