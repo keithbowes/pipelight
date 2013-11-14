@@ -91,8 +91,11 @@ if [[ "$changelog" =~ \((.*)\)\ (UNRELEASED)? ]]; then
 	fi
 fi
 
-# Normalize the path
+# Normalize the paths
 prefix=$(readlink -m "$prefix")
+mozpluginpath=$(readlink -m "$mozpluginpath")
+gccruntimedlls=$(readlink -m "$gccruntimedlls")
+winepath=$(readlink -m "$winepath")
 
 echo "Configuration Summary"
 echo "---------------------"

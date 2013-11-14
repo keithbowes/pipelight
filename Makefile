@@ -66,8 +66,8 @@ install: all
 
 uninstall:
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/$(pluginloader)"
-	rm -f $(DESTDIR)$(prefix)/share/pipelight/pipelight-*
-	rm -f $(DESTDIR)$(prefix)/share/pipelight/configure-*
+	rm -f  $(DESTDIR)$(prefix)/share/pipelight/pipelight-*
+	rm -f  $(DESTDIR)$(prefix)/share/pipelight/configure-*
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/install-dependency"
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/hw-accel-default"
 	rm -f "$(DESTDIR)$(prefix)/bin/pipelight-plugin"
