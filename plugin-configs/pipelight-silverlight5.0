@@ -71,7 +71,7 @@ dllName             = npctrl.dll
 # Allows to get around some version checks done by some websites
 # when using an old version of Silverlight.
 #
-fakeVersion         = 5.1.20513.0
+fakeVersion         = 5.1.20913.0
 
 #
 # overwriteArg allows to overwrite/add initialization arguments

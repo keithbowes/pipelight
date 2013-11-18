@@ -559,10 +559,10 @@ while [ $# -gt 0 ] ; do
 			SHA="dd45a55419026c592f8b6fc848dceface7e1ce98720bf13848a2e8ae366b29e8"
 			;;
 		wine-silverlight5.1-installer)
-			INS=(install_silverlight   "5.1.20513.0")
-			CFG=(configure_silverlight "5.1.20513.0")
-			URL="http://silverlight.dlservice.microsoft.com/download/B/3/C/B3CF6815-40B1-4E36-8746-C4A0381AD260/20513.00/runtime/Silverlight.exe"
-			SHA="8c5d1ddaefd629670033841fb88188789f2f63170b2fe1aaddb2c9b33d4532ea"
+			INS=(install_silverlight   "5.1.20913.0")
+			CFG=(configure_silverlight "5.1.20913.0")
+			URL="http://silverlight.dlservice.microsoft.com/download/6/B/8/6B885B0B-73D4-4BCE-BFFF-154B4A402D22/20913.00/Silverlight.exe"
+			SHA="6254f18b680a2ab4d007e5a8a344539ee819bd33d1d054e1302fcd964d63f732"
 			;;
 		wine-mpg2splt-installer)
 			INS=(install_cabextract mpg2splt.ax --reg)
