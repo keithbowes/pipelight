@@ -61,6 +61,7 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 			NPP instance 		= it->second;
 			NetscapeData* ndata = (NetscapeData*)instance->ndata;
 
+			// In windowless mode handle paint and all other keyboard/mouse events
 			if (ndata && ndata->windowlessMode){
 
 				// Paint event
@@ -150,6 +151,7 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 				}
 
 			}
+
 		}
 	}
 
@@ -894,6 +896,7 @@ void dispatcher(int functionid, Stack &stack){
 
 					memset(ndata, 0, sizeof(*ndata));
 					ndata->windowlessMode 	= isWindowlessMode;
+					ndata->embeddedMode 	= isEmbeddedMode;
 					ndata->hWnd 			= NULL;
 
 				}else{
@@ -1020,11 +1023,11 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPP_SET_WINDOW:
 			{
-				NPP instance 	= readHandleInstance(stack);
-				int32_t x 		= readInt32(stack);
-				int32_t y 		= readInt32(stack);
-				int32_t width 	= readInt32(stack);
-				int32_t height 	= readInt32(stack);
+				NPP instance 		= readHandleInstance(stack);
+				int32_t x 			= readInt32(stack);
+				int32_t y 			= readInt32(stack);
+				uint32_t width 		= readInt32(stack);
+				uint32_t height 	= readInt32(stack);
 				DBG_TRACE("FUNCTION_NPP_SET_WINDOW( instance=%p, x=%d, y=%d, width=%d, height=%d )", instance, x, y, width, height);
 
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
@@ -1064,7 +1067,7 @@ void dispatcher(int functionid, Stack &stack){
 						if (ndata->hWnd){
 							hwndToInstance.insert( std::pair<HWND, NPP>(ndata->hWnd, instance) );
 
-							if (isEmbeddedMode)
+							if (ndata->embeddedMode)
 								makeWindowEmbedded(instance, ndata->hWnd);
 
 							ShowWindow(ndata->hWnd, SW_SHOW);
@@ -1079,13 +1082,15 @@ void dispatcher(int functionid, Stack &stack){
 								ndata->window.type 			= NPWindowTypeWindow;
 							}
 
+						}else{
+							DBG_ERROR("failed to create window!");
 						}
 					}
 
 					if (ndata->hWnd){
 
-						ndata->window.x 				= 0; //x;
-						ndata->window.y 				= 0; //y;
+						ndata->window.x 				= 0; // x;
+						ndata->window.y 				= 0; // y;
 						ndata->window.width 			= width;
 						ndata->window.height 			= height; 
 						ndata->window.clipRect.top 		= 0;
@@ -1094,9 +1099,6 @@ void dispatcher(int functionid, Stack &stack){
 						ndata->window.clipRect.bottom 	= height;
 
 						pluginFuncs.setwindow(instance, &ndata->window);
-
-					}else{
-						DBG_ERROR("failed to create window!");
 					}
 
 				}else{
