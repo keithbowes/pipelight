@@ -61,8 +61,7 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 			NPP instance 		= it->second;
 			NetscapeData* ndata = (NetscapeData*)instance->ndata;
 
-			if (ndata && ndata->windowlessMode && ndata->window){
-				NPWindow* window = ndata->window;
+			if (ndata && ndata->windowlessMode){
 
 				// Paint event
 				if (Msg == WM_PAINT){
@@ -77,23 +76,23 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 
 							// Save the previous DC (or allocate a new one)
 							HDC previousDC;
-							if (window->type == NPWindowTypeDrawable){
-								previousDC = (HDC)window->window;
+							if (ndata->window.type == NPWindowTypeDrawable){
+								previousDC = (HDC)ndata->window.window;
 							}else{
 								previousDC = GetDC(hWnd);
 							}
 
-							window->window 				= hDC;
-							window->x 					= 0;
-							window->y 					= 0;
-							window->width 				= rect.right;
-							window->height 				= rect.bottom;
-							window->clipRect.top 		= 0;
-							window->clipRect.left 		= 0;
-							window->clipRect.right 		= rect.right;
-							window->clipRect.bottom 	= rect.bottom;
-							window->type 				= NPWindowTypeDrawable;
-							pluginFuncs.setwindow(instance, window);
+							ndata->window.window 			= hDC;
+							ndata->window.x 				= 0;
+							ndata->window.y 				= 0;
+							ndata->window.width 			= rect.right;
+							ndata->window.height 			= rect.bottom;
+							ndata->window.clipRect.top 		= 0;
+							ndata->window.clipRect.left 	= 0;
+							ndata->window.clipRect.right 	= rect.right;
+							ndata->window.clipRect.bottom 	= rect.bottom;
+							ndata->window.type 				= NPWindowTypeDrawable;
+							pluginFuncs.setwindow(instance, &ndata->window);
 
 							NPRect nRect;
 							nRect.top 		= paint.rcPaint.top;
@@ -110,8 +109,8 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 							EndPaint(hWnd, &paint);
 
 							// Restore the previous DC
-							window->window = previousDC;
-							pluginFuncs.setwindow(instance, window);
+							ndata->window.window = previousDC;
+							pluginFuncs.setwindow(instance, &ndata->window);
 
 						}
 
@@ -127,11 +126,10 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 
 					HDC previousDC = NULL;
 
-					if (window->type == NPWindowTypeDrawable &&
-						((Msg >= WM_KEYFIRST && Msg <= WM_KEYLAST) || (Msg >= WM_MOUSEFIRST && Msg <= WM_MOUSELAST )) ){
-
-						previousDC = (HDC)window->window;
-						window->window = NULL;
+					if 		(ndata->window.type == NPWindowTypeDrawable &&
+							((Msg >= WM_KEYFIRST && Msg <= WM_KEYLAST) || (Msg >= WM_MOUSEFIRST && Msg <= WM_MOUSELAST )) ){
+						previousDC = (HDC)ndata->window.window;
+						ndata->window.window = NULL;
 					}
 
 					// Request the focus for the plugin window
@@ -145,7 +143,7 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 					int16_t result = pluginFuncs.event(instance, &event);
 
 					if (previousDC)
-						window->window = previousDC;
+						ndata->window.window = previousDC;
 
 					if (result == kNPEventHandled) return 0;
 
@@ -894,9 +892,9 @@ void dispatcher(int functionid, Stack &stack){
 				if (ndata){
 					instance->ndata = ndata;
 
+					memset(ndata, 0, sizeof(*ndata));
 					ndata->windowlessMode 	= isWindowlessMode;
 					ndata->hWnd 			= NULL;
-					ndata->window 			= NULL;
 
 				}else{
 					instance->ndata = NULL;
@@ -930,17 +928,13 @@ void dispatcher(int functionid, Stack &stack){
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
 				if (ndata){
 
-					// ReleaseDC and free memory for window info
-					if (ndata->window){
-						if (ndata->window->type == NPWindowTypeDrawable && ndata->hWnd){
-							ReleaseDC(ndata->hWnd, (HDC)ndata->window->window);
-						}
-						free(ndata->window);
-					}
-
-					// Destroy the window itself
+					// Destroy the window itself and any allocated DCs
 					if (ndata->hWnd){
 						hwndToInstance.erase(ndata->hWnd);
+
+						if (ndata->window.type == NPWindowTypeDrawable)
+							ReleaseDC(ndata->hWnd, (HDC)ndata->window.window);
+
 						DestroyWindow(ndata->hWnd);
 					}
 
@@ -1041,17 +1035,11 @@ void dispatcher(int functionid, Stack &stack){
 					// here ... although we don't call it the window seems to resize properly
 
 					if (!ndata->hWnd){
+						DWORD style, extStyle;
+						int posX, posY;
 						RECT rect;
-						rect.left 	= 0;
-						rect.top	= 0;
-						rect.right 	= width;
-						rect.bottom = height;
 
-						DWORD style;
-						DWORD extStyle;
-						int posX;
-						int posY;
-
+						// Get style flags
 						if (isEmbeddedMode){
 							style 		= WS_POPUP;
 							extStyle 	= WS_EX_TOOLWINDOW;
@@ -1064,8 +1052,14 @@ void dispatcher(int functionid, Stack &stack){
 							posY 		= CW_USEDEFAULT;
 						}
 
+						// Calculate size including borders
+						rect.left 	= 0;
+						rect.top	= 0;
+						rect.right 	= width;
+						rect.bottom = height;
 						AdjustWindowRectEx(&rect, style, false, extStyle);
 
+						// Create the actual window
 						ndata->hWnd = CreateWindowExA(extStyle, clsName, "Plugin", style, posX, posY, rect.right - rect.left, rect.bottom - rect.top, 0, 0, 0, 0);
 						if (ndata->hWnd){
 							hwndToInstance.insert( std::pair<HWND, NPP>(ndata->hWnd, instance) );
@@ -1076,44 +1070,31 @@ void dispatcher(int functionid, Stack &stack){
 							ShowWindow(ndata->hWnd, SW_SHOW);
 							UpdateWindow(ndata->hWnd);
 
+							// Only do this once to prevent leaking DCs
+							if (ndata->windowlessMode){
+								ndata->window.window 		= GetDC(ndata->hWnd);
+								ndata->window.type 			= NPWindowTypeDrawable;
+							}else{
+								ndata->window.window 		= ndata->hWnd;
+								ndata->window.type 			= NPWindowTypeWindow;
+							}
+
 						}
 					}
 
 					if (ndata->hWnd){
-						NPWindow* window = ndata->window;
 
-						// Allocate new window structure
-						if (!window){
-							window 			= (NPWindow*)malloc(sizeof(NPWindow));
+						ndata->window.x 				= 0; //x;
+						ndata->window.y 				= 0; //y;
+						ndata->window.width 			= width;
+						ndata->window.height 			= height; 
+						ndata->window.clipRect.top 		= 0;
+						ndata->window.clipRect.left 	= 0;
+						ndata->window.clipRect.right 	= width;
+						ndata->window.clipRect.bottom 	= height;
 
-							if (window){
-								ndata->window 	= window;
-								
-								// Only do this once to prevent leaking DCs
-								if (ndata->windowlessMode){
-									window->window 			= GetDC(ndata->hWnd);
-									window->type 			= NPWindowTypeDrawable;
-								}else{
-									window->window 			= ndata->hWnd;
-									window->type 			= NPWindowTypeWindow;
-								}
-							}
+						pluginFuncs.setwindow(instance, &ndata->window);
 
-						}
-
-						if (window){
-							window->x 				= 0; //x;
-							window->y 				= 0; //y;
-							window->width 			= width;
-							window->height 			= height; 
-							window->clipRect.top 	= 0;
-							window->clipRect.left 	= 0;
-							window->clipRect.right 	= width;
-							window->clipRect.bottom = height;
-
-							pluginFuncs.setwindow(instance, window);
-						}
-						
 					}else{
 						DBG_ERROR("failed to create window!");
 					}

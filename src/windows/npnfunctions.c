@@ -381,21 +381,20 @@ NPError NP_LOADDS NPN_SetValue(NPP instance, NPPVariable variable, void *value){
 					DBG_INFO("plugin instance switched windowless mode to %s.", (ndata->windowlessMode ? "on" : "off"));
 
 					// Update existing plugin window
-					if (ndata->hWnd && ndata->window){
-						NPWindow* window = ndata->window;
+					if (ndata->hWnd){
 
-						if (window->type == NPWindowTypeDrawable)
-							ReleaseDC(ndata->hWnd, (HDC)ndata->window->window);
+						if (ndata->window.type == NPWindowTypeDrawable)
+							ReleaseDC(ndata->hWnd, (HDC)ndata->window.window);
 
 						if (ndata->windowlessMode){
-							window->window 			= GetDC(ndata->hWnd);
-							window->type 			= NPWindowTypeDrawable;
+							ndata->window.window 		= GetDC(ndata->hWnd);
+							ndata->window.type 			= NPWindowTypeDrawable;
 						}else{
-							window->window 			= ndata->hWnd;
-							window->type 			= NPWindowTypeWindow;
+							ndata->window.window 		= ndata->hWnd;
+							ndata->window.type 			= NPWindowTypeWindow;
 						}
 
-						pluginFuncs.setwindow(instance, window);
+						pluginFuncs.setwindow(instance, &ndata->window);
 					}
 				}
 			}
