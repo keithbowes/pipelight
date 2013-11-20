@@ -143,8 +143,9 @@ std::vector<MenuEntry> menuAddEntries(HMENU hMenu, HWND hwnd){
 	/* ------- Wine version ------- */
 	temp  = "Wine\t";
 	temp += getWineVersion();
-	entryInfo.fMask			= MIIM_FTYPE | MIIM_STRING | MIIM_ID;
+	entryInfo.fMask			= MIIM_FTYPE | MIIM_STRING | MIIM_ID | MIIM_STATE;
 	entryInfo.fType			= MFT_STRING;
+	entryInfo.fState		= MFS_DISABLED;
 	entryInfo.dwTypeData 	= (char*)temp.c_str();
 	InsertMenuItemA(hMenu, count, true, &entryInfo);
 	entries.emplace_back(entryInfo.wID, MENU_ACTION_NONE);
@@ -153,9 +154,17 @@ std::vector<MenuEntry> menuAddEntries(HMENU hMenu, HWND hwnd){
 	/* ------- Sandbox status ------- */
 	temp  = "Sandbox\t";
 	temp += isSandboxed ? "enabled" : "disabled";
-	entryInfo.fMask			= MIIM_FTYPE | MIIM_STRING | MIIM_ID;
+	entryInfo.fMask			= MIIM_FTYPE | MIIM_STRING | MIIM_ID | MIIM_STATE;
 	entryInfo.fType			= MFT_STRING;
+	entryInfo.fState		= MFS_DISABLED;
 	entryInfo.dwTypeData 	= (char*)temp.c_str();
+	InsertMenuItemA(hMenu, count, true, &entryInfo);
+	entries.emplace_back(entryInfo.wID, MENU_ACTION_NONE);
+	count++; entryInfo.wID++;
+
+	/* ------- Separator ------- */
+	entryInfo.fMask		= MIIM_FTYPE | MIIM_ID;
+	entryInfo.fType		= MFT_SEPARATOR;
 	InsertMenuItemA(hMenu, count, true, &entryInfo);
 	entries.emplace_back(entryInfo.wID, MENU_ACTION_NONE);
 	count++; entryInfo.wID++;
