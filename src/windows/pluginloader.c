@@ -48,24 +48,24 @@ NPPluginFuncs pluginFuncs = {sizeof(pluginFuncs), (NP_VERSION_MAJOR << 8) + NP_V
 /* END GLOBAL VARIABLES */
 
 
-// required for wine_get_dos_file_name
+/* required for wine_get_dos_file_name */
 typedef WCHAR* (* CDECL wine_get_dos_file_namePtr)(LPCSTR str);
 #define CP_UNIXCP 65010
 
 
 LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam){
 
-	// Only messages with a hwnd can be relevant in windowlessmode mode
+	/* Only messages with a hwnd can be relevant in windowlessmode mode */
 	if (hWnd){
 		std::map<HWND, NPP>::iterator it = hwndToInstance.find(hWnd);
 		if (it != hwndToInstance.end()){
 			NPP instance 		= it->second;
 			NetscapeData* ndata = (NetscapeData*)instance->ndata;
 
-			// In windowless mode handle paint and all other keyboard/mouse events
+			/* In windowless mode handle paint and all other keyboard/mouse events */
 			if (ndata && ndata->windowlessMode){
 
-				// Paint event
+				/* Paint event */
 				if (Msg == WM_PAINT){
 					RECT rect;
 					PAINTSTRUCT paint;
@@ -76,7 +76,7 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 						hDC = BeginPaint(hWnd, &paint);
 						if (hDC != NULL){
 
-							// Save the previous DC (or allocate a new one)
+							/* Save the previous DC (or allocate a new one) */
 							HDC previousDC;
 							if (ndata->window.type == NPWindowTypeDrawable){
 								previousDC = (HDC)ndata->window.window;
@@ -110,7 +110,7 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 
 							EndPaint(hWnd, &paint);
 
-							// Restore the previous DC
+							/* Restore the previous DC */
 							ndata->window.window = previousDC;
 							pluginFuncs.setwindow(instance, &ndata->window);
 
@@ -119,12 +119,13 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 						return 0;
 					}
 
-				// All other events
+				/* All other events */
 				}else{
 
-					// Workaround for Silverlight - the events are not correctly handled if
-					// window->window is nonzero
-					// Set it to zero before calling the event handler in this case
+					/*
+						Workaround for Silverlight - the events are not correctly handled if window->window is nonzero
+						Set it to zero before calling the event handler in this case.
+					*/
 
 					HDC previousDC = NULL;
 
@@ -134,7 +135,7 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 						ndata->window.window = NULL;
 					}
 
-					// Request the focus for the plugin window
+					/* Request the focus for the plugin window */
 					if (Msg == WM_LBUTTONDOWN)
 						SetFocus(hWnd);
 
@@ -156,7 +157,7 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 		}
 	}
 
-	// Otherwise we only have to handle several regular events
+	/* Otherwise we only have to handle several regular events */
 	if (Msg == WM_DESTROY){
 		return 0;
 
@@ -225,8 +226,7 @@ std::string createLinuxCompatibleMimeType(){
 
 bool initDLL(std::string dllPath, std::string dllName){
 
-	// Thanks Microsoft - I searched a whole day to find this bug!
-	//CoInitialize(NULL);
+	/* Silverlight doesn't call this, so we have to do it */
 	CoInitializeEx(NULL, COINIT_APARTMENTTHREADED);
 
 	if (!SetDllDirectoryA(dllPath.c_str())){
@@ -321,11 +321,11 @@ std::string readPathFromRegistry(HKEY hKey, std::string regKey){
 	DWORD type;
 	DWORD length;
 
-	// Check if the value exists and get required size
+	/* check if the value exists and get required size */
 	if (RegGetValueA(hKey, fullKey.c_str(), "Path", RRF_RT_ANY, &type, NULL, &length) != ERROR_SUCCESS)
 		return "";
 
-	// Check if the value is a string and the length is > 0
+	/* check if the value is a string and the length is > 0 */
 	if (type != REG_SZ || !length)
 		return "";
 
@@ -346,18 +346,19 @@ std::string readPathFromRegistry(HKEY hKey, std::string regKey){
 
 int main(int argc, char *argv[]){
 
-	// Get the main thread ID
+	/* get the main thread ID */
 	mainThreadID = GetCurrentThreadId();
 
-	// When compiling with wineg++ the _controlfp_s isn't available
-	// We should find a workaround for this (asm implementation) as soon as wineg++ support works properly
+	/*
+		When compiling with wineg++ the _controlfp_s isn't available
+		We should find a workaround for this (asm implementation) as soon as wineg++ support works properly
+	*/
 	#ifndef __WINE__
 		unsigned int control_word;
 		_controlfp_s(&control_word, _CW_DEFAULT, MCW_PC);
 	#endif
 
-	// Disable stderr buffering
-	setbuf(stderr, NULL);
+	setbuf(stderr, NULL); /* Disable stderr buffering */
 
 	std::string dllPath;
 	std::string dllName;
@@ -406,11 +407,13 @@ int main(int argc, char *argv[]){
 		}
 	}
 
+	/* required arguments available? */
 	if (regKey == "" && (dllPath == "" || dllName == "")){
 		DBG_ERROR("you must at least specify --regKey or --dllPath and --dllName.");
 		return 1;
 	}
 
+	/* read arguments from the registry if necessary */
 	if (dllPath == "" || dllName == ""){
 		std::string path = readPathFromRegistry(HKEY_CURRENT_USER, regKey);
 
@@ -433,21 +436,20 @@ int main(int argc, char *argv[]){
 		DBG_INFO("Read dllPath '%s' and dllName '%s' from registry", dllPath.c_str(), dllName.c_str());
 	}
 
+	/* debug info */
 	DBG_INFO("windowless mode       is %s.", (isWindowlessMode ? "on" : "off"));
 	DBG_INFO("embedded mode         is %s.", (isEmbeddedMode ? "on" : "off"));
-
 	DBG_INFO("usermode timer        is %s.", (usermodeTimer ? "on" : "off"));
 	DBG_INFO("unity hacks           is %s.", (unityHacks ? "on" : "off"));
 	DBG_INFO("window class hook     is %s.", (windowClassHook ? "on" : "off"));
-
 	DBG_INFO("render toplevelwindow is %s.", (renderTopLevelWindow ? "on" : "off"));
 
 	DBG_ASSERT(initCommIO(), "unable to initialize communication channel.");
 
-	// Redirect STDOUT to STDERR
+	/* Redirect STDOUT to STDERR */
 	SetStdHandle(STD_OUTPUT_HANDLE, GetStdHandle(STD_ERROR_HANDLE));
 
-	// Create the application window
+	/* Create the application window */
 	WNDCLASSEXA WndClsEx;
 	WndClsEx.cbSize        = sizeof(WndClsEx);
 	WndClsEx.style         = CS_HREDRAW | CS_VREDRAW;
@@ -456,7 +458,7 @@ int main(int argc, char *argv[]){
 	WndClsEx.cbWndExtra    = 0;
 	WndClsEx.hIcon         = LoadIconA(NULL, (LPCSTR)IDI_APPLICATION);
 	WndClsEx.hCursor       = LoadCursorA(NULL, (LPCSTR)IDC_ARROW);
-	WndClsEx.hbrBackground = NULL; //(HBRUSH)GetStockObject(LTGRAY_BRUSH);
+	WndClsEx.hbrBackground = NULL; /* (HBRUSH)GetStockObject(LTGRAY_BRUSH); */
 	WndClsEx.lpszMenuName  = NULL;
 	WndClsEx.lpszClassName = clsName;
 	WndClsEx.hInstance     = GetModuleHandleA(NULL);
@@ -468,14 +470,14 @@ int main(int argc, char *argv[]){
 		return 1;
 	}
 
-	// Install hooks
+	/* Install hooks */
 	if (usermodeTimer) 		installTimerHook();
 	if (unityHacks) 		installUnityHooks();
 	if (windowClassHook) 	installWindowClassHook();
 
 	installPopupHook();
 
-	// Load the DLL
+	/* Load the DLL */
 	if (!initDLL(dllPath, dllName)){
 		DBG_ERROR("failed to initialize DLL.");
 		return 1;
@@ -497,7 +499,7 @@ bool makeWindowEmbedded(NPP instance, HWND hWnd, bool embed = true){
 		return false;
 	}
 
-	// Request change of embedded mode
+	/* Request change of embedded mode */
 	writeInt32(embed);
 	writeInt32(windowIDX11);
 	writeHandleInstance(instance);
@@ -509,13 +511,13 @@ bool makeWindowEmbedded(NPP instance, HWND hWnd, bool embed = true){
 }
 
 void changeEmbeddedMode(bool newEmbed){
-	
-	// Nothing to change
 	if (isEmbeddedMode == newEmbed)
 		return;
 
-	// TODO: The following code should theoretically work, but doesn't work yet because of additional wine bugs
-	// when they are fixed we can allow to toggle embedded mode on-the-fly without restart
+	/*
+		TODO: The following code should theoretically work, but doesn't work yet because of additional wine bugs
+		when they are fixed we can allow to toggle embedded mode on-the-fly without restart
+	*/
 
 	/*for (std::map<HWND, NPP>::iterator it = hwndToInstance.begin(); it != hwndToInstance.end(); it++){
 		HWND hWnd = it->first;
@@ -603,7 +605,7 @@ void dispatcher(int functionid, Stack &stack){
 				writeInt32( (obj->referenceCount == REFCOUNT_UNDEFINED) );
 
 				DBG_TRACE("WIN_HANDLE_MANAGER_OBJECT_IS_CUSTOM -> bool=%d", (obj->referenceCount == REFCOUNT_UNDEFINED));
-				objectDecRef(obj); // not really required, but looks better ;-)
+				objectDecRef(obj); /* not really required, but looks better ;-) */
 				returnCommand();
 			}
 			break;
@@ -624,10 +626,8 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				uint64_t remoteHandleCount = readInt64(stack);
 				DBG_ASSERT(remoteHandleCount == handleManager_count(), "remote handle count doesn't match local one.");
-
-				// Process window events
 				MSG msg;
-				//DBG_TRACE("PROCESS_WINDOW_EVENTS()");
+				/* DBG_TRACE("PROCESS_WINDOW_EVENTS()"); */
 
 				DWORD abortTime = GetTickCount() + 80;
 				while (GetTickCount() < abortTime){
@@ -636,14 +636,14 @@ void dispatcher(int functionid, Stack &stack){
 						DispatchMessageA(&msg);
 
 					}else if (usermodeTimer && handleTimerEvents()){
-						// dummy
+						/* dummy */
 
 					}else{
 						break;
 					}
 				}
 
-				//DBG_TRACE("PROCESS_WINDOW_EVENTS -> void");
+				/* DBG_TRACE("PROCESS_WINDOW_EVENTS -> void"); */
 				returnCommand();
 			}
 			break;
@@ -707,12 +707,14 @@ void dispatcher(int functionid, Stack &stack){
 
 				bool result = obj->_class->invoke(obj, name, args.data(), argCount, &resultVariant);
 
-				// The objects refcount has been incremented by invoke
-				// Return the variant without modifying the objects refcount
+				/*
+					The objects refcount has been incremented by invoke
+					Return the variant without modifying the objects refcount
+				*/
 				if (result)
 					writeVariantReleaseDecRef(resultVariant);
 
-				// This frees ONLY all the strings!
+				/* This frees ONLY all the strings! */
 				freeVariantArrayDecRef(args);
 				objectDecRef(obj);
 
@@ -735,12 +737,14 @@ void dispatcher(int functionid, Stack &stack){
 
 				bool result = obj->_class->invokeDefault(obj, args.data(), argCount, &resultVariant);
 
-				// The objects refcount has been incremented by invoke
-				// Return the variant without modifying the objects refcount
+				/*
+					The objects refcount has been incremented by invoke
+					Return the variant without modifying the objects refcount
+				*/
 				if (result)
 					writeVariantReleaseDecRef(resultVariant);
 
-				// This frees ONLY all the strings!
+				/* This frees ONLY all the strings! */
 				freeVariantArrayDecRef(args);
 				writeInt32(result);
 				objectDecRef(obj);
@@ -848,7 +852,7 @@ void dispatcher(int functionid, Stack &stack){
 					writeIdentifierArray(identifierTable, identifierCount);
 					writeInt32(identifierCount);
 
-					// Free the memory for the table
+					/* Free the memory for the table */
 					if (identifierTable)
 						free(identifierTable);
 				}
@@ -890,7 +894,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPSavedData saved;
 				NPSavedData* savedPtr = NULL;
 
-				// Note: The plugin is responsible for freeing the saved memory when not required anymore!
+				/* NOTE: The plugin is responsible for freeing the saved memory when not required anymore! */
 				if (saved_data){
 					saved.buf 	= saved_data;
 					saved.len 	= saved_length;
@@ -900,11 +904,11 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPP_NEW( mimeType='%s', instance=%p, mode=%d, argc=%d, argn=%p, argv=%p, saved=%p )", \
 						mimeType.get(), instance, mode, argc, argn.data(), argv.data(), savedPtr);
 
-				// Most plugins only support windowlessMode in combination with NP_EMBED
+				/* Most plugins only support windowlessMode in combination with NP_EMBED */
 				if (isWindowlessMode)
 					mode = NP_EMBED;
 
-				// Set privata data before calling the plugin, it might already use some commands
+				/* Set privata data before calling the plugin, it might already use some commands */
 				NetscapeData* ndata = (NetscapeData*)malloc(sizeof(NetscapeData));
 				if (ndata){
 					instance->ndata = ndata;
@@ -929,9 +933,9 @@ void dispatcher(int functionid, Stack &stack){
 
 				NPError result = pluginFuncs.newp(mimeType.get(), instance, mode, argc, argn.data(), argv.data(), savedPtr);
 
-				// TODO: Do we have to deallocate the privata data or does NPP_DESTROY get called?
+				/* TODO: Do we have to deallocate the privata data or does NPP_DESTROY get called? */
 
-				// Free the arrays before returning
+				/* Free the arrays before returning */
 				freeStringArray(argn);
 				freeStringArray(argv);
 
@@ -950,11 +954,11 @@ void dispatcher(int functionid, Stack &stack){
 
 				NPError result 		= pluginFuncs.destroy(instance, &saved);
 
-				// Destroy the pointers
+				/* Destroy the pointers */
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
 				if (ndata){
 
-					// Destroy the window itself and any allocated DCs
+					/* Destroy the window itself and any allocated DCs */
 					if (ndata->hWnd){
 						hwndToInstance.erase(ndata->hWnd);
 
@@ -967,9 +971,9 @@ void dispatcher(int functionid, Stack &stack){
 					if (ndata->cache_pluginElementNPObject)
 						NPN_ReleaseObject(ndata->cache_pluginElementNPObject);
 
-					// not necessary to free the value ndata->cache_clientWidthIdentifier
+					/* not necessary to free the value ndata->cache_clientWidthIdentifier */
 
-					// Free this structure
+					/* Free this structure */
 					free(ndata);
 					instance->ndata = NULL;
 				}
@@ -1006,8 +1010,9 @@ void dispatcher(int functionid, Stack &stack){
 				PRBool boolValue;
 				NPError result;
 
-				if (false){ // not used at the moment
+				if (false){ /* not used at the moment */
 					result = pluginFuncs.getvalue(instance, variable, &boolValue);
+
 				}else{
 					DBG_WARN("FUNCTION_NPP_GETVALUE_BOOL - variable %d not allowed", variable);
 					result = NPERR_GENERIC_ERROR;
@@ -1034,6 +1039,7 @@ void dispatcher(int functionid, Stack &stack){
 				
 				if (variable == NPPVpluginScriptableNPObject){
 					result = pluginFuncs.getvalue(instance, variable, &objectValue);
+
 				}else{
 					DBG_WARN("FUNCTION_NPP_GETVALUE_OBJECT - variable %d not allowed", variable);
 					result = NPERR_GENERIC_ERROR;
@@ -1061,16 +1067,18 @@ void dispatcher(int functionid, Stack &stack){
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
 				if (ndata){
 
-					// Note: It breaks input event handling when calling
-					// SetWindowPos(ndata->hWnd, HWND_TOP, 0, 0, width, height, SWP_NOMOVE | SWP_SHOWWINDOW);
-					// here ... although we don't call it the window seems to resize properly
+					/*
+						NOTE: It breaks input event handling when calling
+						SetWindowPos(ndata->hWnd, HWND_TOP, 0, 0, width, height, SWP_NOMOVE | SWP_SHOWWINDOW);
+						here ... although we don't call it the window seems to resize properly
+					*/
 
 					if (!ndata->hWnd){
 						DWORD style, extStyle;
 						int posX, posY;
 						RECT rect;
 
-						// Get style flags
+						/* Get style flags */
 						if (isEmbeddedMode){
 							style 		= WS_POPUP;
 							extStyle 	= WS_EX_TOOLWINDOW;
@@ -1083,14 +1091,14 @@ void dispatcher(int functionid, Stack &stack){
 							posY 		= CW_USEDEFAULT;
 						}
 
-						// Calculate size including borders
+						/* Calculate size including borders */
 						rect.left 	= 0;
 						rect.top	= 0;
 						rect.right 	= width;
 						rect.bottom = height;
 						AdjustWindowRectEx(&rect, style, false, extStyle);
 
-						// Create the actual window
+						/* Create the actual window */
 						ndata->hWnd = CreateWindowExA(extStyle, clsName, "Plugin", style, posX, posY, rect.right - rect.left, rect.bottom - rect.top, 0, 0, 0, 0);
 						if (ndata->hWnd){
 							hwndToInstance.insert( std::pair<HWND, NPP>(ndata->hWnd, instance) );
@@ -1101,7 +1109,7 @@ void dispatcher(int functionid, Stack &stack){
 							ShowWindow(ndata->hWnd, SW_SHOW);
 							UpdateWindow(ndata->hWnd);
 
-							// Only do this once to prevent leaking DCs
+							/* Only do this once to prevent leaking DCs */
 							if (ndata->windowlessMode){
 								ndata->window.window 		= GetDC(ndata->hWnd);
 								ndata->window.type 			= NPWindowTypeDrawable;
@@ -1117,8 +1125,8 @@ void dispatcher(int functionid, Stack &stack){
 
 					if (ndata->hWnd){
 
-						ndata->window.x 				= 0; // x;
-						ndata->window.y 				= 0; // y;
+						ndata->window.x 				= 0;
+						ndata->window.y 				= 0;
 						ndata->window.width 			= width;
 						ndata->window.height 			= height; 
 						ndata->window.clipRect.top 		= 0;
@@ -1136,7 +1144,7 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPP_SET_WINDOW -> void");
 				returnCommand();
 
-				// These parameters currently are not required
+				/* these parameters currently are not required */
 				UNREFERENCED_PARAMETER(x);
 				UNREFERENCED_PARAMETER(y);
 			}
@@ -1150,13 +1158,13 @@ void dispatcher(int functionid, Stack &stack){
 				NPBool seekable					= (NPBool) readInt32(stack); 
 				DBG_TRACE("FUNCTION_NPP_NEW_STREAM( instance=%p, type='%s', stream=%p, seekable=%d )", instance, type.get(), stream, seekable);
 
-				uint16_t stype = NP_NORMAL; // Fix for silverlight....
+				uint16_t stype = NP_NORMAL; /* Fix for silverlight.... */
 				NPError result = pluginFuncs.newstream(instance, type.get(), stream, seekable, &stype);
 				
-				// Return result
+				/* Return result */
 				if (result == NPERR_NO_ERROR){
 					writeInt32(stype);
-				}else{ // Handle is now invalid because of this error
+				}else{ /* Handle is now invalid because of this error */
 					handleManager_removeByPtr(HMGR_TYPE_NPStream, stream);
 				}
 				
@@ -1176,10 +1184,10 @@ void dispatcher(int functionid, Stack &stack){
 
 				NPError result = pluginFuncs.destroystream(instance, stream, reason);
 
-				// Free data
+				/* Free data */
 				if (stream){
 
-					// Let the handlemanager remove this one
+					/* Let the handlemanager remove this one */
 					handleManager_removeByPtr(HMGR_TYPE_NPStream, stream);
 
 					if (stream->url) 		free((char*)stream->url);
@@ -1267,7 +1275,7 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				DBG_TRACE("NP_SHUTDOWN()");
 
-				// TODO: Implement deinitialization! We dont call Shutdown, as otherwise we would have to call Initialize again!
+				/* TODO: Implement deinitialization! We dont call Shutdown, as otherwise we would have to call Initialize again! */
 
 				DBG_TRACE("NP_SHUTDOWN -> void");
 				returnCommand();

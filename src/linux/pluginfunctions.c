@@ -413,6 +413,7 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	return result;
 }
 
+/* NPP_Destroy */
 NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 	DBG_TRACE("( instance=%p, save=%p )", instance, save);
 
@@ -534,6 +535,7 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 	return result;
 }
 
+/* NPP_SetWindow */
 NPError NPP_SetWindow(NPP instance, NPWindow* window) {
 	DBG_TRACE("( instance=%p, window=%p )", instance, window);
 
@@ -555,6 +557,7 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window) {
 	return NPERR_NO_ERROR;
 }
 
+/* NPP_NewStream */
 NPError NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool seekable, uint16_t* stype) {
 	DBG_TRACE("( instance=%p, type='%s', stream=%p, seekable=%d, stype=%p )", instance, type, stream, seekable, stype);
 
@@ -584,6 +587,7 @@ NPError NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool se
 	return result;
 }
 
+/* NPP_DestroyStream */
 NPError NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
 	DBG_TRACE("( instance=%p, stream=%p, reason=%d )", instance, stream, reason);
 
@@ -607,6 +611,7 @@ NPError NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
 	return result;
 }
 
+/* NPP_WriteReady */
 int32_t NPP_WriteReady(NPP instance, NPStream* stream) {
 	DBG_TRACE("( instance=%p, stream=%p )", instance, stream);
 
@@ -633,6 +638,7 @@ int32_t NPP_WriteReady(NPP instance, NPStream* stream) {
 	return result;
 }
 
+/* NPP_Write */
 int32_t NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, void* buffer) {
 	DBG_TRACE("( instance=%p, stream=%p, offset=%d, len=%d, buffer=%p )", instance, stream, offset, len, buffer);
 
@@ -653,6 +659,7 @@ int32_t NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, v
 	return len;
 }
 
+/* NPP_StreamAsFile */
 void NPP_StreamAsFile(NPP instance, NPStream* stream, const char* fname) {
 	DBG_TRACE("( instance=%p, stream=%p, fname=%p )", instance, stream, fname);
 
@@ -665,12 +672,14 @@ void NPP_StreamAsFile(NPP instance, NPStream* stream, const char* fname) {
 	DBG_TRACE(" -> void");
 }
 
+/* NPP_Print */
 void NPP_Print(NPP instance, NPPrint* platformPrint) {
 	DBG_TRACE("( instance=%p, platformPrint=%p )", instance, platformPrint);
 	NOTIMPLEMENTED();
 	DBG_TRACE(" -> void");
 }
 
+/* NPP_HandleEvent */
 int16_t NPP_HandleEvent(NPP instance, void* event) {
 	DBG_TRACE("( instance=%p, event=%p )", instance, event);
 	NOTIMPLEMENTED();
@@ -678,6 +687,7 @@ int16_t NPP_HandleEvent(NPP instance, void* event) {
 	return 0;
 }
 
+/* NPP_URLNotify */
 void NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyData) {
 	DBG_TRACE("( instance=%p, URL='%s', reason=%d, notifyData=%p )", instance, URL, reason, notifyData);
 
@@ -710,6 +720,7 @@ void NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyD
 	DBG_TRACE(" -> void");
 }
 
+/* NPP_GetValue */
 NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 	DBG_TRACE("( instance=%p, variable=%d, value=%p )", instance, variable, value);
 
@@ -765,6 +776,7 @@ NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 	return result;
 }
 
+/* NPP_SetValue */
 NPError NPP_SetValue(NPP instance, NPNVariable variable, void *value) {
 	DBG_TRACE("( instance=%p, variable=%d, value=%p )", instance, variable, value);
 	NOTIMPLEMENTED();

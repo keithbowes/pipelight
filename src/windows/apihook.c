@@ -8,9 +8,11 @@
 #include <string.h>								// for memset
 
 void* patchDLLExport(PVOID ModuleBase, const char* functionName, void* newFunctionPtr){
-	// Based on the following source code:
-	// http://alter.org.ua/docs/nt_kernel/procaddr/#RtlImageDirectoryEntryToData
-	
+	/*
+		Based on the following source code:
+		http://alter.org.ua/docs/nt_kernel/procaddr/#RtlImageDirectoryEntryToData
+	*/
+
 	PIMAGE_DOS_HEADER dos              =    (PIMAGE_DOS_HEADER) ModuleBase;
 	PIMAGE_NT_HEADERS nt               =    (PIMAGE_NT_HEADERS)((ULONG) ModuleBase + dos->e_lfanew);
 
@@ -77,7 +79,7 @@ bool handleTimerEvents(){
 	if (numTimers){
 
 		for (unsigned int i = 0; i < numTimers; i++){
-			// Access by index to avoid problems with new timers
+			/* Access by index to avoid problems with new timers */
 			TimerEntry *it = &timerEntries[i];
 
 			if (it->hWnd){
@@ -110,7 +112,7 @@ bool handleTimerEvents(){
 
 UINT_PTR WINAPI mySetTimer(HWND hWnd, UINT_PTR nIDEvent, UINT uElapse, TIMERPROC lpTimerFunc){
 
-	// Callback immediately? 
+	/* Callback immediately? */
 	if (hWnd && nIDEvent && uElapse == 0){
 		EnterCriticalSection(&timerCS);
 
@@ -156,7 +158,7 @@ BOOL WINAPI myKillTimer(HWND hWnd, UINT_PTR uIDEvent){
 
 		LeaveCriticalSection(&timerCS);
 
-		// If it was successful, then return true
+		/* if it was successful, then return true */
 		if (found) return 1;
 	}
 
@@ -199,7 +201,7 @@ struct MenuEntry{
 	}
 };
 
-#define MENUID_OFFSET 0x50495045 // 'PIPE'
+#define MENUID_OFFSET 0x50495045 /* 'PIPE' */
 
 std::vector<MenuEntry> menuAddEntries(HMENU hMenu, HWND hwnd){
 	std::vector<MenuEntry> 	entries;
@@ -327,18 +329,18 @@ TrackPopupMenuPtr 	originalTrackPopupMenu  	= NULL;
 
 BOOL WINAPI myTrackPopupMenuEx(HMENU hMenu, UINT fuFlags, int x, int y, HWND hWnd, LPTPMPARAMS lptpm){
 
-	// Called from wrong thread -> redirect without intercepting the call
+	/* Called from wrong thread -> redirect without intercepting the call */
 	if (GetCurrentThreadId() != mainThreadID)
 		return originalTrackPopupMenuEx(hMenu, fuFlags, x, y, hWnd, lptpm);
 
-	// Find the specific instance
+	/* Find the specific instance */
 	std::map<HWND, NPP>::iterator it = hwndToInstance.find(hWnd);
 	if (it == hwndToInstance.end())
 		return originalTrackPopupMenuEx(hMenu, fuFlags, x, y, hWnd, lptpm);
 
 	NPP instance = it->second;
 
-	// Don't send messages to windows, but return the identifier as return value
+	/* Don't send messages to windows, but return the identifier as return value */
 	UINT newFlags = (fuFlags & ~TPM_NONOTIFY) | TPM_RETURNCMD;
 
 	std::vector<MenuEntry> entries = menuAddEntries(hMenu, hWnd);
@@ -356,11 +358,11 @@ BOOL WINAPI myTrackPopupMenuEx(HMENU hMenu, UINT fuFlags, int x, int y, HWND hWn
 
 BOOL WINAPI myTrackPopupMenu(HMENU hMenu, UINT uFlags, int x, int y, int nReserved, HWND hWnd, const RECT *prcRect){
 
-	// Called from wrong thread -> redirect without intercepting the call
+	/* Called from wrong thread -> redirect without intercepting the call */
 	if (GetCurrentThreadId() != mainThreadID)
 		return originalTrackPopupMenu(hMenu, uFlags, x, y, nReserved, hWnd, prcRect);
 
-	// Find the specific instance
+	/* Find the specific instance */
 	std::map<HWND, NPP>::iterator it;
 	HWND instancehWnd = hWnd;
 
@@ -375,7 +377,7 @@ BOOL WINAPI myTrackPopupMenu(HMENU hMenu, UINT uFlags, int x, int y, int nReserv
 
 	NPP instance = it->second;
 
-	// Don't send messages to windows, but return the identifier as return value
+	/* Don't send messages to windows, but return the identifier as return value */
 	UINT newFlags = (uFlags & ~TPM_NONOTIFY) | TPM_RETURNCMD;
 
 	std::vector<MenuEntry> entries = menuAddEntries(hMenu, hWnd);
@@ -468,7 +470,7 @@ bool hookFullscreenClass(HWND hWnd, std::string classname, bool unicode){
 
 	DBG_INFO("hooking fullscreen window with hWnd %p and classname '%s'.", hWnd, classname.c_str());
 
-	// Create the actual hook
+	/* create the actual hook */
 	WNDPROC prevWndProc = (WNDPROC)SetWindowLongPtrA(hWnd, GWLP_WNDPROC, (LONG_PTR)(unicode ? &wndHookProcedureW : &wndHookProcedureA));
 	
 	EnterCriticalSection(&prevWndProcCS);

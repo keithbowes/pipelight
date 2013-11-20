@@ -93,8 +93,8 @@ void NPDeallocateFunction(NPObject *npobj){
 
 NPClass myClass = {
 	NP_CLASS_STRUCT_VERSION,
-	NULL, // NPAllocateFunction,
-	NULL, // NPDeallocateFunction,
+	NULL, /* NPAllocateFunction, */
+	NULL, /* NPDeallocateFunction, */
 	NPInvalidateFunction,
 	NPHasMethodFunction,
 	NPInvokeFunction,
