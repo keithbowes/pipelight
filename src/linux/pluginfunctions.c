@@ -268,7 +268,7 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 
 	PluginData *pdata = (PluginData*)malloc(sizeof(PluginData));
 	if (!pdata){
-		DBG_ERROR(" -> result=%d", NPERR_OUT_OF_MEMORY_ERROR);
+		DBG_TRACE(" -> result=%d", NPERR_OUT_OF_MEMORY_ERROR);
 		return NPERR_OUT_OF_MEMORY_ERROR;
 	}
 
@@ -285,7 +285,7 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 		if (invalidMimeType && config.diagnosticMode)
 			runDiagnostic(instance);
 
-		DBG_ERROR(" -> result=%d", NPERR_GENERIC_ERROR);
+		DBG_TRACE(" -> result=%d", NPERR_GENERIC_ERROR);
 		return NPERR_GENERIC_ERROR;
 	}
 
@@ -295,7 +295,6 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	if (!config.eventAsyncCall && config.operaDetection){
 		if (std::string(sBrowserFuncs->uagent(instance)).find("Opera") != std::string::npos){
 			config.eventAsyncCall = true;
-
 			DBG_INFO("Opera browser detected, changed eventAsyncCall to true.");
 		}
 	}
@@ -312,16 +311,12 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 		resultVariant.value.objectValue = NULL;
 
 		if (sBrowserFuncs->getvalue(instance, NPNVWindowNPObject, &windowObj) == NPERR_NO_ERROR){
-			
 			if (sBrowserFuncs->evaluate(instance, windowObj, &script, &resultVariant)){
 				sBrowserFuncs->releasevariantvalue(&resultVariant);
-
 				DBG_INFO("successfully executed JavaScript.");
-
 			}else{
 				DBG_ERROR("failed to execute JavaScript, take a look at the JS console.");
 			}
-
 			sBrowserFuncs->releaseobject(windowObj);
 		}
 	}
@@ -330,7 +325,6 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	if (config.eventAsyncCall){
 		if (!eventThread){
 			eventTimerInstance = instance;
-
 			if (pthread_create(&eventThread, NULL, timerThread, NULL) == 0){ // failed
 				startAsyncCall = true;
 
@@ -338,7 +332,6 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 				eventThread = 0;
 				DBG_ERROR("unable to start timer thread.");
 			}
-
 		}else{
 			DBG_INFO("already one timer thread running.");
 		}
@@ -370,7 +363,6 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	// argv
 	for (int i = argc - 1; i >= 0; i--){
 		std::string key(argn[i]);
-
 		it = config.overwriteArgs.find(key);
 		if (it == config.overwriteArgs.end()){
 			realArgCount++;
@@ -386,7 +378,6 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	//argn
 	for (int i = argc - 1; i >= 0; i--){
 		std::string key(argn[i]);
-
 		it = config.overwriteArgs.find(key);
 		if (it == config.overwriteArgs.end()){
 			writeString(argn[i]);

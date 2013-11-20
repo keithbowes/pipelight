@@ -173,6 +173,9 @@ struct ParameterInfo{
 
 typedef std::vector<ParameterInfo> Stack;
 
+/* increase this whenever you do changes in the protocol stack */
+#define PIPELIGHT_PROTOCOL_VERSION 0x10000000
+
 enum{
 	/* ------- Special ------- */
 
@@ -649,6 +652,10 @@ inline bool pluginInitOkay(){
 		return false;
 
 	if (!readCommands(stack, true, 20000))
+		return false;
+
+	/* ensure that we're using the correct protocol version */
+	if (readInt32(stack) != PIPELIGHT_PROTOCOL_VERSION)
 		return false;
 
 	return true;

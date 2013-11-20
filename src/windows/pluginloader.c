@@ -563,7 +563,10 @@ void dispatcher(int functionid, Stack &stack){
 		case INIT_OKAY:
 			{
 				DBG_TRACE("INIT_OKAY()");
-				DBG_TRACE("INIT_OKAY -> void");
+
+				writeInt32(PIPELIGHT_PROTOCOL_VERSION);
+
+				DBG_TRACE("INIT_OKAY -> %x", PIPELIGHT_PROTOCOL_VERSION);
 				returnCommand();
 			}
 			break;
