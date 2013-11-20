@@ -12,12 +12,13 @@
 #include "../common/common.h"
 #include "configloader.h"
 
+/* getHomeDirectory */
 static std::string getHomeDirectory(){
 	char *homeDir = getenv("HOME");
 	if (homeDir)
 		return std::string(homeDir);
 	
-	// Do we need getpwuid_r() here ?
+	/* Do we need getpwuid_r() here ? */
 	struct passwd* info = getpwuid(getuid());
 	if (!info || !info->pw_dir)
 		return "";
@@ -25,7 +26,7 @@ static std::string getHomeDirectory(){
 	return std::string(info->pw_dir);
 }
 
-// see http://source.winehq.org/source/libs/wine/config.c?v=wine-1.7.3#L268
+/* getWineUser, see http://source.winehq.org/source/libs/wine/config.c?v=wine-1.7.3#L268 */
 static std::string getWineUser(){
 	struct passwd *info = getpwuid(getuid());
 	if (info && info->pw_name)
@@ -36,49 +37,48 @@ static std::string getWineUser(){
 	return std::string(uid_string);
 }
 
+/* getConfigNameFromLibrary */
 static void getConfigNameFromLibrary(std::string &configName, std::string &configEnv, std::string &pluginName){
 	Dl_info 	libinfo;
 	size_t 		pos;
 
-	// get full path
+	/* get full path for this library, if not fallback to old behaviour (shouldn't occur) */
 	if (!dladdr((void*)getConfigNameFromLibrary, &libinfo) || !libinfo.dli_fname){
 		configName = "pipelight";
 		configEnv  = "PIPELIGHT_CONFIG";
 		pluginName = "";
 		return;
-
 	}
 
 	pluginName = std::string(libinfo.dli_fname);
 
-	// strip directory name
+	/* strip directory name */
 	if ((pos = pluginName.find_last_of('/')) != std::string::npos)
 		pluginName = pluginName.substr(pos + 1, std::string::npos);
 
-	// strip extension (.so)
+	/* strip extension (.so) */
 	if ((pos = pluginName.find_last_of('.')) != std::string::npos)
 		pluginName = pluginName.substr(0, pos);
 
-	// get last component
+	/* get last component */
 	pos = pluginName.find_last_of('-');
 	pluginName = (pos != std::string::npos) ? pluginName.substr(pos + 1, std::string::npos) : "";
 
+	/* extracting path successful */
 	if (pluginName.length()){
 		configEnv = pluginName;
 
-		// convert to lower/upper case
+		/* convert to lower/upper case and clean up */
 		std::transform(pluginName.begin(), pluginName.end(), pluginName.begin(), c_tolower);
-
 		std::transform(configEnv.begin(), configEnv.end(), configEnv.begin(), c_toupper);
 		std::replace(configEnv.begin(), configEnv.end(), '.', '_');
 
 		configName = "pipelight-" + pluginName;
 		configEnv  = "PIPELIGHT_" + configEnv + "_CONFIG";
-		/* pluginName already set */
 		return;
 	}
 
-
+	/* failed (shouldn't occur) */
 	configName = "pipelight";
 	configEnv  = "PIPELIGHT_CONFIG";
 	pluginName = "";
@@ -89,13 +89,12 @@ static bool splitConfigValue(std::string line, std::string &key, std::string &va
 	size_t pos;
 	line = trim(line);
 
-	// find delimiter
+	/* find delimiter */
 	if ((pos = line.find_first_of("=")) == std::string::npos)
 		return false;
 
 	key 	= trim(line.substr(0, pos));
 	value 	= trim(line.substr(pos + 1, std::string::npos));
-
 	return (key != "");
 }
 
@@ -109,12 +108,13 @@ static std::string readUntil(const char* &str, char abort = 0){
 
 	while (	(c = *str) && 						/* more characters? */	
 			(c != abort) &&						/* not the abort character? */
-			(abort || isAlphaNumericChar(c)) )	/* if no abort character given, then it should be alphanumeric */
+			(abort || c_alphanumchar(c)) )		/* if no abort character given, then it should be alphanumeric */
 		str++;
 
 	return std::string(start, str-start);
 }
 
+/* replaceVariables */
 static std::string replaceVariables(const std::map<std::string, std::string> &variables, const char* str){
 	std::string output 	= "";
 	std::string varname = "";
@@ -122,31 +122,32 @@ static std::string replaceVariables(const std::map<std::string, std::string> &va
 
 	while (*str){
 
-		if (*str == '$'){ // Not escaped
+		/* variables */
+		if (*str == '$'){
 			str++;
 
-			if (*str == '$'){ // Escape
+			if (*str == '$'){ /* escape */
 				output.append(1, *str);
 				str++;
 				continue;
 
-			}else if (*str == '{'){ // In brackets
+			}else if (*str == '{'){ /* in brackets */
 				str++;
 				varname = readUntil(str, '}');
 
 				DBG_ASSERT(*str == '}', "expected closing tag } at end of line.");
-				str++; // Skip over it
+				str++; /* skip over it */
 
-			}else{
+			}else
 				varname = readUntil(str);
-			}
 
 			std::transform(varname.begin(), varname.end(), varname.begin(), c_tolower);
 			it = variables.find("$" + varname);
 
 			DBG_ASSERT(it != variables.end(), "variable '%s' not found.", varname.c_str());
-			output.append( it->second ); // Append value
+			output.append( it->second ); /* append value */
 
+		/* regular character */
 		}else{
 			output.append(1, *str);
 			str++;
@@ -156,7 +157,7 @@ static std::string replaceVariables(const std::map<std::string, std::string> &va
 	return output;
 }
 
-/* Tries to open the config and returns true on success */
+/* openConfig, tries to open the config and returns true on success */
 static  bool openConfig(std::ifstream &configFile, std::string &configPath, std::string &pluginName){
 	std::string configName, configEnv, homeDir 	= getHomeDirectory();
 	getConfigNameFromLibrary(configName, configEnv, pluginName);
@@ -209,19 +210,18 @@ static  bool openConfig(std::ifstream &configFile, std::string &configPath, std:
 	return false;
 }
 
-/* Does the actual parsing stuff */
+/* loadConfig, parses the config file */
 bool loadConfig(PluginConfig &config){
-
-	/* Variables which can be used inside the config file */
 	std::map<std::string, std::string> variables;
 
-	/* Add homedir to variables */
+	/* Add $home to variables */
 	std::string homeDir = getHomeDirectory();
 	if (homeDir != "") variables["$home"] = homeDir;
 
-	variables["$wineuser"] = getWineUser(); /* getWineUser() never returns an empty string */
+	/* Add $wineuser variable */
+	variables["$wineuser"] = getWineUser();
 
-	/* Initialize config variables with default values */
+	/* initialize config variables with default values */
 	config.configPath			= "";
 	config.pluginName 			= "";
 	config.diagnosticMode 		= false;
@@ -231,7 +231,7 @@ bool loadConfig(PluginConfig &config){
 	config.winePath 			= "wine";
 	config.wineArch 			= "win32";
 	config.winePrefix 			= "";
-	config.wineDLLOverrides		= "mscoree,mshtml,winegstreamer,winemenubuilder.exe="; /* prevent Installation of Geck & Mono by default */
+	config.wineDLLOverrides		= "mscoree,mshtml,winegstreamer,winemenubuilder.exe="; /* prevent installation of Geck & Mono by default */
 
 	config.dllPath 				= "";
 	config.dllName 				= "";
@@ -259,8 +259,8 @@ bool loadConfig(PluginConfig &config){
 	config.experimental_windowClassHook = false;
 	config.experimental_renderTopLevelWindow = false;
 
-	std::ifstream 	configFile;
-
+	/* open configuration file */
+	std::ifstream configFile;
 	if (!openConfig(configFile, config.configPath, config.pluginName)){
 		DBG_ERROR("couldn't find any configuration file.");
 		return false;
@@ -271,39 +271,34 @@ bool loadConfig(PluginConfig &config){
 		getline(configFile, line);
 
 		line = trim(line);
+
+		/* skip empty lines */
 		if (line.length() == 0)
 			continue;
 
+		/* strip comments */
 		size_t pos;
-
-		//strip comments
 		if ((pos = line.find_first_of("#")) != std::string::npos){
 			if (pos == 0)
 				continue;
-
 			line = line.substr(0, pos);
 		}
 
+		/* read key/value pair */
 		std::string key;
 		std::string value;
-
 		if (!splitConfigValue(line, key, value))
 			continue;
 
-		// convert key to lower case
+		/* convert key to lower case */
 		std::transform(key.begin(), key.end(), key.begin(), c_tolower);
-
-		// replace $var and ${var} inside of value
+		/* replace $var and ${var} inside of value */
 		value = replaceVariables(variables, value.c_str());
 
-		// check for variables
-		// splitConfiguration takes care that the key has at least one character
 		if (key[0] == '$'){
 			variables[key] = value;
-			continue;
-		}
 
-		if (	key == "diagnosticmode"){
+		}else if (	key == "diagnosticmode"){
 			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
 			config.diagnosticMode = (value == "true" || value == "yes");
 
@@ -354,7 +349,6 @@ bool loadConfig(PluginConfig &config){
 		}else if (key == "overwritearg"){
 			std::string argKey;
 			std::string argValue;
-
 			if (!splitConfigValue(value, argKey, argValue))
 				continue;
 
@@ -414,6 +408,5 @@ bool loadConfig(PluginConfig &config){
 
 	/* set the multiplugin name */
 	setMultiPluginName(config.pluginName);
-
 	return true;
 }

@@ -86,45 +86,39 @@ NPNetscapeFuncs* sBrowserFuncs 		= NULL;
 // Global plugin configuration
 PluginConfig config INIT_EARLY;
 
-// Attach has to be called as a last step
+// Attach has to be called as the last step
 void attach() CONSTRUCTOR;
 void detach() DESTRUCTOR;
 
 /* END GLOBAL VARIABLES */
 
 void attach(){
-
-	// Fix for Opera: Dont sync stdio
-	std::ios_base::sync_with_stdio(false);
-
-	// Disable stderr buffering
-	setbuf(stderr, NULL);
+	std::ios_base::sync_with_stdio(false);		/* Fix for Opera: Dont sync stdio */
+	setbuf(stderr, NULL);						/* Disable stderr buffering */
 
 	DBG_INFO("attached to process.");
 
-	// Initialize semaphore
+	/* Initialize semaphores */
 	sem_init(&eventThreadSemRequestAsyncCall, 0, 0);
 	sem_init(&eventThreadSemScheduledAsyncCall, 0, 0);
 
 	initOkay = false;
 
+	/* load config file */
 	if (!loadConfig(config)){
 		DBG_ERROR("unable to load config file - aborting.");
 		return;
 	}
 
-	if (config.winePath 		== "" ||	/* We have to know where wine is installed (default: wine) */
-		/* we need either the path and name of the plugin DLL or the registry key where to find it */
-		((config.dllPath == "" || config.dllName == "") && config.regKey == "") ||
-		config.pluginLoaderPath == "" ||	/* Without pluginloader.exe this doesn't work */
-		config.winePrefix 		== "" ){	/* winePrefix */
-
+	/* ensure that all necessary keys are provided */
+	if 	(	config.winePath == "" || ((config.dllPath == "" || config.dllName == "") && config.regKey == "") ||
+			config.pluginLoaderPath == "" || config.winePrefix == "" ){
 		DBG_ERROR("Your configuration file doesn't contain all necessary keys - aborting.");
 		DBG_ERROR("please take a look at the original configuration file for more details.");
 		return;
 	}
 
-	// Check if we should enable hardware acceleration
+	/* check if hw acceleration should be used (only for Silverlight) */
 	if (config.silverlightGraphicDriverCheck != ""){
 		int gpuAcceleration = getEnvironmentInteger("PIPELIGHT_GPUACCELERATION", -1);
 
@@ -135,7 +129,6 @@ void attach(){
 		}else if (gpuAcceleration > 0){
 			DBG_INFO("enableGPUAcceleration set via commandline to 'true'");
 			config.overwriteArgs["enableGPUAcceleration"] = "true";
-
 			if (gpuAcceleration > 1)
 				config.experimental_renderTopLevelWindow = true;
 			
@@ -148,34 +141,34 @@ void attach(){
 		}
 	}
 
-	// Check for correct installation
+	/* Check for correct installation */
 	if (!checkPluginInstallation()){
 		DBG_ERROR("Plugin not correctly installed - aborting.");
 		return;
 	}
 
-	// Start wine process
+	/* Start wine process */
 	if (!startWineProcess()){
 		DBG_ERROR("could not start wine process - aborting.");
 		return;
 	}
 
-	// We want to be sure that wine is up and running until we return!
+	/* We want to be sure that wine is up and running until we return! */
 	if (!pluginInitOkay()){
 		DBG_ERROR("error during the initialization of the wine process - aborting.");
 		return;
 	}
  
- 	// Initialisation successful
+ 	/* Initialisation successful */
 	initOkay = true;
 }
 
 void detach(){
-	// TODO: Deinitialize pointers etc.
+	/* TODO: Deinitialize pointers etc. */
 }
 
+/* convertWinePath */
 std::string convertWinePath(std::string path, bool direction){
-
 	if (!checkIfExists(config.winePrefix)){
 		DBG_WARN("wine prefix doesn't exist.");
 		return "";
@@ -185,7 +178,7 @@ std::string convertWinePath(std::string path, bool direction){
 	std::string resultPath;
 
 	if (pipe(tempPipeIn) == -1){
-		DBG_ERROR("could not create pipes to communicate with winepath.");
+		DBG_ERROR("could not create pipes to communicate with winepath.exe.");
 		return "";
 	}
 
@@ -196,7 +189,7 @@ std::string convertWinePath(std::string path, bool direction){
 		close(tempPipeIn[0]);
 		dup2(tempPipeIn[1], 1);
 
-		// Setup environment variables
+		/* Setup environment variables */
 		setenv("WINEPREFIX", 			config.winePrefix.c_str(), 			true);
 
 		if (config.wineArch != "")
@@ -205,10 +198,9 @@ std::string convertWinePath(std::string path, bool direction){
 		if (config.wineDLLOverrides != "")
 			setenv("WINEDLLOVERRIDES", 	config.wineDLLOverrides.c_str(), 	true);
 
-		std::string argument 		= direction ? "--windows" : "--unix";
-
-		// Generate argv array
+		/* Generate argv array */
 		std::vector<const char*> argv;
+		std::string argument = direction ? "--windows" : "--unix";
 
 		if (config.sandboxPath != "")
 			argv.push_back( config.sandboxPath.c_str() );
@@ -217,7 +209,6 @@ std::string convertWinePath(std::string path, bool direction){
 		argv.push_back( "winepath.exe" );
 		argv.push_back( argument.c_str() );
 		argv.push_back( path.c_str() );
-
 		argv.push_back(NULL);
 
 		execvp(argv[0], (char**)argv.data());
@@ -227,7 +218,7 @@ std::string convertWinePath(std::string path, bool direction){
 		char resultPathBuffer[4096+1];
 
 		close(tempPipeIn[1]);
-		FILE * tempPipeInF = fdopen(tempPipeIn[0], "rb");
+		FILE *tempPipeInF = fdopen(tempPipeIn[0], "rb");
 
 		if (tempPipeInF != NULL){
 
@@ -239,40 +230,36 @@ std::string convertWinePath(std::string path, bool direction){
 
 		int status;
 		if (waitpid(pidWinePath, &status, 0) == -1 || !WIFEXITED(status) ){
-			DBG_ERROR("/bin/winepath did not run correctly (error occured).");
+			DBG_ERROR("winepath.exe did not run correctly (error occured).");
 			return "";
 
 		}else if (WEXITSTATUS(status) != 0){
-			DBG_ERROR("/bin/winepath did not run correctly (exitcode = %d).", WEXITSTATUS(status));
+			DBG_ERROR("winepath.exe did not run correctly (exitcode = %d).", WEXITSTATUS(status));
 			return "";
 		}
 
 	}else{
-
 		close(tempPipeIn[0]);
 		close(tempPipeIn[1]);	
 
 		DBG_ERROR("unable to fork() - probably out of memory?");
 		return "";
-
 	}
 
 	return resultPath;
 }
 
+/* convertWinePath */
 bool checkPluginInstallation(){
 
-	// Output wine prefix
+	/* Output wine prefix */
 	DBG_INFO("using wine prefix directory %s.", config.winePrefix.c_str());
 
-	// If there is no installer provided we cannot check the installation
-	if (config.dependencyInstaller == "" || config.dependencies.empty() ||
-		!checkIfExists(config.dependencyInstaller) ){
-
+	/* If there is no installer provided we cannot check the installation */
+	if (config.dependencyInstaller == "" || config.dependencies.empty() || !checkIfExists(config.dependencyInstaller) )
 		return checkIfExists(config.winePrefix);
-	}
 
-	// Run the installer ...
+	/* Run the installer ... */
 	DBG_INFO("checking plugin installation - this might take some time.");
 
 	pid_t pidInstall = fork();
@@ -280,7 +267,7 @@ bool checkPluginInstallation(){
 
 		close(0);
 
-		// Setup environment variables
+		/* Setup environment variables */
 		setenv("WINEPREFIX", 			config.winePrefix.c_str(), 			true);
 		setenv("WINE", 					config.winePath.c_str(), 			true);
 
@@ -293,18 +280,17 @@ bool checkPluginInstallation(){
 		if (config.quietInstallation)
 			setenv("QUIETINSTALLATION",	"1", 								true);
 
-		// Generate argv array
+		/* Generate argv array */
 		std::vector<const char*> argv;
 
-		// NOTE: Using a sandbox isn't possible on the first run, as the winePrefix doesn't exist yet
+		/* NOTE: Using a sandbox isn't possible on the first run, as the winePrefix doesn't exist yet */
 		if (config.sandboxPath != "" && checkIfExists(config.winePrefix))
 			argv.push_back( config.sandboxPath.c_str() );
 
 		argv.push_back( config.dependencyInstaller.c_str());
 
-		for (std::string &dep: config.dependencies){
-			argv.push_back( dep.c_str());
-		}
+		for (std::vector<std::string>::iterator it = config.dependencies.begin(); it != config.dependencies.end(); it++)
+			argv.push_back( it->c_str());
 
 		argv.push_back(NULL);
 
@@ -323,16 +309,15 @@ bool checkPluginInstallation(){
 			return false;
 		}
 
-
 	}else{
 		DBG_ERROR("unable to fork() - probably out of memory?");
 		return false;
-
 	}
 
 	return true;
 }
 
+/* checkSilverlightGraphicDriver */
 bool checkSilverlightGraphicDriver(){
 
 	if (config.silverlightGraphicDriverCheck == ""){
@@ -340,13 +325,11 @@ bool checkSilverlightGraphicDriver(){
 		return false;
 	}
 
-	// Speed up in this case
+	/* Shortcuts */
 	if (config.silverlightGraphicDriverCheck == "/bin/true"){
 		DBG_INFO("GPU driver check - Manually set to /bin/true.");
 		return true;
-	}
-		
-	if (config.silverlightGraphicDriverCheck == "/bin/false"){
+	}else if (config.silverlightGraphicDriverCheck == "/bin/false"){
 		DBG_INFO("GPU driver check - Manually set to /bin/false.");
 		return false;
 	}
@@ -361,8 +344,7 @@ bool checkSilverlightGraphicDriver(){
 
 		close(0);
 
-		// The graphic driver check doesn't need any environment variables at all.
-
+		/* The graphic driver check doesn't need any environment variables or sandbox at all. */
 		execlp(config.silverlightGraphicDriverCheck.c_str(), config.silverlightGraphicDriverCheck.c_str(), NULL);
 		DBG_ABORT("error in execlp command - probably silverlightGraphicDriverCheck not found or missing execute permission.");
 
@@ -394,6 +376,7 @@ bool checkSilverlightGraphicDriver(){
 	return false;
 }
 
+/* startWineProcess */
 bool startWineProcess(){
 	int tempPipeOut[2], tempPipeIn[2];
 
@@ -402,19 +385,18 @@ bool startWineProcess(){
 		return false;
 	}
 
-
 	winePid = fork();
 	if (winePid == 0){
-		// The child process will be replaced with wine
+		/* The child process will be replaced with wine */
 
 		close(tempPipeIn[0]);
 		close(tempPipeOut[1]);
 
-		// Assign to stdin/stdout
+		/* Assign to stdin/stdout */
 		dup2(tempPipeOut[0],  0);
-		dup2(tempPipeIn[1], 1);
+		dup2(tempPipeIn[1],   1);
 		
-		// Setup environment variables
+		/* Setup environment variables */
 		setenv("WINEPREFIX", 			config.winePrefix.c_str(), 			true);
 
 		if (config.wineArch != "")
@@ -425,12 +407,11 @@ bool startWineProcess(){
 
 		if (config.gccRuntimeDLLs != ""){
 			std::string runtime = getEnvironmentString("Path");
-			if(runtime != "") runtime += ";";
-			runtime += config.gccRuntimeDLLs;
+			runtime = config.gccRuntimeDLLs + ((runtime != "") ? (";" + runtime) : "");
 			setenv("Path", runtime.c_str(), true);
 		}
 
-		// Generate argv array
+		/* Generate argv array */
 		std::vector<const char*> argv;
 
 		if (config.sandboxPath != "")
@@ -443,6 +424,7 @@ bool startWineProcess(){
 		argv.push_back( "--pluginName" );
 		argv.push_back( strMultiPluginName );
 
+		/* configuration options */
 		if (config.dllPath != ""){
 			argv.push_back( "--dllPath" );
 			argv.push_back( config.dllPath.c_str() );
@@ -476,14 +458,18 @@ bool startWineProcess(){
 		if (config.experimental_renderTopLevelWindow)
 			argv.push_back( "--rendertoplevelwindow" );
 
+		/* tell the other side that a sandbox is active */
+		if (config.sandboxPath != "")
+			argv.push_back( "--sandboxed" );
+
 		argv.push_back(NULL);	
 
-		// Execute wine
+		/* Execute wine */
 		execvp(argv[0], (char**)argv.data());
 		DBG_ABORT("error in execvp command - probably wine/sandbox not found or missing execute permission.");
 
 	}else if (winePid != -1){
-		// The parent process will return normally and use the pipes to communicate with the child process
+		/* The parent process will return normally and use the pipes to communicate with the child process */
 
 		close(tempPipeOut[0]);
 		close(tempPipeIn[1]);
@@ -499,6 +485,7 @@ bool startWineProcess(){
 	return true;
 }
 
+/* sendXembedMessage */
 void sendXembedMessage(Display* display, Window win, long message, long detail, long data1, long data2){
 	XEvent ev;
 	memset(&ev, 0, sizeof(ev));
@@ -518,6 +505,7 @@ void sendXembedMessage(Display* display, Window win, long message, long detail, 
 	XSync(display, False);
 }
 
+/* setXembedWindowInfo */
 void setXembedWindowInfo(Display* display, Window win, int flags){
 	CARD32 list[2];
 	Atom xembedInfo = XInternAtom(display, "_XEMBED_INFO", False);
@@ -529,14 +517,15 @@ void setXembedWindowInfo(Display* display, Window win, int flags){
 	XSync(display, False);
 }
 
+/* dispatcher */
 void dispatcher(int functionid, Stack &stack){
-	DBG_ASSERT(sBrowserFuncs != NULL, "browser didn't correctly initialize the plugin!");
+	DBG_ASSERT(sBrowserFuncs, "browser didn't correctly initialize the plugin!");
 
 	switch (functionid){
 		
 		case LIN_HANDLE_MANAGER_REQUEST_STREAM_INFO:
 			{
-				NPStream* stream = readHandleStream(stack); // shouldExist not necessary, Linux checks always
+				NPStream* stream = readHandleStream(stack); /* shouldExist not necessary, Linux checks always */
 				DBG_TRACE("LIN_HANDLE_MANAGER_REQUEST_STREAM_INFO( stream=%p )", stream);
 
 				writeString(stream->headers);
@@ -566,8 +555,8 @@ void dispatcher(int functionid, Stack &stack){
 		case GET_WINDOW_RECT:
 			{
 				Window win 				= (Window)readInt32(stack);
-				XWindowAttributes winattr;
 				bool result         	= false;
+				XWindowAttributes winattr;
 				Window dummy;
 				DBG_TRACE("GET_WINDOW_RECT( win=%lu )", win);
 
@@ -580,12 +569,14 @@ void dispatcher(int functionid, Stack &stack){
 					XCloseDisplay(display);
 
 				}else{
-					DBG_ERROR("could not open Display!");
+					DBG_ERROR("could not open display!");
 				}
 
 				if (result){
-					/*writeInt32(winattr.height);
-					writeInt32(winattr.width);*/
+					/*
+					writeInt32(winattr.height);
+					writeInt32(winattr.width);
+					*/
 					writeInt32(winattr.y);
 					writeInt32(winattr.x);
 				}
@@ -604,24 +595,26 @@ void dispatcher(int functionid, Stack &stack){
 				bool embed 				= (bool)readInt32(stack);
 				DBG_TRACE("CHANGE_EMBEDDED_MODE( instance=%p, win=%lu, embed=%d )", instance, win, embed);
 
-				PluginData *pdata 		= (PluginData*)instance->pdata;
+				PluginData *pdata = (PluginData*)instance->pdata;
 				if (pdata && pdata->container){
 					Display *display = XOpenDisplay(NULL);
 
 					if (display){
 						Window parentWindow;
 
+						/* embed into child window */
 						if (embed){
 							parentWindow = (Window)getEnvironmentInteger("PIPELIGHT_X11WINDOW");
 							if (!parentWindow)
 								parentWindow = pdata->container;
-						}else{
+
+						/* reparent to root window */
+						}else
 							parentWindow = RootWindow(display, 0);
-						}
 
 						XReparentWindow(display, win, parentWindow, 0, 0);
 
-						// QtGui.QX11EmbedContainer doesn't send this on an Reparent event, so we do this on our own
+						/* QtGui.QX11EmbedContainer doesn't send this on an Reparent event, so we do this on our own */
 						if (parentWindow != pdata->container)
 							sendXembedMessage(display, win, XEMBED_EMBEDDED_NOTIFY, 0, parentWindow, 0);
 
@@ -633,11 +626,10 @@ void dispatcher(int functionid, Stack &stack){
 						*/
 
 						sendXembedMessage(display, win, XEMBED_FOCUS_OUT, 0, 0, 0);
-
 						XCloseDisplay(display);
 
 					}else{
-						DBG_ERROR("could not open Display!");
+						DBG_ERROR("could not open display!");
 					}
 				}
 
@@ -646,15 +638,13 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		// Plugin specific commands (_GET_, _NP_ and _NPP_) not implemented
-
 		case FUNCTION_NPN_CREATE_OBJECT:
 			{
 				NPP instance 			= readHandleInstance(stack);
 				DBG_TRACE("FUNCTION_NPN_CREATE_OBJECT( instance=%p )", instance);
 
 				NPObject* obj = sBrowserFuncs->createobject(instance, &myClass);
-				writeHandleObj(obj); // refcounter is hopefully 1
+				writeHandleObj(obj); /* refcounter is hopefully 1 */
 
 				DBG_TRACE("FUNCTION_NPN_CREATE_OBJECT -> obj=%p", obj);
 				returnCommand();
@@ -673,6 +663,7 @@ void dispatcher(int functionid, Stack &stack){
 
 				if (variable == NPNVprivateModeBool){
 					result = sBrowserFuncs->getvalue(instance, variable, &resultBool);
+
 				}else{
 					DBG_WARN("FUNCTION_NPN_GETVALUE_BOOL - variable %d not allowed", variable);
 					result = NPERR_GENERIC_ERROR;
@@ -700,13 +691,14 @@ void dispatcher(int functionid, Stack &stack){
 
 				if (variable == NPNVPluginElementNPObject || variable == NPNVWindowNPObject){
 					result = sBrowserFuncs->getvalue(instance, variable, &obj);
+
 				}else{
 					DBG_WARN("FUNCTION_NPN_GETVALUE_OBJECT - variable %d not allowed", variable);
 					result = NPERR_GENERIC_ERROR;
 				}
 
 				if (result == NPERR_NO_ERROR)
-					writeHandleObj(obj); // Refcount was already incremented by getValue
+					writeHandleObj(obj); /* Refcount was already incremented by getValue */
 
 				writeInt32(result);
 
@@ -726,6 +718,7 @@ void dispatcher(int functionid, Stack &stack){
 
 				if (variable == NPNVdocumentOrigin){
 					result = sBrowserFuncs->getvalue(instance, variable, &str);
+
 				}else{
 					DBG_WARN("FUNCTION_NPN_GETVALUE_STRING - variable %d not allowed", variable);
 					result = NPERR_GENERIC_ERROR;
@@ -750,7 +743,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPObject* obj 		= readHandleObj(stack);
 				DBG_TRACE("FUNCTION_NPN_RELEASEOBJECT( obj=%p )", obj);
 
-				// We do this check always, although its not really required, but this makes it easier to find errors
+				/* We do this check always, although its not really required, but this makes it easier to find errors */
 				if (obj->referenceCount == 1 && handleManager_existsByPtr(HMGR_TYPE_NPObject, obj)){
 					writeHandleObj(obj);
 					callFunction(WIN_HANDLE_MANAGER_OBJECT_IS_CUSTOM);
@@ -794,9 +787,8 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPN_EVALUATE( instance=%p, obj=%p )", instance, obj);
 
 				bool result = sBrowserFuncs->evaluate(instance, obj, &script, &resultVariant);	
-				
-				// Free the string
-				freeNPString(script);
+
+				freeNPString(script); /* free the string */
 
 				if (result)
 					writeVariantRelease(resultVariant);
@@ -822,8 +814,7 @@ void dispatcher(int functionid, Stack &stack){
 
 				bool result = sBrowserFuncs->invoke(instance, obj, identifier, args.data(), argCount, &resultVariant);
 
-				// Free the variant array
-				freeVariantArray(args);
+				freeVariantArray(args); /* free the variant array */
 
 				if (result)
 					writeVariantRelease(resultVariant);
@@ -848,8 +839,7 @@ void dispatcher(int functionid, Stack &stack){
 
 				bool result = sBrowserFuncs->invokeDefault(instance, obj, args.data(), argCount, &resultVariant);
 
-				// Free the variant array
-				freeVariantArray(args);
+				freeVariantArray(args); /* free the variant array */
 
 				if (result)
 					writeVariantRelease(resultVariant);
@@ -958,7 +948,7 @@ void dispatcher(int functionid, Stack &stack){
 					writeIdentifierArray(identifierTable, identifierCount);
 					writeInt32(identifierCount);
 					
-					// Free the memory for the table
+					/* free the memory for the table */
 					if (identifierTable)
 						sBrowserFuncs->memfree(identifierTable);
 				}
@@ -991,7 +981,7 @@ void dispatcher(int functionid, Stack &stack){
 				NotifyDataRefCount* notifyData 	= (NotifyDataRefCount*)readHandleNotify(stack);
 				DBG_TRACE("FUNCTION_NPN_GET_URL_NOTIFY( instance=%p, url='%s', target='%s', notifyData=%p )", instance, url.get(), target.get(), notifyData);
 
-				// Increase refcounter
+				/* increase refcounter */
 				if (notifyData)
 					notifyData->referenceCount++;
 
@@ -1014,7 +1004,7 @@ void dispatcher(int functionid, Stack &stack){
 				NotifyDataRefCount* notifyData 	= (NotifyDataRefCount*)readHandleNotify(stack);
 				DBG_TRACE("FUNCTION_NPN_POST_URL_NOTIFY( instance=%p, url='%s', target='%s', buffer=%p, len=%lu, file=%d, notifyData=%p )", instance, url.get(), target.get(), buffer.get(), len, file, notifyData);
 
-				// Increase refcounter
+				/* increase refcounter */
 				if (notifyData)
 					notifyData->referenceCount++;
 
@@ -1059,7 +1049,7 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		case FUNCTION_NPN_REQUEST_READ: // UNTESTED!
+		case FUNCTION_NPN_REQUEST_READ: /* UNTESTED! */
 			{
 				NPStream *stream 				= readHandleStream(stack);
 				uint32_t rangeCount				= readInt32(stack);
@@ -1068,7 +1058,7 @@ void dispatcher(int functionid, Stack &stack){
 
 				for (unsigned int i = 0; i < rangeCount; i++){
 					NPByteRange *newByteRange = (NPByteRange*)malloc(sizeof(NPByteRange));
-					if (!newByteRange) break; // Unable to send all requests, but shouldn't occur
+					if (!newByteRange) break; /* Unable to send all requests, but shouldn't occur */
 
 					newByteRange->offset = readInt32(stack);
 					newByteRange->length = readInt32(stack);
@@ -1079,7 +1069,7 @@ void dispatcher(int functionid, Stack &stack){
 
 				NPError result = sBrowserFuncs->requestread(stream, byteRange);
 
-				// Free the linked list
+				/* Free the linked list */
 				while (byteRange){
 					NPByteRange *nextByteRange = byteRange->next;
 					free(byteRange);
@@ -1191,7 +1181,7 @@ void dispatcher(int functionid, Stack &stack){
 
 				DBG_TRACE("FUNCTION_NPN_UTF8_FROM_IDENTIFIER -> str='%s'", str );
 
-				// Free the string
+				/* free the string */
 				if (str)
 					sBrowserFuncs->memfree(str);
 

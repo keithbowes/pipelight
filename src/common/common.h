@@ -634,6 +634,7 @@ inline std::vector<NPIdentifier> readIdentifierArray(Stack &stack, int count){
 	return result;
 }
 
+/*
 inline void writeNPBool(NPBool value){
 	writeInt32(value);
 }
@@ -641,6 +642,7 @@ inline void writeNPBool(NPBool value){
 inline NPBool readNPBool(Stack &stack){
 	return (NPBool)readInt32(stack);
 }
+*/
 
 #ifndef __WIN32__
 
@@ -749,7 +751,7 @@ inline void pokeString(char *dest, const std::string str, size_t maxLength){
 	pokeString(dest, str.c_str(), maxLength);
 }
 
-#define isAlphaNumericChar(c) \
+#define c_alphanumchar(c) \
 	( ((c) >= 'A' && (c) <= 'Z') || ((c) >= 'a' && (c) <= 'z') || ((c) >= '0' && (c) <= '9') || (c) == '_' )
 
 /* locale independent tolower function */

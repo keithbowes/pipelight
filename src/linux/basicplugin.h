@@ -113,7 +113,6 @@ void NPDeallocateFunction(NPObject *npobj);
 
 /* public */
 
-
 /* XEMBED messages */
 #define XEMBED_EMBEDDED_NOTIFY			0
 #define XEMBED_WINDOW_ACTIVATE  		1
@@ -136,7 +135,6 @@ void NPDeallocateFunction(NPObject *npobj);
 #define XEMBED_FOCUS_LAST				2
 
 #define XEMBED_MAPPED 					(1 << 0)
-
 
 struct PluginData{
 	bool		pipelightError;

@@ -9,8 +9,8 @@
 #include "basicplugin.h"
 #include "diagnostic.h"
 
-NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
-{
+/* NP_Initialize */
+NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs *bFuncs, NPPluginFuncs* pFuncs){
 	DBG_TRACE("( bFuncs=%p, pFuncs=%p )", bFuncs, pFuncs);
 
 	if (bFuncs == NULL || pFuncs == NULL){
@@ -24,7 +24,7 @@ NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 		return NPERR_INCOMPATIBLE_VERSION_ERROR;
 	}
 
-	// Copy browser functions instead of saving the pointer
+	/* copy browser functions instead of saving the pointer */
 	if (!sBrowserFuncs)
 		sBrowserFuncs = (NPNetscapeFuncs*)malloc( sizeof(NPNetscapeFuncs) );
 
@@ -36,38 +36,38 @@ NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 	memset(sBrowserFuncs, 0, sizeof(NPNetscapeFuncs));
 	memcpy(sBrowserFuncs, bFuncs, ((bFuncs->size < sizeof(NPNetscapeFuncs)) ? bFuncs->size : sizeof(NPNetscapeFuncs)) );
 
-	// Check if all required browser functions are available
-	if (!sBrowserFuncs->geturl ||
-		!sBrowserFuncs->posturl ||
-		!sBrowserFuncs->requestread ||
-		!sBrowserFuncs->newstream ||
-		!sBrowserFuncs->write ||
-		!sBrowserFuncs->destroystream ||
-		!sBrowserFuncs->status ||
-		!sBrowserFuncs->uagent ||
-		!sBrowserFuncs->memalloc ||
-		!sBrowserFuncs->memfree ||
-		!sBrowserFuncs->geturlnotify ||
-		!sBrowserFuncs->posturlnotify ||
-		!sBrowserFuncs->getvalue ||
-		!sBrowserFuncs->getstringidentifier ||
-		!sBrowserFuncs->getintidentifier ||
-		!sBrowserFuncs->identifierisstring ||
-		!sBrowserFuncs->utf8fromidentifier ||
-		!sBrowserFuncs->intfromidentifier ||
-		!sBrowserFuncs->createobject ||
-		!sBrowserFuncs->retainobject ||
-		!sBrowserFuncs->releaseobject ||
-		!sBrowserFuncs->invoke ||
-		!sBrowserFuncs->invokeDefault ||
-		!sBrowserFuncs->evaluate ||
-		!sBrowserFuncs->getproperty ||
-		!sBrowserFuncs->setproperty ||
-		!sBrowserFuncs->removeproperty ||
-		!sBrowserFuncs->hasproperty ||
-		!sBrowserFuncs->releasevariantvalue ||
-		!sBrowserFuncs->setexception ||
-		!sBrowserFuncs->enumerate ){
+	/* Check if all required browser functions are available */
+	if (	!sBrowserFuncs->geturl ||
+			!sBrowserFuncs->posturl ||
+			!sBrowserFuncs->requestread ||
+			!sBrowserFuncs->newstream ||
+			!sBrowserFuncs->write ||
+			!sBrowserFuncs->destroystream ||
+			!sBrowserFuncs->status ||
+			!sBrowserFuncs->uagent ||
+			!sBrowserFuncs->memalloc ||
+			!sBrowserFuncs->memfree ||
+			!sBrowserFuncs->geturlnotify ||
+			!sBrowserFuncs->posturlnotify ||
+			!sBrowserFuncs->getvalue ||
+			!sBrowserFuncs->getstringidentifier ||
+			!sBrowserFuncs->getintidentifier ||
+			!sBrowserFuncs->identifierisstring ||
+			!sBrowserFuncs->utf8fromidentifier ||
+			!sBrowserFuncs->intfromidentifier ||
+			!sBrowserFuncs->createobject ||
+			!sBrowserFuncs->retainobject ||
+			!sBrowserFuncs->releaseobject ||
+			!sBrowserFuncs->invoke ||
+			!sBrowserFuncs->invokeDefault ||
+			!sBrowserFuncs->evaluate ||
+			!sBrowserFuncs->getproperty ||
+			!sBrowserFuncs->setproperty ||
+			!sBrowserFuncs->removeproperty ||
+			!sBrowserFuncs->hasproperty ||
+			!sBrowserFuncs->releasevariantvalue ||
+			!sBrowserFuncs->setexception ||
+			!sBrowserFuncs->enumerate ){
 
 		DBG_ERROR("your browser doesn't support all required functions!");
 		DBG_TRACE(" -> result=%d", NPERR_INCOMPATIBLE_VERSION_ERROR);
@@ -79,7 +79,7 @@ NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 		return NPERR_INVALID_FUNCTABLE_ERROR;
 	}
 
-	// Select which event handling method should be used
+	/* select which event handling method should be used */
 	if (!config.eventAsyncCall && sBrowserFuncs->scheduletimer && sBrowserFuncs->unscheduletimer){
 		DBG_INFO("using timer based event handling.");
 
@@ -93,10 +93,10 @@ NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 		return NPERR_INCOMPATIBLE_VERSION_ERROR;
 	}
 
-	// Return the plugin function table
+	/* return the plugin function table */
 	pFuncs->version 		= (NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR;
 
-	// Dont overwrite the size of the function table, it might be smaller than sizeof(NPPluginFuncs)
+	/* dont overwrite the size of the function table, it might be smaller than sizeof(NPPluginFuncs) */
 	pFuncs->newp 			= NPP_New;
 	pFuncs->destroy 		= NPP_Destroy;
 	pFuncs->setwindow 		= NPP_SetWindow;
@@ -115,8 +115,8 @@ NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs)
 	return NPERR_NO_ERROR;
 }
 
-NP_EXPORT(char*) NP_GetPluginVersion()
-{
+/* NP_GetPluginVersion */
+NP_EXPORT(/*const*/ char*) NP_GetPluginVersion(){
 	DBG_TRACE("()");
 
 	if (initOkay){
@@ -132,8 +132,8 @@ NP_EXPORT(char*) NP_GetPluginVersion()
 	return strPluginVersion;
 }
 
-NP_EXPORT(const char*) NP_GetMIMEDescription()
-{
+/* NP_GetMIMEDescription */
+NP_EXPORT(const char*) NP_GetMIMEDescription(){
 	DBG_TRACE("()");
 
 	if (initOkay){
@@ -153,7 +153,8 @@ NP_EXPORT(const char*) NP_GetMIMEDescription()
 	return strMimeType;
 }
 
-NP_EXPORT(NPError) NP_GetValue(void* future, NPPVariable variable, void* value) {
+/* NP_GetValue */
+NP_EXPORT(NPError) NP_GetValue(void *future, NPPVariable variable, void *value) {
 	NPError result = NPERR_GENERIC_ERROR;
 	std::string resultStr;
 
@@ -162,7 +163,6 @@ NP_EXPORT(NPError) NP_GetValue(void* future, NPPVariable variable, void* value) 
 	switch (variable) {
 
 		case NPPVpluginNameString:
-
 			if (!initOkay){
 				if(config.pluginName == ""){
 					resultStr = "Pipelight Error!";
@@ -181,7 +181,6 @@ NP_EXPORT(NPError) NP_GetValue(void* future, NPPVariable variable, void* value) 
 			break;
 
 		case NPPVpluginDescriptionString:
-
 			if (!initOkay){
 				resultStr = "Something went wrong, check the terminal output";
 			}else if (config.fakeVersion != ""){
@@ -208,6 +207,7 @@ NP_EXPORT(NPError) NP_GetValue(void* future, NPPVariable variable, void* value) 
 	return result;
 }
 
+/* NP_Shutdown */
 NP_EXPORT(NPError) NP_Shutdown() {
 	DBG_TRACE("NP_Shutdown()");
 
@@ -221,6 +221,7 @@ NP_EXPORT(NPError) NP_Shutdown() {
 }
 
 void timerFunc(NPP instance, uint32_t timerID){
+	/* Update the window */
 	writeInt64( handleManager_count() );
 	callFunction(PROCESS_WINDOW_EVENTS);
 	readResultVoid();
@@ -228,32 +229,32 @@ void timerFunc(NPP instance, uint32_t timerID){
 
 void timerThreadAsyncFunc(void* argument){
 
-	// Has been cancelled if we cannot acquire this lock
+	/* has been cancelled if we cannot acquire this lock */
 	if (sem_trywait(&eventThreadSemScheduledAsyncCall)) return;
 
-	// Update the window
+	/* Update the window */
 	writeInt64( handleManager_count() );
 	callFunction(PROCESS_WINDOW_EVENTS);
 	readResultVoid();
 
-	// Request event handling again
+	/* request event handling again */
 	sem_post(&eventThreadSemRequestAsyncCall);
 }
 
-void* timerThread(void* argument){
+void* timerThread(void *argument){
 	while (true){
 		sem_wait(&eventThreadSemRequestAsyncCall);
 
-		// 10 ms of sleeping before requesting again
+		/* 10 ms of sleeping before requesting again */
 		usleep(10000);
 
-		// If no instance is running, just terminate
+		/* If no instance is running, just terminate */
 		if (!eventTimerInstance){
 			sem_wait(&eventThreadSemRequestAsyncCall);
 			if (!eventTimerInstance) break;
 		}
 
-		// Request an asynccall
+		/* Request an asynccall */
 		sem_post(&eventThreadSemScheduledAsyncCall);
 		sBrowserFuncs->pluginthreadasynccall(eventTimerInstance, timerThreadAsyncFunc, 0);
 	}
@@ -261,7 +262,8 @@ void* timerThread(void* argument){
 	return NULL;
 }
 
-NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char* argn[], char* argv[], NPSavedData* saved) {
+/* NPP_New */
+NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char *argn[], char *argv[], NPSavedData* saved) {
 	std::string mimeType(pluginType);
 
 	DBG_TRACE("( pluginType='%s', instance=%p, mode=%d, argc=%d, argn=%p, argv=%p, saved=%p )", pluginType, instance, mode, argc, argn, argv, saved);
@@ -274,14 +276,14 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 
 	bool invalidMimeType  	= (mimeType == "application/x-pipelight-error" || mimeType == "application/x-pipelight-error-" + config.pluginName);
 
-	// Setup plugin data structure
+	/* setup plugin data structure */
 	pdata->pipelightError 	= (!initOkay || invalidMimeType);
 	pdata->container      	= 0;
 	instance->pdata 		= pdata;
 
 	if (pdata->pipelightError){
 
-		// Run diagnostic stuff if its the wrong mimetype
+		/* run diagnostic stuff if its the wrong mimetype */
 		if (invalidMimeType && config.diagnosticMode)
 			runDiagnostic(instance);
 
@@ -291,7 +293,7 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 
 	bool startAsyncCall = false;
 
-	// Detect opera browsers and set eventAsyncCall to true in this case
+	/* Detect Opera browsers and set eventAsyncCall to true in this case */
 	if (!config.eventAsyncCall && config.operaDetection){
 		if (std::string(sBrowserFuncs->uagent(instance)).find("Opera") != std::string::npos){
 			config.eventAsyncCall = true;
@@ -299,7 +301,7 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 		}
 	}
 
-	// Execute javascript if defined
+	/* Execute Javascript if defined */
 	if (config.executeJavascript != ""){
 		NPObject 		*windowObj;
 		NPString		script;
@@ -321,13 +323,12 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 		}
 	}
 
-	// Setup eventhandling
+	/* Setup eventhandling */
 	if (config.eventAsyncCall){
 		if (!eventThread){
 			eventTimerInstance = instance;
-			if (pthread_create(&eventThread, NULL, timerThread, NULL) == 0){ // failed
+			if (pthread_create(&eventThread, NULL, timerThread, NULL) == 0){
 				startAsyncCall = true;
-
 			}else{
 				eventThread = 0;
 				DBG_ERROR("unable to start timer thread.");
@@ -337,7 +338,7 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 		}
 
 	}else{
-		// TODO: For Chrome this should be ~0, for Firefox a value of 5-10 is better.
+		/* TODO: For Chrome this should be ~0, for Firefox a value of 5-10 is better. */
 		if (eventTimerInstance == NULL){
 			eventTimerInstance 	= instance;
 			eventTimerID 		= sBrowserFuncs->scheduletimer(instance, 5, true, timerFunc);
@@ -353,14 +354,16 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 		writeMemory(NULL, 0);
 	}
 
-	// We can't use this function as we may need to fake some values
-	// writeStringArray(argv, argc);
-	// writeStringArray(argn, argc);
+	/*
+	We can't use this function as we may need to fake some values
+	writeStringArray(argv, argc);
+	writeStringArray(argn, argc);
+	*/
 
 	int realArgCount = 0;
 	std::map<std::string, std::string>::iterator it;
 
-	// argv
+	/* argv */
 	for (int i = argc - 1; i >= 0; i--){
 		std::string key(argn[i]);
 		it = config.overwriteArgs.find(key);
@@ -375,7 +378,7 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 		writeString(it->second);
 	}
 
-	//argn
+	/* argn */
 	for (int i = argc - 1; i >= 0; i--){
 		std::string key(argn[i]);
 		it = config.overwriteArgs.find(key);
@@ -396,15 +399,14 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 
 	NPError result = readResultInt32();
 
-	// The plugin is responsible for freeing *saved
-	// The other side has its own copy of this memory
+	/* The plugin is responsible for freeing *saved. The other side has its own copy of this memory. */
 	if (saved){
 		sBrowserFuncs->memfree(saved->buf);
 		saved->buf = NULL;
 		saved->len = 0;
 	}
 
-	// Begin scheduling events
+	/* Begin scheduling events */
 	if (startAsyncCall) sem_post(&eventThreadSemRequestAsyncCall);
 
 	DBG_TRACE(" -> result=%d", result);
@@ -414,7 +416,7 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 	DBG_TRACE("( instance=%p, save=%p )", instance, save);
 
-	// Initialization failed or diagnostic mode
+	/* Initialization failed or diagnostic mode */
 	PluginData *pdata = (PluginData*)instance->pdata;
 	if (!pdata){
 		DBG_TRACE(" -> result=%d", NPERR_GENERIC_ERROR);
@@ -423,7 +425,7 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 
 	bool pipelightError = pdata->pipelightError;
 
-	// Free instance data, not required anymore
+	/* Free instance data, not required anymore */
 	free(pdata);
 	instance->pdata = NULL;
 
@@ -437,23 +439,18 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 	if (unscheduleCurrentTimer){
 		if (config.eventAsyncCall){
 			if (eventThread){
-				
-				// Do synchronization with the main thread
+				/* Do synchronization with the main thread */
 				sem_wait(&eventThreadSemScheduledAsyncCall);
 				eventTimerInstance = NULL;
 				sem_post(&eventThreadSemRequestAsyncCall);
-
 				DBG_INFO("unscheduled event timer thread.");
 			}
 
 		}else{
-
 			sBrowserFuncs->unscheduletimer(instance, eventTimerID);
 			eventTimerInstance 	= NULL;
 			eventTimerID 		= 0;
-
 			DBG_INFO("unscheduled event timer.");
-
 		}
 	}
 
@@ -462,45 +459,46 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 
 	Stack stack;
 
+	/* wait maximum 5sec for result */
 	if (!readCommands(stack, true, 5000)){
 		DBG_ERROR("plugin did not deinitialize properly, killing it!");
 
-		// Kill the wine process (if it still exists) ...
+		/* Kill the wine process (if it still exists) ... */
 		int status;
-		if (winePid > 0 && !waitpid(winePid, &status, WNOHANG)){
+		if (winePid > 0 && !waitpid(winePid, &status, WNOHANG))
 			kill(winePid, SIGTERM);
-		}
 
 		DBG_ABORT("terminating.");
 	}
 
-	NPError result 	= readInt32(stack);
+	NPError result = readInt32(stack);
+
+	/* reset the pointer, if there is nothing to save */
+	if (save)
+		*save = NULL;
 
 	if (result == NPERR_NO_ERROR){
+
+		/* browser has provided memory to save the result */
 		if (save){
 			size_t save_length;
-			char* save_data = readMemoryBrowserAlloc(stack, save_length);
+			char *save_data = readMemoryBrowserAlloc(stack, save_length);
 
-			if (save_data && save){
+			if (save_data){
+
+				/* plugin returned data, we still have to put it in a structure in order to return it */
 				*save = (NPSavedData*) sBrowserFuncs->memalloc(sizeof(NPSavedData));
 				if (*save){
-
 					(*save)->buf = save_data;
 					(*save)->len = save_length;
-
-				}else{
+				}else
 					sBrowserFuncs->memfree(save_data);
-				}
-			}else{
-				sBrowserFuncs->memfree(save_data);
+
 			}
 
-		}else{ // Skip the saved data
+		}else /* skip the saved data */
 			stack.pop_back();
-		}
 
-	}else if (save){
-		*save = NULL; // Nothing to save
 	}
 
 	handleManager_removeByPtr(HMGR_TYPE_NPPInstance, instance);
@@ -509,12 +507,11 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 		NPP nextInstance = handleManager_findInstance();
 		if (config.eventAsyncCall){
 			if (eventThread){
+				/* start again requesting async calls */
 				eventTimerInstance = nextInstance;
-				
-				// Start again requesting async calls
 				sem_post(&eventThreadSemRequestAsyncCall);
 
-				// If nextInstance == 0 then the thread will terminate itself as soon as it recognizes that eventTimerInstace == NULL
+				/* if nextInstance == 0 then the thread will terminate itself as soon as it recognizes that eventTimerInstace == NULL */
 				if (nextInstance == 0){
 					eventThread = 0;
 				}else{
@@ -522,13 +519,11 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 				}
 			}
 
-
 		}else{
-			// In this event handling model we explicitly schedule a new timer
+			/* In this event handling model we explicitly schedule a new timer */
 			if (nextInstance){
 				eventTimerID 		= sBrowserFuncs->scheduletimer(nextInstance, 5, true, timerFunc);
 				eventTimerInstance 	= nextInstance;
-
 				DBG_INFO("started timer for instance %p.", nextInstance);
 			}
 
@@ -544,12 +539,9 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window) {
 
 	PluginData *pdata = (PluginData*)instance->pdata;
 
-	// Save the embed container
+	/* save the embed container */
 	if (pdata)
 		pdata->container = (Window)window->window;
-
-	// TODO: translate to Screen coordinates
-	// TODO: Use all parameters
 
 	writeInt32(window->height);
 	writeInt32(window->width);
@@ -585,11 +577,8 @@ NPError NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool se
 	if (result == NPERR_NO_ERROR){
 		*stype 			= (uint16_t)readInt32(stack);
 
-	}else{ // Handle is now invalid because of this error
+	}else /* handle is now invalid because of this error, we get another request using our notifyData */
 		handleManager_removeByPtr(HMGR_TYPE_NPStream, stream);
-
-		// We get another request using our notifyData after everything
-	}
 
 	DBG_TRACE(" -> result=%d", result);
 	return result;
@@ -611,7 +600,7 @@ NPError NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
 
 	NPError result = readResultInt32();
 
-	// Remove the handle by the corresponding stream real object
+	/* remove the handle by the corresponding stream real object */
 	handleManager_removeByPtr(HMGR_TYPE_NPStream, stream);
 
 	DBG_TRACE(" -> result=%d", result);
@@ -634,7 +623,7 @@ int32_t NPP_WriteReady(NPP instance, NPStream* stream) {
 
 		result = readResultInt32();
 
-		// Ensure that the program doesn't want too much data at once - this might cause the communication to hang
+		/* ensure that the program doesn't want too much data at once - this might cause communication errors */
 		if (result > 0xFFFFFF)
 			result = 0xFFFFFF;
 
@@ -699,17 +688,15 @@ void NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyD
 	callFunction(FUNCTION_NPP_URL_NOTIFY);
 	readResultVoid();
 
-	// Free all the notifydata stuff
+	/* free all the notifydata stuff */
 	NotifyDataRefCount* myNotifyData = (NotifyDataRefCount*)notifyData;
 	if (myNotifyData){
 		DBG_ASSERT(myNotifyData->referenceCount != 0, "reference count is zero.");
 
-		// Decrement refcount
-		myNotifyData->referenceCount--;
+		/* decrement refcount */
+		if (--myNotifyData->referenceCount == 0){
 
-		if (myNotifyData->referenceCount == 0){
-
-			// Free everything
+			/* free everything */
 			writeHandleNotify(myNotifyData);
 			callFunction(WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA);
 			readResultVoid();
@@ -736,13 +723,13 @@ NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 			*((PRBool *)value) 			= PR_TRUE;
 			break;
 
-		// Requested by Midori, but unknown if Silverlight supports this variable
+		/* Requested by Midori, but unknown if Silverlight supports this variable */
 		case NPPVpluginWantsAllNetworkStreams:
 			result 						= NPERR_NO_ERROR;
 			*((PRBool *)value) 			= PR_FALSE;
 			break;
 
-		// Boolean return value
+		/* Boolean return value */
 		/*
 			writeInt32(variable);
 			writeHandleInstance(instance);
@@ -755,7 +742,7 @@ NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 				*((PRBool *)value) 		= (PRBool)readInt32(stack);
 			break;*/
 
-		// Object return value
+		/* Object return value */
 		case NPPVpluginScriptableNPObject:
 			writeInt32(variable);
 			writeHandleInstance(instance);
@@ -767,7 +754,6 @@ NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 			if (result == NPERR_NO_ERROR)
 				*((NPObject**)value) 	= readHandleObj(stack);
 			break;
-
 
 		default:
 			NOTIMPLEMENTED("( variable=%d )", variable);

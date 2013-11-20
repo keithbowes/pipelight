@@ -27,7 +27,7 @@ bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name){
 bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args, uint32_t argCount, NPVariant *result){
 	DBG_TRACE("( npobj=%p, name=%p, args[]=%p, argCount=%d, result=%p )", npobj, name, args, argCount, result);
 
-	/* Warning: parameter order swapped! */
+	/* warning: parameter order swapped! */
 	writeVariantArrayConst(args, argCount);
 	writeInt32(argCount);
 	writeHandleIdentifier(name);

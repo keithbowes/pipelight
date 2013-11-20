@@ -5,6 +5,7 @@
 #include "basicplugin.h"
 #include "diagnostic.h"
 
+/* debugSection */
 bool debugSection(NPP instance, std::string name){
 	NPObject 		*windowObj;
 	NPIdentifier 	functionName;
@@ -25,7 +26,6 @@ bool debugSection(NPP instance, std::string name){
 
 		if (sBrowserFuncs->invoke(instance, windowObj, functionName, &arg, 1, &resultVariant) == NPERR_NO_ERROR){
 			sBrowserFuncs->releasevariantvalue(&resultVariant);
-
 			resultBool = true;			
 		}
 
@@ -35,6 +35,7 @@ bool debugSection(NPP instance, std::string name){
 	return resultBool;
 }
 
+/* debugSimpleMessage */
 bool debugSimpleMessage(NPP instance, std::string message){
 	NPObject 		*windowObj;
 	NPIdentifier 	functionName;
@@ -55,7 +56,6 @@ bool debugSimpleMessage(NPP instance, std::string message){
 
 		if (sBrowserFuncs->invoke(instance, windowObj, functionName, &arg, 1, &resultVariant) == NPERR_NO_ERROR){
 			sBrowserFuncs->releasevariantvalue(&resultVariant);
-
 			resultBool = true;			
 		}
 
@@ -65,6 +65,7 @@ bool debugSimpleMessage(NPP instance, std::string message){
 	return resultBool;
 }
 
+/* debugStatusMessage */
 bool debugStatusMessage(NPP instance, std::string name, std::string result, std::string additionalMessage = ""){
 	NPObject 		*windowObj;
 	NPIdentifier 	functionName;
@@ -98,7 +99,6 @@ bool debugStatusMessage(NPP instance, std::string name, std::string result, std:
 
 		if (sBrowserFuncs->invoke(instance, windowObj, functionName, (NPVariant*)&args, 3, &resultVariant) == NPERR_NO_ERROR){
 			sBrowserFuncs->releasevariantvalue(&resultVariant);
-
 			resultBool = true;
 		}
 
@@ -108,39 +108,39 @@ bool debugStatusMessage(NPP instance, std::string name, std::string result, std:
 	return resultBool;
 }
 
+/* debugFile, prints the content of a specific file as a debug message */
 void debugFile(NPP instance,std::string filename){
-	std::ifstream 	file;
+	std::ifstream file;
 	file.open(filename);
 
 	debugStatusMessage(instance, "Loading file " + filename, file.is_open() ? "okay": "failed");
-
 	if (!file.is_open()) return;
 
 	while (file.good()){
 		std::string line;
 		getline(file, line);
-
 		debugSimpleMessage(instance, line);
 	}
 }
 
+/* runDiagnostic */
 void runDiagnostic(NPP instance){
 	DBG_INFO("running diagnostic checks.");
 
-	// Initialization okay, but plugin cache still contains an error
+	/* initialization okay, but plugin cache still contains an error */
 	if (initOkay){
 		debugStatusMessage(instance, \
 			"Valid browser plugin cache", \
 			"failed", \
 			"Pipelight is correctly installed, but you still need to clear the plugin cache!" );
 
-		debugSimpleMessage(instance, "Take a look at the FAQ section on how to do that.");
+		debugSimpleMessage(instance, "Take a look at the FAQ section on how to do this.");
 		return;
 	}
 
 	debugSection(instance, "Configuration of Pipelight");
 
-	// No configuration found
+	/* no configuration found? */
 	if (config.configPath == "" || !checkIfExists(config.configPath)){
 		debugStatusMessage(instance, \
 			"Checking if config exists", \
@@ -155,19 +155,19 @@ void runDiagnostic(NPP instance){
 		"okay", \
 		config.configPath );
 
-	// Check pluginLoaderPath
+	/* Check pluginLoaderPath */
 	debugStatusMessage(instance, \
 		"Checking if pluginLoaderPath is set and exists", \
 		(config.pluginLoaderPath != "" && checkIfExists(config.pluginLoaderPath)) ? "okay" : "failed", \
 		(config.pluginLoaderPath != "") ? config.pluginLoaderPath : "not set" );
 
-	// Check winePath
+	/* Check winePath */
 	debugStatusMessage(instance, \
 		"Checking if winePath is set and exists", \
 		(config.winePath != "" && checkIfExists(config.winePath)) ? "okay" : "failed", \
 		(config.winePath != "") ? config.winePath : "not set" );
 
-	// Check if wine exists
+	/* Check if wine exists */
 	if (config.winePath != ""){
 
 		debugStatusMessage(instance, \
@@ -177,7 +177,7 @@ void runDiagnostic(NPP instance){
 
 	}
 
-	// Check winePrefix
+	/* Check winePrefix */
 	bool winePrefixFound = (config.winePrefix != "" && checkIfExists(config.winePrefix));
 
 	debugStatusMessage(instance, \
@@ -190,7 +190,7 @@ void runDiagnostic(NPP instance){
 		debugSimpleMessage(instance, "This script is not able to check if everything is okay with your wine prefix!");	
 	}
 
-	// Check dllPath / dllname / regKey
+	/* Check dllPath / dllName / regKey */
 	std::string unixPath 	= "";
 	bool dllPathSet 		= (config.dllPath != "" && config.dllName != "");
 	if (dllPathSet) unixPath= convertWinePath(config.dllPath + "\\" + config.dllName);
@@ -210,6 +210,7 @@ void runDiagnostic(NPP instance){
 		}else{
 			debugSimpleMessage(instance, unixPath);
 		}
+
 		debugSimpleMessage(instance, "(dllPath = " + config.dllPath + ")");
 		debugSimpleMessage(instance, "(dllName = " + config.dllName + ")");
 
@@ -237,7 +238,6 @@ void runDiagnostic(NPP instance){
 		debugSimpleMessage(instance, "You either have to install the dependencyInstaller script or setup your wine prefix manually.");
 		debugSimpleMessage(instance, "Depending on the distribution you probably will have to execute some post-installation script to do that.");
 	}
-
 
 	debugSection(instance, "Distribution");
 	debugFile(instance, "/etc/issue");
