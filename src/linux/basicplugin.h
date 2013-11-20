@@ -20,6 +20,8 @@
  *
  * Contributor(s):
  *   Josh Aas <josh@mozilla.com>
+ *   Michael Müller <michael@fds-team.de>
+ *   Sebastian Lackner <sebastian@fds-team.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -34,18 +36,6 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
-/*	Pipelight - License
- *
- *	The source code is based on mozilla.org code and is licensed under
- *	MPL 1.1/GPL 2.0/LGPL 2.1 as stated above. Modifications to create
- * 	Pipelight are done by:
- *
- *	Contributor(s):
- *		Michael Müller <michael@fds-team.de>
- *		Sebastian Lackner <sebastian@fds-team.de>
- *
- */
 
 #ifndef BasicPlugin_h_
 #define BasicPlugin_h_
