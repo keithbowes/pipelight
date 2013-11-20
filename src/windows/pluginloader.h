@@ -7,11 +7,11 @@
 
 extern std::map<HWND, NPP> hwndToInstance;
 
-
 /* variables */
 extern bool isWindowlessMode;
 extern bool isEmbeddedMode;
 extern bool stayInFullscreen;
+extern bool isSandboxed;
 
 /* hooks */
 extern bool usermodeTimer;

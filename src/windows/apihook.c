@@ -204,6 +204,7 @@ struct MenuEntry{
 std::vector<MenuEntry> menuAddEntries(HMENU hMenu, HWND hwnd){
 	std::vector<MenuEntry> 	entries;
 	MENUITEMINFOA			entryInfo;
+	std::string 			temp;
 
 	int count = GetMenuItemCount(hMenu);
 	if(count == -1)
@@ -213,14 +214,14 @@ std::vector<MenuEntry> menuAddEntries(HMENU hMenu, HWND hwnd){
 	entryInfo.cbSize	= sizeof(entryInfo);
 	entryInfo.wID 		= MENUID_OFFSET;
 
-	// ------- Separator ------- //
+	/* ------- Separator ------- */
 	entryInfo.fMask		= MIIM_FTYPE | MIIM_ID;
 	entryInfo.fType		= MFT_SEPARATOR;
 	InsertMenuItemA(hMenu, count, true, &entryInfo);
 	entries.emplace_back(entryInfo.wID, MENU_ACTION_NONE);
 	count++; entryInfo.wID++;
 
-	// ------- About Pipelight ------- //
+	/* ------- About Pipelight ------- */
 	entryInfo.fMask			= MIIM_FTYPE | MIIM_STRING | MIIM_ID;
 	entryInfo.fType			= MFT_STRING;
 	entryInfo.dwTypeData 	= (char*)"Pipelight\t" PIPELIGHT_VERSION;
@@ -228,7 +229,25 @@ std::vector<MenuEntry> menuAddEntries(HMENU hMenu, HWND hwnd){
 	entries.emplace_back(entryInfo.wID, MENU_ACTION_ABOUT_PIPELIGHT);
 	count++; entryInfo.wID++;
 
-	// ------- Embed into browser ------- //
+	/* ------- Wine version ------- */
+	entryInfo.fMask			= MIIM_FTYPE | MIIM_STRING | MIIM_ID;
+	entryInfo.fType			= MFT_STRING;
+	entryInfo.dwTypeData 	= (char*)"Wine\tunknown";
+	InsertMenuItemA(hMenu, count, true, &entryInfo);
+	entries.emplace_back(entryInfo.wID, MENU_ACTION_NONE);
+	count++; entryInfo.wID++;
+
+	/* ------- Sandbox status ------- */
+	temp  = "Sandbox\t";
+	temp += isSandboxed ? "enabled" : "disabled";
+	entryInfo.fMask			= MIIM_FTYPE | MIIM_STRING | MIIM_ID;
+	entryInfo.fType			= MFT_STRING;
+	entryInfo.dwTypeData 	= (char*)temp.c_str();
+	InsertMenuItemA(hMenu, count, true, &entryInfo);
+	entries.emplace_back(entryInfo.wID, MENU_ACTION_NONE);
+	count++; entryInfo.wID++;
+
+	/* ------- Embed into browser ------- */
 	entryInfo.fMask			= MIIM_FTYPE | MIIM_STRING | MIIM_ID | MIIM_STATE;
 	entryInfo.fType			= MFT_STRING;
 	entryInfo.fState        = isEmbeddedMode ? MFS_CHECKED : 0;
@@ -237,7 +256,7 @@ std::vector<MenuEntry> menuAddEntries(HMENU hMenu, HWND hwnd){
 	entries.emplace_back(entryInfo.wID, MENU_ACTION_TOGGLE_EMBED);
 	count++; entryInfo.wID++;
 
-	// ------- Stay in fullscreen ------- //
+	/* ------- Stay in fullscreen ------- */
 	if (windowClassHook){
 		entryInfo.fMask			= MIIM_FTYPE | MIIM_STRING | MIIM_ID | MIIM_STATE;
 		entryInfo.fType			= MFT_STRING;

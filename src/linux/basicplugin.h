@@ -142,6 +142,7 @@ struct PluginData{
 };
 
 extern std::string convertWinePath(std::string path, bool direction = false);
+extern std::string getWineVersion();
 extern bool checkPluginInstallation();
 extern bool checkSilverlightGraphicDriver();
 extern bool startWineProcess();

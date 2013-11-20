@@ -24,6 +24,7 @@ std::map<HWND, NPP> hwndToInstance;
 bool isWindowlessMode	= false;
 bool isEmbeddedMode		= false;
 bool stayInFullscreen   = false;
+bool isSandboxed 		= false;
 
 /* hooks */
 bool usermodeTimer      = false;
@@ -402,7 +403,6 @@ int main(int argc, char *argv[]){
 		}else if (arg == "--rendertoplevelwindow"){
 			renderTopLevelWindow = true;
 
-
 		}
 	}
 
@@ -561,7 +561,7 @@ void dispatcher(int functionid, Stack &stack){
 	switch (functionid){
 
 		case INIT_OKAY:
-			{
+			{			
 				DBG_TRACE("INIT_OKAY()");
 
 				writeInt32(PIPELIGHT_PROTOCOL_VERSION);
@@ -604,6 +604,18 @@ void dispatcher(int functionid, Stack &stack){
 
 				DBG_TRACE("WIN_HANDLE_MANAGER_OBJECT_IS_CUSTOM -> bool=%d", (obj->referenceCount == REFCOUNT_UNDEFINED));
 				objectDecRef(obj); // not really required, but looks better ;-)
+				returnCommand();
+			}
+			break;
+
+		case CHANGE_SANDBOX_STATE:
+			{
+				bool state 			= (bool)readInt32(stack);
+				DBG_TRACE("CHANGE_SANDBOX_STATE( state=%d )", state);
+
+				isSandboxed = state;
+
+				DBG_TRACE("CHANGE_SANDBOX_STATE -> void");
 				returnCommand();
 			}
 			break;

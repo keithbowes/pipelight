@@ -118,6 +118,12 @@ void attach(){
 		return;
 	}
 
+	/* sandbox specified, but doesn't exist */
+	if (config.sandboxPath != "" && !checkIfExists(config.sandboxPath)){
+		DBG_WARN("sandbox not found / not installed!");
+		config.sandboxPath = "";
+	}
+
 	/* check if hw acceleration should be used (only for Silverlight) */
 	if (config.silverlightGraphicDriverCheck != ""){
 		int gpuAcceleration = getEnvironmentInteger("PIPELIGHT_GPUACCELERATION", -1);
@@ -143,7 +149,7 @@ void attach(){
 
 	/* Check for correct installation */
 	if (!checkPluginInstallation()){
-		DBG_ERROR("Plugin not correctly installed - aborting.");
+		DBG_ERROR("plugin not correctly installed - aborting.");
 		return;
 	}
 
@@ -159,7 +165,14 @@ void attach(){
 		return;
 	}
  
- 	/* Initialisation successful */
+ 	/* tell the windows side that a sandbox is active */
+	if (config.sandboxPath != ""){
+		writeInt32( (config.sandboxPath != "") );
+		callFunction( CHANGE_SANDBOX_STATE );
+		readResultVoid();
+	}
+
+ 	/* initialisation successful */
 	initOkay = true;
 }
 
@@ -174,8 +187,8 @@ std::string convertWinePath(std::string path, bool direction){
 		return "";
 	}
 
-	int tempPipeIn[2];
 	std::string resultPath;
+	int tempPipeIn[2];
 
 	if (pipe(tempPipeIn) == -1){
 		DBG_ERROR("could not create pipes to communicate with winepath.exe.");
@@ -249,7 +262,72 @@ std::string convertWinePath(std::string path, bool direction){
 	return resultPath;
 }
 
-/* convertWinePath */
+/* getWineVersion */
+std::string getWineVersion(){
+	std::string wineVersion;
+	int tempPipeIn[2];
+
+	if (pipe(tempPipeIn) == -1){
+		DBG_ERROR("could not create pipes to communicate with wine.");
+		return "";
+	}
+
+	pid_t pidWineVersion = fork();
+	if (pidWineVersion == 0){
+
+		close(0);
+		close(tempPipeIn[0]);
+		dup2(tempPipeIn[1], 1);
+
+		/* Generate argv array */
+		std::vector<const char*> argv;
+
+		if (config.sandboxPath != "")
+			argv.push_back( config.sandboxPath.c_str() );
+
+		argv.push_back( config.winePath.c_str() );
+		argv.push_back( "--version" );
+		argv.push_back(NULL);
+
+		execvp(argv[0], (char**)argv.data());
+		DBG_ABORT("error in execvp command - probably wine/sandbox not found or missing execute permission.");
+
+	}else if (pidWineVersion != -1){
+		char resultPathBuffer[4096+1];
+
+		close(tempPipeIn[1]);
+		FILE *tempPipeInF = fdopen(tempPipeIn[0], "rb");
+
+		if (tempPipeInF != NULL){
+
+			if (fgets( resultPathBuffer, sizeof(resultPathBuffer), tempPipeInF))
+				wineVersion = trim( std::string( resultPathBuffer) );
+
+			fclose(tempPipeInF);
+		}
+
+		int status;
+		if (waitpid(pidWineVersion, &status, 0) == -1 || !WIFEXITED(status) ){
+			DBG_ERROR("wine did not run correctly (error occured).");
+			return "";
+
+		}else if (WEXITSTATUS(status) != 0){
+			DBG_ERROR("wine did not run correctly (exitcode = %d).", WEXITSTATUS(status));
+			return "";
+		}
+
+	}else{
+		close(tempPipeIn[0]);
+		close(tempPipeIn[1]);	
+
+		DBG_ERROR("unable to fork() - probably out of memory?");
+		return "";
+	}
+
+	return wineVersion;
+}
+
+/* checkPluginInstallation */
 bool checkPluginInstallation(){
 
 	/* Output wine prefix */
@@ -457,10 +535,6 @@ bool startWineProcess(){
 
 		if (config.experimental_renderTopLevelWindow)
 			argv.push_back( "--rendertoplevelwindow" );
-
-		/* tell the other side that a sandbox is active */
-		if (config.sandboxPath != "")
-			argv.push_back( "--sandboxed" );
 
 		argv.push_back(NULL);	
 
