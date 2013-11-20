@@ -270,9 +270,11 @@ std::vector<MenuEntry> menuAddEntries(HMENU hMenu, HWND hwnd){
 	count++; entryInfo.wID++;
 
 	/* ------- Wine version ------- */
+	temp  = "Wine\t";
+	temp += getWineVersion();
 	entryInfo.fMask			= MIIM_FTYPE | MIIM_STRING | MIIM_ID;
 	entryInfo.fType			= MFT_STRING;
-	entryInfo.dwTypeData 	= (char*)"Wine\tunknown";
+	entryInfo.dwTypeData 	= (char*)temp.c_str();
 	InsertMenuItemA(hMenu, count, true, &entryInfo);
 	entries.emplace_back(entryInfo.wID, MENU_ACTION_NONE);
 	count++; entryInfo.wID++;

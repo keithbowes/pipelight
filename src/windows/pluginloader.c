@@ -88,9 +88,11 @@ NPPluginFuncs pluginFuncs = {sizeof(pluginFuncs), (NP_VERSION_MAJOR << 8) + NP_V
 
 /* required for wine_get_dos_file_name */
 typedef WCHAR* (* CDECL wine_get_dos_file_namePtr)(LPCSTR str);
+typedef const char* (* CDECL wine_get_versionPtr)();
 #define CP_UNIXCP 65010
 
 
+/* wndProcedure */
 LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam){
 
 	/* Only messages with a hwnd can be relevant in windowlessmode mode */
@@ -211,11 +213,13 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	}
 }
 
+/* freeSharedPtrMemory */
 void freeSharedPtrMemory(void *memory){
 	if (memory)
 		free(memory);
 }
 
+/* splitMimeType */
 std::vector<std::string> splitMimeType(std::string input){
 	std::vector<std::string> result;
 
@@ -236,6 +240,7 @@ std::vector<std::string> splitMimeType(std::string input){
 	return result;
 }
 
+/* createLinuxCompatibleMimeType */
 std::string createLinuxCompatibleMimeType(){
 	std::vector<std::string> mimeTypes 		= splitMimeType(np_MimeType);
 	std::vector<std::string> fileExtensions = splitMimeType(np_FileExtents);
@@ -262,6 +267,7 @@ std::string createLinuxCompatibleMimeType(){
 	return result;
 }
 
+/* initDLL */
 bool initDLL(std::string dllPath, std::string dllName){
 
 	/* Silverlight doesn't call this, so we have to do it */
@@ -352,6 +358,7 @@ bool initDLL(std::string dllPath, std::string dllName){
 	return false;
 }
 
+/* readPathFromRegistry */
 std::string readPathFromRegistry(HKEY hKey, std::string regKey){
 
 	std::string fullKey = "Software\\MozillaPlugins\\" + regKey + "\\";
@@ -382,6 +389,7 @@ std::string readPathFromRegistry(HKEY hKey, std::string regKey){
 	return result;
 }
 
+/* main */
 int main(int argc, char *argv[]){
 
 	/* get the main thread ID */
@@ -529,6 +537,7 @@ int main(int argc, char *argv[]){
 	return 0;
 }
 
+/* makeWindowEmbedded */
 bool makeWindowEmbedded(NPP instance, HWND hWnd, bool embed = true){
 	int32_t windowIDX11 = (int32_t)GetPropA(hWnd, "__wine_x11_whole_window");
 
@@ -548,6 +557,7 @@ bool makeWindowEmbedded(NPP instance, HWND hWnd, bool embed = true){
 	return true;
 }
 
+/* changeEmbeddedMode */
 void changeEmbeddedMode(bool newEmbed){
 	if (isEmbeddedMode == newEmbed)
 		return;
@@ -572,7 +582,7 @@ void changeEmbeddedMode(bool newEmbed){
 	isEmbeddedMode = newEmbed;
 }
 
-
+/* convertToWindowsPath */
 std::string convertToWindowsPath(const std::string &linux_path){
 	static wine_get_dos_file_namePtr wine_get_dos_file_name = NULL;
 	WCHAR* windows_path;
@@ -597,6 +607,28 @@ std::string convertToWindowsPath(const std::string &linux_path){
 	return std::string(path);
 }
 
+/* getWineVersion */
+std::string getWineVersion(){
+	static wine_get_versionPtr wine_get_version = NULL;
+	const char *wine_version;
+
+	if (!wine_get_version)
+		wine_get_version = (wine_get_versionPtr)GetProcAddress(GetModuleHandleA("ntdll.dll"), "wine_get_version");
+
+	if (!wine_get_version){
+		DBG_ERROR("Unable to find wine function 'wine_get_version'.");
+		return "";
+	}
+
+	if (!(wine_version = wine_get_version())){
+		DBG_ERROR("Unable to determine wine version.");
+		return "";
+	}
+
+	return std::string(wine_version);
+}
+
+/* dispatcher */
 void dispatcher(int functionid, Stack &stack){
 	switch (functionid){
 

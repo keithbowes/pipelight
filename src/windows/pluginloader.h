@@ -161,5 +161,6 @@ struct NetscapeData{
 };
 
 extern void changeEmbeddedMode(bool newEmbed);
+extern std::string getWineVersion();
 
 #endif // PluginLoader_h_
