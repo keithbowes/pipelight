@@ -705,6 +705,23 @@ bool NP_LOADDS NPN_GetProperty(NPP instance, NPObject *obj, NPIdentifier propert
 
 	shockwaveInstanceWorkaround();
 
+	// Fake result of pluginElementNPObject :: clientWidth in non-embedded mode such that the plugin resultion is not messed up
+	NetscapeData* ndata = (NetscapeData*)instance->ndata;
+	if (ndata && ndata->hWnd && !ndata->embeddedMode){
+		if (obj == ndata->cache_pluginElementNPObject && propertyName == ndata->cache_clientWidthIdentifier){
+			RECT rect;
+			if (GetClientRect(ndata->hWnd, &rect)){
+				DBG_TRACE("using external window width instead of forwarding request.");
+
+				result->type 			= NPVariantType_Int32;
+				result->value.intValue 	= rect.right - rect.left;
+
+				DBG_TRACE(" -> ( result=1, ... )");
+				return true;
+			}
+		}
+	}
+
 	writeHandleIdentifier(propertyName);
 	writeHandleObj(obj);
 	writeHandleInstance(instance);

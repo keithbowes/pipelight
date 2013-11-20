@@ -114,6 +114,10 @@ void NP_LOADDS NPN_SetCurrentAsyncSurface(NPP instance, NPAsyncSurface *surface,
 struct NetscapeData{
 	bool		windowlessMode;
 	bool		embeddedMode;
+
+	NPObject*   	cache_pluginElementNPObject;
+	NPIdentifier 	cache_clientWidthIdentifier;
+
 	HWND 		hWnd;
 	NPWindow 	window;
 };

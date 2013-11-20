@@ -895,9 +895,17 @@ void dispatcher(int functionid, Stack &stack){
 					instance->ndata = ndata;
 
 					memset(ndata, 0, sizeof(*ndata));
-					ndata->windowlessMode 	= isWindowlessMode;
-					ndata->embeddedMode 	= isEmbeddedMode;
-					ndata->hWnd 			= NULL;
+					ndata->windowlessMode 				= isWindowlessMode;
+					ndata->embeddedMode 				= isEmbeddedMode;
+					ndata->cache_pluginElementNPObject 	= NULL;
+					ndata->cache_clientWidthIdentifier  = NULL;
+					ndata->hWnd 						= NULL;
+
+					if (NPN_GetValue(instance, NPNVPluginElementNPObject, &ndata->cache_pluginElementNPObject) != NPERR_NO_ERROR)
+						DBG_ERROR("unable to get plugin element NPObject.");
+
+					if (!(ndata->cache_clientWidthIdentifier = NPN_GetStringIdentifier("clientWidth")))
+						DBG_ERROR("unable to get clientWidth identifier.");
 
 				}else{
 					instance->ndata = NULL;
@@ -940,6 +948,11 @@ void dispatcher(int functionid, Stack &stack){
 
 						DestroyWindow(ndata->hWnd);
 					}
+
+					if (ndata->cache_pluginElementNPObject)
+						NPN_ReleaseObject(ndata->cache_pluginElementNPObject);
+
+					// not necessary to free the value ndata->cache_clientWidthIdentifier
 
 					// Free this structure
 					free(ndata);
