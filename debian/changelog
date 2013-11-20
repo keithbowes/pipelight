@@ -1,3 +1,14 @@
+pipelight-multi (0.2.3) UNRELEASED; urgency=low
+
+  * Updated Silverlight to version 5.1.20913.0
+  * Fixed a bug that the plugin resolution isn't correct in non-embedded
+    mode
+  * Added additional checks to ensure that the windows and linux part of
+    pipelight are compatible
+
+ -- Michael Mueller <michael@fds-team.de>  Xxx, xx Nov 2013 xx:xx:xx +0100
+
+
 pipelight-multi (0.2.2) RELEASED; urgency=high
 
   * Updated flash to version 11.9.900.152 (security update!) and unity 3D
