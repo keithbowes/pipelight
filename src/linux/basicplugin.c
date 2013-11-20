@@ -514,9 +514,6 @@ bool startWineProcess(){
 		if (config.embed)
 			argv.push_back( "--embed" );
 
-		if (config.experimental_usermodeTimer)
-			argv.push_back( "--usermodetimer" );
-
 		if (config.experimental_unityHacks)
 			argv.push_back( "--unityhacks" );
 

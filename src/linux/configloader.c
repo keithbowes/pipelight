@@ -292,7 +292,6 @@ bool loadConfig(PluginConfig &config){
 
 	config.silverlightGraphicDriverCheck = "";
 
-	config.experimental_usermodeTimer = false;
 	config.experimental_unityHacks = false;
 	config.experimental_windowClassHook = false;
 	config.experimental_renderTopLevelWindow = false;
@@ -421,10 +420,6 @@ bool loadConfig(PluginConfig &config){
 
 		}else if (key == "executejavascript"){
 			config.executeJavascript += value + "\n";
-
-		}else if (key == "experimental-usermodetimer"){
-			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
-			config.experimental_usermodeTimer = (value == "true" || value == "yes");
 
 		}else if (key == "experimental-unityhacks"){
 			std::transform(value.begin(), value.end(), value.begin(), c_tolower);

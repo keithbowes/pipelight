@@ -65,7 +65,6 @@ bool stayInFullscreen   = false;
 bool isSandboxed 		= false;
 
 /* hooks */
-bool usermodeTimer      = false;
 bool unityHacks 		= false;
 bool windowClassHook    = false;
 
@@ -438,9 +437,6 @@ int main(int argc, char *argv[]){
 			isEmbeddedMode 		= true;
 
 		/* hooks */
-		}else if (arg == "--usermodetimer"){
-			usermodeTimer 		= true;
-
 		}else if (arg == "--unityhacks"){
 			unityHacks = true;
 
@@ -485,7 +481,6 @@ int main(int argc, char *argv[]){
 	/* debug info */
 	DBG_INFO("windowless mode       is %s.", (isWindowlessMode ? "on" : "off"));
 	DBG_INFO("embedded mode         is %s.", (isEmbeddedMode ? "on" : "off"));
-	DBG_INFO("usermode timer        is %s.", (usermodeTimer ? "on" : "off"));
 	DBG_INFO("unity hacks           is %s.", (unityHacks ? "on" : "off"));
 	DBG_INFO("window class hook     is %s.", (windowClassHook ? "on" : "off"));
 	DBG_INFO("render toplevelwindow is %s.", (renderTopLevelWindow ? "on" : "off"));
@@ -517,7 +512,6 @@ int main(int argc, char *argv[]){
 	}
 
 	/* Install hooks */
-	if (usermodeTimer) 		installTimerHook();
 	if (unityHacks) 		installUnityHooks();
 	if (windowClassHook) 	installWindowClassHook();
 
@@ -704,9 +698,6 @@ void dispatcher(int functionid, Stack &stack){
 					if (PeekMessageA(&msg, NULL, 0, 0, PM_REMOVE)){
 						TranslateMessage(&msg);
 						DispatchMessageA(&msg);
-
-					}else if (usermodeTimer && handleTimerEvents()){
-						/* dummy */
 
 					}else{
 						break;
