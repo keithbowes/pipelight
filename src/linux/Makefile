@@ -1,7 +1,7 @@
 CXX 		:= g++
 CXXFLAGS 	:= -Wall -DXP_UNIX=1 -DMOZ_X11=1 -fPIC -std=gnu++0x $(CXXFLAGS)
 LDFLAGS 	:= -lX11 -lpthread -ldl $(LDFLAGS)
-OBJECTS 	:= common.o basicplugin.o configloader.o diagnostic.o npclass.o pluginfunctions.o 
+OBJECTS 	:= common.o basicplugin.o configloader.o diagnostic.o npclass.o nppfunctions.o 
 COMMONHDR	:= ../common/common.h ../npapi-headers/npapi.h ../npapi-headers/npfunctions.h ../npapi-headers/npruntime.h ../npapi-headers/nptypes.h
 
 libpipelight.so: $(OBJECTS)
@@ -22,8 +22,8 @@ diagnostic.o: diagnostic.c diagnostic.h basicplugin.h configloader.h $(COMMONHDR
 npclass.o: npclass.c $(COMMONHDR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c npclass.c -o npclass.o
 
-pluginfunctions.o: pluginfunctions.c basicplugin.h configloader.h diagnostic.h $(COMMONHDR)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c pluginfunctions.c -o pluginfunctions.o
+nppfunctions.o: nppfunctions.c basicplugin.h configloader.h diagnostic.h $(COMMONHDR)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c nppfunctions.c -o nppfunctions.o
 
 .PHONY: all
 all: libpipelight.so
