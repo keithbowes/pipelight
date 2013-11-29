@@ -502,11 +502,11 @@ if [ -z "$WINE" ] || [ -z "$WINEPREFIX" ]; then
 fi
 
 if [ -z "$WINESERVER" ]; then
-	if [ ! -f "${WINE}server" ]; then
-		echo "[$PRG] ERROR: Missing necessary environment variable WINESERVER." >&2
+	export WINESERVER="${WINE%/*}/wineserver"
+	if [ ! -f "${WINESERVER}" ]; then
+		echo "[$PRG] ERROR: Unable to find wineserver. Check if the environment variable WINE is set correctly (or set WINESERVER)." >&2
 		exit 1
 	fi
-	export WINESERVER="${WINE}server"
 fi
 
 if [ ! -w "$WINEPREFIX" ] && [ ! -w "$(dirname "$WINEPREFIX")" ]; then
