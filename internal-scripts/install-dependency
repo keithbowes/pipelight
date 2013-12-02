@@ -588,12 +588,12 @@ while [ $# -gt 0 ] ; do
 		wine-shockwave-installer)
 			INS=(install_shockwave "1205146")
 			URL="http://fpdownload.macromedia.com/get/shockwave/default/english/win95nt/latest/sw_lic_full_installer.exe"
-			SHA="ea035a18f9895ec2212878cc554a5e804c50498025ab8f53871965a9c8e636ec"
+			SHA="51e99de466ad0808f6558b4cbca987666c20872e12b9daf194a3a4b7ac45376d"
 			;;
 		wine-unity3d-installer)
 			INS=(install_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayer.exe"
-			SHA="09e7bf761dca62242b96720d86e64bfbbf6ab3b653153b00b9b97532777dd739"
+			SHA="ea1da7ec8d11c6f2b91d8bb22f3c308e2f7b2fcdba1fe3f2bc13f7d294c108b7"
 			;;
 		*)
 			echo "[$PRG] ERROR: No installer script found for $DEP." >&2
