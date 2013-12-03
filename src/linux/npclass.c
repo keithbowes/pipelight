@@ -234,7 +234,7 @@ void NPDeallocateFunction(NPObject *npobj){
 
 	if (npobj){
 		if (handleManager_existsByPtr(HMGR_TYPE_NPObject, npobj)){
-			DBG_TRACE("seems to be a user created handle, calling WIN_HANDLE_MANAGER_FREE_OBJECT(%p).", npobj);
+			DBG_TRACE("seems to be a user created handle, calling WIN_HANDLE_MANAGER_FREE_OBJECT( obj=%p ).", npobj);
 
 			/* kill the object on the other side */
 			writeHandleObj(npobj);
