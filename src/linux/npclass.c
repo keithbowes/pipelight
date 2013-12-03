@@ -217,8 +217,8 @@ bool NPConstructFunction(NPObject *npobj, const NPVariant *args, uint32_t argCou
 	return false;
 }
 
-NPObject * NPAllocateFunction(NPP npp, NPClass *aClass){
-	DBG_TRACE("( npp=%p, aClass=%p )", npp, aClass);
+NPObject * NPAllocateFunction(NPP instance, NPClass *aClass){
+	DBG_TRACE("( instance=%p, aClass=%p )", instance, aClass);
 
 	NPObject* obj = (NPObject*)malloc(sizeof(NPObject));
 	if (obj){
@@ -230,7 +230,7 @@ NPObject * NPAllocateFunction(NPP npp, NPClass *aClass){
 }
 
 void NPDeallocateFunction(NPObject *npobj){
-	DBG_TRACE("( npp=%p )", npobj);
+	DBG_TRACE("( npobj=%p )", npobj);
 
 	if (npobj){
 		if (handleManager_existsByPtr(HMGR_TYPE_NPObject, npobj)){
