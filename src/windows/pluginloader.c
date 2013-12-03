@@ -661,19 +661,6 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		case WIN_HANDLE_MANAGER_OBJECT_IS_CUSTOM:
-			{
-				NPObject 	*obj = readHandleObjIncRef(stack, NULL, 0, HMGR_SHOULD_EXIST);
-				DBG_TRACE("WIN_HANDLE_MANAGER_OBJECT_IS_CUSTOM( obj=%p )", obj);
-
-				writeInt32( (obj->referenceCount == REFCOUNT_UNDEFINED) );
-
-				DBG_TRACE("WIN_HANDLE_MANAGER_OBJECT_IS_CUSTOM -> bool=%d", (obj->referenceCount == REFCOUNT_UNDEFINED));
-				objectDecRef(obj); /* not really required, but looks better ;-) */
-				returnCommand();
-			}
-			break;
-
 		case CHANGE_SANDBOX_STATE:
 			{
 				bool state 			= (bool)readInt32(stack);

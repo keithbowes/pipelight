@@ -801,15 +801,15 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_RELEASEOBJECT:
 			{
-				NPObject* obj 		= readHandleObj(stack);
-				DBG_TRACE("FUNCTION_NPN_RELEASEOBJECT( obj=%p )", obj);
+				NPObject* obj 				= readHandleObj(stack);
+				uint32_t minReferenceCount 	= readInt32(stack);
+				DBG_TRACE("FUNCTION_NPN_RELEASEOBJECT( obj=%p, minReferenceCount=%d )", obj, minReferenceCount);
 
-				/* We do this check always, although its not really required, but this makes it easier to find errors */
-				if (obj->referenceCount == 1 && handleManager_existsByPtr(HMGR_TYPE_NPObject, obj)){
-					writeHandleObj(obj);
-					callFunction(WIN_HANDLE_MANAGER_OBJECT_IS_CUSTOM);
-					DBG_ASSERT((bool)readResultInt32(), "forgot to set killObject?");
-				}
+				DBG_ASSERT( minReferenceCount == REFCOUNT_UNDEFINED || minReferenceCount <= obj->referenceCount, \
+					"object referenceCount smaller than expected?");
+
+				if (obj->referenceCount == 1 && handleManager_existsByPtr(HMGR_TYPE_NPObject, obj))
+					DBG_ASSERT((minReferenceCount == REFCOUNT_UNDEFINED), "forgot to set killObject?");
 
 				sBrowserFuncs->releaseobject(obj);
 

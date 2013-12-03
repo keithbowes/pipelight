@@ -646,9 +646,7 @@ NPObject* NP_LOADDS NPN_RetainObject(NPObject *obj){
 		if(obj->referenceCount != REFCOUNT_UNDEFINED)
 			obj->referenceCount++;
 
-		/* required to check if the reference counting is still appropriate */
 		writeInt32(obj->referenceCount);
-
 		writeHandleObj(obj, HMGR_SHOULD_EXIST);
 		callFunction(FUNCTION_NPN_RETAINOBJECT);
 		readResultVoid();	
@@ -664,6 +662,7 @@ void NP_LOADDS NPN_ReleaseObject(NPObject *obj){
 	DBG_CHECKTHREAD();
 
 	if (obj){
+		writeInt32(obj->referenceCount);
 		writeHandleObjDecRef(obj, HMGR_SHOULD_EXIST);
 		callFunction(FUNCTION_NPN_RELEASEOBJECT);
 		readResultVoid();
