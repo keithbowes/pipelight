@@ -439,6 +439,30 @@ install_unity3d()
 	return 0
 }
 
+# > Install Foxit PDF
+# arguments: None
+# $DOWNLOADFILE
+install_foxitpdf()
+{
+	VER="$1"
+
+	# Launch the installer
+	#if [ "$QUIETINSTALLATION" -eq 0 ]; then
+	#	"$WINE" "$DOWNLOADFILE" /AllUsers 2>&1
+	#else
+		"$WINE" msiexec.exe /i "$DOWNLOADFILE" ALLUSERS=1 /q /norestart MAKEDEFAULT=0 VIEW_IN_BROWSER=1 DESKTOP_SHORTCUT=0 AUTO_UPDATE=0 ADDLOCAL="FX_PDFVIEWER,FX_FIREFOXPLUGIN" REMOVE="ALL" 2>&1 | progressbar "Please wait, installing ..." "Running $DEP"
+	#fi
+
+	local installdir="$WINEPREFIX/drive_c/Program Files/Foxit Software/Foxit Reader/plugins"
+	if [ ! -f "$installdir/npFoxitReaderPlugin.dll" ]; then
+		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
+		return 1
+	fi
+
+	# Successful
+	return 0
+}
+
 # Check if some visual feedback is possible
 if command -v zenity >/dev/null 2>&1; then
 	progressbar()
@@ -594,6 +618,11 @@ while [ $# -gt 0 ] ; do
 			INS=(install_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayer.exe"
 			SHA="ea1da7ec8d11c6f2b91d8bb22f3c308e2f7b2fcdba1fe3f2bc13f7d294c108b7"
+			;;
+		wine-foxitpdf-installer)
+			INS=(install_foxitpdf)
+			URL="http://cdn04.foxitsoftware.com/pub/foxit/reader/desktop/win/6.x/6.1/enu/EnterpriseFoxitReader611.1031_enu.msi"
+			SHA="90b5ec6c1d9405ebadb714105e9fb689cc6a109926e0749ce09aa4a55e16f67d"
 			;;
 		*)
 			echo "[$PRG] ERROR: No installer script found for $DEP." >&2
