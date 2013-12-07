@@ -675,9 +675,13 @@ void dispatcher(int functionid, Stack &stack){
 
 						XReparentWindow(display, win, parentWindow, 0, 0);
 
-						/* QtGui.QX11EmbedContainer doesn't send this on an Reparent event, so we do this on our own */
-						if (parentWindow != pdata->container)
-							sendXembedMessage(display, win, XEMBED_EMBEDDED_NOTIFY, 0, parentWindow, 0);
+						/*
+							NOTE: This shouldn't be necessary since regular browsers will send an additional XEMBED_EMBEDDED_NOTIFY
+							event. Depending on the system it seems to arrive too late in some rare cases. To work around these
+							issues we just accept that the event is delivered twice, until we've probably found some better way to
+							synchronize everything.
+						*/
+						sendXembedMessage(display, win, XEMBED_EMBEDDED_NOTIFY, 0, parentWindow, 0);
 
 						/*
 						sendXembedMessage(display, win, XEMBED_EMBEDDED_NOTIFY, 0, parentWindow, 0);
