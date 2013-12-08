@@ -3,6 +3,8 @@
 # Global configuration
 ORIG_SYSTEMDIR="@@PLUGIN_SYSTEM_PATH@@"
 ORIG_PLUGINDIR="@@MOZ_PLUGIN_PATH@@"
+DEPENDENCY_INSTALLER_PATH="@@DEPENDENCY_INSTALLER@@"
+DEPENDENCY_INSTALLER_URL="https://bitbucket.org/mmueller2012/pipelight/raw/master/internal-scripts/install-dependency"
 LIBPIPELIGHT="libpipelight"
 DESTDIR=""
 DEBUG=1
@@ -31,6 +33,7 @@ usage()
 	echo "Global options (requires root rights):"
 	echo "  --create-mozilla-plugins    create copies of libpipelight.so"
 	echo "  --remove-mozilla-plugins    remove copies of libpipelight.so"
+	echo "  --update                    update the dependency-installer script"
 	echo ""
 	echo "Advanced options:"
 	echo "  --destdir=DIRECTORY         set fakeroot directory"
@@ -305,6 +308,30 @@ remove_mozilla_plugins()
 	return 0
 }
 
+update_dependency_installer()
+{
+	if [[ "$DEPENDENCY_INSTALLER_PATH" =~ ^@@.*@@$ ]]; then return 1; fi
+
+	local tmpfile=$(mktemp)
+	[ -f "$tmpfile" ] || return 1
+
+	if ! wget -O "$tmpfile" "$DEPENDENCY_INSTALLER_URL"; then
+		echo "ERROR: failed to download latest dependency-installer script" >&2
+		return 1
+	fi
+
+	chmod 0755 "$tmpfile" || return 1
+
+	# Move the file at its final place
+	if ! mv -f "$tmpfile" "$DEPENDENCY_INSTALLER_PATH"; then
+		rm "$tmpfile"
+		echo "ERROR: root rights required to replace dependency-installer script" >&2
+		return 1
+	fi
+
+	return 0
+}
+
 # Print usage message when no arguments are given at all
 if [ $# -eq 0 ]; then
 	usage
@@ -357,6 +384,9 @@ while [[ $# > 0 ]] ; do
 			;;
 		--remove-mozilla-plugins)
 			if ! remove_mozilla_plugins; then RET=1; fi
+			;;
+		--update)
+			if ! update_dependency_installer; then RET=1; fi
 			;;
 
 		--help)

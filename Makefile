@@ -58,6 +58,7 @@ install: all
 	install -m 0755 internal-scripts/hw-accel-default "$(DESTDIR)$(prefix)/share/pipelight/hw-accel-default"
 
 	sed    's|@@PLUGIN_SYSTEM_PATH@@|$(prefix)/lib/pipelight/|g' public-scripts/pipelight-plugin > pipelight-plugin.tmp
+	sed -i 's|@@DEPENDENCY_INSTALLER@@|$(prefix)/share/pipelight/install-dependency|g' pipelight-plugin.tmp
 	sed -i 's|@@MOZ_PLUGIN_PATH@@|$(mozpluginpath)|g' pipelight-plugin.tmp
 	install -m 0755 pipelight-plugin.tmp "$(DESTDIR)$(prefix)/bin/pipelight-plugin"
 	rm pipelight-plugin.tmp
