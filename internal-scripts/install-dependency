@@ -420,8 +420,6 @@ install_shockwave()
 # $DOWNLOADFILE
 install_unity3d()
 {
-	VER="$1"
-
 	# Launch the installer
 	if [ "$QUIETINSTALLATION" -eq 0 ]; then
 		"$WINE" "$DOWNLOADFILE" /AllUsers 2>&1
@@ -444,8 +442,6 @@ install_unity3d()
 # $DOWNLOADFILE
 install_foxitpdf()
 {
-	VER="$1"
-
 	# Launch the installer
 	#if [ "$QUIETINSTALLATION" -eq 0 ]; then
 	#	"$WINE" "$DOWNLOADFILE" /AllUsers 2>&1
@@ -455,6 +451,33 @@ install_foxitpdf()
 
 	local installdir="$WINEPREFIX/drive_c/Program Files/Foxit Software/Foxit Reader/plugins"
 	if [ ! -f "$installdir/npFoxitReaderPlugin.dll" ]; then
+		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
+		return 1
+	fi
+
+	# Successful
+	return 0
+}
+
+# > Install Grandstream
+# arguments: None
+# $DOWNLOADFILE
+install_grandstream()
+{
+	local tmpfile=$(mktemp --suffix=".exe")
+	[ -f "$tmpfile" ] || return 1
+
+	if ! unzip -p "$DOWNLOADFILE" "chrome_firefox_plugine_1.0.0.7.exe" > "$tmpfile"; then
+		echo "[$PRG] ERROR: Unable to extract installer from zip file." >&2
+		return 1
+	fi
+
+	# Launch the installer and delete the program afterwards
+	"$WINE" "$tmpfile" 2>&1
+	rm "$tmpfile"
+
+	local installdir="$WINEPREFIX/drive_c/Program Files/WebControl"
+	if [ ! -f "$installdir/npGS_Plugins.dll" ]; then
 		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
 		return 1
 	fi
@@ -623,6 +646,11 @@ while [ $# -gt 0 ] ; do
 			INS=(install_foxitpdf)
 			URL="http://cdn04.foxitsoftware.com/pub/foxit/reader/desktop/win/6.x/6.1/enu/EnterpriseFoxitReader611.1031_enu.msi"
 			SHA="90b5ec6c1d9405ebadb714105e9fb689cc6a109926e0749ce09aa4a55e16f67d"
+			;;
+		wine-grandstream-installer)
+			INS=(install_grandstream)
+			URL="http://www.grandstream.com/products/tools/surveillance/webcontrl_plugin.zip"
+			SHA="1162798378997373701967f3f0f291ae4c858e8cae29e55a5249e24f47f70df2"
 			;;
 		*)
 			echo "[$PRG] ERROR: No installer script found for $DEP." >&2
