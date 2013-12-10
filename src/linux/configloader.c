@@ -123,12 +123,12 @@ static void getConfigNameFromLibrary(std::string &configName, std::string &confi
 	return;
 }
 
-static bool splitConfigValue(std::string line, std::string &key, std::string &value){
+static bool splitConfigValue(std::string line, std::string &key, std::string &value, std::string splitChar = "="){
 	size_t pos;
 	line = trim(line);
 
 	/* find delimiter */
-	if ((pos = line.find_first_of("=")) == std::string::npos)
+	if ((pos = line.find_first_of(splitChar)) == std::string::npos)
 		return false;
 
 	key 	= trim(line.substr(0, pos));
@@ -281,7 +281,8 @@ bool loadConfig(PluginConfig &config){
 	config.embed 				= true;
 	config.fakeVersion			= "";
 	config.overwriteArgs.clear();
-	
+	config.fakeMIMEtypes.clear();
+
 	config.dependencyInstaller 	= "";
 	config.dependencies.clear();
 	config.quietInstallation 	= true;
@@ -390,6 +391,21 @@ bool loadConfig(PluginConfig &config){
 				continue;
 
 			config.overwriteArgs[argKey] = argValue;
+
+		}else if (key == "fakemimetype"){
+			MimeInfo info;
+			std::string fakeType, remaining;
+
+			if (!splitConfigValue(value, fakeType, info.originalMime))
+				continue;
+
+			if (!splitConfigValue(fakeType, info.mimeType, remaining, ":"))
+				continue;
+
+			if (!splitConfigValue(remaining, info.extension, info.description, ":"))
+				continue;
+
+			config.fakeMIMEtypes.push_back(info);
 
 		}else if (key == "dependencyinstaller"){
 			config.dependencyInstaller = value;

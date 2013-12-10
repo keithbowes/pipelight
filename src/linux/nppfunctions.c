@@ -176,6 +176,11 @@ NP_EXPORT(const char*) NP_GetMIMEDescription(){
 	if (initOkay){
 		callFunction(FUNCTION_GET_MIMETYPE);
 		std::string result = readResultString();
+
+		for (std::vector<MimeInfo>::iterator it = config.fakeMIMEtypes.begin(); it != config.fakeMIMEtypes.end(); it++){
+			result += ";" + it->mimeType + ":" + it->extension + ":" + it->description;
+		}
+
 		pokeString(strMimeType, result, sizeof(strMimeType));
 
 	}else{
@@ -328,6 +333,14 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 		return NPERR_GENERIC_ERROR;
 	}
 
+	/* Replace fake mimetypes */
+	for (std::vector<MimeInfo>::iterator it = config.fakeMIMEtypes.begin(); it != config.fakeMIMEtypes.end(); it++){
+		if (it->mimeType == mimeType){
+			mimeType = it->originalMime;
+			break;
+		}
+	}
+
 	bool startAsyncCall = false;
 
 	/* Detect Opera browsers and set eventAsyncCall to true in this case */
@@ -431,7 +444,7 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	writeInt32(realArgCount);
 	writeInt32(mode);
 	writeHandleInstance(instance);
-	writeString(pluginType);
+	writeString(mimeType);
 	callFunction(FUNCTION_NPP_NEW);
 
 	NPError result = readResultInt32();

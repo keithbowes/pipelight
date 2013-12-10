@@ -50,6 +50,13 @@ struct stringInsensitiveCompare {
 	}
 };
 
+struct MimeInfo{
+	std::string mimeType;
+	std::string extension;
+	std::string description;
+	std::string originalMime;
+};
+
 struct PluginConfig{
 	std::string		configPath;
 	std::string		pluginName;
@@ -72,6 +79,7 @@ struct PluginConfig{
 	bool			embed;
 	std::string 	fakeVersion;
 	std::map<std::string, std::string, stringInsensitiveCompare> overwriteArgs;
+	std::vector<MimeInfo> fakeMIMEtypes;
 
 	std::string		dependencyInstaller;
 	std::vector<std::string> dependencies;

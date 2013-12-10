@@ -366,7 +366,7 @@ std::string readString(Stack &stack){
 	data = rit->data.get();
 	if (data && rit->length > 0){
 		DBG_ASSERT(data[rit->length-1] == 0, "string not nullterminated!");
-		result = std::string(data, rit->length);
+		result = std::string(data, rit->length-1);
 	}
 
 	stack.pop_back();
