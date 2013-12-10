@@ -605,14 +605,14 @@ while [ $# -gt 0 ] ; do
 			EXT="exe"
 			;;
 		wine-flash-installer)
-			INS=(install_flash "11_9_900_152")
-			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/11.9.900.152/install_flash_player.exe"
-			SHA="8ea6384ec8d60b2394f7cbec3e1a15cbc041d4bc0cca3f481a82de4220997342"
+			INS=(install_flash "11_9_900_170")
+			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/11.9.900.170/install_flash_player.exe"
+			SHA="2ec22dbc204b8d02925dfbd261d62e12a64b4a1048c476d306eeff131d850d7c"
 			;;
 		wine-shockwave-installer)
-			INS=(install_shockwave "1205146")
+			INS=(install_shockwave "1207148")
 			URL="http://fpdownload.macromedia.com/get/shockwave/default/english/win95nt/latest/sw_lic_full_installer.exe"
-			SHA="51e99de466ad0808f6558b4cbca987666c20872e12b9daf194a3a4b7ac45376d"
+			SHA="6b9a8d01dc65d34b8fd7b2685868cd33c62bf355ff2097a11c24b1c6cf279cc0"
 			;;
 		wine-unity3d-installer)
 			INS=(install_unity3d)
