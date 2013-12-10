@@ -10,7 +10,9 @@ DESTDIR=""
 DEBUG=1
 
 # Supported plugins
-PLUGINS=("silverlight5.1" "silverlight5.0" "silverlight4" "flash" "shockwave" "unity3d" "foxitpdf")
+STANDARD_PLUGINS=("silverlight5.1" "silverlight5.0" "silverlight4" "flash" "unity3d")
+ADDITIONAL_PLUGINS=("shockwave" "foxitpdf")
+ALL_PLUGINS=("${STANDARD_PLUGINS[@]}" "${ADDITIONAL_PLUGINS[@]}")
 
 # Aliases
 declare -A PLUGINALIAS
@@ -19,28 +21,35 @@ PLUGINALIAS[silverlight]="silverlight5.1"
 usage()
 {
 	echo ""
-	echo "Usage: pipelight-plugin OPTIONS"
+	echo "Usage: pipelight-plugin [OPTIONS ...] COMMAND"
 	echo ""
 	echo "Environment variables:"
 	echo "  MOZ_PLUGIN_PATH             overwrite plugin path"
 	echo ""
-	echo "Options:"
+	echo "Commands:"
 	echo "  --enable  PLUGIN            enable plugin"
 	echo "  --disable PLUGIN            disable plugin"
 	echo "  --disable-all               disable all plugins"
 	echo "  --list-enabled              list enabled plugins"
 	echo ""
-	echo "Global options (requires root rights):"
+	echo "Global commands (require root rights):"
 	echo "  --create-mozilla-plugins    create copies of libpipelight.so"
 	echo "  --remove-mozilla-plugins    remove copies of libpipelight.so"
+	echo "  --unlock-plugin PLUGIN      unlocks an additional plugin"
+	echo "  --lock-plugin   PLUGIN      locks an additional plugin"
 	echo "  --update                    update the dependency-installer script"
 	echo ""
 	echo "Advanced options:"
 	echo "  --destdir=DIRECTORY         set fakeroot directory"
 	echo "  --debug                     show debug info"
 	echo ""
-	echo "Supported plugins:"
-	for entry in "${PLUGINS[@]}"; do
+	echo "Supported standard plugins:"
+	for entry in "${STANDARD_PLUGINS[@]}"; do
+		echo "  $entry"
+	done
+	echo ""
+	echo "Additional plugins (experimental):"
+	for entry in "${ADDITIONAL_PLUGINS[@]}"; do
 		echo "  $entry"
 	done
 	echo ""
@@ -112,13 +121,25 @@ resolve_plugin_alias()
 	exit 0
 }
 
+# > Checks if a given additional plugin is supported
+# arguments:
+# $1	- name of the plugin
+is_additional_plugin()
+{
+	local PLUGIN="$1"
+	for entry in "${ADDITIONAL_PLUGINS[@]}"; do
+		if [ "$PLUGIN" == "$entry" ]; then return 0; fi
+	done
+	return 1
+}
+
 # > Checks if a given plugin is supported
 # arguments:
 # $1	- name of the plugin
 is_supported_plugin()
 {
 	local PLUGIN="$1"
-	for entry in "${PLUGINS[@]}"; do
+	for entry in "${ALL_PLUGINS[@]}"; do
 		if [ "$PLUGIN" == "$entry" ]; then return 0; fi
 	done
 	return 1
@@ -143,8 +164,13 @@ enable_plugin()
 	local src="$SYSTEMDIR/$LIBPIPELIGHT-$PLUGIN.so"
 	local dst="$INSTALLDIR/$LIBPIPELIGHT-$PLUGIN.so"
 
+
 	if [ ! -f "$src" ]; then
-		echo "ERROR: Your system is missing a copy of $SYSTEMDIR/$LIBPIPELIGHT.so at $src" >&2
+		if is_additional_plugin "$PLUGIN"; then
+			echo "ERROR: You first need to call this program with: --unlock-plugin $PLUGIN" >&2
+		else
+			echo "ERROR: Your system is missing a copy of $SYSTEMDIR/$LIBPIPELIGHT.so at $src" >&2
+		fi
 		return 1
 	fi
 
@@ -242,7 +268,7 @@ is_enabled_plugin()
 # > Disables all plugins
 disable_all_plugin()
 {
-	for entry in "${PLUGINS[@]}"; do
+	for entry in "${ALL_PLUGINS[@]}"; do
 		if ! disable_plugin "$entry"; then return 1; fi
 	done
 
@@ -252,7 +278,7 @@ disable_all_plugin()
 # > List enabled plugins
 list_enabled_plugins()
 {
-	for entry in "${PLUGINS[@]}"; do
+	for entry in "${ALL_PLUGINS[@]}"; do
 		if is_enabled_plugin "$entry"; then	echo "$entry"; fi
 	done
 
@@ -260,9 +286,19 @@ list_enabled_plugins()
 }
 
 # > Create/Remove mozilla plugin copies
+# arguments:
+# $1	- Only change this plugin (optional, only used internally)
 create_mozilla_plugins()
 {
 	if ! get_directories; then return 1; fi
+
+	if [ -z "$1" ]; then
+		local PLUGIN_LIST=("${ALL_PLUGINS[@]}")
+		local skip_additional=0
+	else
+		local PLUGIN_LIST=("$1")
+		local skip_additional=1
+	fi
 
 	local src="$SYSTEMDIR/$LIBPIPELIGHT.so"
 
@@ -272,13 +308,17 @@ create_mozilla_plugins()
 	fi
 
 	# Create copy of the original plugin in libpipelight-*.so
-	for entry in "${PLUGINS[@]}"; do
+	for entry in "${PLUGIN_LIST[@]}"; do
 		local dst="$SYSTEMDIR/$LIBPIPELIGHT-$entry.so"
 
-		if [ -e "$dst" ] && ! rm -f "$dst" 2>/dev/null; then
-			echo "ERROR: $dst exists but unable to delete it, aborting" >&2
-			echo "ERROR: are you running this program with root rights?" >&2
-			return 1
+		if [ -e "$dst" ]; then
+			if ! rm -f "$dst" 2>/dev/null; then
+				echo "ERROR: $dst exists but unable to delete it, aborting" >&2
+				echo "ERROR: are you running this program with root rights?" >&2
+				return 1
+			fi
+		elif [ "$skip_additional" -eq 0 ] && is_additional_plugin "$entry"; then
+			continue
 		fi
 
 		if ! install -m 0644 "$src" "$dst" 2>/dev/null; then
@@ -295,7 +335,13 @@ remove_mozilla_plugins()
 {
 	if ! get_directories; then return 1; fi
 
-	for entry in "${PLUGINS[@]}"; do
+	if [ -z "$1" ]; then
+		local PLUGIN_LIST=("${ALL_PLUGINS[@]}")
+	else
+		local PLUGIN_LIST=("$1")
+	fi
+
+	for entry in "${PLUGIN_LIST[@]}"; do
 		local dst="$SYSTEMDIR/$LIBPIPELIGHT-$entry.so"
 
 		if [ -e "$dst" ] && ! rm -f "$dst" 2>/dev/null; then
@@ -307,6 +353,54 @@ remove_mozilla_plugins()
 
 	return 0
 }
+
+# > Locks/Unlocks a given plugin
+# arguments:
+# $1	- name of the plugin
+unlock_plugin()
+{
+	local PLUGIN="$1"
+	if ! get_directories; then return 1; fi
+
+	PLUGIN=$(resolve_plugin_alias "$PLUGIN")
+	[ $? -eq 0 ] || return 1;
+
+	if ! is_additional_plugin "$PLUGIN"; then
+		echo "ERROR: Additional plugin $PLUGIN is unknown" >&2
+		return 1
+	fi
+
+	if ! create_mozilla_plugins "$PLUGIN"; then
+		return 1
+	fi
+
+	echo "Plugin $PLUGIN is now unlocked"
+
+	return 0
+}
+
+lock_plugin()
+{
+	local PLUGIN="$1"
+	if ! get_directories; then return 1; fi
+
+	PLUGIN=$(resolve_plugin_alias "$PLUGIN")
+	[ $? -eq 0 ] || return 1;
+
+	if ! is_additional_plugin "$PLUGIN"; then
+		echo "ERROR: Additional plugin $PLUGIN is unknown" >&2
+		return 1
+	fi
+
+	if ! remove_mozilla_plugins "$PLUGIN"; then
+		return 1
+	fi
+
+	echo "Plugin $PLUGIN is now locked"
+
+	return 0
+}
+
 
 update_dependency_installer()
 {
@@ -385,6 +479,23 @@ while [[ $# > 0 ]] ; do
 		--remove-mozilla-plugins)
 			if ! remove_mozilla_plugins; then RET=1; fi
 			;;
+
+		--unlock-plugin)
+			if ! unlock_plugin "$1"; then RET=1; fi
+			shift
+			;;
+		--unlock-plugin=*)
+			if ! unlock_plugin "${CMD#*=}"; then RET=1; fi
+			;;
+
+		--lock-plugin)
+			if ! lock_plugin "$1"; then RET=1; fi
+			shift
+			;;
+		--lock-plugin=*)
+			if ! lock_plugin "${CMD#*=}"; then RET=1; fi
+			;;
+
 		--update)
 			if ! update_dependency_installer; then RET=1; fi
 			;;
