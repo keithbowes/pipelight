@@ -822,7 +822,7 @@ NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 			break;
 	}
 
-	DBG_TRACE(" -> result=%d", result);
+	DBG_TRACE(" -> ( result=%d, ... )", result);
 	return result;
 }
 
