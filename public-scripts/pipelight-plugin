@@ -233,7 +233,7 @@ disable_plugin()
 
 		echo "Plugin $PLUGIN is now disabled"
 	fi
-	
+
 	return 0
 }
 

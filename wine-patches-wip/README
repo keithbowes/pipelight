@@ -1,6 +1,0 @@
-This directory contains the current WORK-IN-PROGRESS versions of wine patches.
-As they might be still contain untested code we recommend to use the tested
-versions instead, especially when providing a package for multiple users!
-
-Take a look at the /wine-patches/ directory and use for example the provided
-downloader script to grab them automatically.

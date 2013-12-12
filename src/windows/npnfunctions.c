@@ -147,7 +147,7 @@ NPError NP_LOADDS NPN_NewStream(NPP instance, NPMIMEType type, const char* windo
 		*stream 	= readHandleStream(stack);
 
 	DBG_TRACE(" -> ( result=%d, ... )", result);
-	return NPERR_NO_ERROR;		
+	return NPERR_NO_ERROR;
 }
 
 /* NPN_Write */
@@ -181,7 +181,7 @@ NPError NP_LOADDS NPN_DestroyStream(NPP instance, NPStream* stream, NPReason rea
 
 	NPError result = readResultInt32();
 	DBG_TRACE(" -> result=%d", result);
-	return result;	
+	return result;
 }
 
 /* NPN_Status */
@@ -269,7 +269,7 @@ void* NP_LOADDS NPN_GetJavaEnv(void){
 	DBG_TRACE("()");
 	NOTIMPLEMENTED();
 	DBG_TRACE(" -> ptr=NULL");
-	return NULL;		
+	return NULL;
 }
 
 /* NPN_GetJavaPeer, Java is disabled of course! */
@@ -404,7 +404,7 @@ NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 	}
 
 	DBG_TRACE(" -> ( result=%d, ... )", result);
-	return result;		
+	return result;
 }
 
 /* NPN_SetValue */
@@ -456,7 +456,7 @@ NPError NP_LOADDS NPN_SetValue(NPP instance, NPPVariable variable, void *value){
 	}
 
 	DBG_TRACE(" -> result=%d", result);
-	return result;		
+	return result;
 }
 
 /* NPN_InvalidateRect */
@@ -605,7 +605,7 @@ int32_t NP_LOADDS NPN_IntFromIdentifier(NPIdentifier identifier){
 
 	writeHandleIdentifier(identifier);
 	callFunction(FUNCTION_NPN_INT_FROM_IDENTIFIER);
-	
+
 	int32_t result = readResultInt32();
 
 	DBG_TRACE(" -> result=%d", result);
@@ -624,7 +624,7 @@ NPObject* NP_LOADDS NPN_CreateObject(NPP instance, NPClass *aClass){
 	callFunction(FUNCTION_NPN_CREATE_OBJECT);
 
 	Stack stack;
-	readCommands(stack);	
+	readCommands(stack);
 
 	/*
 		When we get a object handle back, then allocate a local corresponding object
@@ -649,11 +649,11 @@ NPObject* NP_LOADDS NPN_RetainObject(NPObject *obj){
 		writeInt32(obj->referenceCount);
 		writeHandleObj(obj, HMGR_SHOULD_EXIST);
 		callFunction(FUNCTION_NPN_RETAINOBJECT);
-		readResultVoid();	
+		readResultVoid();
 	}
 
 	DBG_TRACE(" -> obj=%p", obj);
-	return obj;	
+	return obj;
 }
 
 /* NPN_ReleaseObject */
@@ -695,7 +695,7 @@ bool NP_LOADDS NPN_Invoke(NPP instance, NPObject* obj, NPIdentifier methodName, 
 	}else{
 		result->type 				= NPVariantType_Void;
 		result->value.objectValue 	= NULL;
-	}	
+	}
 
 	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
 	return resultBool;
@@ -724,7 +724,7 @@ bool NP_LOADDS NPN_InvokeDefault(NPP instance, NPObject* obj, const NPVariant *a
 	}else{
 		result->type 				= NPVariantType_Void;
 		result->value.objectValue 	= NULL;
-	}	
+	}
 
 	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
 	return resultBool;
@@ -752,7 +752,7 @@ bool NP_LOADDS NPN_Evaluate(NPP instance, NPObject *obj, NPString *script, NPVar
 	}else{
 		result->type 				= NPVariantType_Void;
 		result->value.objectValue 	= NULL;
-	}	
+	}
 
 	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
 	return resultBool;

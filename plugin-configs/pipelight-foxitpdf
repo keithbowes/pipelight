@@ -69,27 +69,27 @@ regKey              = @foxitsoftware.com/Foxit Reader Plugin,version=1.0,applica
 #
 # Foxit PDF Reader does not offer any version number to the browser
 #
-# fakeVersion       = 
+# fakeVersion       =
 
 #
 # overwriteArg allows to overwrite/add initialization arguments
 # passed by websites to Foxit PDF Reader applications. Since most
-# of the time PDF readers are started by files with PDF extensions 
+# of the time PDF readers are started by files with PDF extensions
 # opened in the browser and not via an embed tag, it's unlikely
-# that this is ever used. 
+# that this is ever used.
 #
-# overwriteArg = 
+# overwriteArg =
 #
 
 #
-# windowlessmode refers to a term of the Netscape Plugin API and 
+# windowlessmode refers to a term of the Netscape Plugin API and
 # defines a different mode of drawing and handling events.
 # [default: false]
 #
 windowlessMode      = false
 
 #
-# embed defines whether the Foxit PDF Reader plugin should be shown 
+# embed defines whether the Foxit PDF Reader plugin should be shown
 # inside the browser (true) or an external window (false).
 # [default: true]
 #
@@ -107,7 +107,7 @@ dependencyInstaller = @@DEPENDENCY_INSTALLER@@
 #
 # Useful values for Foxit PDF Reader are:
 #   wine-foxitpdf-installer
-#   
+#
 dependency          = wine-foxitpdf-installer
 
 #
@@ -120,7 +120,7 @@ quietInstallation   = @@QUIET_INSTALLATION@@
 #
 # In order to support browsers without NPAPI timer support
 # (like Midori) we've implemented a fallback to
-# NPN_PluginThreadAsyncCall. In the default configuration 
+# NPN_PluginThreadAsyncCall. In the default configuration
 # a timer based approach is preferred over async calls and the
 # plugin decides by itself which method to use depending on the
 # browser capabilities. Setting the following option to true

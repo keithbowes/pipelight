@@ -127,11 +127,11 @@ void attach(){
 			config.overwriteArgs["enableGPUAcceleration"] = "true";
 			if (gpuAcceleration > 1)
 				config.experimental_renderTopLevelWindow = true;
-			
+
 		}else if (config.overwriteArgs.find("enableGPUAcceleration") == config.overwriteArgs.end()){
 			if (!checkSilverlightGraphicDriver())
 				config.overwriteArgs["enableGPUAcceleration"] = "false";
-			
+
 		}else{
 			DBG_INFO("enableGPUAcceleration set manually - skipping compatibility check.");
 		}
@@ -154,7 +154,7 @@ void attach(){
 		DBG_ERROR("error during the initialization of the wine process - aborting.");
 		return;
 	}
- 
+
  	/* tell the windows side that a sandbox is active */
 	if (config.sandboxPath != ""){
 		writeInt32( (config.sandboxPath != "") );
@@ -243,7 +243,7 @@ std::string convertWinePath(std::string path, bool direction){
 
 	}else{
 		close(tempPipeIn[0]);
-		close(tempPipeIn[1]);	
+		close(tempPipeIn[1]);
 
 		DBG_ERROR("unable to fork() - probably out of memory?");
 		return "";
@@ -308,7 +308,7 @@ std::string getWineVersion(){
 
 	}else{
 		close(tempPipeIn[0]);
-		close(tempPipeIn[1]);	
+		close(tempPipeIn[1]);
 
 		DBG_ERROR("unable to fork() - probably out of memory?");
 		return "";
@@ -470,7 +470,7 @@ bool startWineProcess(){
 		/* Assign to stdin/stdout */
 		dup2(tempPipeOut[0],  0);
 		dup2(tempPipeIn[1],   1);
-		
+
 		/* Setup environment variables */
 		setenv("WINEPREFIX", 			config.winePrefix.c_str(), 			true);
 
@@ -530,7 +530,7 @@ bool startWineProcess(){
 		if (config.experimental_renderTopLevelWindow)
 			argv.push_back( "--rendertoplevelwindow" );
 
-		argv.push_back(NULL);	
+		argv.push_back(NULL);
 
 		/* Execute wine */
 		execvp(argv[0], (char**)argv.data());
@@ -590,7 +590,7 @@ void dispatcher(int functionid, Stack &stack){
 	DBG_ASSERT(sBrowserFuncs, "browser didn't correctly initialize the plugin!");
 
 	switch (functionid){
-		
+
 		case LIN_HANDLE_MANAGER_REQUEST_STREAM_INFO:
 			{
 				NPStream* stream = readHandleStream(stack); /* shouldExist not necessary, Linux checks always */
@@ -851,14 +851,14 @@ void dispatcher(int functionid, Stack &stack){
 				NPString script;
 
 				NPP instance 		= readHandleInstance(stack);
-				NPObject* obj 		= readHandleObj(stack);	
+				NPObject* obj 		= readHandleObj(stack);
 				readNPString(stack, script);
 				NPVariant resultVariant;
 				resultVariant.type 					= NPVariantType_Void;
 				resultVariant.value.objectValue 	= NULL;
 				DBG_TRACE("FUNCTION_NPN_EVALUATE( instance=%p, obj=%p )", instance, obj);
 
-				bool result = sBrowserFuncs->evaluate(instance, obj, &script, &resultVariant);	
+				bool result = sBrowserFuncs->evaluate(instance, obj, &script, &resultVariant);
 
 				freeNPString(script); /* free the string */
 
@@ -871,7 +871,7 @@ void dispatcher(int functionid, Stack &stack){
 				returnCommand();
 			}
 			break;
-	
+
 		case FUNCTION_NPN_INVOKE:
 			{
 				NPP instance 					= readHandleInstance(stack);
@@ -934,7 +934,7 @@ void dispatcher(int functionid, Stack &stack){
 				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPN_HAS_PROPERTY -> result=%d", result);
-				returnCommand();	
+				returnCommand();
 			}
 			break;
 
@@ -1019,7 +1019,7 @@ void dispatcher(int functionid, Stack &stack){
 				if (result){
 					writeIdentifierArray(identifierTable, identifierCount);
 					writeInt32(identifierCount);
-					
+
 					/* free the memory for the table */
 					if (identifierTable)
 						sBrowserFuncs->memfree(identifierTable);
@@ -1160,7 +1160,7 @@ void dispatcher(int functionid, Stack &stack){
 				size_t len;
 				NPP instance 					= readHandleInstance(stack);
 				NPStream *stream 				= readHandleStream(stack);
-				std::shared_ptr<char> buffer	= readMemory(stack, len);	
+				std::shared_ptr<char> buffer	= readMemory(stack, len);
 				DBG_TRACE("FUNCTION_NPN_WRITE( instance=%p, stream=%p, buffer=%p, len=%lu )", instance, stream, buffer.get(), len );
 
 				int32_t result = sBrowserFuncs->write(instance, stream, len, buffer.get());
@@ -1202,10 +1202,10 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPN_DESTROY_STREAM -> result=%d", result);
 				returnCommand();
 			}
-			break;		
+			break;
 
 		case FUNCTION_NPN_STATUS:
-			{		
+			{
 				NPP instance 					= readHandleInstance(stack);
 				std::shared_ptr<char> message	= readStringAsMemory(stack);
 

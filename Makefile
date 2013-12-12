@@ -25,7 +25,7 @@ endif
 
 
 export
-all: $(SUBDIRS)	
+all: $(SUBDIRS)
 
  $(SUBDIRS):
 	$(MAKE) -C $@
@@ -36,7 +36,7 @@ install: all
 	test -d "$(DESTDIR)$(prefix)/lib/pipelight" || mkdir -p "$(DESTDIR)$(prefix)/lib/pipelight"
 
 	install -m 0644 "src/windows/$(pluginloader)" "$(DESTDIR)$(prefix)/share/pipelight/$(pluginloader)"
-	
+
 	for config in $(notdir $(PLUGIN_CONFIGS)); do \
 		sed    's|@@PLUGIN_LOADER_PATH@@|$(prefix)/share/pipelight/$(pluginloader)|g' plugin-configs/$${config} > pipelight-config.tmp; \
 		sed -i 's|@@DEPENDENCY_INSTALLER@@|$(prefix)/share/pipelight/install-dependency|g' pipelight-config.tmp; \

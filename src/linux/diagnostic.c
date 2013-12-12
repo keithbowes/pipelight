@@ -63,7 +63,7 @@ bool debugSection(NPP instance, std::string name){
 
 		if (sBrowserFuncs->invoke(instance, windowObj, functionName, &arg, 1, &resultVariant) == NPERR_NO_ERROR){
 			sBrowserFuncs->releasevariantvalue(&resultVariant);
-			resultBool = true;			
+			resultBool = true;
 		}
 
 		sBrowserFuncs->releaseobject(windowObj);
@@ -93,7 +93,7 @@ bool debugSimpleMessage(NPP instance, std::string message){
 
 		if (sBrowserFuncs->invoke(instance, windowObj, functionName, &arg, 1, &resultVariant) == NPERR_NO_ERROR){
 			sBrowserFuncs->releasevariantvalue(&resultVariant);
-			resultBool = true;			
+			resultBool = true;
 		}
 
 		sBrowserFuncs->releaseobject(windowObj);
@@ -224,7 +224,7 @@ void runDiagnostic(NPP instance){
 
 	if (config.winePrefix == ""){
 		debugSimpleMessage(instance, "As you have no winePrefix defined the environment variable WINEPREFIX will be used.");
-		debugSimpleMessage(instance, "This script is not able to check if everything is okay with your wine prefix!");	
+		debugSimpleMessage(instance, "This script is not able to check if everything is okay with your wine prefix!");
 	}
 
 	/* Check dllPath / dllName / regKey */

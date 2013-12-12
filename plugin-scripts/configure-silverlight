@@ -43,7 +43,7 @@ while true; do
 	read -p "[enable/disable/force/abort]? " hwaccel_new
 	if [ -z "$hwaccel_new" ] || [ "$hwaccel_new" == "abort" ]; then break; fi
 
-	( 
+	(
 		echo "REGEDIT4"
 		echo ""
 		echo "[HKEY_CURRENT_USER\\Software\\Microsoft\\Silverlight]"

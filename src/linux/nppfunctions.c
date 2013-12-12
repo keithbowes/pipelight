@@ -232,7 +232,7 @@ NP_EXPORT(NPError) NP_GetValue(void *future, NPPVariable variable, void *value) 
 				resultStr = readResultString();
 			}
 
-			pokeString(strPluginDescription, resultStr, sizeof(strPluginDescription));		
+			pokeString(strPluginDescription, resultStr, sizeof(strPluginDescription));
 
 			*((char**)value) 	= strPluginDescription;
 			result 				= NPERR_NO_ERROR;
@@ -623,7 +623,7 @@ NPError NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool se
 	callFunction(FUNCTION_NPP_NEW_STREAM);
 
 	Stack stack;
-	readCommands(stack);	
+	readCommands(stack);
 
 	NPError result 	= readInt32(stack);
 
@@ -673,7 +673,7 @@ int32_t NPP_WriteReady(NPP instance, NPStream* stream) {
 
 	}else{
 		writeHandleStream(stream, HMGR_SHOULD_EXIST);
-		writeHandleInstance(instance);	
+		writeHandleInstance(instance);
 		callFunction(FUNCTION_NPP_WRITE_READY);
 
 		result = readResultInt32();

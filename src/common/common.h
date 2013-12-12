@@ -85,7 +85,7 @@ extern char strMultiPluginName[64];
 
 	#define DBG_ERROR \
 		DBG_TRACE
-	
+
 #else
 
 	#define DBG_TRACE(fmt, ...) \

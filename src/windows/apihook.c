@@ -392,7 +392,7 @@ bool hookFullscreenClass(HWND hWnd, std::string classname, bool unicode){
 
 	/* create the actual hook */
 	WNDPROC prevWndProc = (WNDPROC)SetWindowLongPtrA(hWnd, GWLP_WNDPROC, (LONG_PTR)(unicode ? &wndHookProcedureW : &wndHookProcedureA));
-	
+
 	EnterCriticalSection(&prevWndProcCS);
 	prevWndProcMap[hWnd] = prevWndProc;
 	LeaveCriticalSection(&prevWndProcCS);
@@ -402,7 +402,7 @@ bool hookFullscreenClass(HWND hWnd, std::string classname, bool unicode){
 
 HWND WINAPI myCreateWindowExA(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam){
 	HWND hWnd = originalCreateWindowExA(dwExStyle, lpClassName, lpWindowName, dwStyle, x, y, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
-	
+
 	if (!IS_INTRESOURCE(lpClassName)){
 		std::string classname(lpClassName);
 		hookFullscreenClass(hWnd, classname, false);
@@ -502,7 +502,7 @@ bool installUnityHooks(){
 		our hook, we either need to inject code into another process or use a
 		Wine patch.
 	*/
-		
+
 	/*
 		HMODULE kernel32 = LoadLibrary("kernel32.dll");
 

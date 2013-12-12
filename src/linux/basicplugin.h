@@ -64,7 +64,7 @@ extern bool 		initOkay;
 
 extern PluginConfig config;
 
-/* 
+/*
 	Plugin Interface for the Browser
 */
 

@@ -243,7 +243,7 @@ typedef enum {
   /* 32-bit per pixel 8-bit per channel - premultiplied alpha */
   NPImageFormatBGRA32     = 0x1,
   /* 32-bit per pixel 8-bit per channel - 1 unused channel */
-  NPImageFormatBGRX32     = 0x2 
+  NPImageFormatBGRX32     = 0x2
 } NPImageFormat;
 
 typedef struct _NPAsyncSurface

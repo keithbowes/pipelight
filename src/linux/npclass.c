@@ -106,7 +106,7 @@ bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t ar
 	}else{
 		result->type 				= NPVariantType_Void;
 		result->value.objectValue 	= NULL;
-	}	
+	}
 
 	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
 	return resultBool;
@@ -141,7 +141,7 @@ bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result
 	}else{
 		result->type 				= NPVariantType_Void;
 		result->value.objectValue 	= NULL;
-	}	
+	}
 
 	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
 	return resultBool;
@@ -259,11 +259,11 @@ NPClass myClass = {
 	NPInvalidateFunction,
 	NPHasMethodFunction,
 	NPInvokeFunction,
-	NPInvokeDefaultFunction, 
+	NPInvokeDefaultFunction,
 	NPHasPropertyFunction,
 	NPGetPropertyFunction,
 	NPSetPropertyFunction,
 	NPRemovePropertyFunction,
 	NPEnumerationFunction,
-	NPConstructFunction	
+	NPConstructFunction
 };

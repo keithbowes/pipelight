@@ -85,7 +85,7 @@ regKey              = @unity3d.com/UnityPlayer,version=1.0
 #
 
 #
-# windowlessmode refers to a term of the Netscape Plugin API and 
+# windowlessmode refers to a term of the Netscape Plugin API and
 # defines a different mode of drawing and handling events.
 # We set the default value to false to mime the behavior of a normal
 # browser.
@@ -94,7 +94,7 @@ regKey              = @unity3d.com/UnityPlayer,version=1.0
 windowlessMode      = false
 
 #
-# embed defines whether the Unity3D plugin should be shown 
+# embed defines whether the Unity3D plugin should be shown
 # inside the browser (true) or an external window (false).
 # [default: true]
 #
@@ -112,7 +112,7 @@ dependencyInstaller = @@DEPENDENCY_INSTALLER@@
 #
 # Useful values for Unity3D are:
 #   wine-Unity3D-installer
-#   
+#
 dependency          = wine-unity3d-installer
 
 #
@@ -125,7 +125,7 @@ quietInstallation   = @@QUIET_INSTALLATION@@
 #
 # In order to support browsers without NPAPI timer support
 # (like Midori) we've implemented a fallback to
-# NPN_PluginThreadAsyncCall. In the default configuration 
+# NPN_PluginThreadAsyncCall. In the default configuration
 # a timer based approach is preferred over async calls and the
 # plugin decides by itself which method to use depending on the
 # browser capabilities. Setting the following option to true
@@ -176,8 +176,8 @@ operaDetection      = true
 # sandboxPath = /usr/bin/wine-sandbox
 
 #
-# The experimental-unityHacks options enables some workaround for bugs or 
-# missing features in Wine which are likely to cause problems with other 
+# The experimental-unityHacks options enables some workaround for bugs or
+# missing features in Wine which are likely to cause problems with other
 # plugins, so just enable them for unity!
 #
 experimental-unityHacks = true

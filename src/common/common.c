@@ -178,7 +178,7 @@ bool __writeString(const char* data, size_t length){
 	eos = 0;
 	if (!transmitData(&eos, 1))
 		return false;
-		
+
 	/* flush data! */
 	fflush(commPipeOut);
 	return true;
@@ -607,7 +607,7 @@ NPStream* createNPStream(HMGR_HANDLE id){
 	writeInt32(HMGR_TYPE_NPStream);
 	callFunction(LIN_HANDLE_MANAGER_REQUEST_STREAM_INFO);
 	readCommands(stack);
-	
+
 	/* initialize memory */
 	stream->pdata 			= NULL;
 	stream->ndata 			= NULL;
@@ -864,7 +864,7 @@ void freeVariantDecRef(NPVariant &variant, bool deleteFromRemoteHandleManager){
 			objectDecRef(variant.value.objectValue, deleteFromRemoteHandleManager);
 
 	}
-	
+
 	variant.type 				= NPVariantType_Void;
 	variant.value.objectValue 	= NULL;
 }
@@ -905,11 +905,11 @@ void readVariantIncRef(Stack &stack, NPVariant &variant){
 
 		case NPVariantType_Int32:
 			variant.value.intValue  	= readInt32(stack);
-			break;	
+			break;
 
 		case NPVariantType_Double:
 			variant.value.doubleValue  	= readDouble(stack);
-			break;		
+			break;
 
 		case NPVariantType_String:
 			variant.value.stringValue.UTF8Characters 	= readStringMalloc(stack, stringLength);
@@ -952,11 +952,11 @@ void readVariant(Stack &stack, NPVariant &variant){
 
 		case NPVariantType_Int32:
 			variant.value.intValue  	= readInt32(stack);
-			break;	
+			break;
 
 		case NPVariantType_Double:
 			variant.value.doubleValue  	= readDouble(stack);
-			break;		
+			break;
 
 		case NPVariantType_String:
 			variant.value.stringValue.UTF8Characters 	= readStringBrowserAlloc(stack, stringLength);
@@ -979,7 +979,7 @@ void freeVariant(NPVariant &variant){
 		if (variant.value.stringValue.UTF8Characters)
 			free((char*)variant.value.stringValue.UTF8Characters);
 	}
-	
+
 	/* (dont free objects here) */
 
 	variant.type 				= NPVariantType_Void;
@@ -1007,11 +1007,11 @@ void writeVariantConst(const NPVariant &variant, bool deleteFromRemoteHandleMana
 
 		case NPVariantType_Int32:
 			writeInt32(variant.value.intValue);
-			break;	
+			break;
 
 		case NPVariantType_Double:
 			writeDouble(variant.value.doubleValue);
-			break;		
+			break;
 
 		case NPVariantType_String:
 			writeString((char*)variant.value.stringValue.UTF8Characters, variant.value.stringValue.UTF8Length);

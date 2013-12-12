@@ -69,37 +69,37 @@ regKey              = FireFoxWebPlugin
 #
 # Grandstream does not offer any version number to the browser
 #
-# fakeVersion       = 
+# fakeVersion       =
 
 #
 # overwriteArg allows to overwrite/add initialization arguments
 # passed by websites to Grandstream applications.
 #
-# overwriteArg = 
+# overwriteArg =
 #
 
 #
 # fakeMimeType allows to add MIME types to plugins which are not officially
 # offered by the plugin itself. They are mapped back to a supported ones, so
-# that it is possible to correct broken MIME types like ones containing 
+# that it is possible to correct broken MIME types like ones containing
 # upper case characters.
 #
 # Example:
 # fakeMimeType = fakedMimeType : fakedExtension : fakedDescription = realMimetype
-# 
-fakeMimeType = application/x-vnd-npgs_plugins-plugin:rts:nprt = application/x-vnd-npGS_Plugins-plugin	
-fakeMimeType = application/x-vnd-npgs_chromeplugins-plugin:rts:nprt = application/x-vnd-npGS_Plugins-plugin	
-fakeMimeType = application/x-vnd-npGS_ChromePlugins-plugin:rts:nprt = application/x-vnd-npGS_Plugins-plugin	
+#
+fakeMimeType = application/x-vnd-npgs_plugins-plugin:rts:nprt = application/x-vnd-npGS_Plugins-plugin
+fakeMimeType = application/x-vnd-npgs_chromeplugins-plugin:rts:nprt = application/x-vnd-npGS_Plugins-plugin
+fakeMimeType = application/x-vnd-npGS_ChromePlugins-plugin:rts:nprt = application/x-vnd-npGS_Plugins-plugin
 
 #
-# windowlessmode refers to a term of the Netscape Plugin API and 
+# windowlessmode refers to a term of the Netscape Plugin API and
 # defines a different mode of drawing and handling events.
 # [default: false]
 #
 windowlessMode      = false
 
 #
-# embed defines whether the Grandstream plugin should be shown 
+# embed defines whether the Grandstream plugin should be shown
 # inside the browser (true) or an external window (false).
 # [default: true]
 #
@@ -117,7 +117,7 @@ dependencyInstaller = @@DEPENDENCY_INSTALLER@@
 #
 # Useful values for Grandstream are:
 #   wine-grandstream-installer
-#   
+#
 dependency          = wine-grandstream-installer
 
 #
@@ -130,7 +130,7 @@ quietInstallation   = @@QUIET_INSTALLATION@@
 #
 # In order to support browsers without NPAPI timer support
 # (like Midori) we've implemented a fallback to
-# NPN_PluginThreadAsyncCall. In the default configuration 
+# NPN_PluginThreadAsyncCall. In the default configuration
 # a timer based approach is preferred over async calls and the
 # plugin decides by itself which method to use depending on the
 # browser capabilities. Setting the following option to true

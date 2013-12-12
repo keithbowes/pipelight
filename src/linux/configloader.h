@@ -44,7 +44,7 @@
 #include <vector>								// for std::vector
 #include <map>									// for std::map
 
-struct stringInsensitiveCompare { 
+struct stringInsensitiveCompare {
 	bool operator() (const std::string& a, const std::string& b) const{
 		return strcasecmp(a.c_str(), b.c_str()) < 0;
 	}
@@ -61,7 +61,7 @@ struct PluginConfig{
 	std::string		configPath;
 	std::string		pluginName;
 	bool 			diagnosticMode;
-	
+
 	std::string 	sandboxPath;
 
 	std::string 	winePath;

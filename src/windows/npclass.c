@@ -136,11 +136,11 @@ NPClass myClass = {
 	NPInvalidateFunction,
 	NPHasMethodFunction,
 	NPInvokeFunction,
-	NPInvokeDefaultFunction, 
+	NPInvokeDefaultFunction,
 	NPHasPropertyFunction,
 	NPGetPropertyFunction,
 	NPSetPropertyFunction,
 	NPRemovePropertyFunction,
 	NPEnumerationFunction,
-	NPConstructFunction	
+	NPConstructFunction
 };

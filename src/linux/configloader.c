@@ -55,12 +55,12 @@ static std::string getHomeDirectory(){
 	char *homeDir = getenv("HOME");
 	if (homeDir)
 		return std::string(homeDir);
-	
+
 	/* Do we need getpwuid_r() here ? */
 	struct passwd* info = getpwuid(getuid());
 	if (!info || !info->pw_dir)
 		return "";
-	
+
 	return std::string(info->pw_dir);
 }
 
@@ -144,7 +144,7 @@ static std::string readUntil(const char* &str, char abort = 0){
 	const char *start = str;
 	char c;
 
-	while (	(c = *str) && 						/* more characters? */	
+	while (	(c = *str) && 						/* more characters? */
 			(c != abort) &&						/* not the abort character? */
 			(abort || c_alphanumchar(c)) )		/* if no abort character given, then it should be alphanumeric */
 		str++;
@@ -359,7 +359,7 @@ bool loadConfig(PluginConfig &config){
 			config.wineDLLOverrides = value;
 
 		}else if (key == "dllpath"){
-			config.dllPath = value;	
+			config.dllPath = value;
 
 		}else if (key == "dllname"){
 			config.dllName = value;

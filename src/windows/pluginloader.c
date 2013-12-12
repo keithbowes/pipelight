@@ -111,7 +111,7 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 					HDC hDC;
 
 					if (GetClientRect(hWnd, &rect)) {
-						
+
 						hDC = BeginPaint(hWnd, &paint);
 						if (hDC != NULL){
 
@@ -249,12 +249,12 @@ std::string createLinuxCompatibleMimeType(){
 
 	for (unsigned int i = 0; i < mimeTypes.size(); i++){
 
-		if (i != 0) 
+		if (i != 0)
 			result += ";";
 
 		result += mimeTypes[i];
-		
-		result += ":";	
+
+		result += ":";
 		if (i < fileExtensions.size())
 			result += fileExtensions[i];
 
@@ -303,7 +303,7 @@ bool initDLL(std::string dllPath, std::string dllName){
 	}
 
 	char *info = NULL;
-	UINT size = 0; 
+	UINT size = 0;
 
 	if (VerQueryValueA(data.get(), "\\StringFileInfo\\040904E4\\MIMEType", (void**)&info, &size)){
 		while( size > 0 && info[size-1] == 0) size--;
@@ -329,7 +329,7 @@ bool initDLL(std::string dllPath, std::string dllName){
 		while( size > 0 && info[size-1] == 0) size--;
 		np_FileDescription = std::string(info, size);
 	}
-	
+
 	if (VerQueryValueA(data.get(), "\\StringFileInfo\\040904E4\\Language", (void**)&info, &size)){
 		while( size > 0 && info[size-1] == 0) size--;
 		np_Language = std::string(info, size);
@@ -526,7 +526,7 @@ int main(int argc, char *argv[]){
 	DBG_INFO("init successful!");
 
 	Stack stack;
-	readCommands(stack, false);	
+	readCommands(stack, false);
 
 	return 0;
 }
@@ -627,7 +627,7 @@ void dispatcher(int functionid, Stack &stack){
 	switch (functionid){
 
 		case INIT_OKAY:
-			{			
+			{
 				DBG_TRACE("INIT_OKAY()");
 
 				writeInt32(PIPELIGHT_PROTOCOL_VERSION);
@@ -636,7 +636,7 @@ void dispatcher(int functionid, Stack &stack){
 				returnCommand();
 			}
 			break;
-		
+
 		case WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA:
 			{
 				void *notifyData = readHandleNotify(stack, HMGR_SHOULD_EXIST);
@@ -739,7 +739,7 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_GET_DESCRIPTION -> str='%s'", np_FileDescription.c_str());
 				returnCommand();
 			}
-			break;	
+			break;
 
 
 		case FUNCTION_NP_INVOKE:
@@ -805,22 +805,22 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NP_HAS_PROPERTY:
 			{
 				NPObject *obj 		= readHandleObjIncRef(stack);
-				NPIdentifier name 	= readHandleIdentifier(stack);	
+				NPIdentifier name 	= readHandleIdentifier(stack);
 				DBG_TRACE("FUNCTION_NP_HAS_PROPERTY( obj=%p, name=%p )", obj, name);
 
 				bool result = obj->_class->hasProperty(obj, name);
 				writeInt32(result);
 				objectDecRef(obj);
-			
+
 				DBG_TRACE("FUNCTION_NP_HAS_PROPERTY -> result=%d", result);
 				returnCommand();
 			}
-			break;		
+			break;
 
 		case FUNCTION_NP_HAS_METHOD:
 			{
 				NPObject *obj 		= readHandleObjIncRef(stack);
-				NPIdentifier name 	= readHandleIdentifier(stack);	
+				NPIdentifier name 	= readHandleIdentifier(stack);
 				DBG_TRACE("FUNCTION_NP_HAS_METHOD( obj=%p, name=%p )", obj, name);
 
 				bool result = obj->_class->hasMethod(obj, name);
@@ -830,12 +830,12 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NP_HAS_METHOD -> result=%d", result);
 				returnCommand();
 			}
-			break;		
+			break;
 
 		case FUNCTION_NP_GET_PROPERTY:
 			{
 				NPObject *obj 		= readHandleObjIncRef(stack);
-				NPIdentifier name 	= readHandleIdentifier(stack);	
+				NPIdentifier name 	= readHandleIdentifier(stack);
 				NPVariant resultVariant;
 				resultVariant.type 				= NPVariantType_Void;
 				resultVariant.value.objectValue = NULL;
@@ -850,14 +850,14 @@ void dispatcher(int functionid, Stack &stack){
 				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NP_GET_PROPERTY -> ( result=%d, ... )", result);
-				returnCommand();	
+				returnCommand();
 			}
 			break;
 
 		case FUNCTION_NP_SET_PROPERTY:
 			{
 				NPObject 		*obj 		= readHandleObjIncRef(stack);
-				NPIdentifier 	name 		= readHandleIdentifier(stack);	
+				NPIdentifier 	name 		= readHandleIdentifier(stack);
 				NPVariant 		variant;
 				readVariantIncRef(stack, variant);
 				DBG_TRACE("FUNCTION_NP_SET_PROPERTY( obj=%p, name=%p, variant=%p )", obj, name, &variant);
@@ -868,14 +868,14 @@ void dispatcher(int functionid, Stack &stack){
 				objectDecRef(obj);
 
 				DBG_TRACE("FUNCTION_NP_SET_PROPERTY -> result=%d", result);
-				returnCommand();	
+				returnCommand();
 			}
 			break;
 
 		case FUNCTION_NP_REMOVE_PROPERTY:
 			{
 				NPObject 		*obj 		= readHandleObjIncRef(stack);
-				NPIdentifier 	name 		= readHandleIdentifier(stack);	
+				NPIdentifier 	name 		= readHandleIdentifier(stack);
 				DBG_TRACE("FUNCTION_NP_REMOVE_PROPERTY( obj=%p, name=%p )", obj, name);
 
 				bool result = obj->_class->removeProperty(obj, name);
@@ -883,7 +883,7 @@ void dispatcher(int functionid, Stack &stack){
 				objectDecRef(obj);
 
 				DBG_TRACE("FUNCTION_NP_REMOVE_PROPERTY -> result=%d", result);
-				returnCommand();	
+				returnCommand();
 			}
 			break;
 
@@ -1064,7 +1064,7 @@ void dispatcher(int functionid, Stack &stack){
 				}else{
 					DBG_WARN("FUNCTION_NPP_GETVALUE_BOOL - variable %d not allowed", variable);
 					result = NPERR_GENERIC_ERROR;
-				}		 
+				}
 
 				if(result == NPERR_NO_ERROR)
 					writeInt32(boolValue);
@@ -1084,7 +1084,7 @@ void dispatcher(int functionid, Stack &stack){
 
 				NPObject *objectValue;
 				NPError result;
-				
+
 				if (variable == NPPVpluginScriptableNPObject){
 					result = pluginFuncs.getvalue(instance, variable, &objectValue);
 
@@ -1101,7 +1101,7 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPP_GETVALUE_OBJECT -> ( result=%d, ... )", result);
 				returnCommand();
 			}
-			break;		
+			break;
 
 		case FUNCTION_NPP_SET_WINDOW:
 			{
@@ -1176,7 +1176,7 @@ void dispatcher(int functionid, Stack &stack){
 						ndata->window.x 				= 0;
 						ndata->window.y 				= 0;
 						ndata->window.width 			= width;
-						ndata->window.height 			= height; 
+						ndata->window.height 			= height;
 						ndata->window.clipRect.top 		= 0;
 						ndata->window.clipRect.left 	= 0;
 						ndata->window.clipRect.right 	= width;
@@ -1203,19 +1203,19 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 					= readHandleInstance(stack);
 				std::shared_ptr<char> type 		= readStringAsMemory(stack);
 				NPStream *stream 				= readHandleStream(stack, HMGR_SHOULD_NOT_EXIST);
-				NPBool seekable					= (NPBool) readInt32(stack); 
+				NPBool seekable					= (NPBool) readInt32(stack);
 				DBG_TRACE("FUNCTION_NPP_NEW_STREAM( instance=%p, type='%s', stream=%p, seekable=%d )", instance, type.get(), stream, seekable);
 
 				uint16_t stype = NP_NORMAL; /* Fix for silverlight.... */
 				NPError result = pluginFuncs.newstream(instance, type.get(), stream, seekable, &stype);
-				
+
 				/* Return result */
 				if (result == NPERR_NO_ERROR){
 					writeInt32(stype);
 				}else{ /* Handle is now invalid because of this error */
 					handleManager_removeByPtr(HMGR_TYPE_NPStream, stream);
 				}
-				
+
 				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPP_NEW_STREAM -> result=%d", result);
