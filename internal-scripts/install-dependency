@@ -108,8 +108,8 @@ download()
 			return 1
 		fi
 
-		wget -O "$tmpfile" "$URL" 2>&1 | progressbar "Please wait, downloading ..." "Downloading $DEP";
-		if [ $? -eq 0 ] && [ -f "$tmpfile" ] && [ "$SHA" == ""$(sha256sum "$tmpfile" | cut -d' ' -f1) ]; then
+		wget -O "$tmpfile" "$URL" 2>&1 | progressbar "Please wait, downloading ..." "Downloading $DEP"
+		if [ -f "$tmpfile" ] && [ "$SHA" == ""$(sha256sum "$tmpfile" | cut -d' ' -f1) ]; then
 			break
 		fi
 
@@ -580,7 +580,13 @@ fi
 trap "EXITSTATUS=\$?; flock -u \"$LOCKFD\"; atexit; exit \"\$EXITSTATUS\"" 0
 
 # Initialize wine if not done yet
-if [ ! -d "$WINEPREFIX" ]; then
+if [ ! -f "$WINEPREFIX/system.reg" ]; then
+
+	# Directory exists, but without system.reg - wine will assume wrong platform, so create dummy system.reg
+	if [ -d "$WINEPREFIX" ] && [ ! -f "$WINEPREFIX/system.reg" ]; then
+		echo -en "WINE REGISTRY Version 2\n\n#arch=win32\n" > "$WINEPREFIX/system.reg"
+	fi
+
 	DISPLAY="" "$WINE" wineboot.exe 2>&1 | progressbar "Please wait..." "Creating wine prefix"
 fi
 
@@ -631,6 +637,11 @@ while [ $# -gt 0 ] ; do
 			INS=(install_flash "11_9_900_170")
 			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/11.9.900.170/install_flash_player.exe"
 			SHA="2ec22dbc204b8d02925dfbd261d62e12a64b4a1048c476d306eeff131d850d7c"
+			;;
+		wine-flash-debug-installer)
+			INS=(install_flash "11_9_900_170")
+			URL="http://download.macromedia.com/pub/flashplayer/updaters/11/flashplayer_11_plugin_debug.exe"
+			SHA="cdb215b0ae70b6921781822cef1cac11cc65765fcd02fc72bf3b3eb01992600b"
 			;;
 		wine-shockwave-installer)
 			INS=(install_shockwave "1207148")

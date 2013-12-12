@@ -330,6 +330,14 @@ bool checkPluginInstallation(){
 	/* Run the installer ... */
 	DBG_INFO("checking plugin installation - this might take some time.");
 
+	/* When using a sandbox, we have to create the directory in advance */
+	if (config.sandboxPath != ""){
+		if (mkdir(config.winePrefix.c_str(), 0755) != 0 && errno != EEXIST){
+			DBG_ERROR("unable to manually create wine prefix.");
+			return false;
+		}
+	}
+
 	pid_t pidInstall = fork();
 	if (pidInstall == 0){
 
@@ -351,8 +359,7 @@ bool checkPluginInstallation(){
 		/* Generate argv array */
 		std::vector<const char*> argv;
 
-		/* NOTE: Using a sandbox isn't possible on the first run, as the winePrefix doesn't exist yet */
-		if (config.sandboxPath != "" && checkIfExists(config.winePrefix))
+		if (config.sandboxPath != "")
 			argv.push_back( config.sandboxPath.c_str() );
 
 		argv.push_back( config.dependencyInstaller.c_str());
