@@ -1,10 +1,20 @@
 pipelight-multi (0.2.3) UNRELEASED; urgency=low
 
   * Updated Silverlight to version 5.1.20913.0
-  * Fixed a bug that the plugin resolution isn't correct in non-embedded
-    mode
+  * Updated Flash plugin to version 11.9.900.170
+  * Updated version of Unity3D and Shockwave
+  * Added pulseaudio patches to wine-compholio
+  * Added install-dependency supports for the debug version of the flash
+    plugin (wine-flash-debug-installer)
+  * Fixed a bug that the plugin resolution is not set correct in
+    non-embedded mode
   * Added additional checks to ensure that the windows and linux part of
     pipelight are compatible
+  * Improved sandboxing support to allow sandboxing even on the first startup
+  * Show sandbox status and wine version in popup menu
+  * Several code optimizations and improvements
+  * Added experimental plugins: foxitpdf, grandstream (not created by default,
+    but can be unlocked with: sudo pipelight-plugin --unlock-plugin PLUGIN)
 
  -- Michael Mueller <michael@fds-team.de>  Xxx, xx Nov 2013 xx:xx:xx +0100
 
