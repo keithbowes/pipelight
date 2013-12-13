@@ -5,33 +5,33 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Pipelight\n"
-"Report-Msgid-Bugs-To: pipelight@packages.debian.org\n"
-"POT-Creation-Date: 2013-08-21 05:21+0200\n"
+"Report-Msgid-Bugs-To: pipelight-multi@packages.debian.org\n"
+"POT-Creation-Date: 2013-12-13 21:36+0100\n"
 "PO-Revision-Date: 2013-08-21 20:34+0000\n"
 "Last-Translator: Michael Müller <michael@fds-team.de>\n"
 "Language-Team: none\n"
+"Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "X-Launchpad-Export-Date: 2013-10-21 21:40+0000\n"
 "X-Generator: Launchpad (build 16807)\n"
-"Language: de\n"
 
 #. Type: boolean
 #. Description
-#: ../templates:1001
+#: ../pipelight.templates:1001
 msgid "Do you want to install Pipelight system-wide?"
 msgstr "Möchten Sie Pipelight systemweit installieren?"
 
 #. Type: boolean
 #. Description
-#: ../templates:1001
+#: ../pipelight.templates:1001
 msgid "There are two ways to install Pipelight:"
 msgstr "Es gibt zwei Möglichkeiten Pipelight zu installieren:"
 
 #. Type: boolean
 #. Description
-#: ../templates:1001
+#: ../pipelight.templates:1001
 msgid ""
 "When choosing a system-wide installation (default in previous versions) this "
 "will allow you and other users on this computer to use Pipelight in every "
@@ -43,12 +43,12 @@ msgstr ""
 
 #. Type: boolean
 #. Description
-#: ../templates:1001
+#: ../pipelight.templates:1001
 msgid ""
 "When not choosing a system-wide installation you will get all files "
 "installed, but still have to configure your browser manually to use "
-"Pipelight. For instructions on how to do that please visit: "
-"https://answers.launchpad.net/pipelight/+faq/2362"
+"Pipelight. For instructions on how to do that please visit: https://answers."
+"launchpad.net/pipelight/+faq/2362"
 msgstr ""
 "Falls Sie sich gegen eine systemweite Installation entscheiden werden alle "
 "Dateien installiert, Sie müssen aber noch manuell ihren Browser "
@@ -57,8 +57,48 @@ msgstr ""
 
 #. Type: boolean
 #. Description
-#: ../templates:1001
+#: ../pipelight.templates:1001
 msgid "If unsure choose a systemwide installation."
 msgstr ""
 "Fals Sie sich unsicher sind, sollten Sie eine systemweite Installation "
 "durchführen."
+
+#. Type: boolean
+#. Description
+#: ../pipelight-multi.templates:1001
+msgid "Do you want to enable the sandbox?"
+msgstr "Möchten Sie die Sandbox aktivieren?"
+
+#. Type: boolean
+#. Description
+#: ../pipelight-multi.templates:1001
+msgid "Pipelight detected that you have pipelight-sandbox installed."
+msgstr "Pipelight hat festgestellt, dass Sie die pipelight-sandbox installiert haben."
+
+#. Type: boolean
+#. Description
+#: ../pipelight-multi.templates:1001
+msgid ""
+"The pipelight-sandbox is currently experimental and targeted at testers or "
+"developers. We do not yet recommend to use it on daily basis since you may "
+"stumble upon bugs or some plugins may not work as expected."
+msgstr ""
+"Die pipelight-sandbox befindet sich aktuell in der Testphase und richtet "
+"sich an Tester oder Entwickler. Es ist nicht empfohlen diese bereits im "
+"Produktiv-Einsatz zu verwenden, da die Sandbox noch Fehler beinhalten kann "
+"und Plugins ggf. nicht wie erwartet funktionieren."
+
+#. Type: boolean
+#. Description
+#: ../pipelight-multi.templates:1001
+msgid ""
+"Moreover you will need a recent kernel (>= 3.8 recommended) otherwise the "
+"required namespace functions may not be available and the sandbox does not "
+"work. If you encounter any problems, it is recommended to disable or "
+"uninstall the sandbox again."
+msgstr ""
+"Desweiteren wird ein ein aktueller Kernel vorausgesetzt (>= 3.8 empfohlen), "
+"da ansonsten die benötigten Namespace-Funktionen fehlen können und die "
+"Sandbox nicht funktioniert. Fals Sie nach der Aktivierung auf Probleme "
+"stoßen, so  wird empfohlen die Sandbox wieder zu deaktivieren bzw. zu "
+"deinstallieren."

@@ -1,0 +1,14 @@
+Template: pipelight-multi/sandbox
+Type: boolean
+Default: false
+_Description: Do you want to enable the sandbox?
+ Pipelight detected that you have pipelight-sandbox installed.
+ .
+ The pipelight-sandbox is currently experimental and targeted at testers
+ or developers. We do not yet recommend to use it on daily basis since
+ you may stumble upon bugs or some plugins may not work as expected.
+ .
+ Moreover you will need a recent kernel (>= 3.8 recommended) otherwise
+ the required namespace functions may not be available and the sandbox
+ does not work. If you encounter any problems, it is recommended to
+ disable or uninstall the sandbox again.
