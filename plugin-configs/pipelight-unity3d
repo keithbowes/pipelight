@@ -176,8 +176,10 @@ operaDetection      = true
 # sandboxPath = /usr/bin/wine-sandbox
 
 #
-# The experimental-unityHacks options enables some workaround for bugs or
-# missing features in Wine which are likely to cause problems with other
-# plugins, so just enable them for unity!
+# A sandbox is a method to isolate an untrusted program from the rest of
+# the system to prevent damage in case of a virus, program errors or
+# similar issues. We've been developing the ability to use a (self-created)
+# sandbox, but this feature still has to be considered experimental.
+# The feature will only be used when the sandbox path exists.
 #
-experimental-unityHacks = true
+sandboxPath         = @@SANDBOX_PATH@@

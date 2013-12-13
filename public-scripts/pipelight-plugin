@@ -220,18 +220,17 @@ disable_plugin()
 	local dst="$INSTALLDIR/$LIBPIPELIGHT-$PLUGIN.so"
 
 	# check if there is a file
-	if [ -e "$dst" ]; then
-		if [ ! -L "$dst" ]; then
-			echo "ERROR: $dst exists but is not a symlink, aborting - delete or rename this file manually." >&2
-			return 1
-		fi
-
+	if [ -L "$dst" ]; then
 		if ! rm "$dst" 2>/dev/null; then
 			echo "ERROR: Failed to delete symlink $dst." >&2
 			return 1
 		fi
 
 		echo "Plugin $PLUGIN is now disabled"
+
+	elif [ -e "$dst" ]; then
+		echo "ERROR: $dst exists but is not a symlink, aborting - delete or rename this file manually." >&2
+		return 1
 	fi
 
 	return 0

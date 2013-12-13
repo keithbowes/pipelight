@@ -165,7 +165,7 @@ operaDetection      = true
 # A sandbox is a method to isolate an untrusted program from the rest of
 # the system to prevent damage in case of a virus, program errors or
 # similar issues. We've been developing the ability to use a (self-created)
-# sandbox, but this feature still has to be considered highly experimental.
-# Only use it when you REALLY know what you're doing!
+# sandbox, but this feature still has to be considered experimental.
+# The feature will only be used when the sandbox path exists.
 #
-# sandboxPath = /usr/bin/wine-sandbox
+sandboxPath         = @@SANDBOX_PATH@@
