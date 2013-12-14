@@ -1,4 +1,4 @@
-pipelight-multi (0.2.3) UNRELEASED; urgency=low
+pipelight-multi (0.2.3) RELEASED; urgency=low
 
   * Updated Silverlight to version 5.1.20913.0
   * Updated Flash plugin to version 11.9.900.170
@@ -16,7 +16,7 @@ pipelight-multi (0.2.3) UNRELEASED; urgency=low
   * Added experimental plugins: foxitpdf, grandstream (not created by default,
     but can be unlocked with: sudo pipelight-plugin --unlock-plugin PLUGIN)
 
- -- Michael Mueller <michael@fds-team.de>  Sat, 14 Dec 2013 02:03:17 +0100
+ -- Michael Mueller <michael@fds-team.de>  Sat, 14 Dec 2013 16:54:15 +0100
 
 
 pipelight-multi (0.2.2) RELEASED; urgency=high
