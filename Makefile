@@ -35,7 +35,8 @@ install: all
 	test -d "$(DESTDIR)$(prefix)/bin/" || mkdir -p "$(DESTDIR)$(prefix)/bin/"
 	test -d "$(DESTDIR)$(prefix)/lib/pipelight" || mkdir -p "$(DESTDIR)$(prefix)/lib/pipelight"
 
-	install -m 0644 "src/windows/$(pluginloader)" "$(DESTDIR)$(prefix)/share/pipelight/$(pluginloader)"
+	install -m 0644 share/signature.gpg "$(DESTDIR)$(prefix)/share/pipelight/signature.gpg"
+	install -m 0755 "src/windows/$(pluginloader)" "$(DESTDIR)$(prefix)/share/pipelight/$(pluginloader)"
 
 	for config in $(notdir $(PLUGIN_CONFIGS)); do \
 		sed    's|@@PLUGIN_LOADER_PATH@@|$(prefix)/share/pipelight/$(pluginloader)|g' plugin-configs/$${config} > pipelight-config.tmp; \
@@ -55,18 +56,20 @@ install: all
 		rm pipelight-script.tmp; \
 	done
 
-	install -m 0755 internal-scripts/install-dependency "$(DESTDIR)$(prefix)/share/pipelight/install-dependency"
-	install -m 0755 internal-scripts/hw-accel-default "$(DESTDIR)$(prefix)/share/pipelight/hw-accel-default"
+	install -m 0755 share/install-dependency "$(DESTDIR)$(prefix)/share/pipelight/install-dependency"
+	install -m 0755 share/hw-accel-default "$(DESTDIR)$(prefix)/share/pipelight/hw-accel-default"
 
 	sed    's|@@PLUGIN_SYSTEM_PATH@@|$(prefix)/lib/pipelight/|g' public-scripts/pipelight-plugin > pipelight-plugin.tmp
 	sed -i 's|@@DEPENDENCY_INSTALLER@@|$(prefix)/share/pipelight/install-dependency|g' pipelight-plugin.tmp
 	sed -i 's|@@MOZ_PLUGIN_PATH@@|$(mozpluginpath)|g' pipelight-plugin.tmp
+	sed -i 's|@@PIPELIGHT_PUBKEY@@|$(prefix)/share/pipelight/signature.gpg|g' pipelight-plugin.tmp	
 	install -m 0755 pipelight-plugin.tmp "$(DESTDIR)$(prefix)/bin/pipelight-plugin"
 	rm pipelight-plugin.tmp
 
 	install -m 0644 src/linux/libpipelight.so "$(DESTDIR)$(prefix)/lib/pipelight/libpipelight.so"
 
 uninstall:
+	rm -f "$(DESTDIR)$(prefix)/share/pipelight/signature.gpg"
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/$(pluginloader)"
 	rm -f  $(DESTDIR)$(prefix)/share/pipelight/pipelight-*
 	rm -f  $(DESTDIR)$(prefix)/share/pipelight/configure-*

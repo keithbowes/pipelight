@@ -4,7 +4,8 @@
 ORIG_SYSTEMDIR="@@PLUGIN_SYSTEM_PATH@@"
 ORIG_PLUGINDIR="@@MOZ_PLUGIN_PATH@@"
 DEPENDENCY_INSTALLER_PATH="@@DEPENDENCY_INSTALLER@@"
-DEPENDENCY_INSTALLER_URL="https://bitbucket.org/mmueller2012/pipelight/raw/master/internal-scripts/install-dependency"
+DEPENDENCY_INSTALLER_URL="https://bitbucket.org/mmueller2012/pipelight/raw/master/share/install-dependency.sig"
+PIPELIGHT_PUBKEY="@@PIPELIGHT_PUBKEY@@"
 LIBPIPELIGHT="libpipelight"
 DESTDIR=""
 DEBUG=1
@@ -404,21 +405,42 @@ lock_plugin()
 update_dependency_installer()
 {
 	if [[ "$DEPENDENCY_INSTALLER_PATH" =~ ^@@.*@@$ ]]; then return 1; fi
+	if [[ "$PIPELIGHT_PUBKEY" =~ ^@@.*@@$ ]]; then return 1; fi
 
 	local tmpfile=$(mktemp)
 	[ -f "$tmpfile" ] || return 1
 
+	# Grab the latest version if the dependency-installer script
 	if ! wget -O "$tmpfile" "$DEPENDENCY_INSTALLER_URL"; then
-		echo "ERROR: failed to download latest dependency-installer script" >&2
+		echo "ERROR: Failed to download latest dependency-installer script" >&2
+		rm "$tmpfile"
 		return 1
 	fi
 
-	chmod 0755 "$tmpfile" || return 1
+	local decfile=$(mktemp)
+	if [ ! -f "$decfile" ]; then
+		rm "$tmpfile"
+		return 1
+	fi
+
+	# Ensure the signature is valid, extract the content
+	if ! gpg --batch --no-default-keyring --keyring "$PIPELIGHT_PUBKEY" --output "$decfile" --decrypt "$tmpfile"; then
+		echo "ERROR: Failed to verify signature of the dependency-installer script" >&2
+		rm "$tmpfile"
+		rm "$decfile"
+		return 1
+	fi
+
+	# We don't need the original one anymore
+	rm "$tmpfile"
+
+	# Set appropriate file rights
+	chmod 0755 "$decfile" || return 1
 
 	# Move the file at its final place
-	if ! mv -f "$tmpfile" "$DEPENDENCY_INSTALLER_PATH"; then
-		rm "$tmpfile"
-		echo "ERROR: root rights required to replace dependency-installer script" >&2
+	if ! mv -f "$decfile" "$DEPENDENCY_INSTALLER_PATH"; then
+		rm "$decfile"
+		echo "ERROR: Root rights required to replace dependency-installer script" >&2
 		return 1
 	fi
 
