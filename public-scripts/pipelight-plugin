@@ -375,7 +375,6 @@ unlock_plugin()
 	fi
 
 	echo "Plugin $PLUGIN is now unlocked"
-
 	return 0
 }
 
@@ -397,7 +396,6 @@ lock_plugin()
 	fi
 
 	echo "Plugin $PLUGIN is now locked"
-
 	return 0
 }
 
@@ -424,12 +422,15 @@ update_dependency_installer()
 	fi
 
 	# Ensure the signature is valid, extract the content
-	if ! gpg --batch --no-default-keyring --keyring "$PIPELIGHT_PUBKEY" --output "$decfile" --decrypt "$tmpfile"; then
+	if ! gpg --batch --no-default-keyring --keyring "$PIPELIGHT_PUBKEY" --decrypt "$tmpfile" > "$decfile"; then
 		echo "ERROR: Failed to verify signature of the dependency-installer script" >&2
 		rm "$tmpfile"
 		rm "$decfile"
 		return 1
 	fi
+
+	# Grab the new sha256sum
+	local newsha=$(sha256sum "$decfile" | cut -d' ' -f1)
 
 	# We don't need the original one anymore
 	rm "$tmpfile"
@@ -444,6 +445,8 @@ update_dependency_installer()
 		return 1
 	fi
 
+	echo ""
+	echo "Script dependency-installer has been updated to version $newsha"
 	return 0
 }
 

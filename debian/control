@@ -10,7 +10,7 @@ Package: pipelight-multi
 Architecture: amd64 i386
 Depends: ${shlibs:Depends}, ${misc:Depends}, libx11-6, mesa-utils,
 	ttf-mscorefonts-installer, wget, zenity | kde-baseapps-bin, zenity | qdbus,
-	wine-compholio (>= 1.7.4-2~), bash (>= 4.0), unzip, cabextract
+	wine-compholio (>= 1.7.4-2~), bash (>= 4.0), unzip, cabextract, gnupg
 Conflicts: pipelight (<< 0.2.0~)
 Replaces: pipelight (<< 0.2.0~)
 Description: allows usage of Windows NPAPI plugins through Wine
