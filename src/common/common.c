@@ -88,6 +88,10 @@ bool initCommIO(){
 	#endif
 }
 
+inline void flushCommOut(){
+	if (commPipeOut) fflush(commPipeOut);
+}
+
 /*
 	Initializes the plugin name
 */
@@ -142,8 +146,6 @@ bool writeCommand(char command, const char* data, size_t length){
 			return false;
 	}
 
-	/* flush data! */
-	fflush(commPipeOut);
 	return true;
 }
 
@@ -179,8 +181,6 @@ bool __writeString(const char* data, size_t length){
 	if (!transmitData(&eos, 1))
 		return false;
 
-	/* flush data! */
-	fflush(commPipeOut);
 	return true;
 }
 
@@ -201,6 +201,9 @@ bool readCommands(Stack &stack, bool allowReturn, int abortTimeout){
 	#ifdef __WIN32__
 		DBG_ASSERT(abortTimeout == 0, "readCommand called with abortTimeout, but not allowed on Windows.");
 	#endif
+
+	/* flush data! */
+	flushCommOut();
 
 	if (!commPipeIn)
 		return false;

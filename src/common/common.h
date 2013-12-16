@@ -287,6 +287,7 @@ enum{
 
 extern bool initCommPipes(int out, int in);
 extern bool initCommIO();
+extern void flushCommOut();
 
 extern void setMultiPluginName(const std::string str);
 extern void setMultiPluginName(const char* str);
@@ -356,6 +357,9 @@ inline void callFunction(uint32_t function){
 inline void returnCommand(){
 	DBG_ASSERT(writeCommand(BLOCKCMD_RETURN), \
 		"Unable to send BLOCKCMD_RETURN.");
+
+	/* flush data! */
+	flushCommOut();
 }
 
 /* Writes an int32 */
