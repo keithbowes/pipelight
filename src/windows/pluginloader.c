@@ -1114,37 +1114,31 @@ void dispatcher(int functionid, Stack &stack){
 
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
 				if (ndata){
+					DWORD style, extStyle;
+					int posX, posY;
+					RECT rect;
 
-					/*
-						NOTE: It breaks input event handling when calling
-						SetWindowPos(ndata->hWnd, HWND_TOP, 0, 0, width, height, SWP_NOMOVE | SWP_SHOWWINDOW);
-						here ... although we don't call it the window seems to resize properly
-					*/
+					/* Get style flags */
+					if (ndata->embeddedMode){
+						style 		= WS_POPUP;
+						extStyle 	= WS_EX_TOOLWINDOW;
+						posX		= 0;
+						posY		= 0;
+					}else{
+						style 		= WS_TILEDWINDOW;
+						extStyle 	= 0;
+						posX 		= CW_USEDEFAULT;
+						posY 		= CW_USEDEFAULT;
+					}
+
+					/* Calculate size including borders */
+					rect.left 	= 0;
+					rect.top	= 0;
+					rect.right 	= width;
+					rect.bottom = height;
+					AdjustWindowRectEx(&rect, style, false, extStyle);
 
 					if (!ndata->hWnd){
-						DWORD style, extStyle;
-						int posX, posY;
-						RECT rect;
-
-						/* Get style flags */
-						if (isEmbeddedMode){
-							style 		= WS_POPUP;
-							extStyle 	= WS_EX_TOOLWINDOW;
-							posX		= 0;
-							posY		= 0;
-						}else{
-							style 		= WS_TILEDWINDOW;
-							extStyle 	= 0;
-							posX 		= CW_USEDEFAULT;
-							posY 		= CW_USEDEFAULT;
-						}
-
-						/* Calculate size including borders */
-						rect.left 	= 0;
-						rect.top	= 0;
-						rect.right 	= width;
-						rect.bottom = height;
-						AdjustWindowRectEx(&rect, style, false, extStyle);
 
 						/* Create the actual window */
 						ndata->hWnd = CreateWindowExA(extStyle, clsName, "Plugin", style, posX, posY, rect.right - rect.left, rect.bottom - rect.top, 0, 0, 0, 0);
@@ -1169,7 +1163,9 @@ void dispatcher(int functionid, Stack &stack){
 						}else{
 							DBG_ERROR("failed to create window!");
 						}
-					}
+
+					}else
+						SetWindowPos(ndata->hWnd, 0, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOACTIVATE | SWP_NOMOVE);
 
 					if (ndata->hWnd){
 
