@@ -482,7 +482,7 @@ void NP_LOADDS NPN_InvalidateRect(NPP instance, NPRect *rect){
 		}
 
 		if (isLinuxWindowlessMode){
-			if (rect){
+			if (ndata->windowlessMode && rect){
 				memcpy(&ndata->invalidateRect, rect, sizeof(*rect));
 				ndata->invalidate = INVALIDATE_RECT;
 			}else

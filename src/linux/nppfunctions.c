@@ -345,6 +345,7 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	/* setup plugin data structure */
 	pdata->pipelightError 	= (!initOkay || invalidMimeType);
 	pdata->container      	= 0;
+	pdata->plugin			= 0;
 	instance->pdata 		= pdata;
 
 	if (pdata->pipelightError){
@@ -759,7 +760,53 @@ void NPP_Print(NPP instance, NPPrint* platformPrint) {
 /* NPP_HandleEvent */
 int16_t NPP_HandleEvent(NPP instance, void* event) {
 	DBG_TRACE("( instance=%p, event=%p )", instance, event);
-	NOTIMPLEMENTED();
+
+	if (config.experimental_linuxWindowlessMode && event){
+		XEvent *xevent   = (XEvent *)event;
+		Display *display = xevent->xany.display;
+
+		PluginData *pdata = (PluginData*)instance->pdata;
+		if (pdata && pdata->plugin){
+
+			if (xevent->type == GraphicsExpose){
+				GC gc = XCreateGC(display, pdata->plugin, 0, NULL);
+				XSetFunction( display, gc, GXcopy );
+
+				/* Copy the area over to the plugin area */
+				XCopyArea( display, pdata->plugin, xevent->xgraphicsexpose.drawable, gc,
+						0, 0, xevent->xgraphicsexpose.width, xevent->xgraphicsexpose.height,
+						xevent->xgraphicsexpose.x, xevent->xgraphicsexpose.y);
+
+				XFreeGC(display, gc);
+
+			}else if (xevent->type == KeyPress || xevent->type == KeyRelease){
+				XKeyEvent tmp;
+				memcpy(&tmp, xevent, sizeof(tmp));
+				tmp.window = pdata->plugin;
+				XSendEvent(display, pdata->plugin, False, NoEventMask, (XEvent *)&tmp);
+				XFlush(display);
+
+			}else if (xevent->type == ButtonPress || xevent->type == ButtonRelease){
+				XButtonEvent tmp;
+				memcpy(&tmp, xevent, sizeof(tmp));
+				tmp.window = pdata->plugin;
+				XSendEvent(display, pdata->plugin, False, NoEventMask, (XEvent *)&tmp);
+				XFlush(display);
+
+			}else if (xevent->type == MotionNotify){
+				XMotionEvent tmp;
+				memcpy(&tmp, xevent, sizeof(tmp));
+				tmp.window = pdata->plugin;
+				XSendEvent(display, pdata->plugin, False, NoEventMask, (XEvent *)&tmp);
+				XFlush(display);
+
+			}
+
+		}
+
+	}else
+		NOTIMPLEMENTED("ignoring unexpected callback.");
+
 	DBG_TRACE(" -> result=0");
 	return 0;
 }

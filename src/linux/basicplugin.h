@@ -129,6 +129,7 @@ void NPDeallocateFunction(NPObject *npobj);
 struct PluginData{
 	bool		pipelightError;
 	Window 		container;
+	Window 		plugin;
 };
 
 extern std::string convertWinePath(std::string path, bool direction = false);

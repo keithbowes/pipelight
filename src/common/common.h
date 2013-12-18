@@ -174,7 +174,7 @@ struct ParameterInfo{
 typedef std::vector<ParameterInfo> Stack;
 
 /* increase this whenever you do changes in the protocol stack */
-#define PIPELIGHT_PROTOCOL_VERSION 0x10000002
+#define PIPELIGHT_PROTOCOL_VERSION 0x10000003
 
 enum{
 	/* ------- Special ------- */

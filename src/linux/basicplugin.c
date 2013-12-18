@@ -667,45 +667,35 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("CHANGE_EMBEDDED_MODE( instance=%p, win=%lu, embed=%d )", instance, win, embed);
 
 				PluginData *pdata = (PluginData*)instance->pdata;
-				if (pdata && pdata->container){
-					Display *display = XOpenDisplay(NULL);
+				if (pdata){
+					pdata->plugin = win;
 
-					if (display){
-						Window parentWindow;
+					if (pdata->container){
+						Display *display = XOpenDisplay(NULL);
 
-						/* embed into child window */
-						if (embed){
-							parentWindow = (Window)getEnvironmentInteger("PIPELIGHT_X11WINDOW");
-							if (!parentWindow)
-								parentWindow = pdata->container;
+						if (display){
+							Window parentWindow;
 
-						/* reparent to root window */
-						}else
-							parentWindow = RootWindow(display, 0);
+							/* embed into child window */
+							if (embed){
+								parentWindow = (Window)getEnvironmentInteger("PIPELIGHT_X11WINDOW");
+								if (!parentWindow)
+									parentWindow = pdata->container;
 
-						XReparentWindow(display, win, parentWindow, 0, 0);
+							/* reparent to root window */
+							}else
+								parentWindow = RootWindow(display, 0);
 
-						/*
-							NOTE: This shouldn't be necessary since regular browsers will send an additional XEMBED_EMBEDDED_NOTIFY
-							event. Depending on the system it seems to arrive too late in some rare cases. To work around these
-							issues we just accept that the event is delivered twice, until we've probably found some better way to
-							synchronize everything.
-						*/
-						sendXembedMessage(display, win, XEMBED_EMBEDDED_NOTIFY, 0, parentWindow, 0);
+							XReparentWindow(display, win, parentWindow, 0, 0);
+							sendXembedMessage(display, win, XEMBED_EMBEDDED_NOTIFY, 0, parentWindow, 0);
+							sendXembedMessage(display, win, XEMBED_FOCUS_OUT, 0, 0, 0);
+							XCloseDisplay(display);
 
-						/*
-						sendXembedMessage(display, win, XEMBED_EMBEDDED_NOTIFY, 0, parentWindow, 0);
-						sendXembedMessage(display, win, XEMBED_FOCUS_IN, 		XEMBED_FOCUS_CURRENT, 0, 0);
-						sendXembedMessage(display, win, XEMBED_WINDOW_ACTIVATE, 0, 0, 0);
-						sendXembedMessage(display, win, XEMBED_MODALITY_ON, 	0, 0, 0);
-						*/
-
-						sendXembedMessage(display, win, XEMBED_FOCUS_OUT, 0, 0, 0);
-						XCloseDisplay(display);
-
-					}else{
-						DBG_ERROR("could not open display!");
+						}else{
+							DBG_ERROR("could not open display!");
+						}
 					}
+
 				}
 
 				DBG_TRACE("CHANGE_EMBEDDED_MODE -> void");
