@@ -60,17 +60,22 @@ std::map<HWND, NPP> hwndToInstance;
 
 /* variables */
 bool isWindowlessMode	= false;
+bool isLinuxWindowlessMode = false;
 bool isEmbeddedMode		= false;
-bool stayInFullscreen   = false;
+bool stayInFullscreen 	= false;
 bool isSandboxed 		= false;
 
 /* hooks */
 bool unityHacks 		= false;
-bool windowClassHook    = false;
+bool windowClassHook 	= false;
 
 /* not implemented yet */
 bool renderTopLevelWindow = false;
 
+/* linux windowless */
+bool invalidateLinuxWindowless = false;
+
+/* user agent and plugin data */
 char strUserAgent[1024] = {0};
 
 std::string np_MimeType;
@@ -431,10 +436,13 @@ int main(int argc, char *argv[]){
 
 		/* variables */
 		}else if (arg == "--windowless"){
-			isWindowlessMode 	= true;
+			isWindowlessMode = true;
+
+		}else if (arg == "--linuxwindowless"){
+			isLinuxWindowlessMode = true;
 
 		}else if (arg == "--embed"){
-			isEmbeddedMode 		= true;
+			isEmbeddedMode = true;
 
 		/* hooks */
 		}else if (arg == "--unityhacks"){
@@ -480,6 +488,7 @@ int main(int argc, char *argv[]){
 
 	/* debug info */
 	DBG_INFO("windowless mode       is %s.", (isWindowlessMode ? "on" : "off"));
+	DBG_INFO("linux windowless mode is %s.", (isLinuxWindowlessMode ? "on" : "off"));
 	DBG_INFO("embedded mode         is %s.", (isEmbeddedMode ? "on" : "off"));
 	DBG_INFO("unity hacks           is %s.", (unityHacks ? "on" : "off"));
 	DBG_INFO("window class hook     is %s.", (windowClassHook ? "on" : "off"));
@@ -681,13 +690,40 @@ void dispatcher(int functionid, Stack &stack){
 				/* DBG_TRACE("PROCESS_WINDOW_EVENTS()"); */
 
 				DWORD abortTime = GetTickCount() + 80;
-				while (GetTickCount() < abortTime){
+				while (!invalidateLinuxWindowless && GetTickCount() < abortTime){
 					if (PeekMessageA(&msg, NULL, 0, 0, PM_REMOVE)){
 						TranslateMessage(&msg);
 						DispatchMessageA(&msg);
 
 					}else{
 						break;
+					}
+				}
+
+				/* Invalidate rects after returning from the event handler */
+				if (isLinuxWindowlessMode){
+					writeInt32(INVALIDATE_NOTHING);
+
+					if (invalidateLinuxWindowless){
+						for (std::map<HWND, NPP>::iterator it = hwndToInstance.begin(); it != hwndToInstance.end(); it++){
+							NPP instance 		= it->second;
+							NetscapeData* ndata = (NetscapeData*)instance->ndata;
+							if (!ndata || !ndata->invalidate) continue;
+
+							if (ndata->invalidate == INVALIDATE_RECT){
+								writeInt32(ndata->invalidateRect.right);
+								writeInt32(ndata->invalidateRect.bottom);
+								writeInt32(ndata->invalidateRect.left);
+								writeInt32(ndata->invalidateRect.top);
+							}
+
+							writeHandleInstance(instance);
+							writeInt32(ndata->invalidate);
+
+							ndata->invalidate = INVALIDATE_NOTHING;
+						}
+
+						invalidateLinuxWindowless = false;
 					}
 				}
 

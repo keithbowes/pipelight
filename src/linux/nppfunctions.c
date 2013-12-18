@@ -262,11 +262,37 @@ NP_EXPORT(NPError) NP_Shutdown() {
 	return NPERR_NO_ERROR;
 }
 
-void timerFunc(NPP instance, uint32_t timerID){
+inline void timerFunc(NPP __instance, uint32_t __timerID){
 	/* Update the window */
 	writeInt64( handleManager_count() );
 	callFunction(PROCESS_WINDOW_EVENTS);
-	readResultVoid();
+
+	Stack stack;
+	readCommands(stack);
+
+	if (!config.experimental_linuxWindowlessMode)
+		return;
+
+	for (;;){
+		int invalidate = readInt32(stack);
+		if (!invalidate) break;
+		NPP instance   = readHandleInstance(stack);
+
+		if (invalidate == INVALIDATE_RECT){
+			NPRect rect;
+			rect.top 	= readInt32(stack);
+			rect.left	= readInt32(stack);
+			rect.bottom = readInt32(stack);
+			rect.right  = readInt32(stack);
+			sBrowserFuncs->invalidaterect(instance, &rect);
+
+		}else if (invalidate == INVALIDATE_EVERYTHING)
+			sBrowserFuncs->invalidaterect(instance, NULL);
+
+		else
+			DBG_ABORT("PROCESS_WINDOW_EVENTS returned unsupported invalidate=%d.", invalidate);
+	}
+
 }
 
 void timerThreadAsyncFunc(void* argument){
@@ -275,9 +301,7 @@ void timerThreadAsyncFunc(void* argument){
 	if (sem_trywait(&eventThreadSemScheduledAsyncCall)) return;
 
 	/* Update the window */
-	writeInt64( handleManager_count() );
-	callFunction(PROCESS_WINDOW_EVENTS);
-	readResultVoid();
+	timerFunc(NULL, 0);
 
 	/* request event handling again */
 	sem_post(&eventThreadSemRequestAsyncCall);
@@ -455,6 +479,9 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 		saved->buf = NULL;
 		saved->len = 0;
 	}
+
+	if (config.experimental_linuxWindowlessMode)
+		sBrowserFuncs->setvalue(instance, NPPVpluginWindowBool, NULL);
 
 	/* Begin scheduling events */
 	if (startAsyncCall) sem_post(&eventThreadSemRequestAsyncCall);
@@ -781,7 +808,7 @@ NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 
 		case NPPVpluginNeedsXEmbed:
 			result 						= NPERR_NO_ERROR;
-			*((PRBool *)value) 			= PR_TRUE;
+			*((PRBool *)value) 			= config.experimental_linuxWindowlessMode ? PR_FALSE : PR_TRUE;
 			break;
 
 		/* Requested by Midori, but unknown if Silverlight supports this variable */

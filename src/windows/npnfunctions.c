@@ -469,7 +469,7 @@ void NP_LOADDS NPN_InvalidateRect(NPP instance, NPRect *rect){
 	NetscapeData* ndata = (NetscapeData*)instance->ndata;
 	if (ndata){
 		if (ndata->hWnd){
-			if (ndata->windowlessMode){
+			if (ndata->windowlessMode && rect){
 				RECT r;
 				r.left 		= rect->left;
 				r.top 		= rect->top;
@@ -477,10 +477,19 @@ void NP_LOADDS NPN_InvalidateRect(NPP instance, NPRect *rect){
 				r.bottom 	= rect->bottom;
 				InvalidateRect(ndata->hWnd, &r, false);
 
-			/* the values seem to be incorrect in windowed mode - invalidate the whole rect instead */
 			}else
 				InvalidateRect(ndata->hWnd, NULL, false);
+		}
 
+		if (isLinuxWindowlessMode){
+			if (rect){
+				memcpy(&ndata->invalidateRect, rect, sizeof(*rect));
+				ndata->invalidate = INVALIDATE_RECT;
+			}else
+				ndata->invalidate = INVALIDATE_EVERYTHING;
+
+			/* don't process further events, we need to redraw as fast as possible */
+			invalidateLinuxWindowless = true;
 		}
 	}
 

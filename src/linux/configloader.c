@@ -296,6 +296,7 @@ bool loadConfig(PluginConfig &config){
 	config.experimental_unityHacks = false;
 	config.experimental_windowClassHook = false;
 	config.experimental_renderTopLevelWindow = false;
+	config.experimental_linuxWindowlessMode = false;
 
 	/* open configuration file */
 	std::ifstream configFile;
@@ -448,6 +449,10 @@ bool loadConfig(PluginConfig &config){
 		}else if (key == "experimental-rendertoplevelwindow"){
 			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
 			config.experimental_renderTopLevelWindow = (value == "true" || value == "yes");
+
+		}else if (key == "experimental-linuxwindowlessmode"){
+			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
+			config.experimental_linuxWindowlessMode = (value == "true" || value == "yes");
 
 		}else{
 			DBG_WARN("unrecognized configuration key '%s'.", key.c_str());

@@ -47,6 +47,7 @@ extern std::map<HWND, NPP> hwndToInstance;
 
 /* variables */
 extern bool isWindowlessMode;
+extern bool isLinuxWindowlessMode;
 extern bool isEmbeddedMode;
 extern bool stayInFullscreen;
 extern bool isSandboxed;
@@ -59,6 +60,10 @@ extern bool windowClassHook;
 /* not implemented yet */
 extern bool renderTopLevelWindow;
 
+/* linux windowless */
+extern bool invalidateLinuxWindowless;
+
+/* user agent and plugin data */
 extern char strUserAgent[1024];
 
 extern std::string np_MimeType;
@@ -158,6 +163,9 @@ struct NetscapeData{
 
 	HWND 		hWnd;
 	NPWindow 	window;
+
+	int 		invalidate;
+	NPRect 		invalidateRect;
 };
 
 extern void changeEmbeddedMode(bool newEmbed);

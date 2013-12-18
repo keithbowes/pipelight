@@ -285,6 +285,12 @@ enum{
 	BLOCKCMD_PUSH_MEMORY
 };
 
+enum{
+	INVALIDATE_NOTHING = 0,
+	INVALIDATE_EVERYTHING,
+	INVALIDATE_RECT,
+};
+
 extern bool initCommPipes(int out, int in);
 extern bool initCommIO();
 extern void flushCommOut();
