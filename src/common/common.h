@@ -287,12 +287,10 @@ enum{
 
 extern bool initCommPipes(int out, int in);
 extern bool initCommIO();
-extern void flushCommOut();
 
 extern void setMultiPluginName(const std::string str);
 extern void setMultiPluginName(const char* str);
 
-extern bool transmitData(const char* data, size_t length);
 extern bool writeCommand(char command, const char* data = NULL, size_t length = 0);
 extern bool __writeString(const char* data, size_t length);
 extern bool readCommands(Stack &stack, bool allowReturn = true, int abortTimeout = 0);
@@ -357,9 +355,6 @@ inline void callFunction(uint32_t function){
 inline void returnCommand(){
 	DBG_ASSERT(writeCommand(BLOCKCMD_RETURN), \
 		"Unable to send BLOCKCMD_RETURN.");
-
-	/* flush data! */
-	flushCommOut();
 }
 
 /* Writes an int32 */

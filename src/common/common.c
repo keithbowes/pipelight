@@ -88,10 +88,6 @@ bool initCommIO(){
 	#endif
 }
 
-inline void flushCommOut(){
-	if (commPipeOut) fflush(commPipeOut);
-}
-
 /*
 	Initializes the plugin name
 */
@@ -106,11 +102,8 @@ void setMultiPluginName(const char* str){
 /*
 	Transmits the buffer and returns
 */
-bool transmitData(const char* data, size_t length){
+inline bool transmitData(const char* data, size_t length){
 	size_t pos, numBytes;
-
-	if (!commPipeOut)
-		return false;
 
 	/* transmit the whole buffer */
 	for (pos = 0; pos < length; pos += numBytes){
@@ -145,6 +138,10 @@ bool writeCommand(char command, const char* data, size_t length){
 		if (!transmitData(data, length))
 			return false;
 	}
+
+	/* flush buffer if necessary */
+	if (command == BLOCKCMD_RETURN || command == BLOCKCMD_CALL_DIRECT)
+		fflush(commPipeOut);
 
 	return true;
 }
@@ -201,9 +198,6 @@ bool readCommands(Stack &stack, bool allowReturn, int abortTimeout){
 	#ifdef __WIN32__
 		DBG_ASSERT(abortTimeout == 0, "readCommand called with abortTimeout, but not allowed on Windows.");
 	#endif
-
-	/* flush data! */
-	flushCommOut();
 
 	if (!commPipeIn)
 		return false;
