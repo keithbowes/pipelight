@@ -741,6 +741,8 @@ void NPP_Print(NPP instance, NPPrint* platformPrint) {
 int16_t NPP_HandleEvent(NPP instance, void* event) {
 	DBG_TRACE("( instance=%p, event=%p )", instance, event);
 
+	int16_t res = kNPEventNotHandled;
+
 	if (config.experimental_linuxWindowlessMode && event){
 		XEvent *xevent   = (XEvent *)event;
 		/* Display *display = xevent->xany.display; */
@@ -756,6 +758,7 @@ int16_t NPP_HandleEvent(NPP instance, void* event) {
 				callFunction(WINDOWLESS_EVENT_REDRAW);
 				readResultVoid();
 
+				res = kNPEventHandled;
 			}
 
 			/*
@@ -788,8 +791,8 @@ int16_t NPP_HandleEvent(NPP instance, void* event) {
 	}else
 		NOTIMPLEMENTED("ignoring unexpected callback.");
 
-	DBG_TRACE(" -> result=0");
-	return 0;
+	DBG_TRACE(" -> result=%d", res);
+	return res;
 }
 
 /* NPP_URLNotify */

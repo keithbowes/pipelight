@@ -1258,9 +1258,8 @@ void dispatcher(int functionid, Stack &stack){
 						pluginFuncs.setwindow(instance, &ndata->window);
 					}
 
-				}else{
+				}else
 					DBG_ERROR("unable to allocate window because of missing ndata.");
-				}
 
 				DBG_TRACE("FUNCTION_NPP_SET_WINDOW -> void");
 				returnCommand();
@@ -1279,11 +1278,10 @@ void dispatcher(int functionid, Stack &stack){
 				NPError result = pluginFuncs.newstream(instance, type.get(), stream, seekable, &stype);
 
 				/* Return result */
-				if (result == NPERR_NO_ERROR){
+				if (result == NPERR_NO_ERROR)
 					writeInt32(stype);
-				}else{ /* Handle is now invalid because of this error */
+				else /* Handle is now invalid because of this error */
 					handleManager_removeByPtr(HMGR_TYPE_NPStream, stream);
-				}
 
 				writeInt32(result);
 
@@ -1379,9 +1377,8 @@ void dispatcher(int functionid, Stack &stack){
 
 					pluginFuncs.asfile(instance, stream, fname.c_str());
 
-				}else{
+				}else
 					DBG_ERROR("unable to access linux stream '%s' as file.", fname_lin.c_str());
-				}
 
 				DBG_TRACE("FUNCTION_NPP_STREAM_AS_FILE -> void");
 				returnCommand();
