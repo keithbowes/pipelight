@@ -1219,9 +1219,9 @@ void dispatcher(int functionid, Stack &stack){
 
 				NPUTF8 *str = sBrowserFuncs->utf8fromidentifier(identifier);
 				writeString((char*) str);
-				if (str) sBrowserFuncs->memfree(str);
 
 				DBG_TRACE("FUNCTION_NPN_UTF8_FROM_IDENTIFIER -> str='%s'", str );
+				if (str) sBrowserFuncs->memfree(str);
 				returnCommand();
 			}
 			break;

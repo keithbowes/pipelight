@@ -1171,7 +1171,7 @@ void dispatcher(int functionid, Stack &stack){
 				POINT pt;
 				NPP instance 		= readHandleInstance(stack);
 				readPOINT(stack, pt);
-				DBG_TRACE("FUNCTION_NPP_SET_WINDOW( instance=%p, width=%d, height=%d )", instance, pt.x, pt.y);
+				DBG_TRACE("FUNCTION_NPP_SET_WINDOW( instance=%p, width=%ld, height=%ld )", instance, pt.x, pt.y);
 
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
 				if (ndata){
@@ -1256,9 +1256,6 @@ void dispatcher(int functionid, Stack &stack){
 						ndata->window.clipRect.bottom 	= pt.y;
 
 						pluginFuncs.setwindow(instance, &ndata->window);
-
-						/* force redrawing */
-						NPN_InvalidateRect(instance, NULL);
 					}
 
 				}else{
