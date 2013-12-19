@@ -177,18 +177,16 @@ NP_EXPORT(const char*) NP_GetMIMEDescription(){
 		callFunction(FUNCTION_GET_MIMETYPE);
 		std::string result = readResultString();
 
-		for (std::vector<MimeInfo>::iterator it = config.fakeMIMEtypes.begin(); it != config.fakeMIMEtypes.end(); it++){
+		for (std::vector<MimeInfo>::iterator it = config.fakeMIMEtypes.begin(); it != config.fakeMIMEtypes.end(); it++)
 			result += ";" + it->mimeType + ":" + it->extension + ":" + it->description;
-		}
 
 		pokeString(strMimeType, result, sizeof(strMimeType));
 
 	}else{
-		if(config.pluginName == ""){
+		if(config.pluginName == "")
 			pokeString(strMimeType, "application/x-pipelight-error:pipelighterror:Error during initialization", sizeof(strMimeType));
-		}else{
+		else
 			pokeString(strMimeType, "application/x-pipelight-error-"+config.pluginName+":pipelighterror-"+config.pluginName+":Error during initialization", sizeof(strMimeType));
-		}
 	}
 
 	DBG_TRACE(" -> mimeType='%s'", strMimeType);
@@ -205,13 +203,9 @@ NP_EXPORT(NPError) NP_GetValue(void *future, NPPVariable variable, void *value) 
 	switch (variable) {
 
 		case NPPVpluginNameString:
-			if (!initOkay){
-				if(config.pluginName == ""){
-					resultStr = "Pipelight Error!";
-				}else{
-					resultStr = "Pipelight Error (" + config.pluginName +")!";
-				}
-			}else{
+			if (!initOkay)
+				resultStr = (config.pluginName == "") ? "Pipelight Error!" : ("Pipelight Error (" + config.pluginName +")!");
+			else{
 				callFunction(FUNCTION_GET_NAME);
 				resultStr = readResultString();
 			}
@@ -223,11 +217,11 @@ NP_EXPORT(NPError) NP_GetValue(void *future, NPPVariable variable, void *value) 
 			break;
 
 		case NPPVpluginDescriptionString:
-			if (!initOkay){
+			if (!initOkay)
 				resultStr = "Something went wrong, check the terminal output";
-			}else if (config.fakeVersion != ""){
+			else if (config.fakeVersion != "")
 				resultStr = config.fakeVersion;
-			}else{
+			else{
 				callFunction(FUNCTION_GET_DESCRIPTION);
 				resultStr = readResultString();
 			}
@@ -388,9 +382,8 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 			if (sBrowserFuncs->evaluate(instance, windowObj, &script, &resultVariant)){
 				sBrowserFuncs->releasevariantvalue(&resultVariant);
 				DBG_INFO("successfully executed JavaScript.");
-			}else{
+			}else
 				DBG_ERROR("failed to execute JavaScript, take a look at the JS console.");
-			}
 			sBrowserFuncs->releaseobject(windowObj);
 		}
 	}
@@ -399,32 +392,28 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	if (config.eventAsyncCall){
 		if (!eventThread){
 			eventTimerInstance = instance;
-			if (pthread_create(&eventThread, NULL, timerThread, NULL) == 0){
+			if (pthread_create(&eventThread, NULL, timerThread, NULL) == 0)
 				startAsyncCall = true;
-			}else{
+			else{
 				eventThread = 0;
 				DBG_ERROR("unable to start timer thread.");
 			}
-		}else{
+		}else
 			DBG_INFO("already one timer thread running.");
-		}
 
 	}else{
 		/* TODO: For Chrome this should be ~0, for Firefox a value of 5-10 is better. */
 		if (eventTimerInstance == NULL){
 			eventTimerInstance 	= instance;
 			eventTimerID 		= sBrowserFuncs->scheduletimer(instance, 5, true, timerFunc);
-		}else{
+		}else
 			DBG_INFO("already one timer running.");
-		}
-
 	}
 
-	if (saved){
+	if (saved)
 		writeMemory((char*)saved->buf, saved->len);
-	}else{
+	else
 		writeMemory(NULL, 0);
-	}
 
 	/*
 	We can't use this function as we may need to fake some values
@@ -454,14 +443,12 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	for (int i = argc - 1; i >= 0; i--){
 		std::string key(argn[i]);
 		it = config.overwriteArgs.find(key);
-		if (it == config.overwriteArgs.end()){
+		if (it == config.overwriteArgs.end())
 			writeString(argn[i]);
-		}
 	}
 
-	for (it = config.overwriteArgs.begin(); it != config.overwriteArgs.end(); it++){
+	for (it = config.overwriteArgs.begin(); it != config.overwriteArgs.end(); it++)
 		writeString(it->first);
-	}
 
 	writeInt32(realArgCount);
 	writeInt32(mode);
@@ -588,11 +575,10 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 				sem_post(&eventThreadSemRequestAsyncCall);
 
 				/* if nextInstance == 0 then the thread will terminate itself as soon as it recognizes that eventTimerInstace == NULL */
-				if (nextInstance == 0){
+				if (nextInstance == 0)
 					eventThread = 0;
-				}else{
+				else
 					DBG_INFO("started timer thread for instance %p.", nextInstance);
-				}
 			}
 
 		}else{
@@ -763,10 +749,8 @@ int16_t NPP_HandleEvent(NPP instance, void* event) {
 		if (pdata){
 			if (xevent->type == GraphicsExpose){
 
-				writeInt32(xevent->xgraphicsexpose.y + xevent->xgraphicsexpose.height);
-				writeInt32(xevent->xgraphicsexpose.x + xevent->xgraphicsexpose.width);
-				writeInt32(xevent->xgraphicsexpose.y);
-				writeInt32(xevent->xgraphicsexpose.x);
+				writeRectXYWH(xevent->xgraphicsexpose.x, xevent->xgraphicsexpose.y,
+					xevent->xgraphicsexpose.width, xevent->xgraphicsexpose.height);
 				writeInt32(xevent->xgraphicsexpose.drawable);
 				writeHandleInstance(instance);
 				callFunction(WINDOWLESS_EVENT_REDRAW);

@@ -711,10 +711,7 @@ void dispatcher(int functionid, Stack &stack){
 				RECT rect;
 				NPP instance 				= readHandleInstance(stack);
 				XID drawable 				= readInt32(stack);
-				rect.left 					= readInt32(stack);
-				rect.top 					= readInt32(stack);
-				rect.right 					= readInt32(stack);
-				rect.bottom 				= readInt32(stack);
+				readRECT(stack, rect);
 				DBG_TRACE("WINDOWLESS_EVENT_REDRAW( instance=%p, drawable=%lu, left=%ld, top=%ld, right=%ld, bottom=%ld )",
 					instance, drawable, rect.left, rect.top, rect.right, rect.bottom);
 
