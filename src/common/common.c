@@ -88,10 +88,6 @@ bool initCommIO(){
 	#endif
 }
 
-inline void flushCommOut(){
-	if (commPipeOut) fflush(commPipeOut);
-}
-
 /*
 	Initializes the plugin name
 */
@@ -99,24 +95,79 @@ void setMultiPluginName(const std::string str){
 	pokeString(strMultiPluginName, str, sizeof(strMultiPluginName));
 }
 
-void setMultiPluginName(const char* str){
+void setMultiPluginName(const char *str){
 	pokeString(strMultiPluginName, str, sizeof(strMultiPluginName));
 }
 
 /*
 	Transmits the buffer and returns
 */
-bool transmitData(const char* data, size_t length){
-	size_t pos, numBytes;
-
-	if (!commPipeOut)
-		return false;
+inline bool transmitData(const char *data, size_t length){
+	size_t pos;
 
 	/* transmit the whole buffer */
-	for (pos = 0; pos < length; pos += numBytes){
-		numBytes = fwrite( data + pos, sizeof(char), length - pos, commPipeOut);
-		if (numBytes == 0)
+	while (length){
+		pos = fwrite( data, sizeof(char), length, commPipeOut);
+		if (pos == 0)
 			return false;
+
+		data   += pos;
+		length -= pos;
+	}
+
+	return true;
+}
+
+/*
+	Receive data
+*/
+inline void receiveData(char *data, size_t length){
+	size_t pos;
+
+	for (; length; data += pos, length -= pos){
+		pos = fread( data, sizeof(char), length, commPipeIn);
+		if (pos == 0)
+			DBG_ABORT("unable to receive data.");
+	}
+}
+
+inline bool receiveCommand(char *data, size_t length, int abortTimeout){
+	size_t pos;
+
+	#ifndef __WIN32__
+	if (abortTimeout){
+		fd_set rfds;
+		struct timeval tv;
+
+		for (; length; data += pos, length -= pos){
+			FD_ZERO(&rfds);
+			FD_SET(fileno(commPipeIn), &rfds);
+			tv.tv_sec 	=  abortTimeout / 1000;
+			tv.tv_usec 	= (abortTimeout % 1000) * 1000;
+			if (select(fileno(commPipeIn) + 1, &rfds, NULL, NULL, &tv) <= 0){
+				DBG_ERROR("unable to receive data within the specified timeout.");
+				return false;
+			}
+
+			pos = fread( data, sizeof(char), length, commPipeIn);
+			if (pos == 0){
+				DBG_ERROR("unable to receive data.");
+				return false;
+			}
+		}
+
+		return true;
+	}
+	#endif
+
+	for (; length; data += pos, length -= pos){
+		pos = fread( data, sizeof(char), length, commPipeIn);
+		if (pos == 0){
+			#ifdef __WIN32__
+			if (!handleManager_findInstance()) exit(0);
+			#endif
+			DBG_ABORT("unable to receive data.");
+		}
 	}
 
 	return true;
@@ -125,7 +176,7 @@ bool transmitData(const char* data, size_t length){
 /*
 	Writes a command to the pipe
 */
-bool writeCommand(char command, const char* data, size_t length){
+bool writeCommand(uint8_t command, const char* data, size_t length){
 	uint32_t blockInfo;
 
 	/* no data given -> length = 0 */
@@ -141,10 +192,13 @@ bool writeCommand(char command, const char* data, size_t length){
 		return false;
 
 	/* transmit argument (if any) */
-	if (data != NULL && length > 0){
+	if (length > 0)
 		if (!transmitData(data, length))
 			return false;
-	}
+
+	/* flush buffer if necessary */
+	if (command <= BLOCKCMD_FLUSH_REQUIRED)
+		fflush(commPipeOut);
 
 	return true;
 }
@@ -171,10 +225,9 @@ bool __writeString(const char* data, size_t length){
 		return false;
 
 	/* transmit string */
-	if (length > 0){
+	if (length > 0)
 		if (!transmitData(data, length))
 			return false;
-	}
 
 	/* transmit eos */
 	eos = 0;
@@ -189,73 +242,23 @@ bool __writeString(const char* data, size_t length){
 */
 bool readCommands(Stack &stack, bool allowReturn, int abortTimeout){
 	uint32_t 	blockInfo;
-	size_t 		pos, numBytes;
-
-	char		blockCommand;
+	uint8_t 	blockCommand;
 	uint32_t	blockLength;
 	char		*blockData;
-
 	uint32_t 	function;
-
 
 	#ifdef __WIN32__
 		DBG_ASSERT(abortTimeout == 0, "readCommand called with abortTimeout, but not allowed on Windows.");
 	#endif
 
-	/* flush data! */
-	flushCommOut();
-
 	if (!commPipeIn)
 		return false;
 
 	while (1){
-		/* DBG_TRACE("waiting for next command."); */
 
-		for (pos = 0; pos < sizeof(uint32_t); pos += numBytes){
-
-			#ifndef __WIN32__
-				/*
-					Note: We only check the timeout when waiting for the initial command, not for the embedded data
-					This relies on the assumption that the data is always transmitted correctly as this happens
-					immediately afterwards
-				*/
-
-				if (abortTimeout){
-					fd_set rfds;
-					struct timeval tv;
-					int res;
-
-					FD_ZERO(&rfds);
-					FD_SET(fileno(commPipeIn), &rfds);
-
-					tv.tv_sec 	=  abortTimeout / 1000;
-					tv.tv_usec 	= (abortTimeout % 1000) * 1000;
-					res 		= select(fileno(commPipeIn) + 1, &rfds, NULL, NULL, &tv);
-
-					if (res <= 0){
-						DBG_ERROR("unable to receive data within the specified timeout.");
-						return false;
-					}
-
-				}
-			#endif
-
-			numBytes = fread( (char*)&blockInfo + pos, sizeof(char), sizeof(uint32_t) - pos, commPipeIn);
-			if (numBytes == 0){
-
-				/* broken pipe */
-				if (abortTimeout){
-					DBG_ERROR("unable to receive data.");
-					return false;
-				}
-
-				#ifdef __WIN32__
-					if (!handleManager_findInstance()) exit(0);
-				#endif
-				DBG_ABORT("unable to receive data.");
-			}
-
-		}
+		/* receive command */
+		if (!receiveCommand((char*)&blockInfo, sizeof(blockInfo), abortTimeout))
+			return false;
 
 		blockCommand 	= (blockInfo >> 24) & 0xFF;
 		blockLength		= blockInfo & 0xFFFFFF;
@@ -263,21 +266,10 @@ bool readCommands(Stack &stack, bool allowReturn, int abortTimeout){
 
 		/* read arguments */
 		if (blockLength > 0){
-
 			blockData = (char*)malloc(blockLength);
 			DBG_ASSERT(blockData != NULL, "failed to allocate memory.");
-
-			for (pos = 0; pos < blockLength; pos += numBytes){
-				numBytes = fread( blockData + pos, sizeof(char), blockLength - pos, commPipeIn);
-				if (numBytes == 0){
-					free(blockData);
-					DBG_ABORT("unable to receive data.");
-				}
-			}
-
+			receiveData(blockData, blockLength);
 		}
-
-		/* DBG_TRACE("received command %d with length %d.", blockCommand, blockLength); */
 
 		/* call command */
 		if (blockCommand == BLOCKCMD_CALL_DIRECT){
