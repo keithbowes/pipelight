@@ -106,55 +106,22 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 
 				/* Paint event */
 				if (Msg == WM_PAINT){
-					RECT rect;
-					PAINTSTRUCT paint;
-					HDC hDC;
-
-					if (GetClientRect(hWnd, &rect)) {
-
-						hDC = BeginPaint(hWnd, &paint);
+					if (ndata->window.type == NPWindowTypeDrawable){
+						PAINTSTRUCT paint;
+						HDC hDC = BeginPaint(hWnd, &paint);
 						if (hDC != NULL){
-
-							/* Save the previous DC (or allocate a new one) */
-							HDC previousDC;
-							if (ndata->window.type == NPWindowTypeDrawable){
-								previousDC = (HDC)ndata->window.window;
-							}else{
-								previousDC = GetDC(hWnd);
-							}
-
-							ndata->window.window 			= hDC;
-							ndata->window.x 				= 0;
-							ndata->window.y 				= 0;
-							ndata->window.width 			= rect.right;
-							ndata->window.height 			= rect.bottom;
-							ndata->window.clipRect.top 		= 0;
-							ndata->window.clipRect.left 	= 0;
-							ndata->window.clipRect.right 	= rect.right;
-							ndata->window.clipRect.bottom 	= rect.bottom;
-							ndata->window.type 				= NPWindowTypeDrawable;
-							pluginFuncs.setwindow(instance, &ndata->window);
-
-							NPRect nRect;
-							nRect.top 		= paint.rcPaint.top;
-							nRect.left 		= paint.rcPaint.left;
-							nRect.bottom 	= paint.rcPaint.bottom;
-							nRect.right 	= paint.rcPaint.right;
+							HDC previousDC = (HDC)ndata->window.window;
+							ndata->window.window = hDC;
 
 							NPEvent event;
-							event.event 	= Msg;
+							event.event 	= WM_PAINT;
 							event.wParam 	= (uintptr_t)hDC;
-							event.lParam 	= (uintptr_t)&nRect;
+							event.lParam 	= (uintptr_t)&paint.rcPaint;
 							pluginFuncs.event(instance, &event);
 
-							EndPaint(hWnd, &paint);
-
-							/* Restore the previous DC */
 							ndata->window.window = previousDC;
-							pluginFuncs.setwindow(instance, &ndata->window);
-
+							EndPaint(hWnd, &paint);
 						}
-
 						return 0;
 					}
 
