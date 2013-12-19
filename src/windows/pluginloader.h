@@ -40,10 +40,12 @@
 #define PluginLoader_h_
 
 #include <map>
+#include <set>
 
 #include "../common/common.h"
 
 extern std::map<HWND, NPP> hwndToInstance;
+extern std::set<NPP> instanceList;
 
 /* variables */
 extern bool isWindowlessMode;
@@ -154,6 +156,8 @@ NPError NP_LOADDS NPN_FinalizeAsyncSurface(NPP instance, NPAsyncSurface *surface
 void NP_LOADDS NPN_SetCurrentAsyncSurface(NPP instance, NPAsyncSurface *surface, NPRect *changed);
 
 /* public */
+typedef unsigned long int XID;
+
 struct NetscapeData{
 	bool		windowlessMode;
 	bool		embeddedMode;
@@ -161,7 +165,13 @@ struct NetscapeData{
 	NPObject*   	cache_pluginElementNPObject;
 	NPIdentifier 	cache_clientWidthIdentifier;
 
+	/* regular mode */
 	HWND 		hWnd;
+
+	/* linux windowless mode */
+	HDC 		hDC;
+	XID			lastDrawableDC;
+
 	NPWindow 	window;
 
 	int 		invalidate;

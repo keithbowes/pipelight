@@ -57,6 +57,7 @@
 char clsName[] = "VirtualBrowser";
 
 std::map<HWND, NPP> hwndToInstance;
+std::set<NPP> instanceList;
 
 /* variables */
 bool isWindowlessMode	= false;
@@ -89,12 +90,68 @@ NPPluginFuncs pluginFuncs = {sizeof(pluginFuncs), (NP_VERSION_MAJOR << 8) + NP_V
 
 /* END GLOBAL VARIABLES */
 
-
-/* required for wine_get_dos_file_name */
+/* wine specific definitions */
 typedef WCHAR* (* CDECL wine_get_dos_file_namePtr)(LPCSTR str);
 typedef const char* (* CDECL wine_get_versionPtr)();
 #define CP_UNIXCP 65010
 
+#define X11DRV_ESCAPE 6789
+#define X11DRV_SET_DRAWABLE 0
+
+struct x11drv_escape_set_drawable{
+	int  code;
+	HWND hwnd;
+	XID  drawable;
+	int  mode;
+	RECT dc_rect;
+	XID  fbconfig_id;
+};
+
+/* convertToWindowsPath */
+std::string convertToWindowsPath(const std::string &linux_path){
+	static wine_get_dos_file_namePtr wine_get_dos_file_name = NULL;
+	WCHAR* windows_path;
+	char path[MAX_PATH];
+
+	if (!wine_get_dos_file_name)
+		wine_get_dos_file_name = (wine_get_dos_file_namePtr)GetProcAddress(GetModuleHandleA("kernel32.dll"), "wine_get_dos_file_name");
+
+	if (!wine_get_dos_file_name){
+		DBG_ERROR("Unable to find wine function 'wine_get_dos_file_name'.");
+		return "";
+	}
+
+	if (!(windows_path = wine_get_dos_file_name(linux_path.c_str()))){
+		DBG_ERROR("Unable to convert '%s' to a windows path.", linux_path.c_str());
+		return "";
+	}
+
+	WideCharToMultiByte(CP_UNIXCP, 0, windows_path, -1, path, sizeof(path), NULL, NULL);
+	HeapFree(GetProcessHeap(), 0, windows_path);
+
+	return std::string(path);
+}
+
+/* getWineVersion */
+std::string getWineVersion(){
+	static wine_get_versionPtr wine_get_version = NULL;
+	const char *wine_version;
+
+	if (!wine_get_version)
+		wine_get_version = (wine_get_versionPtr)GetProcAddress(GetModuleHandleA("ntdll.dll"), "wine_get_version");
+
+	if (!wine_get_version){
+		DBG_ERROR("Unable to find wine function 'wine_get_version'.");
+		return "";
+	}
+
+	if (!(wine_version = wine_get_version())){
+		DBG_ERROR("Unable to determine wine version.");
+		return "";
+	}
+
+	return std::string(wine_version);
+}
 
 /* wndProcedure */
 LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam){
@@ -140,7 +197,7 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 
 					HDC previousDC = NULL;
 
-					if 		(ndata->window.type == NPWindowTypeDrawable &&
+					if 	( ndata->window.type == NPWindowTypeDrawable &&
 							((Msg >= WM_KEYFIRST && Msg <= WM_KEYLAST) || (Msg >= WM_MOUSEFIRST && Msg <= WM_MOUSELAST )) ){
 						previousDC = (HDC)ndata->window.window;
 						ndata->window.window = NULL;
@@ -509,7 +566,7 @@ int main(int argc, char *argv[]){
 
 /* makeWindowEmbedded */
 bool makeWindowEmbedded(NPP instance, HWND hWnd, bool embed = true){
-	int32_t windowIDX11 = (int32_t)GetPropA(hWnd, "__wine_x11_whole_window");
+	XID windowIDX11 = (XID)GetPropA(hWnd, "__wine_x11_whole_window");
 
 	if (!windowIDX11){
 		DBG_ERROR("Unable to find X11 window ID, embedding not possible");
@@ -550,52 +607,6 @@ void changeEmbeddedMode(bool newEmbed){
 	}*/
 
 	isEmbeddedMode = newEmbed;
-}
-
-/* convertToWindowsPath */
-std::string convertToWindowsPath(const std::string &linux_path){
-	static wine_get_dos_file_namePtr wine_get_dos_file_name = NULL;
-	WCHAR* windows_path;
-	char path[MAX_PATH];
-
-	if (!wine_get_dos_file_name)
-		wine_get_dos_file_name = (wine_get_dos_file_namePtr)GetProcAddress(GetModuleHandleA("kernel32.dll"), "wine_get_dos_file_name");
-
-	if (!wine_get_dos_file_name){
-		DBG_ERROR("Unable to find wine function 'wine_get_dos_file_name'.");
-		return "";
-	}
-
-	if (!(windows_path = wine_get_dos_file_name(linux_path.c_str()))){
-		DBG_ERROR("Unable to convert '%s' to a windows path.", linux_path.c_str());
-		return "";
-	}
-
-	WideCharToMultiByte(CP_UNIXCP, 0, windows_path, -1, path, sizeof(path), NULL, NULL);
-	HeapFree(GetProcessHeap(), 0, windows_path);
-
-	return std::string(path);
-}
-
-/* getWineVersion */
-std::string getWineVersion(){
-	static wine_get_versionPtr wine_get_version = NULL;
-	const char *wine_version;
-
-	if (!wine_get_version)
-		wine_get_version = (wine_get_versionPtr)GetProcAddress(GetModuleHandleA("ntdll.dll"), "wine_get_version");
-
-	if (!wine_get_version){
-		DBG_ERROR("Unable to find wine function 'wine_get_version'.");
-		return "";
-	}
-
-	if (!(wine_version = wine_get_version())){
-		DBG_ERROR("Unable to determine wine version.");
-		return "";
-	}
-
-	return std::string(wine_version);
 }
 
 /* dispatcher */
@@ -672,8 +683,8 @@ void dispatcher(int functionid, Stack &stack){
 					writeInt32(INVALIDATE_NOTHING);
 
 					if (invalidateLinuxWindowless){
-						for (std::map<HWND, NPP>::iterator it = hwndToInstance.begin(); it != hwndToInstance.end(); it++){
-							NPP instance 		= it->second;
+						for (std::set<NPP>::iterator it = instanceList.begin(); it != instanceList.end(); it++){
+							NPP instance 		= *it;
 							NetscapeData* ndata = (NetscapeData*)instance->ndata;
 							if (!ndata || !ndata->invalidate) continue;
 
@@ -695,6 +706,52 @@ void dispatcher(int functionid, Stack &stack){
 				}
 
 				/* DBG_TRACE("PROCESS_WINDOW_EVENTS -> void"); */
+				returnCommand();
+			}
+			break;
+
+		case WINDOWLESS_EVENT_REDRAW:
+			{
+				RECT rect;
+				NPP instance 				= readHandleInstance(stack);
+				XID drawable 				= readInt32(stack);
+				rect.left 					= readInt32(stack);
+				rect.top 					= readInt32(stack);
+				rect.right 					= readInt32(stack);
+				rect.bottom 				= readInt32(stack);
+				DBG_TRACE("WINDOWLESS_EVENT_REDRAW( instance=%p, drawable=%lu, left=%ld, top=%ld, right=%ld, bottom=%ld )",
+					instance, drawable, rect.left, rect.top, rect.right, rect.bottom);
+
+				NetscapeData* ndata = (NetscapeData*)instance->ndata;
+				if (ndata){
+					if (ndata->hDC){
+
+						/* update drawable if necessary */
+						if (drawable != ndata->lastDrawableDC){
+							x11drv_escape_set_drawable escape;
+
+							escape.code 		= X11DRV_SET_DRAWABLE;
+							escape.hwnd 		= 0;
+							escape.drawable 	= drawable;
+							escape.mode 		= 1; /* IncludeInferiors */
+							memcpy(&escape.dc_rect, &rect, sizeof(rect));
+							escape.fbconfig_id	= 0;
+
+							if (ExtEscape(ndata->hDC, X11DRV_ESCAPE, sizeof(escape), (char *)&escape, 0, NULL))
+								ndata->lastDrawableDC = drawable;
+							else
+								DBG_ERROR("ExtEscape(X11DRV_ESCAPE, ...) failed");
+						}
+
+						NPEvent event;
+						event.event 	= WM_PAINT;
+						event.wParam 	= (uintptr_t)ndata->hDC;
+						event.lParam 	= (uintptr_t)&rect;
+						pluginFuncs.event(instance, &event);
+					}
+				}
+
+				DBG_TRACE("WINDOWLESS_EVENT_REDRAW -> void");
 				returnCommand();
 			}
 			break;
@@ -970,6 +1027,7 @@ void dispatcher(int functionid, Stack &stack){
 					ndata->cache_pluginElementNPObject 	= NULL;
 					ndata->cache_clientWidthIdentifier  = NULL;
 					ndata->hWnd 						= NULL;
+					ndata->hDC 							= NULL;
 
 					if (NPN_GetValue(instance, NPNVPluginElementNPObject, &ndata->cache_pluginElementNPObject) != NPERR_NO_ERROR)
 						DBG_ERROR("unable to get plugin element NPObject.");
@@ -981,6 +1039,9 @@ void dispatcher(int functionid, Stack &stack){
 					instance->ndata = NULL;
 					DBG_ERROR("unable to allocate memory for private data.");
 				}
+
+				/* append to the instance list */
+				instanceList.insert(instance);
 
 				NPError result = pluginFuncs.newp(mimeType.get(), instance, mode, argc, argn.data(), argv.data(), savedPtr);
 
@@ -1019,6 +1080,9 @@ void dispatcher(int functionid, Stack &stack){
 						DestroyWindow(ndata->hWnd);
 					}
 
+					if (ndata->hDC)
+						DeleteDC(ndata->hDC);
+
 					if (ndata->cache_pluginElementNPObject)
 						NPN_ReleaseObject(ndata->cache_pluginElementNPObject);
 
@@ -1028,6 +1092,9 @@ void dispatcher(int functionid, Stack &stack){
 					free(ndata);
 					instance->ndata = NULL;
 				}
+
+				/* remove from to the instance list */
+				instanceList.erase(instance);
 
 				handleManager_removeByPtr(HMGR_TYPE_NPPInstance, instance);
 
@@ -1117,61 +1184,77 @@ void dispatcher(int functionid, Stack &stack){
 
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
 				if (ndata){
-					DWORD style, extStyle;
-					int posX, posY;
-					RECT rect;
+					if (!isLinuxWindowlessMode){ /* regular mode */
 
-					/* Get style flags */
-					if (ndata->embeddedMode){
-						style 		= WS_POPUP;
-						extStyle 	= WS_EX_TOOLWINDOW;
-						posX		= 0;
-						posY		= 0;
-					}else{
-						style 		= WS_TILEDWINDOW;
-						extStyle 	= 0;
-						posX 		= CW_USEDEFAULT;
-						posY 		= CW_USEDEFAULT;
-					}
+						DWORD style, extStyle;
+						int posX, posY;
+						RECT rect;
 
-					/* Calculate size including borders */
-					rect.left 	= 0;
-					rect.top	= 0;
-					rect.right 	= width;
-					rect.bottom = height;
-					AdjustWindowRectEx(&rect, style, false, extStyle);
-
-					if (!ndata->hWnd){
-
-						/* Create the actual window */
-						ndata->hWnd = CreateWindowExA(extStyle, clsName, "Plugin", style, posX, posY, rect.right - rect.left, rect.bottom - rect.top, 0, 0, 0, 0);
-						if (ndata->hWnd){
-							hwndToInstance.insert( std::pair<HWND, NPP>(ndata->hWnd, instance) );
-
-							if (ndata->embeddedMode)
-								makeWindowEmbedded(instance, ndata->hWnd);
-
-							ShowWindow(ndata->hWnd, SW_SHOW);
-							UpdateWindow(ndata->hWnd);
-
-							/* Only do this once to prevent leaking DCs */
-							if (ndata->windowlessMode){
-								ndata->window.window 		= GetDC(ndata->hWnd);
-								ndata->window.type 			= NPWindowTypeDrawable;
-							}else{
-								ndata->window.window 		= ndata->hWnd;
-								ndata->window.type 			= NPWindowTypeWindow;
-							}
-
+						/* Get style flags */
+						if (ndata->embeddedMode){
+							style 		= WS_POPUP;
+							extStyle 	= WS_EX_TOOLWINDOW;
+							posX		= 0;
+							posY		= 0;
 						}else{
-							DBG_ERROR("failed to create window!");
+							style 		= WS_TILEDWINDOW;
+							extStyle 	= 0;
+							posX 		= CW_USEDEFAULT;
+							posY 		= CW_USEDEFAULT;
 						}
 
-					}else
-						SetWindowPos(ndata->hWnd, 0, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOACTIVATE | SWP_NOMOVE);
+						/* Calculate size including borders */
+						rect.left 	= 0;
+						rect.top	= 0;
+						rect.right 	= width;
+						rect.bottom = height;
+						AdjustWindowRectEx(&rect, style, false, extStyle);
 
-					if (ndata->hWnd){
+						if (!ndata->hWnd){
 
+							/* Create the actual window */
+							ndata->hWnd = CreateWindowExA(extStyle, clsName, "Plugin", style, posX, posY, rect.right - rect.left, rect.bottom - rect.top, 0, 0, 0, 0);
+							if (ndata->hWnd){
+								hwndToInstance.insert( std::pair<HWND, NPP>(ndata->hWnd, instance) );
+
+								if (ndata->embeddedMode)
+									makeWindowEmbedded(instance, ndata->hWnd);
+
+								ShowWindow(ndata->hWnd, SW_SHOW);
+								UpdateWindow(ndata->hWnd);
+
+								/* Only do this once to prevent leaking DCs */
+								if (ndata->windowlessMode){
+									ndata->window.window 		= GetDC(ndata->hWnd);
+									ndata->window.type 			= NPWindowTypeDrawable;
+								}else{
+									ndata->window.window 		= ndata->hWnd;
+									ndata->window.type 			= NPWindowTypeWindow;
+								}
+
+							}else
+								DBG_ERROR("failed to create window!");
+
+						}else
+							SetWindowPos(ndata->hWnd, 0, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOACTIVATE | SWP_NOMOVE);
+
+					}else{ /* linux windowless mode */
+
+						if (!ndata->hDC){
+							ndata->hDC = CreateDCA("DISPLAY", NULL, NULL, NULL);
+							ndata->lastDrawableDC = 0;
+						}
+
+						ndata->window.window 	= ndata->hDC;
+						ndata->window.type   	= NPWindowTypeDrawable;
+
+						if (!ndata->hDC)
+							DBG_ERROR("failed to create DC!");
+
+					}
+
+					/* send data to plugin */
+					if (ndata->hWnd || ndata->hDC){
 						ndata->window.x 				= 0;
 						ndata->window.y 				= 0;
 						ndata->window.width 			= width;
@@ -1182,6 +1265,9 @@ void dispatcher(int functionid, Stack &stack){
 						ndata->window.clipRect.bottom 	= height;
 
 						pluginFuncs.setwindow(instance, &ndata->window);
+
+						/* force redrawing */
+						NPN_InvalidateRect(instance, NULL);
 					}
 
 				}else{

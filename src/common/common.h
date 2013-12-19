@@ -174,7 +174,7 @@ struct ParameterInfo{
 typedef std::vector<ParameterInfo> Stack;
 
 /* increase this whenever you do changes in the protocol stack */
-#define PIPELIGHT_PROTOCOL_VERSION 0x10000003
+#define PIPELIGHT_PROTOCOL_VERSION 0x10000004
 
 enum{
 	/* ------- Special ------- */
@@ -188,6 +188,7 @@ enum{
 
 	/* Additional commands on the linux side */
 	GET_WINDOW_RECT,
+	CHANGE_EMBEDDED_MODE,
 
 	/* Handlemanager on the windows side */
 	WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA,
@@ -196,9 +197,7 @@ enum{
 	/* Additional commands on the windows side */
 	CHANGE_SANDBOX_STATE,
 	PROCESS_WINDOW_EVENTS,
-
-	/* Change embedding of window */
-	CHANGE_EMBEDDED_MODE,
+	WINDOWLESS_EVENT_REDRAW,
 
 	/* ------- Plugin ------- */
 	FUNCTION_GET_VERSION,

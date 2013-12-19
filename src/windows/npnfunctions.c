@@ -386,10 +386,8 @@ NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 				if (ndata && ndata->hWnd){
 					result = NPERR_NO_ERROR;
 					*((HWND*)value) = ndata->hWnd;
-
-				}else{
+				}else
 					result = NPERR_GENERIC_ERROR;
-				}
 			}
 			break;
 
@@ -481,7 +479,7 @@ void NP_LOADDS NPN_InvalidateRect(NPP instance, NPRect *rect){
 				InvalidateRect(ndata->hWnd, NULL, false);
 		}
 
-		if (isLinuxWindowlessMode){
+		if (ndata->hDC){
 			if (ndata->windowlessMode && rect){
 				memcpy(&ndata->invalidateRect, rect, sizeof(*rect));
 				ndata->invalidate = INVALIDATE_RECT;
