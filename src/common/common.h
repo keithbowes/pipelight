@@ -285,13 +285,16 @@ enum{
 	BLOCKCMD_PUSH_MEMORY
 };
 
+/* last command which requires flushing stdout */
+#define BLOCKCMD_FLUSH_REQUIRED BLOCKCMD_RETURN
+
 extern bool initCommPipes(int out, int in);
 extern bool initCommIO();
 
 extern void setMultiPluginName(const std::string str);
 extern void setMultiPluginName(const char* str);
 
-extern bool writeCommand(char command, const char* data = NULL, size_t length = 0);
+extern bool writeCommand(uint8_t command, const char* data = NULL, size_t length = 0);
 extern bool __writeString(const char* data, size_t length);
 extern bool readCommands(Stack &stack, bool allowReturn = true, int abortTimeout = 0);
 
