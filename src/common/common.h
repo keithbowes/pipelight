@@ -174,7 +174,7 @@ struct ParameterInfo{
 typedef std::vector<ParameterInfo> Stack;
 
 /* increase this whenever you do changes in the protocol stack */
-#define PIPELIGHT_PROTOCOL_VERSION 0x10000005
+#define PIPELIGHT_PROTOCOL_VERSION 0x10000006
 
 enum{
 	/* ------- Special ------- */
@@ -283,6 +283,7 @@ enum{
 	BLOCKCMD_PUSH_STRING,
 	BLOCKCMD_PUSH_MEMORY,
 
+	BLOCKCMD_PUSH_POINT,
 	BLOCKCMD_PUSH_RECT
 };
 
@@ -296,6 +297,11 @@ enum{
 };
 
 #ifndef __WIN32__
+	struct POINT{
+		uint32_t x;
+		uint32_t y;
+	};
+
 	struct RECT{
 		uint32_t left;
 		uint32_t top;
@@ -338,6 +344,7 @@ extern char* readMemoryBrowserAlloc(Stack &stack, size_t &resultLength);
 extern char* readMemoryBrowserAlloc(Stack &stack);
 #endif
 
+extern void readPOINT(Stack &stack, POINT &pt);
 extern void readRECT(Stack &stack, RECT &rect);
 extern void readNPRect(Stack &stack, NPRect &rect);
 
@@ -419,6 +426,19 @@ inline void writeString(const char *str, size_t length){
 inline void writeMemory(const char *memory, size_t length){
 	DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_MEMORY, memory, length),
 		"Unable to send BLOCKCMD_PUSH_MEMORY.");
+}
+
+/* Writes a POINT */
+inline void writePOINT(const POINT &pt){
+	DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_POINT, (char*)&pt, sizeof(pt)),
+		"Unable to send BLOCKCMD_PUSH_POINT.");
+}
+
+inline void writePointXY(int32_t x, int32_t y){
+	POINT tmp;
+	tmp.x = x;
+	tmp.y = y;
+	writePOINT(tmp);
 }
 
 /* Writes a RECT */

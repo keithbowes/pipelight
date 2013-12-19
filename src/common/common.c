@@ -547,6 +547,20 @@ char* readMemoryBrowserAlloc(Stack &stack){
 
 #endif
 
+void readPOINT(Stack &stack, POINT &pt){
+	Stack::reverse_iterator rit = stack.rbegin();
+	POINT *data;
+
+	DBG_ASSERT(rit != stack.rend(), "no return value found.");
+	data = (POINT *)rit->data.get();
+
+	DBG_ASSERT(rit->command == BLOCKCMD_PUSH_POINT && data && rit->length == sizeof(POINT), \
+		"wrong return value, expected POINT.");
+	memcpy(&pt, data, sizeof(POINT));
+
+	stack.pop_back();
+}
+
 void readRECT(Stack &stack, RECT &rect){
 	Stack::reverse_iterator rit = stack.rbegin();
 	RECT *data;

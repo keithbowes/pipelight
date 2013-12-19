@@ -639,18 +639,11 @@ void dispatcher(int functionid, Stack &stack){
 
 					XCloseDisplay(display);
 
-				}else{
+				}else
 					DBG_ERROR("could not open display!");
-				}
 
-				if (result){
-					/*
-					writeInt32(winattr.height);
-					writeInt32(winattr.width);
-					*/
-					writeInt32(winattr.y);
-					writeInt32(winattr.x);
-				}
+				if (result)
+					writeRectXYWH(winattr.x, winattr.y, winattr.width, winattr.height);
 
 				writeInt32(result);
 
@@ -691,9 +684,8 @@ void dispatcher(int functionid, Stack &stack){
 							sendXembedMessage(display, win, XEMBED_FOCUS_OUT, 0, 0, 0);
 							XCloseDisplay(display);
 
-						}else{
+						}else
 							DBG_ERROR("could not open display!");
-						}
 					}
 
 				}
@@ -791,9 +783,7 @@ void dispatcher(int functionid, Stack &stack){
 
 				if (result == NPERR_NO_ERROR){
 					writeString(str);
-
-					if (str)
-						sBrowserFuncs->memfree(str);
+					if (str) sBrowserFuncs->memfree(str);
 				}
 
 				writeInt32(result);
@@ -852,12 +842,9 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPN_EVALUATE( instance=%p, obj=%p )", instance, obj);
 
 				bool result = sBrowserFuncs->evaluate(instance, obj, &script, &resultVariant);
-
 				freeNPString(script); /* free the string */
-
 				if (result)
 					writeVariantRelease(resultVariant);
-
 				writeInt32( result );
 
 				DBG_TRACE("FUNCTION_NPN_EVALUATE -> ( result=%d, ... )", result);
@@ -878,12 +865,9 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPN_INVOKE( instance=%p, obj=%p, identifier=%p, argCount=%d, ... )", instance, obj, identifier, argCount);
 
 				bool result = sBrowserFuncs->invoke(instance, obj, identifier, args.data(), argCount, &resultVariant);
-
 				freeVariantArray(args); /* free the variant array */
-
 				if (result)
 					writeVariantRelease(resultVariant);
-
 				writeInt32( result );
 
 				DBG_TRACE("FUNCTION_NPN_INVOKE -> ( result=%d, ... )", result);
@@ -903,12 +887,9 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPN_INVOKE_DEFAULT( instance=%p, obj=%p, argCount=%d, ... )", instance, obj, argCount);
 
 				bool result = sBrowserFuncs->invokeDefault(instance, obj, args.data(), argCount, &resultVariant);
-
 				freeVariantArray(args); /* free the variant array */
-
 				if (result)
 					writeVariantRelease(resultVariant);
-
 				writeInt32( result );
 
 				DBG_TRACE("FUNCTION_NPN_INVOKE_DEFAULT -> ( result=%d, ... )", result);
@@ -976,8 +957,8 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPN_SET_PROPERTY( instance=%p, obj=%p, propertyName=%p, value=%p )", instance, obj, propertyName, &value);
 
 				bool result = sBrowserFuncs->setproperty(instance, obj, propertyName, &value);
-				writeInt32(result);
 				freeVariant(value);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPN_SET_PROPERTY -> result=%d", result);
 				returnCommand();
@@ -1008,16 +989,11 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPN_ENUMERATE( instance=%p, obj=%p )", instance, obj);
 
 				bool result = sBrowserFuncs->enumerate(instance, obj, &identifierTable, &identifierCount);
-
 				if (result){
 					writeIdentifierArray(identifierTable, identifierCount);
 					writeInt32(identifierCount);
-
-					/* free the memory for the table */
-					if (identifierTable)
-						sBrowserFuncs->memfree(identifierTable);
+					if (identifierTable) sBrowserFuncs->memfree(identifierTable);
 				}
-
 				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPN_ENUMERATE -> ( result=%d, ... )", result);
@@ -1243,13 +1219,9 @@ void dispatcher(int functionid, Stack &stack){
 
 				NPUTF8 *str = sBrowserFuncs->utf8fromidentifier(identifier);
 				writeString((char*) str);
+				if (str) sBrowserFuncs->memfree(str);
 
 				DBG_TRACE("FUNCTION_NPN_UTF8_FROM_IDENTIFIER -> str='%s'", str );
-
-				/* free the string */
-				if (str)
-					sBrowserFuncs->memfree(str);
-
 				returnCommand();
 			}
 			break;
