@@ -1171,12 +1171,10 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPP_SET_WINDOW:
 			{
+				POINT pt;
 				NPP instance 		= readHandleInstance(stack);
-				int32_t x 			= readInt32(stack);
-				int32_t y 			= readInt32(stack);
-				uint32_t width 		= readInt32(stack);
-				uint32_t height 	= readInt32(stack);
-				DBG_TRACE("FUNCTION_NPP_SET_WINDOW( instance=%p, x=%d, y=%d, width=%d, height=%d )", instance, x, y, width, height);
+				readPOINT(stack, pt);
+				DBG_TRACE("FUNCTION_NPP_SET_WINDOW( instance=%p, width=%d, height=%d )", instance, pt.x, pt.y);
 
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
 				if (ndata){
@@ -1202,8 +1200,8 @@ void dispatcher(int functionid, Stack &stack){
 						/* Calculate size including borders */
 						rect.left 	= 0;
 						rect.top	= 0;
-						rect.right 	= width;
-						rect.bottom = height;
+						rect.right 	= pt.x;
+						rect.bottom = pt.y;
 						AdjustWindowRectEx(&rect, style, false, extStyle);
 
 						if (!ndata->hWnd){
@@ -1253,12 +1251,12 @@ void dispatcher(int functionid, Stack &stack){
 					if (ndata->hWnd || ndata->hDC){
 						ndata->window.x 				= 0;
 						ndata->window.y 				= 0;
-						ndata->window.width 			= width;
-						ndata->window.height 			= height;
+						ndata->window.width 			= pt.x;
+						ndata->window.height 			= pt.y;
 						ndata->window.clipRect.top 		= 0;
 						ndata->window.clipRect.left 	= 0;
-						ndata->window.clipRect.right 	= width;
-						ndata->window.clipRect.bottom 	= height;
+						ndata->window.clipRect.right 	= pt.x;
+						ndata->window.clipRect.bottom 	= pt.y;
 
 						pluginFuncs.setwindow(instance, &ndata->window);
 
@@ -1272,10 +1270,6 @@ void dispatcher(int functionid, Stack &stack){
 
 				DBG_TRACE("FUNCTION_NPP_SET_WINDOW -> void");
 				returnCommand();
-
-				/* these parameters currently are not required */
-				UNREFERENCED_PARAMETER(x);
-				UNREFERENCED_PARAMETER(y);
 			}
 			break;
 
