@@ -555,6 +555,38 @@ char* readMemoryBrowserAlloc(Stack &stack){
 
 #endif
 
+void readRECT(Stack &stack, RECT &rect){
+	Stack::reverse_iterator rit = stack.rbegin();
+	RECT *data;
+
+	DBG_ASSERT(rit != stack.rend(), "no return value found.");
+	data = (RECT *)rit->data.get();
+
+	DBG_ASSERT(rit->command == BLOCKCMD_PUSH_RECT && data && rit->length == sizeof(RECT), \
+		"wrong return value, expected RECT.");
+	memcpy(&rect, data, sizeof(RECT));
+
+	stack.pop_back();
+}
+
+void readNPRect(Stack &stack, NPRect &rect){
+	Stack::reverse_iterator rit = stack.rbegin();
+	RECT *data;
+
+	DBG_ASSERT(rit != stack.rend(), "no return value found.");
+	data = (RECT *)rit->data.get();
+
+	DBG_ASSERT(rit->command == BLOCKCMD_PUSH_RECT && data && rit->length == sizeof(RECT), \
+		"wrong return value, expected RECT.");
+
+	rect.top 	= data->top;
+	rect.left 	= data->left;
+	rect.bottom = data->bottom;
+	rect.right  = data->right;
+
+	stack.pop_back();
+}
+
 #ifdef __WIN32__
 
 NPObject* createNPObject(HMGR_HANDLE id, NPP instance = NULL, NPClass *cls = NULL){

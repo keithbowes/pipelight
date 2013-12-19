@@ -280,10 +280,7 @@ inline void timerFunc(NPP __instance, uint32_t __timerID){
 
 		if (invalidate == INVALIDATE_RECT){
 			NPRect rect;
-			rect.top 	= readInt32(stack);
-			rect.left	= readInt32(stack);
-			rect.bottom = readInt32(stack);
-			rect.right  = readInt32(stack);
+			readNPRect(stack, rect);
 			sBrowserFuncs->invalidaterect(instance, &rect);
 
 		}else if (invalidate == INVALIDATE_EVERYTHING)

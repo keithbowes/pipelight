@@ -688,12 +688,8 @@ void dispatcher(int functionid, Stack &stack){
 							NetscapeData* ndata = (NetscapeData*)instance->ndata;
 							if (!ndata || !ndata->invalidate) continue;
 
-							if (ndata->invalidate == INVALIDATE_RECT){
-								writeInt32(ndata->invalidateRect.right);
-								writeInt32(ndata->invalidateRect.bottom);
-								writeInt32(ndata->invalidateRect.left);
-								writeInt32(ndata->invalidateRect.top);
-							}
+							if (ndata->invalidate == INVALIDATE_RECT)
+								writeNPRect(ndata->invalidateRect);
 
 							writeHandleInstance(instance);
 							writeInt32(ndata->invalidate);

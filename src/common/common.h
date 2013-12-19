@@ -174,7 +174,7 @@ struct ParameterInfo{
 typedef std::vector<ParameterInfo> Stack;
 
 /* increase this whenever you do changes in the protocol stack */
-#define PIPELIGHT_PROTOCOL_VERSION 0x10000004
+#define PIPELIGHT_PROTOCOL_VERSION 0x10000005
 
 enum{
 	/* ------- Special ------- */
@@ -281,7 +281,9 @@ enum{
 	BLOCKCMD_PUSH_INT64,
 	BLOCKCMD_PUSH_DOUBLE,
 	BLOCKCMD_PUSH_STRING,
-	BLOCKCMD_PUSH_MEMORY
+	BLOCKCMD_PUSH_MEMORY,
+
+	BLOCKCMD_PUSH_RECT
 };
 
 enum{
@@ -289,6 +291,15 @@ enum{
 	INVALIDATE_EVERYTHING,
 	INVALIDATE_RECT,
 };
+
+#ifndef __WIN32__
+	struct RECT{
+		uint32_t left;
+		uint32_t top;
+		uint32_t right;
+		uint32_t bottom;
+	};
+#endif
 
 extern bool initCommPipes(int out, int in);
 extern bool initCommIO();
@@ -326,6 +337,9 @@ extern char* readMemoryBrowserAlloc(Stack &stack, size_t &resultLength);
 extern char* readMemoryBrowserAlloc(Stack &stack);
 #endif
 
+extern void readRECT(Stack &stack, RECT &rect);
+extern void readNPRect(Stack &stack, NPRect &rect);
+
 extern HMGR_HANDLE handleManager_getFreeID(HMGR_TYPE type);
 extern void* handleManager_idToPtr(HMGR_TYPE type, HMGR_HANDLE id, NPP instance, NPClass *cls, HMGR_EXISTS exists);
 extern HMGR_HANDLE handleManager_ptrToId(HMGR_TYPE type, void* ptr, HMGR_EXISTS exists);
@@ -354,13 +368,13 @@ extern void writeVariantConst(const NPVariant &variant, bool deleteFromRemoteHan
 
 /* Call a function */
 inline void callFunction(uint32_t function){
-	DBG_ASSERT(writeCommand(BLOCKCMD_CALL_DIRECT, (char*)&function, sizeof(uint32_t)), \
+	DBG_ASSERT(writeCommand(BLOCKCMD_CALL_DIRECT, (char*)&function, sizeof(uint32_t)),
 		"Unable to send BLOCKCMD_CALL_DIRECT.");
 }
 
 /* Return from a function */
 inline void returnCommand(){
-	DBG_ASSERT(writeCommand(BLOCKCMD_RETURN), \
+	DBG_ASSERT(writeCommand(BLOCKCMD_RETURN),
 		"Unable to send BLOCKCMD_RETURN.");
 
 	/* flush data! */
@@ -369,43 +383,68 @@ inline void returnCommand(){
 
 /* Writes an int32 */
 inline void writeInt32(int32_t value){
-	DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_INT32, (char*)&value, sizeof(int32_t)), \
+	DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_INT32, (char*)&value, sizeof(int32_t)),
 		"Unable to send BLOCKCMD_PUSH_INT32.");
 }
 
 /* Writes an int64 */
 inline void writeInt64(int64_t value){
-	DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_INT64, (char*)&value, sizeof(int64_t)), \
+	DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_INT64, (char*)&value, sizeof(int64_t)),
 		"Unable to send BLOCKCMD_PUSH_INT64.");
 }
 
 /* Writes a double */
 inline void writeDouble(double value){
-	DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_DOUBLE, (char*)&value, sizeof(double)), \
+	DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_DOUBLE, (char*)&value, sizeof(double)),
 		"Unable to send BLOCKCMD_PUSH_DOUBLE.");
 }
 
 /* Writes a C++-string */
 inline void writeString(const std::string str){
-	DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_STRING, str.c_str(), str.length()+1), \
+	DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_STRING, str.c_str(), str.length()+1),
 		"Unable to send BLOCKCMD_PUSH_STRING.");
 }
 
 /* Writes a char* string */
 inline void writeString(const char *str){
-	DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_STRING, str, str ? (strlen(str)+1) : 0 ), \
+	DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_STRING, str, str ? (strlen(str)+1) : 0 ),
 		"Unable to send BLOCKCMD_PUSH_STRING.");
 }
 
 /* Writes a string with a specific length */
 inline void writeString(const char *str, size_t length){
-	DBG_ASSERT(__writeString(str, length), \
+	DBG_ASSERT(__writeString(str, length),
 		"Unable to send BLOCKCMD_PUSH_STRING.");
 }
 
 /* Writes a memory block (also works for NULL ptr) */
 inline void writeMemory(const char *memory, size_t length){
-	writeCommand(BLOCKCMD_PUSH_MEMORY, memory, length);
+	DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_MEMORY, memory, length),
+		"Unable to send BLOCKCMD_PUSH_MEMORY.");
+}
+
+/* Writes a RECT */
+inline void writeRECT(const RECT &rect){
+	DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_RECT, (char*)&rect, sizeof(rect)),
+		"Unable to send BLOCKCMD_PUSH_RECT.");
+}
+
+inline void writeNPRect(const NPRect &rect){
+	RECT tmp;
+	tmp.left 	= rect.left;
+	tmp.top 	= rect.top;
+	tmp.right 	= rect.right;
+	tmp.bottom 	= rect.bottom;
+	writeRECT(tmp);
+}
+
+inline void writeRectXYWH(int32_t x, int32_t y, int32_t width, int32_t height){
+	RECT tmp;
+	tmp.left 	= x;
+	tmp.top 	= y;
+	tmp.right 	= x + width;
+	tmp.bottom 	= y + height;
+	writeRECT(tmp);
 }
 
 /* Reads an int32 */
