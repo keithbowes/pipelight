@@ -12,7 +12,7 @@ DEBUG=1
 
 # Supported plugins
 STANDARD_PLUGINS=("silverlight5.1" "silverlight5.0" "silverlight4" "flash" "unity3d")
-ADDITIONAL_PLUGINS=("shockwave" "foxitpdf" "grandstream")
+ADDITIONAL_PLUGINS=("shockwave" "foxitpdf" "grandstream" "adobereader")
 ALL_PLUGINS=("${STANDARD_PLUGINS[@]}" "${ADDITIONAL_PLUGINS[@]}")
 
 # Aliases
