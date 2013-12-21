@@ -1090,33 +1090,27 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		case FUNCTION_NPN_REQUEST_READ: /* UNTESTED! */
+		case FUNCTION_NPN_REQUEST_READ:
 			{
 				NPStream *stream 				= readHandleStream(stack);
 				uint32_t rangeCount				= readInt32(stack);
 				NPByteRange *byteRange 			= NULL;
 				DBG_TRACE("FUNCTION_NPN_REQUEST_READ( stream=%p, rangeCount=%d, ... )", stream, rangeCount );
 
-				for (unsigned int i = 0; i < rangeCount; i++){
-					NPByteRange *newByteRange = (NPByteRange*)malloc(sizeof(NPByteRange));
-					if (!newByteRange) break; /* Unable to send all requests, but shouldn't occur */
+				if (rangeCount){
+					byteRange = (NPByteRange *)malloc(sizeof(NPByteRange) * rangeCount);
+					DBG_ASSERT(byteRange != NULL, "failed to allocate memory.");
 
-					newByteRange->offset = readInt32(stack);
-					newByteRange->length = readInt32(stack);
-					newByteRange->next   = byteRange;
-
-					byteRange = newByteRange;
+					NPByteRange *range = byteRange + (rangeCount - 1);
+					for (unsigned int i = 0; i < rangeCount; i++, range--){
+						range->offset = readInt32(stack);
+						range->length = readInt32(stack);
+						range->next   = i ? (range + 1) : NULL;
+					}
 				}
 
 				NPError result = sBrowserFuncs->requestread(stream, byteRange);
-
-				/* Free the linked list */
-				while (byteRange){
-					NPByteRange *nextByteRange = byteRange->next;
-					free(byteRange);
-					byteRange = nextByteRange;
-				}
-
+				if (byteRange) free(byteRange);
 				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPN_REQUEST_READ -> result=%d", result);

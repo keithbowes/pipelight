@@ -105,16 +105,11 @@ NPError NP_LOADDS NPN_RequestRead(NPStream* stream, NPByteRange* rangeList){
 	DBG_TRACE("( stream=%p, rangeList=%p )", stream, rangeList);
 	DBG_CHECKTHREAD();
 
-	/* Count the number of elements in the linked list */
 	uint32_t rangeCount = 0;
 
-	while (rangeList){
-		rangeCount++;
-
+	for (; rangeList; rangeList = rangeList->next, rangeCount++){
 		writeInt32(rangeList->length);
 		writeInt32(rangeList->offset);
-
-		rangeList = rangeList->next;
 	}
 
 	writeInt32(rangeCount);
