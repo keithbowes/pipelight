@@ -99,7 +99,7 @@ static void getConfigNameFromLibrary(std::string &configName, std::string &confi
 		pluginName = pluginName.substr(0, pos);
 
 	/* get last component */
-	pos = pluginName.find_last_of('-');
+	pos = pluginName.find_first_of('-');
 	pluginName = (pos != std::string::npos) ? pluginName.substr(pos + 1, std::string::npos) : "";
 
 	/* extracting path successful */

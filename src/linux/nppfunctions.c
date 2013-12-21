@@ -74,38 +74,43 @@ NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs *bFuncs, NPPluginFuncs* pFuncs)
 	memcpy(sBrowserFuncs, bFuncs, ((bFuncs->size < sizeof(NPNetscapeFuncs)) ? bFuncs->size : sizeof(NPNetscapeFuncs)) );
 
 	/* Check if all required browser functions are available */
-	if (	!sBrowserFuncs->geturl ||
-			!sBrowserFuncs->posturl ||
-			!sBrowserFuncs->requestread ||
-			!sBrowserFuncs->newstream ||
-			!sBrowserFuncs->write ||
+	if (	!sBrowserFuncs->createobject ||
 			!sBrowserFuncs->destroystream ||
-			!sBrowserFuncs->status ||
-			!sBrowserFuncs->uagent ||
-			!sBrowserFuncs->memalloc ||
-			!sBrowserFuncs->memfree ||
-			!sBrowserFuncs->geturlnotify ||
-			!sBrowserFuncs->posturlnotify ||
-			!sBrowserFuncs->getvalue ||
-			!sBrowserFuncs->getstringidentifier ||
+			!sBrowserFuncs->enumerate ||
+			!sBrowserFuncs->evaluate ||
 			!sBrowserFuncs->getintidentifier ||
+			!sBrowserFuncs->getproperty ||
+			!sBrowserFuncs->getstringidentifier ||
+			!sBrowserFuncs->geturl ||
+			!sBrowserFuncs->geturlnotify ||
+			!sBrowserFuncs->getvalue ||
+			!sBrowserFuncs->hasmethod ||
+			!sBrowserFuncs->hasproperty ||
 			!sBrowserFuncs->identifierisstring ||
-			!sBrowserFuncs->utf8fromidentifier ||
 			!sBrowserFuncs->intfromidentifier ||
-			!sBrowserFuncs->createobject ||
-			!sBrowserFuncs->retainobject ||
-			!sBrowserFuncs->releaseobject ||
 			!sBrowserFuncs->invoke ||
 			!sBrowserFuncs->invokeDefault ||
-			!sBrowserFuncs->evaluate ||
-			!sBrowserFuncs->getproperty ||
-			!sBrowserFuncs->setproperty ||
-			!sBrowserFuncs->removeproperty ||
-			!sBrowserFuncs->hasproperty ||
+			!sBrowserFuncs->memalloc ||
+			!sBrowserFuncs->memfree ||
+			!sBrowserFuncs->newstream ||
+			!sBrowserFuncs->pluginthreadasynccall ||
+			!sBrowserFuncs->poppopupsenabledstate ||
+			!sBrowserFuncs->posturl ||
+			!sBrowserFuncs->posturlnotify ||
+			!sBrowserFuncs->pushpopupsenabledstate ||
+			!sBrowserFuncs->releaseobject ||
 			!sBrowserFuncs->releasevariantvalue ||
+			!sBrowserFuncs->removeproperty ||
+			!sBrowserFuncs->requestread ||
+			!sBrowserFuncs->retainobject ||
+			!sBrowserFuncs->scheduletimer ||
 			!sBrowserFuncs->setexception ||
-			!sBrowserFuncs->enumerate ){
-
+			!sBrowserFuncs->setproperty ||
+			!sBrowserFuncs->status ||
+			!sBrowserFuncs->uagent ||
+			!sBrowserFuncs->unscheduletimer ||
+			!sBrowserFuncs->utf8fromidentifier ||
+			!sBrowserFuncs->write ){
 		DBG_ERROR("your browser doesn't support all required functions!");
 		DBG_TRACE(" -> result=%d", NPERR_INCOMPATIBLE_VERSION_ERROR);
 		return NPERR_INCOMPATIBLE_VERSION_ERROR;
@@ -130,10 +135,11 @@ NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs *bFuncs, NPPluginFuncs* pFuncs)
 		return NPERR_INCOMPATIBLE_VERSION_ERROR;
 	}
 
+	/* clear the structure before writing the values */
+	memset(&pFuncs->newp, 0, pFuncs->size - offsetof(NPPluginFuncs, newp));
+
 	/* return the plugin function table */
 	pFuncs->version 		= (NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR;
-
-	/* dont overwrite the size of the function table, it might be smaller than sizeof(NPPluginFuncs) */
 	pFuncs->newp 			= NPP_New;
 	pFuncs->destroy 		= NPP_Destroy;
 	pFuncs->setwindow 		= NPP_SetWindow;
