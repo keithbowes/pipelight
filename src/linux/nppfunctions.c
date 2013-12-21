@@ -267,21 +267,27 @@ inline void timerFunc(NPP __instance, uint32_t __timerID){
 	if (!config.experimental_linuxWindowlessMode)
 		return;
 
-	for (;;){
-		int invalidate = readInt32(stack);
-		if (!invalidate) break;
+	uint32_t invalidateCount = readInt32(stack);
+	while (invalidateCount--){
 		NPP instance   = readHandleInstance(stack);
 
-		if (invalidate == INVALIDATE_RECT){
-			NPRect rect;
-			readNPRect(stack, rect);
-			sBrowserFuncs->invalidaterect(instance, &rect);
+		switch (readInt32(stack)){
+			case INVALIDATE_RECT:
+				{
+					NPRect rect;
+					readNPRect(stack, rect);
+					sBrowserFuncs->invalidaterect(instance, &rect);
+				}
+				break;
 
-		}else if (invalidate == INVALIDATE_EVERYTHING)
-			sBrowserFuncs->invalidaterect(instance, NULL);
+			case INVALIDATE_EVERYTHING:
+				sBrowserFuncs->invalidaterect(instance, NULL);
+				break;
 
-		else
-			DBG_ABORT("PROCESS_WINDOW_EVENTS returned unsupported invalidate=%d.", invalidate);
+			default:
+				DBG_ABORT("PROCESS_WINDOW_EVENTS returned unsupported invalidate action.");
+
+		}
 	}
 
 }

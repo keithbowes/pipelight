@@ -685,7 +685,7 @@ void dispatcher(int functionid, Stack &stack){
 
 				/* Invalidate rects after returning from the event handler */
 				if (isLinuxWindowlessMode){
-					writeInt32(INVALIDATE_NOTHING);
+					uint32_t invalidateCount = 0;
 
 					if (invalidateLinuxWindowless){
 						for (std::set<NPP>::iterator it = instanceList.begin(); it != instanceList.end(); it++){
@@ -695,15 +695,17 @@ void dispatcher(int functionid, Stack &stack){
 
 							if (ndata->invalidate == INVALIDATE_RECT)
 								writeNPRect(ndata->invalidateRect);
-
-							writeHandleInstance(instance);
 							writeInt32(ndata->invalidate);
+							writeHandleInstance(instance);
 
 							ndata->invalidate = INVALIDATE_NOTHING;
+							invalidateCount++;
 						}
 
 						invalidateLinuxWindowless = false;
 					}
+
+					writeInt32(invalidateCount);
 				}
 
 				/* DBG_TRACE("PROCESS_WINDOW_EVENTS -> void"); */
