@@ -20,8 +20,13 @@ usage()
 	echo "	wine-wininet-installer"
 	echo "	wine-browser-installer"
 	echo "	wine-flash-installer"
+	echo "	wine-flash-debug-installer"
 	echo "	wine-shockwave-installer"
 	echo "	wine-unity3d-installer"
+	echo "	wine-foxitpdf-installer"
+	echo "	wine-grandstream-installer"
+	echo "	wine-mspatcha-installer"
+	echo "	wine-adobereader-installer"
 	echo ""
 }
 
@@ -169,7 +174,7 @@ register_mozilla_plugin()
 	rm "$tmpfile"
 
 	# Successful
-	return $?
+	return "$res"
 }
 
 # > Installer for Silverlight
@@ -304,7 +309,7 @@ install_wininet()
 	rm "$tmpfile"
 
 	# Successful
-	return $?
+	return "$res"
 
 }
 
@@ -486,6 +491,73 @@ install_grandstream()
 	return 0
 }
 
+# > Install mspatcha.dll
+# arguments: None
+# $DOWNLOADFILE
+install_mspatcha()
+{
+	if ! install_cabextract mspatcha.dll; then return 1; fi
+
+	# Setup wine dlloverride
+	local tmpfile=$(mktemp)
+	[ -f "$tmpfile" ] || return 1
+
+	(
+		echo "REGEDIT4"
+		echo ""
+		echo "[HKEY_CURRENT_USER\\Software\\Wine\\DllOverrides]"
+		echo "\"*mspatcha\"=\"native,builtin\""
+	) > "$tmpfile"
+
+	"$WINE" regedit "$tmpfile"
+	local res=$?
+
+	# Cleanup
+	rm "$tmpfile"
+
+	# Successful
+	return "$res"
+
+}
+
+# > Install Adobe Reader
+# arguments: None
+# $DOWNLOADFILE
+install_adobereader()
+{
+	# Launch the installer
+	if [ "$QUIETINSTALLATION" -eq 0 ]; then
+		"$WINE" "$DOWNLOADFILE" 2>&1
+	else
+		"$WINE" "$DOWNLOADFILE" /msi EULA_ACCEPT=YES /qn 2>&1 | progressbar "Please wait, installing ..." "Running $DEP"
+	fi
+
+	local installdir="$WINEPREFIX/drive_c/Program Files/Adobe/Reader 11.0/Reader/AIR"
+	if [ ! -f "$installdir/nppdf32.dll" ]; then
+		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
+		return 1
+	fi
+
+	# Disable sandbox as it does not work with Wine
+	local tmpfile=$(mktemp)
+	[ -f "$tmpfile" ] || return 1
+
+	(
+		echo "REGEDIT4"
+		echo ""
+		echo "[HKEY_CURRENT_USER\Software\Adobe\Acrobat Reader\11.0\Privileged]"
+		echo "\"bProtectedMode\"=dword:00000000"
+	) > "$tmpfile"
+
+	"$WINE" regedit "$tmpfile"
+	local res=$?
+
+	rm "$tmpfile"
+
+	# Successful
+	return "$res"
+}
+
 # Check if some visual feedback is possible
 if command -v zenity >/dev/null 2>&1; then
 	progressbar()
@@ -663,10 +735,20 @@ while [ $# -gt 0 ] ; do
 			URL="http://www.grandstream.com/products/tools/surveillance/webcontrl_plugin.zip"
 			SHA="1162798378997373701967f3f0f291ae4c858e8cae29e55a5249e24f47f70df2"
 			;;
+		wine-mspatcha-installer)
+			INS=(install_mspatcha)
+			URL="http://download.microsoft.com/download/WindowsInstaller/Install/2.0/NT45/EN-US/InstMsiW.exe"
+			SHA="4c3516c0b5c2b76b88209b22e3bf1cb82d8e2de7116125e97e128952372eed6b"
+			;;
+		wine-adobereader-installer)
+			INS=(install_adobereader)
+			URL="http://ardownload.adobe.com/pub/adobe/reader/win/11.x/11.0.04/en_US/AdbeRdr11004_en_US.exe"
+			SHA="9660eec000a47c113796a9a351ad0027b7ef515b3fc9d1dd14589c0b0c7bc910"
+			;;
 		*)
 			echo "[$PRG] ERROR: No installer script found for $DEP." >&2
 			RET=1
-			continue
+			break
 			;;
 	esac
 
@@ -678,14 +760,14 @@ while [ $# -gt 0 ] ; do
 		if ! download "$URL" "$SHA" "$EXT"; then
 			echo "[$PRG] ERROR: Download of $DEP failed." >&2
 			RET=1
-			continue
+			break
 		fi
 
 		# Do the installation
 		if ! eval "${INS[@]}"; then
 			echo "[$PRG] ERROR: Execution of $DEP failed." >&2
 			RET=1
-			continue
+			break
 		fi
 
 		# Mark the package as installed
@@ -699,7 +781,7 @@ while [ $# -gt 0 ] ; do
 	if [ "${#CFG[*]}" -gt 0 ] && ! eval "${CFG[@]}"; then
 		echo "[$PRG] ERROR: Configuration of $DEP failed." >&2
 		RET=1
-		continue
+		break
 	fi
 
 done

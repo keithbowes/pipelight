@@ -1,3 +1,10 @@
+pipelight-multi (0.2.4) UNRELEASED; urgency=low
+
+  * Add Adobe Reader plugin
+  * Change behaviour of install-dependency to stop on the first failure
+
+ -- Michael Mueller <michael@fds-team.de>  Sat, 21 Dec 2013 01:01:06 +0100
+
 pipelight-multi (0.2.3) RELEASED; urgency=low
 
   * Updated Silverlight to version 5.1.20913.0
