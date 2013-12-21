@@ -764,11 +764,12 @@ void dispatcher(int functionid, Stack &stack){
 
 		case WINDOWLESS_EVENT_MOUSEMOVE:
 			{
+				POINT pt;
 				NPP instance 				= readHandleInstance(stack);
 				WPARAM wParam 				= (WPARAM)readInt32(stack);
-				LPARAM lParam 				= (LPARAM)readInt32(stack);
-				DBG_TRACE("WINDOWLESS_EVENT_MOUSEMOVE( instance=%p, wParam=%08x, lParam=%08lx (x=%d, y=%d) )",
-					instance, wParam, lParam, LOWORD(lParam), HIWORD(lParam) );
+				readPOINT(stack, pt);
+				DBG_TRACE("WINDOWLESS_EVENT_MOUSEMOVE( instance=%p, wParam=%08x, x=%d, y=%d )",
+					instance, wParam, pt.x, pt.y);
 
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
 				if (ndata){
@@ -779,7 +780,7 @@ void dispatcher(int functionid, Stack &stack){
 						NPEvent event;
 						event.event 	= WM_MOUSEMOVE;
 						event.wParam 	= wParam;
-						event.lParam 	= lParam;
+						event.lParam 	= MAKEDWORD(pt.x, pt.y);
 						pluginFuncs.event(instance, &event);
 
 						ndata->window.window = previousDC;
@@ -793,12 +794,13 @@ void dispatcher(int functionid, Stack &stack){
 
 		case WINDOWLESS_EVENT_MOUSEBUTTON:
 			{
+				POINT pt;
 				NPP instance 				= readHandleInstance(stack);
 				uint32_t button 			= readInt32(stack);
 				WPARAM wParam 				= (WPARAM)readInt32(stack);
-				LPARAM lParam 				= (LPARAM)readInt32(stack);
-				DBG_TRACE("WINDOWLESS_EVENT_MOUSEBUTTON( instance=%p, button=%08x, wParam=%08x, lParam=%08lx (x=%d, y=%d) )",
-					instance, button, wParam, lParam, LOWORD(lParam), HIWORD(lParam) );
+				readPOINT(stack, pt);
+				DBG_TRACE("WINDOWLESS_EVENT_MOUSEBUTTON( instance=%p, button=%08x, wParam=%08x, x=%d, y=%d )",
+					instance, button, wParam, pt.x, pt.y );
 
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
 				if (ndata){
@@ -819,7 +821,7 @@ void dispatcher(int functionid, Stack &stack){
 							NPEvent event;
 							event.event 	= message;
 							event.wParam 	= wParam;
-							event.lParam 	= lParam;
+							event.lParam 	= MAKEDWORD(pt.x, pt.y);
 							pluginFuncs.event(instance, &event);
 
 							ndata->window.window = previousDC;

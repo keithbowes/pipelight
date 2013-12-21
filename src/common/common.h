@@ -319,12 +319,20 @@ struct RECT2{
 	uint32_t height;
 };
 
-#define RECT_AddOffset(rect, x, y) \
+#define MAKEDWORD(low, high) (((uint32_t)(low) & 0xFFFF) | (((uint32_t)(high) & 0xFFFF) << 16))
+
+#define RECT_AddOffset(rect, cx, cy) \
 	do{ \
-		rect.left   += x; \
-		rect.top    += y; \
-		rect.right  += x; \
-		rect.bottom += y; \
+		(rect).left   += (cx); \
+		(rect).top    += (cy); \
+		(rect).right  += (cx); \
+		(rect).bottom += (cy); \
+	}while(0)
+
+#define POINT_AddOffset(pt, cx, cy) \
+	do{ \
+		(pt).x += (cx); \
+		(pt).y += (cy); \
 	}while(0)
 
 extern bool initCommPipes(int out, int in);
