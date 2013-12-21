@@ -663,7 +663,7 @@ void dispatcher(int functionid, Stack &stack){
 				if (pdata){
 					pdata->plugin = win;
 
-					if (pdata->container){
+					if (pdata->containerType == NPWindowTypeWindow && pdata->container){
 						Display *display = XOpenDisplay(NULL);
 
 						if (display){
@@ -673,7 +673,7 @@ void dispatcher(int functionid, Stack &stack){
 							if (embed){
 								parentWindow = (Window)getEnvironmentInteger("PIPELIGHT_X11WINDOW");
 								if (!parentWindow)
-									parentWindow = pdata->container;
+									parentWindow = (Window)pdata->container;
 
 							/* reparent to root window */
 							}else

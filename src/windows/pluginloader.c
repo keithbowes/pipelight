@@ -668,7 +668,7 @@ void dispatcher(int functionid, Stack &stack){
 				/* DBG_TRACE("PROCESS_WINDOW_EVENTS()"); */
 
 				DWORD abortTime = GetTickCount() + 80;
-				while (!invalidateLinuxWindowless && GetTickCount() < abortTime){
+				while (GetTickCount() < abortTime){
 					if (PeekMessageA(&msg, NULL, 0, 0, PM_REMOVE)){
 						TranslateMessage(&msg);
 						DispatchMessageA(&msg);
@@ -706,13 +706,13 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		case WINDOWLESS_EVENT_REDRAW:
+		case WINDOWLESS_EVENT_PAINT:
 			{
 				RECT rect;
 				NPP instance 				= readHandleInstance(stack);
 				XID drawable 				= readInt32(stack);
 				readRECT(stack, rect);
-				DBG_TRACE("WINDOWLESS_EVENT_REDRAW( instance=%p, drawable=%lu, left=%ld, top=%ld, right=%ld, bottom=%ld )",
+				DBG_TRACE("WINDOWLESS_EVENT_PAINT( instance=%p, drawable=%lu, left=%ld, top=%ld, right=%ld, bottom=%ld )",
 					instance, drawable, rect.left, rect.top, rect.right, rect.bottom);
 
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
@@ -744,7 +744,77 @@ void dispatcher(int functionid, Stack &stack){
 					}
 				}
 
-				DBG_TRACE("WINDOWLESS_EVENT_REDRAW -> void");
+				DBG_TRACE("WINDOWLESS_EVENT_PAINT -> void");
+				returnCommand();
+			}
+			break;
+
+		case WINDOWLESS_EVENT_MOUSEMOVE:
+			{
+				NPP instance 				= readHandleInstance(stack);
+				WPARAM wParam 				= (WPARAM)readInt32(stack);
+				LPARAM lParam 				= (LPARAM)readInt32(stack);
+				DBG_TRACE("WINDOWLESS_EVENT_MOUSEMOVE( instance=%p, wParam=%08x, lParam=%08lx (x=%d, y=%d) )",
+					instance, wParam, lParam, LOWORD(lParam), HIWORD(lParam) );
+
+				NetscapeData* ndata = (NetscapeData*)instance->ndata;
+				if (ndata){
+					if (ndata->hDC){
+						HDC previousDC = (HDC)ndata->window.window;
+						ndata->window.window = NULL;
+
+						NPEvent event;
+						event.event 	= WM_MOUSEMOVE;
+						event.wParam 	= wParam;
+						event.lParam 	= lParam;
+						pluginFuncs.event(instance, &event);
+
+						ndata->window.window = previousDC;
+					}
+				}
+
+				DBG_TRACE("WINDOWLESS_EVENT_MOUSEMOVE -> void");
+				returnCommand();
+			}
+			break;
+
+		case WINDOWLESS_EVENT_MOUSEBUTTON:
+			{
+				NPP instance 				= readHandleInstance(stack);
+				uint32_t button 			= readInt32(stack);
+				WPARAM wParam 				= (WPARAM)readInt32(stack);
+				LPARAM lParam 				= (LPARAM)readInt32(stack);
+				DBG_TRACE("WINDOWLESS_EVENT_MOUSEBUTTON( instance=%p, button=%08x, wParam=%08x, lParam=%08lx (x=%d, y=%d) )",
+					instance, button, wParam, lParam, LOWORD(lParam), HIWORD(lParam) );
+
+				NetscapeData* ndata = (NetscapeData*)instance->ndata;
+				if (ndata){
+					if (ndata->hDC){
+						uint16_t message = 0;
+
+						switch (LOWORD(button)){
+							case 1: message = HIWORD(button) ? WM_LBUTTONDOWN : WM_LBUTTONUP; break;
+							case 2: message = HIWORD(button) ? WM_RBUTTONDOWN : WM_RBUTTONUP; break;
+							case 3: message = HIWORD(button) ? WM_MBUTTONDOWN : WM_MBUTTONUP; break;
+							default: break;
+						}
+
+						if (message){
+							HDC previousDC = (HDC)ndata->window.window;
+							ndata->window.window = NULL;
+
+							NPEvent event;
+							event.event 	= message;
+							event.wParam 	= wParam;
+							event.lParam 	= lParam;
+							pluginFuncs.event(instance, &event);
+
+							ndata->window.window = previousDC;
+						}
+					}
+				}
+
+				DBG_TRACE("WINDOWLESS_EVENT_MOUSEBUTTON -> void");
 				returnCommand();
 			}
 			break;

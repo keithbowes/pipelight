@@ -127,9 +127,10 @@ void NPDeallocateFunction(NPObject *npobj);
 #define XEMBED_MAPPED 					(1 << 0)
 
 struct PluginData{
-	bool		pipelightError;
-	Window 		container;
-	Window 		plugin;
+	bool			pipelightError;
+	int				containerType;
+	void* 			container;
+	Window 			plugin;
 };
 
 extern std::string convertWinePath(std::string path, bool direction = false);
