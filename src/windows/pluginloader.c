@@ -97,7 +97,7 @@ typedef const char* (* CDECL wine_get_versionPtr)();
 
 #define X11DRV_ESCAPE 6789
 #define X11DRV_SET_DRAWABLE 0
-#define X11DRV_FLUSH_GDI_DISPLAY 0x10000 /* not supported by native wine */
+#define X11DRV_FLUSH_GDI_DISPLAY 5 /* not supported by native wine */
 
 struct x11drv_escape{
 	int code;
