@@ -477,14 +477,29 @@ void NP_LOADDS NPN_InvalidateRect(NPP instance, NPRect *rect){
 
 			}else
 				InvalidateRect(ndata->hWnd, NULL, false);
-		}
 
-		if (ndata->hDC){
-			if (ndata->windowlessMode && rect){
+		}else if (ndata->hDC){
+
+			if (!rect)
+				ndata->invalidate = INVALIDATE_EVERYTHING;
+
+			else if (!ndata->invalidate){
 				memcpy(&ndata->invalidateRect, rect, sizeof(*rect));
 				ndata->invalidate = INVALIDATE_RECT;
-			}else
-				ndata->invalidate = INVALIDATE_EVERYTHING;
+
+			}else if (ndata->invalidate == INVALIDATE_RECT){
+
+				/* Merge the NPRects */
+				if (rect->top < ndata->invalidateRect.top)
+					ndata->invalidateRect.top = rect->top;
+				if (rect->left < ndata->invalidateRect.left)
+					ndata->invalidateRect.left = rect->left;
+				if (rect->bottom > ndata->invalidateRect.bottom)
+					ndata->invalidateRect.bottom = rect->bottom;
+				if (rect->right > ndata->invalidateRect.right)
+					ndata->invalidateRect.right = rect->right;
+
+			}
 
 			/* don't process further events, we need to redraw as fast as possible */
 			invalidateLinuxWindowless = true;
