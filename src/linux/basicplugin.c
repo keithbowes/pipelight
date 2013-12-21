@@ -1043,7 +1043,7 @@ void dispatcher(int functionid, Stack &stack){
 				std::shared_ptr<char> buffer	= readMemory(stack, len);
 				bool file 						= (bool)readInt32(stack);
 				NotifyDataRefCount* notifyData 	= (NotifyDataRefCount*)readHandleNotify(stack);
-				DBG_TRACE("FUNCTION_NPN_POST_URL_NOTIFY( instance=%p, url='%s', target='%s', buffer=%p, len=%lu, file=%d, notifyData=%p )", instance, url.get(), target.get(), buffer.get(), len, file, notifyData);
+				DBG_TRACE("FUNCTION_NPN_POST_URL_NOTIFY( instance=%p, url='%s', target='%s', buffer=%p, len=%zd, file=%d, notifyData=%p )", instance, url.get(), target.get(), buffer.get(), len, file, notifyData);
 
 				/* increase refcounter */
 				if (notifyData)
@@ -1080,7 +1080,7 @@ void dispatcher(int functionid, Stack &stack){
 				size_t len;
 				std::shared_ptr<char> buffer	= readMemory(stack, len);
 				bool file 						= (bool)readInt32(stack);
-				DBG_TRACE("FUNCTION_NPN_POST_URL( instance=%p, url='%s', target='%s', buffer=%p, len=%lu, file=%d )", instance, url.get(), target.get(), buffer.get(), len, file );
+				DBG_TRACE("FUNCTION_NPN_POST_URL( instance=%p, url='%s', target='%s', buffer=%p, len=%zd, file=%d )", instance, url.get(), target.get(), buffer.get(), len, file );
 
 				NPError result = sBrowserFuncs->posturl(instance, url.get(), target.get(), len, buffer.get(), file);
 				writeInt32(result);
@@ -1130,7 +1130,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 					= readHandleInstance(stack);
 				NPStream *stream 				= readHandleStream(stack);
 				std::shared_ptr<char> buffer	= readMemory(stack, len);
-				DBG_TRACE("FUNCTION_NPN_WRITE( instance=%p, stream=%p, buffer=%p, len=%lu )", instance, stream, buffer.get(), len );
+				DBG_TRACE("FUNCTION_NPN_WRITE( instance=%p, stream=%p, buffer=%p, len=%zd )", instance, stream, buffer.get(), len );
 
 				int32_t result = sBrowserFuncs->write(instance, stream, len, buffer.get());
 				writeInt32(result);

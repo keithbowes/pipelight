@@ -768,7 +768,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPP instance 				= readHandleInstance(stack);
 				WPARAM wParam 				= (WPARAM)readInt32(stack);
 				readPOINT(stack, pt);
-				DBG_TRACE("WINDOWLESS_EVENT_MOUSEMOVE( instance=%p, wParam=%08x, x=%d, y=%d )",
+				DBG_TRACE("WINDOWLESS_EVENT_MOUSEMOVE( instance=%p, wParam=%08x, x=%ld, y=%ld )",
 					instance, wParam, pt.x, pt.y);
 
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
@@ -799,7 +799,7 @@ void dispatcher(int functionid, Stack &stack){
 				uint32_t button 			= readInt32(stack);
 				WPARAM wParam 				= (WPARAM)readInt32(stack);
 				readPOINT(stack, pt);
-				DBG_TRACE("WINDOWLESS_EVENT_MOUSEBUTTON( instance=%p, button=%08x, wParam=%08x, x=%d, y=%d )",
+				DBG_TRACE("WINDOWLESS_EVENT_MOUSEBUTTON( instance=%p, button=%08x, wParam=%08x, x=%ld, y=%ld )",
 					instance, button, wParam, pt.x, pt.y );
 
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
@@ -1256,7 +1256,7 @@ void dispatcher(int functionid, Stack &stack){
 				RECT browser;
 				NPP instance 		= readHandleInstance(stack);
 				readRECT(stack, browser);
-				DBG_TRACE("FUNCTION_NPP_SET_WINDOW( instance=%p, left=%d, top=%d, right=%d, bottom=%d )",
+				DBG_TRACE("FUNCTION_NPP_SET_WINDOW( instance=%p, left=%ld, top=%ld, right=%ld, bottom=%ld )",
 					instance, browser.left, browser.top, browser.right, browser.bottom);
 
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
