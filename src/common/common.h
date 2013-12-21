@@ -319,6 +319,14 @@ struct RECT2{
 	uint32_t height;
 };
 
+#define RECT_AddOffset(rect, x, y) \
+	do{ \
+		rect.left   += x; \
+		rect.top    += y; \
+		rect.right  += x; \
+		rect.bottom += y; \
+	}while(0)
+
 extern bool initCommPipes(int out, int in);
 extern bool initCommIO();
 

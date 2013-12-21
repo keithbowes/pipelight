@@ -97,6 +97,11 @@ typedef const char* (* CDECL wine_get_versionPtr)();
 
 #define X11DRV_ESCAPE 6789
 #define X11DRV_SET_DRAWABLE 0
+#define X11DRV_FLUSH_GDI_DISPLAY 0x10000 /* not supported by native wine */
+
+struct x11drv_escape{
+	int code;
+};
 
 struct x11drv_escape_set_drawable{
 	int  code;
@@ -721,26 +726,34 @@ void dispatcher(int functionid, Stack &stack){
 
 						/* update drawable if necessary */
 						if (drawable != ndata->lastDrawableDC){
-							x11drv_escape_set_drawable escape;
+							x11drv_escape_set_drawable escape_set_drawable;
+							escape_set_drawable.code 		= X11DRV_SET_DRAWABLE;
+							escape_set_drawable.hwnd 		= 0;
+							escape_set_drawable.drawable 	= drawable;
+							escape_set_drawable.mode 		= 1; /* IncludeInferiors */
+							memcpy(&escape_set_drawable.dc_rect, &ndata->browser, sizeof(ndata->browser));
+							escape_set_drawable.fbconfig_id	= 0;
 
-							escape.code 		= X11DRV_SET_DRAWABLE;
-							escape.hwnd 		= 0;
-							escape.drawable 	= drawable;
-							escape.mode 		= 1; /* IncludeInferiors */
-							memcpy(&escape.dc_rect, &ndata->browser, sizeof(ndata->browser));
-							escape.fbconfig_id	= 0;
-
-							if (ExtEscape(ndata->hDC, X11DRV_ESCAPE, sizeof(escape), (char *)&escape, 0, NULL))
+							if (ExtEscape(ndata->hDC, X11DRV_ESCAPE, sizeof(escape_set_drawable), (char *)&escape_set_drawable, 0, NULL))
 								ndata->lastDrawableDC = drawable;
 							else
-								DBG_ERROR("ExtEscape(X11DRV_ESCAPE, ...) failed");
+								DBG_ERROR("X11DRV_SET_DRAWABLE failed");
 						}
+
+						/* convert rect into plugin coordinates */
+						RECT_AddOffset(rect, -ndata->browser.left, -ndata->browser.top);
 
 						NPEvent event;
 						event.event 	= WM_PAINT;
 						event.wParam 	= (uintptr_t)ndata->hDC;
 						event.lParam 	= (uintptr_t)&rect;
 						pluginFuncs.event(instance, &event);
+
+						x11drv_escape escape_flush;
+						escape_flush.code = X11DRV_FLUSH_GDI_DISPLAY;
+
+						if (!ExtEscape(ndata->hDC, X11DRV_ESCAPE, sizeof(escape_flush), (char *)&escape_flush, 0, NULL))
+							DBG_ERROR("X11DRV_FLUSH_GDI_DISPLAY failed");
 					}
 				}
 
@@ -1310,14 +1323,13 @@ void dispatcher(int functionid, Stack &stack){
 						if (!ndata->hDC){
 							ndata->hDC = CreateDCA("DISPLAY", NULL, NULL, NULL);
 							ndata->lastDrawableDC = 0;
+
+							if (!ndata->hDC)
+								DBG_ERROR("failed to create DC!");
 						}
 
 						ndata->window.window	= ndata->hDC;
 						ndata->window.type		= NPWindowTypeDrawable;
-
-						if (!ndata->hDC)
-							DBG_ERROR("failed to create DC!");
-
 					}
 
 					/* send data to plugin */
@@ -1332,6 +1344,20 @@ void dispatcher(int functionid, Stack &stack){
 						ndata->window.clipRect.bottom 	= browser_height;
 
 						pluginFuncs.setwindow(instance, &ndata->window);
+					}
+
+					/* update drawable if necessary */
+					if (ndata->hDC && ndata->lastDrawableDC){
+						x11drv_escape_set_drawable escape_set_drawable;
+						escape_set_drawable.code 		= X11DRV_SET_DRAWABLE;
+						escape_set_drawable.hwnd 		= 0;
+						escape_set_drawable.drawable 	= ndata->lastDrawableDC;
+						escape_set_drawable.mode 		= 1; /* IncludeInferiors */
+						memcpy(&escape_set_drawable.dc_rect, &browser, sizeof(browser));
+						escape_set_drawable.fbconfig_id	= 0;
+
+						if (!ExtEscape(ndata->hDC, X11DRV_ESCAPE, sizeof(escape_set_drawable), (char *)&escape_set_drawable, 0, NULL))
+							DBG_ERROR("X11DRV_SET_DRAWABLE failed");
 					}
 
 				}else
