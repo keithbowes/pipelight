@@ -130,10 +130,11 @@ NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs *bFuncs, NPPluginFuncs* pFuncs)
 		return NPERR_INCOMPATIBLE_VERSION_ERROR;
 	}
 
+	/* clear the structure before writing the values */
+	memset(&pFuncs->newp, 0, pFuncs->size - offsetof(NPPluginFuncs, newp));
+
 	/* return the plugin function table */
 	pFuncs->version 		= (NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR;
-
-	/* dont overwrite the size of the function table, it might be smaller than sizeof(NPPluginFuncs) */
 	pFuncs->newp 			= NPP_New;
 	pFuncs->destroy 		= NPP_Destroy;
 	pFuncs->setwindow 		= NPP_SetWindow;
