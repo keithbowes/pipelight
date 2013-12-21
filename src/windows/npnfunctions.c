@@ -501,7 +501,6 @@ void NP_LOADDS NPN_InvalidateRect(NPP instance, NPRect *rect){
 
 			}
 
-			/* don't process further events, we need to redraw as fast as possible */
 			invalidateLinuxWindowless = true;
 		}
 	}
@@ -520,6 +519,11 @@ void NP_LOADDS NPN_InvalidateRegion(NPP instance, NPRegion region){
 	if (ndata){
 		if (ndata->hWnd)
 			InvalidateRgn(ndata->hWnd, region, false);
+
+		else if (ndata->hDC){
+			ndata->invalidate = INVALIDATE_EVERYTHING;
+			invalidateLinuxWindowless = true;
+		}
 	}
 
 	DBG_TRACE(" -> void");
@@ -536,6 +540,9 @@ void NP_LOADDS NPN_ForceRedraw(NPP instance){
 	if (ndata){
 		if (ndata->hWnd)
 			UpdateWindow(ndata->hWnd);
+
+		else if (ndata->hDC)
+			NOTIMPLEMENTED("not implemented for linuxWindowlessMode");
 	}
 
 	DBG_TRACE(" -> void");

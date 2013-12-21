@@ -727,7 +727,7 @@ void dispatcher(int functionid, Stack &stack){
 							escape.hwnd 		= 0;
 							escape.drawable 	= drawable;
 							escape.mode 		= 1; /* IncludeInferiors */
-							memcpy(&escape.dc_rect, &rect, sizeof(rect));
+							memcpy(&escape.dc_rect, &ndata->browser, sizeof(ndata->browser));
 							escape.fbconfig_id	= 0;
 
 							if (ExtEscape(ndata->hDC, X11DRV_ESCAPE, sizeof(escape), (char *)&escape, 0, NULL))
@@ -1238,13 +1238,19 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPP_SET_WINDOW:
 			{
-				POINT pt;
+				RECT browser;
 				NPP instance 		= readHandleInstance(stack);
-				readPOINT(stack, pt);
-				DBG_TRACE("FUNCTION_NPP_SET_WINDOW( instance=%p, width=%ld, height=%ld )", instance, pt.x, pt.y);
+				readRECT(stack, browser);
+				DBG_TRACE("FUNCTION_NPP_SET_WINDOW( instance=%p, left=%d, top=%d, right=%d, bottom=%d )",
+					instance, browser.left, browser.top, browser.right, browser.bottom);
 
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
 				if (ndata){
+					uint32_t browser_width  = browser.right - browser.left;
+					uint32_t browser_height = browser.bottom - browser.top;
+
+					memcpy(&ndata->browser, &browser, sizeof(browser));
+
 					if (!isLinuxWindowlessMode){ /* regular mode */
 
 						DWORD style, extStyle;
@@ -1267,8 +1273,8 @@ void dispatcher(int functionid, Stack &stack){
 						/* Calculate size including borders */
 						rect.left 	= 0;
 						rect.top	= 0;
-						rect.right 	= pt.x;
-						rect.bottom = pt.y;
+						rect.right 	= browser_width;
+						rect.bottom = browser_height;
 						AdjustWindowRectEx(&rect, style, false, extStyle);
 
 						if (!ndata->hWnd){
@@ -1306,8 +1312,8 @@ void dispatcher(int functionid, Stack &stack){
 							ndata->lastDrawableDC = 0;
 						}
 
-						ndata->window.window 	= ndata->hDC;
-						ndata->window.type   	= NPWindowTypeDrawable;
+						ndata->window.window	= ndata->hDC;
+						ndata->window.type		= NPWindowTypeDrawable;
 
 						if (!ndata->hDC)
 							DBG_ERROR("failed to create DC!");
@@ -1318,12 +1324,12 @@ void dispatcher(int functionid, Stack &stack){
 					if (ndata->hWnd || ndata->hDC){
 						ndata->window.x 				= 0;
 						ndata->window.y 				= 0;
-						ndata->window.width 			= pt.x;
-						ndata->window.height 			= pt.y;
+						ndata->window.width 			= browser_width;
+						ndata->window.height 			= browser_height;
 						ndata->window.clipRect.top 		= 0;
 						ndata->window.clipRect.left 	= 0;
-						ndata->window.clipRect.right 	= pt.x;
-						ndata->window.clipRect.bottom 	= pt.y;
+						ndata->window.clipRect.right 	= browser_width;
+						ndata->window.clipRect.bottom 	= browser_height;
 
 						pluginFuncs.setwindow(instance, &ndata->window);
 					}

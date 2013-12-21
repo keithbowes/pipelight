@@ -312,6 +312,13 @@ enum{
 	};
 #endif
 
+struct RECT2{
+	int32_t x;
+	int32_t y;
+	uint32_t width;
+	uint32_t height;
+};
+
 extern bool initCommPipes(int out, int in);
 extern bool initCommIO();
 
@@ -348,6 +355,7 @@ extern char* readMemoryBrowserAlloc(Stack &stack);
 
 extern void readPOINT(Stack &stack, POINT &pt);
 extern void readRECT(Stack &stack, RECT &rect);
+extern void readRECT2(Stack &stack, RECT2 &rect);
 extern void readNPRect(Stack &stack, NPRect &rect);
 
 extern HMGR_HANDLE handleManager_getFreeID(HMGR_TYPE type);
@@ -449,6 +457,15 @@ inline void writeRECT(const RECT &rect){
 		"Unable to send BLOCKCMD_PUSH_RECT.");
 }
 
+inline void writeRECT2(const RECT2 &rect){
+	RECT tmp;
+	tmp.left   = rect.x;
+	tmp.top    = rect.y;
+	tmp.right  = rect.x + rect.width;
+	tmp.bottom = rect.y + rect.height;
+	writeRECT(tmp);
+}
+
 inline void writeNPRect(const NPRect &rect){
 	RECT tmp;
 	tmp.left 	= rect.left;
@@ -458,7 +475,7 @@ inline void writeNPRect(const NPRect &rect){
 	writeRECT(tmp);
 }
 
-inline void writeRectXYWH(int32_t x, int32_t y, int32_t width, int32_t height){
+inline void writeRectXYWH(int32_t x, int32_t y, uint32_t width, uint32_t height){
 	RECT tmp;
 	tmp.left 	= x;
 	tmp.top 	= y;

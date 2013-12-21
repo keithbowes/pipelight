@@ -165,6 +165,8 @@ struct NetscapeData{
 	NPObject*   	cache_pluginElementNPObject;
 	NPIdentifier 	cache_clientWidthIdentifier;
 
+	RECT 		browser;
+
 	/* regular mode */
 	HWND 		hWnd;
 

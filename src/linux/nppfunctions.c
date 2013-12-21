@@ -609,7 +609,7 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window) {
 		pdata->container 		= window->window;
 	}
 
-	writePointXY(window->width, window->height);
+	writeRectXYWH(window->x, window->y, window->width, window->height);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_SET_WINDOW);
 	readResultVoid();

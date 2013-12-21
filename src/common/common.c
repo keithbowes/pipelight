@@ -575,6 +575,24 @@ void readRECT(Stack &stack, RECT &rect){
 	stack.pop_back();
 }
 
+void readRECT2(Stack &stack, RECT2 &rect){
+	Stack::reverse_iterator rit = stack.rbegin();
+	RECT *data;
+
+	DBG_ASSERT(rit != stack.rend(), "no return value found.");
+	data = (RECT *)rit->data.get();
+
+	DBG_ASSERT(rit->command == BLOCKCMD_PUSH_RECT && data && rit->length == sizeof(RECT), \
+		"wrong return value, expected RECT.");
+
+	rect.x 		= data->left;
+	rect.y 		= data->top;
+	rect.width 	= data->right - data->left;
+	rect.height = data->bottom - data->top;
+
+	stack.pop_back();
+}
+
 void readNPRect(Stack &stack, NPRect &rect){
 	Stack::reverse_iterator rit = stack.rbegin();
 	RECT *data;
