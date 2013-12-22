@@ -378,11 +378,18 @@ NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 		case NPNVnetscapeWindow:
 			{
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
-				if (ndata && ndata->hWnd){
-					result = NPERR_NO_ERROR;
-					*((HWND*)value) = ndata->hWnd;
+				if (ndata){
+					if (ndata->hWnd){
+						result = NPERR_NO_ERROR;
+						*((HWND*)value) = ndata->hWnd;
+					}else if (ndata->hDC){
+						NOTIMPLEMENTED("NPNVnetscapeWindow not implemented for linuxWindowlessMode");
+						result = NPERR_GENERIC_ERROR;
+					}else
+						result = NPERR_GENERIC_ERROR;
 				}else
 					result = NPERR_GENERIC_ERROR;
+					
 			}
 			break;
 
