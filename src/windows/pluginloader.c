@@ -633,11 +633,11 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				void *notifyData = readHandleNotify(stack, HMGR_SHOULD_EXIST);
 				DBG_TRACE("WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA( notifyData=%p )", notifyData);
-
-				handleManager_removeByPtr(HMGR_TYPE_NotifyData, notifyData);
-
 				DBG_TRACE("WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA -> void");
 				returnCommand();
+
+				/* ASYNC */
+				handleManager_removeByPtr(HMGR_TYPE_NotifyData, notifyData);
 			}
 			break;
 
@@ -677,10 +677,8 @@ void dispatcher(int functionid, Stack &stack){
 					if (PeekMessageA(&msg, NULL, 0, 0, PM_REMOVE)){
 						TranslateMessage(&msg);
 						DispatchMessageA(&msg);
-
-					}else{
+					}else
 						break;
-					}
 				}
 
 				/* Invalidate rects after returning from the event handler */
@@ -774,19 +772,17 @@ void dispatcher(int functionid, Stack &stack){
 					instance, wParam, pt.x, pt.y);
 
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
-				if (ndata){
-					if (ndata->hDC){
-						HDC previousDC = (HDC)ndata->window.window;
-						ndata->window.window = NULL;
+				if (ndata && ndata->hDC){
+					HDC previousDC = (HDC)ndata->window.window;
+					ndata->window.window = NULL;
 
-						NPEvent event;
-						event.event 	= WM_MOUSEMOVE;
-						event.wParam 	= wParam;
-						event.lParam 	= MAKEDWORD(pt.x, pt.y);
-						pluginFuncs.event(instance, &event);
+					NPEvent event;
+					event.event 	= WM_MOUSEMOVE;
+					event.wParam 	= wParam;
+					event.lParam 	= MAKEDWORD(pt.x, pt.y);
+					pluginFuncs.event(instance, &event);
 
-						ndata->window.window = previousDC;
-					}
+					ndata->window.window = previousDC;
 				}
 
 				DBG_TRACE("WINDOWLESS_EVENT_MOUSEMOVE -> void");
@@ -805,29 +801,27 @@ void dispatcher(int functionid, Stack &stack){
 					instance, button, wParam, pt.x, pt.y );
 
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
-				if (ndata){
-					if (ndata->hDC){
-						uint16_t message = 0;
+				if (ndata && ndata->hDC){
+					uint16_t message = 0;
 
-						switch (LOWORD(button)){
-							case 1: message = HIWORD(button) ? WM_LBUTTONDOWN : WM_LBUTTONUP; break;
-							case 2: message = HIWORD(button) ? WM_RBUTTONDOWN : WM_RBUTTONUP; break;
-							case 3: message = HIWORD(button) ? WM_MBUTTONDOWN : WM_MBUTTONUP; break;
-							default: break;
-						}
+					switch (LOWORD(button)){
+						case 1: message = HIWORD(button) ? WM_LBUTTONDOWN : WM_LBUTTONUP; break;
+						case 2: message = HIWORD(button) ? WM_RBUTTONDOWN : WM_RBUTTONUP; break;
+						case 3: message = HIWORD(button) ? WM_MBUTTONDOWN : WM_MBUTTONUP; break;
+						default: break;
+					}
 
-						if (message){
-							HDC previousDC = (HDC)ndata->window.window;
-							ndata->window.window = NULL;
+					if (message){
+						HDC previousDC = (HDC)ndata->window.window;
+						ndata->window.window = NULL;
 
-							NPEvent event;
-							event.event 	= message;
-							event.wParam 	= wParam;
-							event.lParam 	= MAKEDWORD(pt.x, pt.y);
-							pluginFuncs.event(instance, &event);
+						NPEvent event;
+						event.event 	= message;
+						event.wParam 	= wParam;
+						event.lParam 	= MAKEDWORD(pt.x, pt.y);
+						pluginFuncs.event(instance, &event);
 
-							ndata->window.window = previousDC;
-						}
+						ndata->window.window = previousDC;
 					}
 				}
 
@@ -894,18 +888,10 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NP_INVOKE( obj=%p, name=%p, argCount=%d, args=%p )", obj, name, argCount, args.data());
 
 				bool result = obj->_class->invoke(obj, name, args.data(), argCount, &resultVariant);
-
-				/*
-					The objects refcount has been incremented by invoke
-					Return the variant without modifying the objects refcount
-				*/
-				if (result)
-					writeVariantReleaseDecRef(resultVariant);
-
-				/* This frees ONLY all the strings! */
 				freeVariantArrayDecRef(args);
 				objectDecRef(obj);
-
+				if (result)
+					writeVariantReleaseDecRef(resultVariant);
 				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NP_INVOKE -> ( result=%d, ... )", result);
@@ -924,18 +910,11 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NP_INVOKE_DEFAULT( obj=%p, argCount=%d, args=%p )", obj, argCount, args.data());
 
 				bool result = obj->_class->invokeDefault(obj, args.data(), argCount, &resultVariant);
-
-				/*
-					The objects refcount has been incremented by invoke
-					Return the variant without modifying the objects refcount
-				*/
+				freeVariantArrayDecRef(args);
+				objectDecRef(obj);
 				if (result)
 					writeVariantReleaseDecRef(resultVariant);
-
-				/* This frees ONLY all the strings! */
-				freeVariantArrayDecRef(args);
 				writeInt32(result);
-				objectDecRef(obj);
 
 				DBG_TRACE("FUNCTION_NP_INVOKE_DEFAULT -> ( result=%d, ... )", result);
 				returnCommand();
@@ -949,8 +928,8 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NP_HAS_PROPERTY( obj=%p, name=%p )", obj, name);
 
 				bool result = obj->_class->hasProperty(obj, name);
-				writeInt32(result);
 				objectDecRef(obj);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NP_HAS_PROPERTY -> result=%d", result);
 				returnCommand();
@@ -964,8 +943,8 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NP_HAS_METHOD( obj=%p, name=%p )", obj, name);
 
 				bool result = obj->_class->hasMethod(obj, name);
-				writeInt32(result);
 				objectDecRef(obj);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NP_HAS_METHOD -> result=%d", result);
 				returnCommand();
@@ -982,11 +961,9 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NP_GET_PROPERTY( obj=%p, name=%p )", obj, name);
 
 				bool result = obj->_class->getProperty(obj, name, &resultVariant);
-
+				objectDecRef(obj);
 				if (result)
 					writeVariantReleaseDecRef(resultVariant);
-
-				objectDecRef(obj);
 				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NP_GET_PROPERTY -> ( result=%d, ... )", result);
@@ -1004,8 +981,8 @@ void dispatcher(int functionid, Stack &stack){
 
 				bool result = obj->_class->setProperty(obj, name, &variant);
 				freeVariantDecRef(variant);
-				writeInt32(result);
 				objectDecRef(obj);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NP_SET_PROPERTY -> result=%d", result);
 				returnCommand();
@@ -1019,8 +996,8 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NP_REMOVE_PROPERTY( obj=%p, name=%p )", obj, name);
 
 				bool result = obj->_class->removeProperty(obj, name);
-				writeInt32(result);
 				objectDecRef(obj);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NP_REMOVE_PROPERTY -> result=%d", result);
 				returnCommand();
@@ -1035,21 +1012,20 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NP_ENUMERATE( obj=%p )", obj);
 
 				bool result = obj->_class->enumerate && obj->_class->enumerate(obj, &identifierTable, &identifierCount);
+				objectDecRef(obj);
 
 				if (result){
 					writeIdentifierArray(identifierTable, identifierCount);
 					writeInt32(identifierCount);
-
-					/* Free the memory for the table */
-					if (identifierTable)
-						free(identifierTable);
 				}
-
-				objectDecRef(obj);
 				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NP_ENUMERATE -> ( result=%d, ... )", result);
 				returnCommand();
+
+				/* ASYNC */
+				if (identifierTable)
+					free(identifierTable);
 			}
 			break;
 
@@ -1124,17 +1100,15 @@ void dispatcher(int functionid, Stack &stack){
 				instanceList.insert(instance);
 
 				NPError result = pluginFuncs.newp(mimeType.get(), instance, mode, argc, argn.data(), argv.data(), savedPtr);
-
-				/* TODO: Do we have to deallocate the privata data or does NPP_DESTROY get called? */
-
-				/* Free the arrays before returning */
-				freeStringArray(argn);
-				freeStringArray(argv);
-
 				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPP_NEW -> result=%d", result);
 				returnCommand();
+
+				/* ASYNC */
+				freeStringArray(argn);
+				freeStringArray(argv);
+
 			}
 			break;
 
@@ -1167,35 +1141,31 @@ void dispatcher(int functionid, Stack &stack){
 						NPN_ReleaseObject(ndata->cache_pluginElementNPObject);
 
 					/* not necessary to free the value ndata->cache_clientWidthIdentifier */
-
-					/* Free this structure */
-					free(ndata);
-					instance->ndata = NULL;
 				}
-
-				/* remove from to the instance list */
-				instanceList.erase(instance);
-
-				handleManager_removeByPtr(HMGR_TYPE_NPPInstance, instance);
-
-				free(instance);
 
 				if (result == NPERR_NO_ERROR){
-					if (saved){
+					if (saved)
 						writeMemory((char*)saved->buf, saved->len);
-
-						if (saved->buf) free((char*)saved->buf);
-						free(saved);
-
-					}else{
+					else
 						writeMemory(NULL, 0);
-					}
 				}
-
 				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPP_DESTROY -> ( result=%d, ... )", result);
 				returnCommand();
+
+				/* ASYNC */
+				if (ndata) free(ndata);
+
+				handleManager_removeByPtr(HMGR_TYPE_NPPInstance, instance);
+				instanceList.erase(instance);
+				free(instance);
+
+				if (saved){
+					if (saved->buf) free((char*)saved->buf);
+					free(saved);
+				}
+
 			}
 			break;
 
@@ -1210,15 +1180,12 @@ void dispatcher(int functionid, Stack &stack){
 
 				if (false){ /* not used at the moment */
 					result = pluginFuncs.getvalue(instance, variable, &boolValue);
-
 				}else{
 					DBG_WARN("FUNCTION_NPP_GETVALUE_BOOL - variable %d not allowed", variable);
 					result = NPERR_GENERIC_ERROR;
 				}
-
 				if(result == NPERR_NO_ERROR)
 					writeInt32(boolValue);
-
 				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPP_GETVALUE_BOOL -> ( result=%d, ... )", result);
@@ -1237,15 +1204,12 @@ void dispatcher(int functionid, Stack &stack){
 
 				if (variable == NPPVpluginScriptableNPObject){
 					result = pluginFuncs.getvalue(instance, variable, &objectValue);
-
 				}else{
 					DBG_WARN("FUNCTION_NPP_GETVALUE_OBJECT - variable %d not allowed", variable);
 					result = NPERR_GENERIC_ERROR;
 				}
-
 				if (result == NPERR_NO_ERROR)
 					writeHandleObjDecRef(objectValue);
-
 				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPP_GETVALUE_OBJECT -> ( result=%d, ... )", result);
@@ -1350,6 +1314,14 @@ void dispatcher(int functionid, Stack &stack){
 						pluginFuncs.setwindow(instance, &ndata->window);
 					}
 
+				}else
+					DBG_ERROR("unable to allocate window because of missing ndata.");
+
+				DBG_TRACE("FUNCTION_NPP_SET_WINDOW -> void");
+				returnCommand();
+
+				/* ASYNC */
+				if (ndata){
 					/* update drawable if necessary */
 					if (ndata->hDC && ndata->lastDrawableDC){
 						x11drv_escape_set_drawable escape_set_drawable;
@@ -1363,12 +1335,8 @@ void dispatcher(int functionid, Stack &stack){
 						if (!ExtEscape(ndata->hDC, X11DRV_ESCAPE, sizeof(escape_set_drawable), (char *)&escape_set_drawable, 0, NULL))
 							DBG_ERROR("X11DRV_SET_DRAWABLE failed");
 					}
+				}
 
-				}else
-					DBG_ERROR("unable to allocate window because of missing ndata.");
-
-				DBG_TRACE("FUNCTION_NPP_SET_WINDOW -> void");
-				returnCommand();
 			}
 			break;
 
@@ -1382,13 +1350,10 @@ void dispatcher(int functionid, Stack &stack){
 
 				uint16_t stype = NP_NORMAL; /* Fix for silverlight.... */
 				NPError result = pluginFuncs.newstream(instance, type.get(), stream, seekable, &stype);
-
-				/* Return result */
 				if (result == NPERR_NO_ERROR)
 					writeInt32(stype);
 				else /* Handle is now invalid because of this error */
 					handleManager_removeByPtr(HMGR_TYPE_NPStream, stream);
-
 				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPP_NEW_STREAM -> result=%d", result);
@@ -1404,22 +1369,19 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPP_DESTROY_STREAM( instance=%p, stream=%p, reason=%d )", instance, stream, reason);
 
 				NPError result = pluginFuncs.destroystream(instance, stream, reason);
+				writeInt32(result);
 
-				/* Free data */
+				DBG_TRACE("FUNCTION_NPP_DESTROY_STREAM -> result=%d", result);
+				returnCommand();
+
+				/* ASYNC */
 				if (stream){
-
-					/* Let the handlemanager remove this one */
 					handleManager_removeByPtr(HMGR_TYPE_NPStream, stream);
-
 					if (stream->url) 		free((char*)stream->url);
 					if (stream->headers) 	free((char*)stream->headers);
 					free(stream);
 				}
 
-				writeInt32(result);
-
-				DBG_TRACE("FUNCTION_NPP_DESTROY_STREAM -> result=%d", result);
-				returnCommand();
 			}
 			break;
 
