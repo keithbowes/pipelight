@@ -1178,9 +1178,9 @@ void dispatcher(int functionid, Stack &stack){
 				PRBool boolValue;
 				NPError result;
 
-				if (false){ /* not used at the moment */
+				if (false) /* not used at the moment */
 					result = pluginFuncs.getvalue(instance, variable, &boolValue);
-				}else{
+				else{
 					DBG_WARN("FUNCTION_NPP_GETVALUE_BOOL - variable %d not allowed", variable);
 					result = NPERR_GENERIC_ERROR;
 				}
@@ -1202,9 +1202,9 @@ void dispatcher(int functionid, Stack &stack){
 				NPObject *objectValue;
 				NPError result;
 
-				if (variable == NPPVpluginScriptableNPObject){
+				if (variable == NPPVpluginScriptableNPObject)
 					result = pluginFuncs.getvalue(instance, variable, &objectValue);
-				}else{
+				else{
 					DBG_WARN("FUNCTION_NPP_GETVALUE_OBJECT - variable %d not allowed", variable);
 					result = NPERR_GENERIC_ERROR;
 				}
