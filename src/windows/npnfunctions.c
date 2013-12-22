@@ -65,8 +65,8 @@ NPError NP_LOADDS NPN_GetURL(NPP instance, const char* url, const char* window){
 	writeString(url);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_GET_URL);
-
 	NPError result = readResultInt32();
+
 	DBG_TRACE(" -> result=%d", result);
 	return result;
 }
@@ -92,7 +92,6 @@ NPError NP_LOADDS NPN_PostURL(NPP instance, const char* url, const char* window,
 		writeString(url);
 		writeHandleInstance(instance);
 		callFunction(FUNCTION_NPN_POST_URL);
-
 		result = readResultInt32();
 	}
 
@@ -115,8 +114,8 @@ NPError NP_LOADDS NPN_RequestRead(NPStream* stream, NPByteRange* rangeList){
 	writeInt32(rangeCount);
 	writeHandleStream(stream, HMGR_SHOULD_EXIST);
 	callFunction(FUNCTION_NPN_REQUEST_READ);
-
 	NPError result = readResultInt32();
+
 	DBG_TRACE(" -> result=%d", result);
 	return result;
 }
@@ -135,9 +134,7 @@ NPError NP_LOADDS NPN_NewStream(NPP instance, NPMIMEType type, const char* windo
 
 	Stack stack;
 	readCommands(stack);
-
 	NPError result = readInt32(stack);
-
 	if (result == NPERR_NO_ERROR)
 		*stream 	= readHandleStream(stack);
 
@@ -156,8 +153,8 @@ int32_t NP_LOADDS NPN_Write(NPP instance, NPStream* stream, int32_t len, void* b
 	writeHandleStream(stream, HMGR_SHOULD_EXIST);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_WRITE);
-
 	NPError result = readResultInt32();
+
 	DBG_TRACE(" -> result=%d", result);
 	return result;
 }
@@ -173,8 +170,8 @@ NPError NP_LOADDS NPN_DestroyStream(NPP instance, NPStream* stream, NPReason rea
 	writeHandleStream(stream, HMGR_SHOULD_EXIST);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_DESTROY_STREAM);
-
 	NPError result = readResultInt32();
+
 	DBG_TRACE(" -> result=%d", result);
 	return result;
 }
@@ -221,7 +218,6 @@ const char*  NP_LOADDS NPN_UserAgent(NPP instance){
 	}
 
 	std::string result = "Mozilla/5.0 (Windows NT 5.1; rv:18.0) Gecko/20100101 Firefox/18.0";
-
 	pokeString(strUserAgent, result, sizeof(strUserAgent));
 
 	DBG_TRACE(" -> str='%s'", strUserAgent);
@@ -291,8 +287,8 @@ NPError NP_LOADDS NPN_GetURLNotify(NPP instance, const  char* url, const char* t
 	writeString(url);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_GET_URL_NOTIFY);
-
 	NPError result = readResultInt32();
+
 	DBG_TRACE(" -> result=%d", result);
 	return result;
 }
@@ -319,7 +315,6 @@ NPError NP_LOADDS NPN_PostURLNotify(NPP instance, const char* url, const char* t
 		writeString(url);
 		writeHandleInstance(instance);
 		callFunction(FUNCTION_NPN_POST_URL_NOTIFY);
-
 		result = readResultInt32();
 	}
 
@@ -345,9 +340,7 @@ NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 			writeHandleInstance(instance);
 			callFunction(FUNCTION_NPN_GETVALUE_OBJECT);
 			readCommands(stack);
-
 			result = readInt32(stack);
-
 			if (result == NPERR_NO_ERROR)
 				*((NPObject**)value) 	= readHandleObjIncRef(stack);
 
@@ -358,9 +351,7 @@ NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 			writeHandleInstance(instance);
 			callFunction(FUNCTION_NPN_GETVALUE_BOOL);
 			readCommands(stack);
-
 			result = readInt32(stack);
-
 			if (result == NPERR_NO_ERROR)
 				*((NPBool*)value) 	= (NPBool)readInt32(stack);
 
@@ -371,9 +362,7 @@ NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 			writeHandleInstance(instance);
 			callFunction(FUNCTION_NPN_GETVALUE_STRING);
 			readCommands(stack);
-
 			result = readInt32(stack);
-
 			if (result == NPERR_NO_ERROR)
 				*((char**)value) 	= readStringMalloc(stack);
 
@@ -386,14 +375,9 @@ NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 					if (ndata->hWnd){
 						result = NPERR_NO_ERROR;
 						*((HWND*)value) = ndata->hWnd;
-					}else if (ndata->hDC){
+					}else if (ndata->hDC)
 						NOTIMPLEMENTED("NPNVnetscapeWindow not implemented for linuxWindowlessMode");
-						result = NPERR_GENERIC_ERROR;
-					}else
-						result = NPERR_GENERIC_ERROR;
-				}else
-					result = NPERR_GENERIC_ERROR;
-					
+				}
 			}
 			break;
 
@@ -426,7 +410,6 @@ NPError NP_LOADDS NPN_SetValue(NPP instance, NPPVariable variable, void *value){
 			{
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
 				if (ndata){
-
 					/* Update windowless mode */
 					ndata->windowlessMode 	= ( value == NULL );
 					result 					= NPERR_NO_ERROR;
@@ -435,7 +418,6 @@ NPError NP_LOADDS NPN_SetValue(NPP instance, NPPVariable variable, void *value){
 
 					/* Update existing plugin window */
 					if (ndata->hWnd){
-
 						if (ndata->window.type == NPWindowTypeDrawable)
 							ReleaseDC(ndata->hWnd, (HDC)ndata->window.window);
 
@@ -456,7 +438,6 @@ NPError NP_LOADDS NPN_SetValue(NPP instance, NPPVariable variable, void *value){
 		default:
 			NOTIMPLEMENTED("( variable=%d )", variable);
 			break;
-
 	}
 
 	DBG_TRACE(" -> result=%d", result);
@@ -564,7 +545,6 @@ NPIdentifier NP_LOADDS NPN_GetStringIdentifier(const NPUTF8* name){
 
 	Stack stack;
 	readCommands(stack);
-
 	NPIdentifier identifier = readHandleIdentifier(stack);
 
 	DBG_TRACE(" -> identifier=%p", identifier);
@@ -593,7 +573,6 @@ NPIdentifier NP_LOADDS NPN_GetIntIdentifier(int32_t intid){
 
 	Stack stack;
 	readCommands(stack);
-
 	NPIdentifier identifier = readHandleIdentifier(stack);
 
 	DBG_TRACE(" -> identifier=%p", identifier);
@@ -607,7 +586,6 @@ bool NP_LOADDS NPN_IdentifierIsString(NPIdentifier identifier){
 
 	writeHandleIdentifier(identifier);
 	callFunction(FUNCTION_NPN_IDENTIFIER_IS_STRING);
-
 	bool result = (bool)readResultInt32();
 
 	DBG_TRACE(" -> result=%d", result);
@@ -625,9 +603,7 @@ NPUTF8* NP_LOADDS NPN_UTF8FromIdentifier(NPIdentifier identifier){
 
 	Stack stack;
 	readCommands(stack);
-
-	/* The plugin is responsible for freeing this with NPN_MemFree() when done */
-	NPUTF8 *str = readStringMalloc(stack);
+	NPUTF8 *str = readStringMalloc(stack); /* plugin will free this with NPN_MemFree() */
 
 	DBG_TRACE(" -> str='%s'", str);
 	return str;
@@ -640,7 +616,6 @@ int32_t NP_LOADDS NPN_IntFromIdentifier(NPIdentifier identifier){
 
 	writeHandleIdentifier(identifier);
 	callFunction(FUNCTION_NPN_INT_FROM_IDENTIFIER);
-
 	int32_t result = readResultInt32();
 
 	DBG_TRACE(" -> result=%d", result);
@@ -660,11 +635,6 @@ NPObject* NP_LOADDS NPN_CreateObject(NPP instance, NPClass *aClass){
 
 	Stack stack;
 	readCommands(stack);
-
-	/*
-		When we get a object handle back, then allocate a local corresponding object
-		and initialize the refcounter to 1 before returning it.
-	*/
 	NPObject* result = readHandleObjIncRef(stack, instance, aClass);
 
 	DBG_TRACE(" -> obj=%p", result);
@@ -739,12 +709,10 @@ bool NP_LOADDS NPN_Invoke(NPP instance, NPObject* obj, NPIdentifier methodName, 
 
 	Stack stack;
 	readCommands(stack);
-
 	bool resultBool = readInt32(stack);
-
-	if (resultBool){
-		readVariantIncRef(stack, *result); /* Refcount already incremented by invoke() */
-	}else{
+	if (resultBool)
+		readVariantIncRef(stack, *result);
+	else{
 		result->type 				= NPVariantType_Void;
 		result->value.objectValue 	= NULL;
 	}
@@ -768,12 +736,10 @@ bool NP_LOADDS NPN_InvokeDefault(NPP instance, NPObject* obj, const NPVariant *a
 
 	Stack stack;
 	readCommands(stack);
-
 	bool resultBool = readInt32(stack);
-
-	if (resultBool){
-		readVariantIncRef(stack, *result); /* Refcount already incremented by invoke() */
-	}else{
+	if (resultBool)
+		readVariantIncRef(stack, *result);
+	else{
 		result->type 				= NPVariantType_Void;
 		result->value.objectValue 	= NULL;
 	}
@@ -796,12 +762,10 @@ bool NP_LOADDS NPN_Evaluate(NPP instance, NPObject *obj, NPString *script, NPVar
 
 	Stack stack;
 	readCommands(stack);
-
 	bool resultBool = readInt32(stack);
-
-	if (resultBool){
-		readVariantIncRef(stack, *result); /* Refcount already incremented by evaluate() */
-	}else{
+	if (resultBool)
+		readVariantIncRef(stack, *result);
+	else{
 		result->type 				= NPVariantType_Void;
 		result->value.objectValue 	= NULL;
 	}
@@ -841,12 +805,10 @@ bool NP_LOADDS NPN_GetProperty(NPP instance, NPObject *obj, NPIdentifier propert
 
 	Stack stack;
 	readCommands(stack);
-
 	bool resultBool = readInt32(stack);
-
-	if (resultBool){
-		readVariantIncRef(stack, *result); /* Refcount already incremented by getProperty() */
-	}else{
+	if (resultBool)
+		readVariantIncRef(stack, *result);
+	else{
 		result->type 				= NPVariantType_Void;
 		result->value.objectValue 	= NULL;
 	}
@@ -867,7 +829,6 @@ bool NP_LOADDS NPN_SetProperty(NPP instance, NPObject *obj, NPIdentifier propert
 	writeHandleObj(obj);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_SET_PROPERTY);
-
 	bool result = (bool)readResultInt32();
 
 	DBG_TRACE(" -> result=%d", result);
@@ -885,7 +846,6 @@ bool NP_LOADDS NPN_RemoveProperty(NPP instance, NPObject *obj, NPIdentifier prop
 	writeHandleObj(obj);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_REMOVE_PROPERTY);
-
 	bool result = (bool)readResultInt32();
 
 	DBG_TRACE(" -> result=%d", result);
@@ -903,7 +863,6 @@ bool NP_LOADDS NPN_HasProperty(NPP instance, NPObject *obj, NPIdentifier propert
 	writeHandleObj(obj);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_HAS_PROPERTY);
-
 	bool result = (bool)readResultInt32();
 
 	DBG_TRACE(" -> result=%d", result);
@@ -921,7 +880,6 @@ bool NP_LOADDS NPN_HasMethod(NPP instance, NPObject *obj, NPIdentifier propertyN
 	writeHandleObj(obj);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_HAS_METHOD);
-
 	bool result = (bool)readResultInt32();
 
 	DBG_TRACE(" -> result=%d", result);
@@ -1021,10 +979,8 @@ bool NP_LOADDS NPN_Enumerate(NPP instance, NPObject *obj, NPIdentifier **identif
 
 	Stack stack;
 	readCommands(stack);
-
 	bool result = (bool)readInt32(stack);
 	if (result){
-
 		uint32_t identifierCount = readInt32(stack);
 		if (identifierCount == 0){
 			*identifier = NULL;
@@ -1036,13 +992,11 @@ bool NP_LOADDS NPN_Enumerate(NPP instance, NPObject *obj, NPIdentifier **identif
 
 			if (identifierTable){
 				memcpy(identifierTable, identifiers.data(), sizeof(NPIdentifier) * identifierCount);
-
 				*identifier = identifierTable;
 				*count 		= identifierCount;
 
 			}else
 				result = false;
-
 		}
 	}
 

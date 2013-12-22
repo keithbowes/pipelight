@@ -166,10 +166,8 @@ NP_EXPORT(/*const*/ char*) NP_GetPluginVersion(){
 		callFunction(FUNCTION_GET_VERSION);
 		std::string result = readResultString();
 		pokeString(strPluginVersion, result, sizeof(strPluginVersion));
-
-	}else{
+	}else
 		pokeString(strPluginVersion, "0.0", sizeof(strPluginVersion));
-	}
 
 	DBG_TRACE(" -> version='%s'", strPluginVersion);
 	return strPluginVersion;
@@ -442,23 +440,21 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	/* argv */
 	for (int i = argc - 1; i >= 0; i--){
 		std::string key(argn[i]);
-		it = config.overwriteArgs.find(key);
-		if (it == config.overwriteArgs.end()){
-			realArgCount++;
+		if (config.overwriteArgs.find(key) == config.overwriteArgs.end()){
 			writeString(argv[i]);
+			realArgCount++;
 		}
 	}
 
 	for (it = config.overwriteArgs.begin(); it != config.overwriteArgs.end(); it++){
-		realArgCount++;
 		writeString(it->second);
+		realArgCount++;
 	}
 
 	/* argn */
 	for (int i = argc - 1; i >= 0; i--){
 		std::string key(argn[i]);
-		it = config.overwriteArgs.find(key);
-		if (it == config.overwriteArgs.end())
+		if (config.overwriteArgs.find(key) == config.overwriteArgs.end())
 			writeString(argn[i]);
 	}
 
@@ -470,7 +466,6 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	writeHandleInstance(instance);
 	writeString(mimeType);
 	callFunction(FUNCTION_NPP_NEW);
-
 	NPError result = readResultInt32();
 
 	/* The plugin is responsible for freeing *saved. The other side has its own copy of this memory. */
@@ -513,7 +508,6 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 	}
 
 	bool unscheduleCurrentTimer = (eventTimerInstance && eventTimerInstance == instance);
-
 	if (unscheduleCurrentTimer){
 		if (config.eventAsyncCall){
 			if (eventThread){
@@ -536,16 +530,11 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 	callFunction(FUNCTION_NPP_DESTROY);
 
 	Stack stack;
-
-	/* wait maximum 5sec for result */
-	if (!readCommands(stack, true, 5000)){
-		DBG_ERROR("plugin did not deinitialize properly, killing it!");
-
-		/* Kill the wine process (if it still exists) ... */
+	if (!readCommands(stack, true, 5000)){ /* wait maximum 5sec for result */
 		int status;
+		DBG_ERROR("plugin did not deinitialize properly, killing it!");
 		if (winePid > 0 && !waitpid(winePid, &status, WNOHANG))
 			kill(winePid, SIGTERM);
-
 		DBG_ABORT("terminating.");
 	}
 
@@ -561,17 +550,12 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 		if (save){
 			size_t save_length;
 			char *save_data = readMemoryBrowserAlloc(stack, save_length);
-
 			if (save_data){
-
-				/* plugin returned data, we still have to put it in a structure in order to return it */
-				*save = (NPSavedData*) sBrowserFuncs->memalloc(sizeof(NPSavedData));
-				if (*save){
+				if ((*save = (NPSavedData *)sBrowserFuncs->memalloc(sizeof(NPSavedData)))){
 					(*save)->buf = save_data;
 					(*save)->len = save_length;
 				}else
 					sBrowserFuncs->memfree(save_data);
-
 			}
 
 		}else /* skip the saved data */
@@ -588,7 +572,6 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 				/* start again requesting async calls */
 				eventTimerInstance = nextInstance;
 				sem_post(&eventThreadSemRequestAsyncCall);
-
 				/* if nextInstance == 0 then the thread will terminate itself as soon as it recognizes that eventTimerInstace == NULL */
 				if (nextInstance == 0)
 					eventThread = 0;
@@ -649,13 +632,11 @@ NPError NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool se
 
 	Stack stack;
 	readCommands(stack);
-
 	NPError result 	= readInt32(stack);
 
-	if (result == NPERR_NO_ERROR){
-		*stype 			= (uint16_t)readInt32(stack);
-
-	}else /* handle is now invalid because of this error, we get another request using our notifyData */
+	if (result == NPERR_NO_ERROR)
+		*stype = (uint16_t)readInt32(stack);
+	else /* handle is now invalid because of this error, we get another request using our notifyData */
 		handleManager_removeByPtr(HMGR_TYPE_NPStream, stream);
 
 	DBG_TRACE(" -> result=%d", result);
@@ -676,7 +657,6 @@ NPError NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
 	writeHandleStream(stream, HMGR_SHOULD_EXIST);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_DESTROY_STREAM);
-
 	NPError result = readResultInt32();
 
 	/* remove the handle by the corresponding stream real object */
@@ -700,13 +680,11 @@ int32_t NPP_WriteReady(NPP instance, NPStream* stream) {
 		writeHandleStream(stream, HMGR_SHOULD_EXIST);
 		writeHandleInstance(instance);
 		callFunction(FUNCTION_NPP_WRITE_READY);
-
 		result = readResultInt32();
 
 		/* ensure that the program doesn't want too much data at once - this might cause communication errors */
 		if (result > 0xFFFFFF)
 			result = 0xFFFFFF;
-
 	}
 
 	DBG_TRACE(" -> result=%d", result);
@@ -717,10 +695,10 @@ int32_t NPP_WriteReady(NPP instance, NPStream* stream) {
 int32_t NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, void* buffer) {
 	DBG_TRACE("( instance=%p, stream=%p, offset=%d, len=%d, buffer=%p )", instance, stream, offset, len, buffer);
 
-	if (!handleManager_existsByPtr(HMGR_TYPE_NPStream, stream)){
+	if (!handleManager_existsByPtr(HMGR_TYPE_NPStream, stream))
 		DBG_TRACE("Chrome use-after-free bug!");
 
-	}else{
+	else{
 		writeMemory((char*)buffer, len);
 		writeInt32(offset);
 		writeHandleStream(stream, HMGR_SHOULD_EXIST);
@@ -861,8 +839,6 @@ void NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyD
 
 		/* decrement refcount */
 		if (--myNotifyData->referenceCount == 0){
-
-			/* free everything */
 			writeHandleNotify(myNotifyData);
 		#ifdef PIPELIGHT_SYNC
 			callFunction(WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA);
@@ -906,11 +882,9 @@ NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 			writeHandleInstance(instance);
 			callFunction(FUNCTION_NPP_GETVALUE_BOOL);
 			readCommands(stack);
-
 			result = (NPError)readInt32(stack);
-
 			if(result == NPERR_NO_ERROR)
-				*((PRBool *)value) 		= (PRBool)readInt32(stack);
+				*((PRBool *)value) = (PRBool)readInt32(stack);
 			break;*/
 
 		/* Object return value */
@@ -919,11 +893,9 @@ NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 			writeHandleInstance(instance);
 			callFunction(FUNCTION_NPP_GETVALUE_OBJECT);
 			readCommands(stack);
-
-			result 						= readInt32(stack);
-
+			result = readInt32(stack);
 			if (result == NPERR_NO_ERROR)
-				*((NPObject**)value) 	= readHandleObj(stack);
+				*((NPObject**)value) = readHandleObj(stack);
 			break;
 
 		default:
