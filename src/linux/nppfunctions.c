@@ -264,7 +264,9 @@ NP_EXPORT(NPError) NP_Shutdown() {
 
 inline void timerFunc(NPP __instance, uint32_t __timerID){
 	/* Update the window */
+#if 0
 	writeInt64( handleManager_count() );
+#endif
 	callFunction(PROCESS_WINDOW_EVENTS);
 
 	Stack stack;

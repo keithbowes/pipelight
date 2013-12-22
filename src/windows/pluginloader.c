@@ -675,8 +675,10 @@ void dispatcher(int functionid, Stack &stack){
 
 		case PROCESS_WINDOW_EVENTS:
 			{
+			#if 0
 				uint64_t remoteHandleCount = readInt64(stack);
 				DBG_ASSERT(remoteHandleCount == handleManager_count(), "remote handle count doesn't match local one.");
+			#endif
 				MSG msg;
 				/* DBG_TRACE("PROCESS_WINDOW_EVENTS()"); */
 
