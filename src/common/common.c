@@ -887,8 +887,12 @@ void objectDecRef(NPObject *obj, bool deleteFromRemoteHandleManager){
 
 		if (deleteFromRemoteHandleManager){
 			writeHandleObj(obj, HMGR_SHOULD_EXIST);
+		#ifdef PIPELIGHT_SYNC
 			callFunction(LIN_HANDLE_MANAGER_FREE_OBJECT);
 			readResultVoid();
+		#else
+			callFunction(LIN_HANDLE_MANAGER_FREE_OBJECT_ASYNC);
+		#endif
 		}
 
 		handleManager_removeByPtr(HMGR_TYPE_NPObject, (void*)obj);

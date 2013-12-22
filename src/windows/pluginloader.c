@@ -641,6 +641,14 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
+		case WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA_ASYNC:
+			{
+				void *notifyData = readHandleNotify(stack, HMGR_SHOULD_EXIST);
+				DBG_TRACE("WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA( notifyData=%p ) -> void", notifyData);
+				handleManager_removeByPtr(HMGR_TYPE_NotifyData, notifyData);
+			}
+			break;
+
 		case WIN_HANDLE_MANAGER_FREE_OBJECT:
 			{
 				NPObject 	*obj = readHandleObjIncRef(stack, NULL, 0, HMGR_SHOULD_EXIST);

@@ -623,6 +623,14 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
+		case LIN_HANDLE_MANAGER_FREE_OBJECT_ASYNC:
+			{
+				NPObject* obj 		= readHandleObj(stack);
+				DBG_TRACE("LIN_HANDLE_MANAGER_FREE_OBJECT_ASYNC( obj=%p ) -> void", obj);
+				handleManager_removeByPtr(HMGR_TYPE_NPObject, obj);
+			}
+			break;
+
 		case GET_WINDOW_RECT:
 			{
 				Window win 				= (Window)readInt32(stack);
@@ -801,6 +809,21 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
+		case FUNCTION_NPN_RELEASEOBJECT_ASYNC:
+			{
+				NPObject* obj 				= readHandleObj(stack);
+				uint32_t minReferenceCount 	= readInt32(stack);
+				DBG_TRACE("FUNCTION_NPN_RELEASEOBJECT_ASYNC( obj=%p, minReferenceCount=%d ) -> void", obj, minReferenceCount);
+
+				DBG_ASSERT( minReferenceCount == REFCOUNT_UNDEFINED || minReferenceCount <= obj->referenceCount,
+					"object referenceCount smaller than expected?");
+				if (obj->referenceCount == 1 && handleManager_existsByPtr(HMGR_TYPE_NPObject, obj))
+					DBG_ASSERT((minReferenceCount == REFCOUNT_UNDEFINED), "forgot to set killObject?");
+
+				sBrowserFuncs->releaseobject(obj);
+			}
+			break;
+
 		case FUNCTION_NPN_RETAINOBJECT:
 			{
 				NPObject* obj 				= readHandleObj(stack);
@@ -809,7 +832,7 @@ void dispatcher(int functionid, Stack &stack){
 
 				sBrowserFuncs->retainobject(obj);
 
-				DBG_ASSERT( minReferenceCount == REFCOUNT_UNDEFINED || minReferenceCount <= obj->referenceCount, \
+				DBG_ASSERT( minReferenceCount == REFCOUNT_UNDEFINED || minReferenceCount <= obj->referenceCount,
 					"object referenceCount smaller than expected?");
 
 				DBG_TRACE("FUNCTION_NPN_RETAINOBJECT -> void");
@@ -817,6 +840,18 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
+		case FUNCTION_NPN_RETAINOBJECT_ASYNC:
+			{
+				NPObject* obj 				= readHandleObj(stack);
+				uint32_t minReferenceCount 	= readInt32(stack);
+				DBG_TRACE("FUNCTION_NPN_RETAINOBJECT_ASYNC( obj=%p, minReferenceCount=%d ) -> void", obj, minReferenceCount);
+
+				sBrowserFuncs->retainobject(obj);
+
+				DBG_ASSERT( minReferenceCount == REFCOUNT_UNDEFINED || minReferenceCount <= obj->referenceCount,
+					"object referenceCount smaller than expected?");
+			}
+			break;
 
 		case FUNCTION_NPN_EVALUATE:
 			{
@@ -1007,6 +1042,15 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
+		case FUNCTION_NPN_SET_EXCEPTION_ASYNC:
+			{
+				NPObject* obj 					= readHandleObj(stack);
+				std::shared_ptr<char> message 	= readStringAsMemory(stack);
+				DBG_TRACE("FUNCTION_NPN_SET_EXCEPTION_ASYNC( instance=%p, obj=%p ) -> void", obj, message.get());
+				sBrowserFuncs->setexception(obj, message.get());
+			}
+			break;
+
 		case FUNCTION_NPN_GET_URL_NOTIFY:
 			{
 				NPP instance 					= readHandleInstance(stack);
@@ -1175,6 +1219,15 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
+		case FUNCTION_NPN_STATUS_ASYNC:
+			{
+				NPP instance 					= readHandleInstance(stack);
+				std::shared_ptr<char> message	= readStringAsMemory(stack);
+				DBG_TRACE("FUNCTION_NPN_STATUS_ASYNC( instance=%p, message='%s' ) -> void", instance, message.get() );
+				sBrowserFuncs->status(instance, message.get());
+			}
+			break;
+
 		case FUNCTION_NPN_USERAGENT:
 			{
 				NPP instance 					= readHandleInstance(stack);
@@ -1269,6 +1322,15 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
+		case FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE_ASYNC:
+			{
+				NPP instance 					= readHandleInstance(stack);
+				bool enabled 					= (bool)readInt32(stack);
+				DBG_TRACE("FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE_ASYNC( instance=%p, enabled=%d ) -> void", instance, enabled );
+				sBrowserFuncs->pushpopupsenabledstate(instance, enabled);
+			}
+			break;
+
 		case FUNCTION_NPN_POP_POPUPS_ENABLED_STATE:
 			{
 				NPP instance 					= readHandleInstance(stack);
@@ -1277,6 +1339,14 @@ void dispatcher(int functionid, Stack &stack){
 				returnCommand();
 
 				/* ASYNC */
+				sBrowserFuncs->poppopupsenabledstate(instance);
+			}
+			break;
+
+		case FUNCTION_NPN_POP_POPUPS_ENABLED_STATE_ASYNC:
+			{
+				NPP instance 					= readHandleInstance(stack);
+				DBG_TRACE("FUNCTION_NPN_POP_POPUPS_ENABLED_STATE_ASYNC( instance=%p ) -> void", instance );
 				sBrowserFuncs->poppopupsenabledstate(instance);
 			}
 			break;

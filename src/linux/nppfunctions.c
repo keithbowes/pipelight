@@ -862,8 +862,12 @@ void NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyD
 
 			/* free everything */
 			writeHandleNotify(myNotifyData);
+		#ifdef PIPELIGHT_SYNC
 			callFunction(WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA);
 			readResultVoid();
+		#else
+			callFunction(WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA_ASYNC);
+		#endif
 
 			handleManager_removeByPtr(HMGR_TYPE_NotifyData, myNotifyData);
 

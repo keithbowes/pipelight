@@ -188,8 +188,12 @@ void NP_LOADDS NPN_Status(NPP instance, const char* message){
 
 	writeString(message);
 	writeHandleInstance(instance);
+#ifdef PIPELIGHT_SYNC
 	callFunction(FUNCTION_NPN_STATUS);
 	readResultVoid();
+#else
+	callFunction(FUNCTION_NPN_STATUS_ASYNC);
+#endif
 
 	DBG_TRACE(" -> void");
 }
@@ -679,8 +683,12 @@ NPObject* NP_LOADDS NPN_RetainObject(NPObject *obj){
 
 		writeInt32(obj->referenceCount);
 		writeHandleObj(obj, HMGR_SHOULD_EXIST);
+	#ifdef PIPELIGHT_SYNC
 		callFunction(FUNCTION_NPN_RETAINOBJECT);
 		readResultVoid();
+	#else
+		callFunction(FUNCTION_NPN_RETAINOBJECT_ASYNC);
+	#endif
 	}
 
 	DBG_TRACE(" -> obj=%p", obj);
@@ -693,10 +701,23 @@ void NP_LOADDS NPN_ReleaseObject(NPObject *obj){
 	DBG_CHECKTHREAD();
 
 	if (obj){
-		writeInt32(obj->referenceCount);
-		writeHandleObjDecRef(obj, HMGR_SHOULD_EXIST);
-		callFunction(FUNCTION_NPN_RELEASEOBJECT);
-		readResultVoid();
+	#ifndef PIPELIGHT_SYNC
+		/* even without PIPELIGHT_SYNC we need a synchronized call in some cases (when a callback might happen) */
+		if (obj->referenceCount == REFCOUNT_UNDEFINED || obj->referenceCount == 1){
+	#endif
+
+			writeInt32(obj->referenceCount);
+			writeHandleObjDecRef(obj, HMGR_SHOULD_EXIST);
+			callFunction(FUNCTION_NPN_RELEASEOBJECT);
+			readResultVoid();
+
+	#ifndef PIPELIGHT_SYNC
+		}else{
+			writeInt32(obj->referenceCount);
+			writeHandleObjDecRef(obj, HMGR_SHOULD_EXIST);
+			callFunction(FUNCTION_NPN_RELEASEOBJECT_ASYNC);
+		}
+	#endif
 	}
 
 	DBG_TRACE(" -> void");
@@ -940,8 +961,12 @@ void NP_LOADDS NPN_SetException(NPObject *obj, const NPUTF8 *message){
 
 	writeString(message);
 	writeHandleObj(obj);
+#ifdef PIPELIGHT_SYNC
 	callFunction(FUNCTION_NPN_SET_EXCEPTION);
 	readResultVoid();
+#else
+	callFunction(FUNCTION_NPN_SET_EXCEPTION_ASYNC);
+#endif
 
 	DBG_TRACE(" -> void");
 }
@@ -955,8 +980,12 @@ void NP_LOADDS NPN_PushPopupsEnabledState(NPP instance, NPBool enabled){
 
 	writeInt32(enabled);
 	writeHandleInstance(instance);
+#ifdef PIPELIGHT_SYNC
 	callFunction(FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE);
 	readResultVoid();
+#else
+	callFunction(FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE_ASYNC);
+#endif
 
 	DBG_TRACE(" -> void");
 }
@@ -969,8 +998,12 @@ void NP_LOADDS NPN_PopPopupsEnabledState(NPP instance){
 	shockwaveInstanceWorkaround();
 
 	writeHandleInstance(instance);
+#ifdef PIPELIGHT_SYNC
 	callFunction(FUNCTION_NPN_POP_POPUPS_ENABLED_STATE);
 	readResultVoid();
+#else
+	callFunction(FUNCTION_NPN_POP_POPUPS_ENABLED_STATE_ASYNC);
+#endif
 
 	DBG_TRACE(" -> void");
 }
