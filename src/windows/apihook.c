@@ -70,7 +70,7 @@ void* patchDLLExport(PVOID ModuleBase, const char* functionName, void* newFuncti
 	for (i = 0; i < max_name; i++)
 	{
 		ULONG ord = ordinals[i];
-		if (i >= max_name || ord >= max_func)
+		if (ord >= max_func)
 			break;
 
 		if (strcmp( (PCHAR) ModuleBase + names[i], functionName ) == 0){
@@ -79,13 +79,12 @@ void* patchDLLExport(PVOID ModuleBase, const char* functionName, void* newFuncti
 
 			DBG_INFO("replaced API function %s.", functionName);
 
-			void* oldFunctionPtr = (PVOID)((PCHAR) ModuleBase + functions[ord]);
+			void *oldFunctionPtr = (PVOID)((PCHAR) ModuleBase + functions[ord]);
 			functions[ord] = (ULONG)newFunctionPtr - (ULONG)ModuleBase;
 
 			VirtualProtect(&functions[ord], sizeof(ULONG), oldProtect, &oldProtect);
 			return oldFunctionPtr;
 		}
-
 	}
 
 	return NULL;
@@ -283,7 +282,7 @@ BOOL WINAPI myTrackPopupMenu(HMENU hMenu, UINT uFlags, int x, int y, int nReserv
 		return originalTrackPopupMenu(hMenu, uFlags, x, y, nReserved, hWnd, prcRect);
 
 	/* Find the specific instance */
-	std::map<HWND, NPP>::iterator it;
+	std::map<HWND, NPP>::iterator it = hwndToInstance.end();
 	HWND instancehWnd = hWnd;
 
 	while (instancehWnd && instancehWnd != GetDesktopWindow()){

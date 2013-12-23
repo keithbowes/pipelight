@@ -759,10 +759,10 @@ int16_t NPP_HandleEvent(NPP instance, void* event) {
 				unsigned int state = xevent->xmotion.state;
 
 				if (state & Button1Mask) wParam |= 0x0001;
-				if (state & Button2Mask) wParam |= 0x0002;
+				if (state & Button3Mask) wParam |= 0x0002;
 				if (state & ShiftMask)   wParam |= 0x0004;
 				if (state & ControlMask) wParam |= 0x0008;
-				if (state & Button3Mask) wParam |= 0x0010;
+				if (state & Button2Mask) wParam |= 0x0010;
 
 				writePointXY(xevent->xmotion.x, xevent->xmotion.y);
 				writeInt32(wParam);
@@ -776,8 +776,8 @@ int16_t NPP_HandleEvent(NPP instance, void* event) {
 
 				switch (xevent->xbutton.button){
 					case Button1: button = 1; break;
-					case Button2: button = 2; break;
-					case Button3: button = 3; break;
+					case Button3: button = 2; break;
+					case Button2: button = 3; break;
 					default: break;
 				}
 
@@ -789,10 +789,10 @@ int16_t NPP_HandleEvent(NPP instance, void* event) {
 						button |= 0x10000;
 
 					if (state & Button1Mask) wParam |= 0x0001;
-					if (state & Button2Mask) wParam |= 0x0002;
+					if (state & Button3Mask) wParam |= 0x0002;
 					if (state & ShiftMask)   wParam |= 0x0004;
 					if (state & ControlMask) wParam |= 0x0008;
-					if (state & Button3Mask) wParam |= 0x0010;
+					if (state & Button2Mask) wParam |= 0x0010;
 
 					writePointXY(xevent->xbutton.x, xevent->xbutton.y);
 					writeInt32(wParam);
