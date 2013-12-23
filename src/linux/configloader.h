@@ -76,6 +76,7 @@ struct PluginConfig{
 	std::string 	gccRuntimeDLLs;
 
 	bool 			windowlessMode;
+	bool			linuxWindowlessMode;
 	bool			embed;
 	std::string 	fakeVersion;
 	std::map<std::string, std::string, stringInsensitiveCompare> overwriteArgs;
@@ -94,7 +95,6 @@ struct PluginConfig{
 	bool 			experimental_unityHacks;
 	bool 			experimental_windowClassHook;
 	bool 			experimental_renderTopLevelWindow;
-	bool			experimental_linuxWindowlessMode;
 };
 
 extern bool loadConfig(PluginConfig &config);

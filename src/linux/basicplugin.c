@@ -530,7 +530,7 @@ bool startWineProcess(){
 		if (config.experimental_renderTopLevelWindow)
 			argv.push_back( "--rendertoplevelwindow" );
 
-		if (config.experimental_linuxWindowlessMode)
+		if (config.linuxWindowlessMode)
 			argv.push_back( "--linuxwindowless" );
 
 		argv.push_back(NULL);

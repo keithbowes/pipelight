@@ -82,6 +82,7 @@ regKey              = @adobe.com/FlashPlayer
 # Examples:
 # overwriteArg      = quality=best
 # overwriteArg      = wmode=direct
+# overwriteArg      = wmode=opaque
 #
 
 #

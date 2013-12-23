@@ -270,7 +270,7 @@ inline void timerFunc(NPP __instance, uint32_t __timerID){
 	Stack stack;
 	readCommands(stack);
 
-	if (!config.experimental_linuxWindowlessMode)
+	if (!config.linuxWindowlessMode)
 		return;
 
 	uint32_t invalidateCount = readInt32(stack);
@@ -475,7 +475,7 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 		saved->len = 0;
 	}
 
-	if (config.experimental_linuxWindowlessMode)
+	if (config.linuxWindowlessMode)
 		sBrowserFuncs->setvalue(instance, NPPVpluginWindowBool, NULL);
 
 	/* Begin scheduling events */
@@ -738,7 +738,7 @@ int16_t NPP_HandleEvent(NPP instance, void* event) {
 
 	int16_t res = kNPEventNotHandled;
 
-	if (config.experimental_linuxWindowlessMode && event){
+	if (config.linuxWindowlessMode && event){
 		XEvent *xevent   = (XEvent *)event;
 		/* Display *display = xevent->xany.display; */
 
@@ -867,7 +867,7 @@ NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 
 		case NPPVpluginNeedsXEmbed:
 			result 						= NPERR_NO_ERROR;
-			*((PRBool *)value) 			= config.experimental_linuxWindowlessMode ? PR_FALSE : PR_TRUE;
+			*((PRBool *)value) 			= config.linuxWindowlessMode ? PR_FALSE : PR_TRUE;
 			break;
 
 		/* Requested by Midori, but unknown if Silverlight supports this variable */
