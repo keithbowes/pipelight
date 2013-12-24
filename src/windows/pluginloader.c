@@ -158,6 +158,21 @@ std::string getWineVersion(){
 	return std::string(wine_version);
 }
 
+/* drawDebugRect */
+void drawDebugRect(HDC hDC, RECT *rect){
+	HGDIOBJ restoreObject 		= SelectObject(hDC, GetStockObject(DC_PEN));
+	COLORREF restoreDCPenColor 	= SetDCPenColor(hDC, RGB(255, 0, 0));
+
+	MoveToEx(hDC, rect->left, rect->top, NULL);
+	LineTo(hDC, rect->right - 1, rect->top);
+	LineTo(hDC, rect->right - 1, rect->bottom - 1);
+	LineTo(hDC, rect->left, rect->bottom - 1);
+	LineTo(hDC, rect->left, rect->top);
+
+	SetDCPenColor(hDC, restoreDCPenColor);
+	SelectObject(hDC, restoreObject);
+}
+
 /* wndProcedure */
 LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam){
 
@@ -185,6 +200,10 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 							event.wParam 	= (uintptr_t)hDC;
 							event.lParam 	= (uintptr_t)&paint.rcPaint;
 							pluginFuncs.event(instance, &event);
+
+							#ifdef PIPELIGHT_DBGRECT
+							drawDebugRect(hDC, &paint.rcPaint);
+							#endif
 
 							ndata->window.window = previousDC;
 							EndPaint(hWnd, &paint);
@@ -758,6 +777,10 @@ void dispatcher(int functionid, Stack &stack){
 						event.wParam 	= (uintptr_t)ndata->hDC;
 						event.lParam 	= (uintptr_t)&rect;
 						pluginFuncs.event(instance, &event);
+
+						#ifdef PIPELIGHT_DBGRECT
+						drawDebugRect(ndata->hDC, &rect);
+						#endif
 
 						x11drv_escape escape_flush;
 						escape_flush.code = X11DRV_FLUSH_GDI_DISPLAY;
