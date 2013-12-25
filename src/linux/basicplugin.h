@@ -101,8 +101,6 @@ bool NPConstructFunction(NPObject *npobj, const NPVariant *args, uint32_t argCou
 NPObject * NPAllocateFunction(NPP npp, NPClass *aClass);
 void NPDeallocateFunction(NPObject *npobj);
 
-/* public */
-
 /* XEMBED messages */
 #define XEMBED_EMBEDDED_NOTIFY			0
 #define XEMBED_WINDOW_ACTIVATE  		1
@@ -126,6 +124,7 @@ void NPDeallocateFunction(NPObject *npobj);
 
 #define XEMBED_MAPPED 					(1 << 0)
 
+/* public */
 struct PluginData{
 	bool			pipelightError;
 	int				containerType;

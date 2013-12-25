@@ -155,9 +155,25 @@ NPError NP_LOADDS NPN_InitAsyncSurface(NPP instance, NPSize *size, NPImageFormat
 NPError NP_LOADDS NPN_FinalizeAsyncSurface(NPP instance, NPAsyncSurface *surface);
 void NP_LOADDS NPN_SetCurrentAsyncSurface(NPP instance, NPAsyncSurface *surface, NPRect *changed);
 
-/* public */
+/* libX11 definitions */
 typedef unsigned long int XID;
 
+#define ShiftMask	(1<<0)
+#define LockMask	(1<<1)
+#define ControlMask	(1<<2)
+#define Button1Mask	(1<<8)
+#define Button2Mask	(1<<9)
+#define Button3Mask	(1<<10)
+#define Button4Mask	(1<<11)
+#define Button5Mask	(1<<12)
+
+#define Button1	1
+#define Button2	2
+#define Button3	3
+#define Button4	4
+#define Button5	5
+
+/* public */
 struct NetscapeData{
 	bool		windowlessMode;
 	bool		embeddedMode;
@@ -166,6 +182,7 @@ struct NetscapeData{
 	NPIdentifier 	cache_clientWidthIdentifier;
 
 	RECT 		browser;
+	NPWindow 	window;
 
 	/* regular mode */
 	HWND 		hWnd;
@@ -173,11 +190,9 @@ struct NetscapeData{
 	/* linux windowless mode */
 	HDC 		hDC;
 	XID			lastDrawableDC;
-
-	NPWindow 	window;
-
 	int 		invalidate;
 	NPRect 		invalidateRect;
+	unsigned char keystate[256];
 };
 
 extern void changeEmbeddedMode(bool newEmbed);

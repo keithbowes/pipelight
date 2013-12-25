@@ -745,7 +745,6 @@ int16_t NPP_HandleEvent(NPP instance, void* event) {
 		PluginData *pdata = (PluginData*)instance->pdata;
 		if (pdata){
 			if (xevent->type == GraphicsExpose){
-
 				writeRectXYWH(xevent->xgraphicsexpose.x, xevent->xgraphicsexpose.y,
 					xevent->xgraphicsexpose.width, xevent->xgraphicsexpose.height);
 				writeInt32(xevent->xgraphicsexpose.drawable);
@@ -755,63 +754,33 @@ int16_t NPP_HandleEvent(NPP instance, void* event) {
 				res = kNPEventHandled;
 
 			}else if (xevent->type == MotionNotify){
-				uint32_t wParam = 0;
-				unsigned int state = xevent->xmotion.state;
-
-				if (state & Button1Mask) wParam |= 0x0001;
-				if (state & Button3Mask) wParam |= 0x0002;
-				if (state & ShiftMask)   wParam |= 0x0004;
-				if (state & ControlMask) wParam |= 0x0008;
-				if (state & Button2Mask) wParam |= 0x0010;
-
 				writePointXY(xevent->xmotion.x, xevent->xmotion.y);
-				writeInt32(wParam);
+				writeInt32(xevent->xmotion.state);
 				writeHandleInstance(instance);
 				callFunction(WINDOWLESS_EVENT_MOUSEMOVE);
 				readResultVoid();
 				res = kNPEventHandled;
 
 			}else if (xevent->type == ButtonPress || xevent->type == ButtonRelease){
-				uint32_t button = 0;
-
-				switch (xevent->xbutton.button){
-					case Button1: button = 1; break;
-					case Button3: button = 2; break;
-					case Button2: button = 3; break;
-					default: break;
-				}
-
-				if (button){
-					uint32_t wParam = 0;
-					unsigned int state = xevent->xbutton.state;
-
-					if (xevent->type == ButtonPress)
-						button |= 0x10000;
-
-					if (state & Button1Mask) wParam |= 0x0001;
-					if (state & Button3Mask) wParam |= 0x0002;
-					if (state & ShiftMask)   wParam |= 0x0004;
-					if (state & ControlMask) wParam |= 0x0008;
-					if (state & Button2Mask) wParam |= 0x0010;
-
-					writePointXY(xevent->xbutton.x, xevent->xbutton.y);
-					writeInt32(wParam);
-					writeInt32(button);
-					writeHandleInstance(instance);
-					callFunction(WINDOWLESS_EVENT_MOUSEBUTTON);
-					readResultVoid();
-					res = kNPEventHandled;
-				}
+				writePointXY(xevent->xbutton.x, xevent->xbutton.y);
+				writeInt32(xevent->xbutton.button);
+				writeInt32(xevent->xbutton.state);
+				writeInt32((xevent->type == ButtonPress));
+				writeHandleInstance(instance);
+				callFunction(WINDOWLESS_EVENT_MOUSEBUTTON);
+				readResultVoid();
+				res = kNPEventHandled;
 
 			}else if (xevent->type == KeyPress || xevent->type == KeyRelease){
-				/*XKeyEvent tmp;
-				memcpy(&tmp, xevent, sizeof(tmp));
-				tmp.window = pdata->plugin;
-				XSendEvent(display, pdata->plugin, False, NoEventMask, (XEvent *)&tmp);
-				XFlush(display);*/
+				writeInt32(xevent->xkey.keycode);
+				writeInt32(xevent->xkey.state);
+				writeInt32((xevent->type == KeyPress));
+				writeHandleInstance(instance);
+				callFunction(WINDOWLESS_EVENT_KEYBOARD);
+				readResultVoid();
+				res = kNPEventHandled;
 
 			}
-
 		}
 
 	}else

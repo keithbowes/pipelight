@@ -118,12 +118,11 @@ std::string convertToWindowsPath(const std::string &linux_path){
 	WCHAR* windows_path;
 	char path[MAX_PATH];
 
-	if (!wine_get_dos_file_name)
-		wine_get_dos_file_name = (wine_get_dos_file_namePtr)GetProcAddress(GetModuleHandleA("kernel32.dll"), "wine_get_dos_file_name");
-
 	if (!wine_get_dos_file_name){
-		DBG_ERROR("Unable to find wine function 'wine_get_dos_file_name'.");
-		return "";
+		if (!(wine_get_dos_file_name = (wine_get_dos_file_namePtr)GetProcAddress(GetModuleHandleA("kernel32.dll"), "wine_get_dos_file_name"))){
+			DBG_ERROR("Unable to find wine function 'wine_get_dos_file_name'.");
+			return "";
+		}
 	}
 
 	if (!(windows_path = wine_get_dos_file_name(linux_path.c_str()))){
@@ -142,12 +141,11 @@ std::string getWineVersion(){
 	static wine_get_versionPtr wine_get_version = NULL;
 	const char *wine_version;
 
-	if (!wine_get_version)
-		wine_get_version = (wine_get_versionPtr)GetProcAddress(GetModuleHandleA("ntdll.dll"), "wine_get_version");
-
 	if (!wine_get_version){
-		DBG_ERROR("Unable to find wine function 'wine_get_version'.");
-		return "";
+		if (!(wine_get_version = (wine_get_versionPtr)GetProcAddress(GetModuleHandleA("ntdll.dll"), "wine_get_version"))){
+			DBG_ERROR("Unable to find wine function 'wine_get_version'.");
+			return "";
+		}
 	}
 
 	if (!(wine_version = wine_get_version())){
@@ -156,6 +154,17 @@ std::string getWineVersion(){
 	}
 
 	return std::string(wine_version);
+}
+
+/* wParamFromX11State */
+static inline WPARAM wParamFromX11State(uint32_t state){
+	WPARAM wParam = 0;
+	if (state & Button1Mask) wParam |= MK_LBUTTON;
+	if (state & Button3Mask) wParam |= MK_RBUTTON;
+	if (state & Button2Mask) wParam |= MK_MBUTTON;
+	if (state & ShiftMask)   wParam |= MK_SHIFT;
+	if (state & ControlMask) wParam |= MK_CONTROL;
+	return wParam;
 }
 
 /* drawDebugRect */
@@ -799,10 +808,10 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				POINT pt;
 				NPP instance 				= readHandleInstance(stack);
-				WPARAM wParam 				= (WPARAM)readInt32(stack);
+				uint32_t state 				= readInt32(stack);
 				readPOINT(stack, pt);
-				DBG_TRACE("WINDOWLESS_EVENT_MOUSEMOVE( instance=%p, wParam=%08x, x=%ld, y=%ld )",
-					instance, wParam, pt.x, pt.y);
+				DBG_TRACE("WINDOWLESS_EVENT_MOUSEMOVE( instance=%p, state=%08x, x=%ld, y=%ld )",
+					instance, state, pt.x, pt.y);
 
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
 				if (ndata && ndata->hDC){
@@ -811,7 +820,7 @@ void dispatcher(int functionid, Stack &stack){
 
 					NPEvent event;
 					event.event 	= WM_MOUSEMOVE;
-					event.wParam 	= wParam;
+					event.wParam 	= wParamFromX11State(state);
 					event.lParam 	= MAKEDWORD(pt.x, pt.y);
 					pluginFuncs.event(instance, &event);
 
@@ -827,21 +836,30 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				POINT pt;
 				NPP instance 				= readHandleInstance(stack);
+				bool pressed				= (bool)readInt32(stack);
+				uint32_t state 				= readInt32(stack);
 				uint32_t button 			= readInt32(stack);
-				WPARAM wParam 				= (WPARAM)readInt32(stack);
 				readPOINT(stack, pt);
-				DBG_TRACE("WINDOWLESS_EVENT_MOUSEBUTTON( instance=%p, button=%08x, wParam=%08x, x=%ld, y=%ld )",
-					instance, button, wParam, pt.x, pt.y );
+				DBG_TRACE("WINDOWLESS_EVENT_MOUSEBUTTON( instance=%p, pressed=%d, state=%08x, button=%08x, x=%ld, y=%ld )",
+					instance, pressed, state, button, pt.x, pt.y );
 
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
 				if (ndata && ndata->hDC){
-					uint16_t message = 0;
+					UINT message;
 
-					switch (LOWORD(button)){
-						case 1: message = HIWORD(button) ? WM_LBUTTONDOWN : WM_LBUTTONUP; break;
-						case 2: message = HIWORD(button) ? WM_RBUTTONDOWN : WM_RBUTTONUP; break;
-						case 3: message = HIWORD(button) ? WM_MBUTTONDOWN : WM_MBUTTONUP; break;
-						default: break;
+					switch (button){
+						case Button1:
+							message = pressed ? WM_LBUTTONDOWN : WM_LBUTTONUP;
+							break;
+						case Button3:
+							message = pressed ? WM_RBUTTONDOWN : WM_RBUTTONUP;
+							break;
+						case Button2:
+							message = pressed ? WM_MBUTTONDOWN : WM_MBUTTONUP;
+							break;
+						default:
+							message = 0;
+							break;
 					}
 
 					if (message){
@@ -849,9 +867,9 @@ void dispatcher(int functionid, Stack &stack){
 						ndata->window.window = NULL;
 
 						NPEvent event;
-						event.event 	= message;
-						event.wParam 	= wParam;
-						event.lParam 	= MAKEDWORD(pt.x, pt.y);
+						event.event  = message;
+						event.wParam = wParamFromX11State(state);
+						event.lParam = MAKEDWORD(pt.x, pt.y);
 						pluginFuncs.event(instance, &event);
 
 						ndata->window.window = previousDC;
@@ -859,6 +877,24 @@ void dispatcher(int functionid, Stack &stack){
 				}
 
 				DBG_TRACE("WINDOWLESS_EVENT_MOUSEBUTTON -> void");
+				returnCommand();
+			}
+			break;
+
+		case WINDOWLESS_EVENT_KEYBOARD:
+			{
+				NPP instance 				= readHandleInstance(stack);
+				bool pressed				= (bool)readInt32(stack);
+				uint32_t state 				= readInt32(stack);
+				uint32_t keycode			= readInt32(stack);
+				DBG_TRACE("WINDOWLESS_EVENT_KEYBOARD( instance=%p, pressed=%d, state=%08x, keycode=%08x )",
+					instance, pressed, state, keycode );
+
+				NetscapeData* ndata = (NetscapeData*)instance->ndata;
+				if (ndata && ndata->hDC)
+					NOTIMPLEMENTED("ignoring keyboard input (state=%d, keycode=%d)", state, keycode);
+
+				DBG_TRACE("WINDOWLESS_EVENT_KEYBOARD -> void");
 				returnCommand();
 			}
 			break;
