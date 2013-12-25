@@ -892,7 +892,7 @@ void dispatcher(int functionid, Stack &stack){
 
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
 				if (ndata && ndata->hDC)
-					NOTIMPLEMENTED("ignoring keyboard input (state=%d, keycode=%d)", state, keycode);
+					NOTIMPLEMENTED("ignoring keyboard input (pressed=%d, state=%d, keycode=%d)", pressed, state, keycode);
 
 				DBG_TRACE("WINDOWLESS_EVENT_KEYBOARD -> void");
 				returnCommand();

@@ -198,7 +198,7 @@ NP_EXPORT(const char*) NP_GetMIMEDescription(){
 }
 
 /* NP_GetValue */
-NP_EXPORT(NPError) NP_GetValue(void *future, NPPVariable variable, void *value) {
+NP_EXPORT(NPError) NP_GetValue(void *future, NPPVariable variable, void *value){
 	NPError result = NPERR_GENERIC_ERROR;
 	std::string resultStr;
 
@@ -248,7 +248,7 @@ NP_EXPORT(NPError) NP_GetValue(void *future, NPPVariable variable, void *value) 
 }
 
 /* NP_Shutdown */
-NP_EXPORT(NPError) NP_Shutdown() {
+NP_EXPORT(NPError) NP_Shutdown(){
 	DBG_TRACE("NP_Shutdown()");
 
 	if (initOkay){
@@ -332,7 +332,7 @@ void* timerThread(void *argument){
 }
 
 /* NPP_New */
-NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char *argn[], char *argv[], NPSavedData* saved) {
+NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char *argn[], char *argv[], NPSavedData* saved){
 	std::string mimeType(pluginType);
 
 	DBG_TRACE("( pluginType='%s', instance=%p, mode=%d, argc=%d, argn=%p, argv=%p, saved=%p )", pluginType, instance, mode, argc, argn, argv, saved);
@@ -486,7 +486,7 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 }
 
 /* NPP_Destroy */
-NPError NPP_Destroy(NPP instance, NPSavedData** save) {
+NPError NPP_Destroy(NPP instance, NPSavedData** save){
 	DBG_TRACE("( instance=%p, save=%p )", instance, save);
 
 	/* Initialization failed or diagnostic mode */
@@ -595,7 +595,7 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save) {
 }
 
 /* NPP_SetWindow */
-NPError NPP_SetWindow(NPP instance, NPWindow* window) {
+NPError NPP_SetWindow(NPP instance, NPWindow* window){
 	DBG_TRACE("( instance=%p, window=%p )", instance, window);
 
 	PluginData *pdata = (PluginData*)instance->pdata;
@@ -616,7 +616,7 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window) {
 }
 
 /* NPP_NewStream */
-NPError NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool seekable, uint16_t* stype) {
+NPError NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool seekable, uint16_t* stype){
 	DBG_TRACE("( instance=%p, type='%s', stream=%p, seekable=%d, stype=%p )", instance, type, stream, seekable, stype);
 
 	if (handleManager_existsByPtr(HMGR_TYPE_NPStream, stream)){
@@ -644,7 +644,7 @@ NPError NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool se
 }
 
 /* NPP_DestroyStream */
-NPError NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
+NPError NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason){
 	DBG_TRACE("( instance=%p, stream=%p, reason=%d )", instance, stream, reason);
 
 	if (!handleManager_existsByPtr(HMGR_TYPE_NPStream, stream)){
@@ -667,7 +667,7 @@ NPError NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason) {
 }
 
 /* NPP_WriteReady */
-int32_t NPP_WriteReady(NPP instance, NPStream* stream) {
+int32_t NPP_WriteReady(NPP instance, NPStream* stream){
 	DBG_TRACE("( instance=%p, stream=%p )", instance, stream);
 
 	int32_t result;
@@ -692,7 +692,7 @@ int32_t NPP_WriteReady(NPP instance, NPStream* stream) {
 }
 
 /* NPP_Write */
-int32_t NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, void* buffer) {
+int32_t NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, void* buffer){
 	DBG_TRACE("( instance=%p, stream=%p, offset=%d, len=%d, buffer=%p )", instance, stream, offset, len, buffer);
 
 	if (!handleManager_existsByPtr(HMGR_TYPE_NPStream, stream))
@@ -713,7 +713,7 @@ int32_t NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, v
 }
 
 /* NPP_StreamAsFile */
-void NPP_StreamAsFile(NPP instance, NPStream* stream, const char* fname) {
+void NPP_StreamAsFile(NPP instance, NPStream* stream, const char* fname){
 	DBG_TRACE("( instance=%p, stream=%p, fname=%p )", instance, stream, fname);
 
 	writeString(fname);
@@ -726,14 +726,14 @@ void NPP_StreamAsFile(NPP instance, NPStream* stream, const char* fname) {
 }
 
 /* NPP_Print */
-void NPP_Print(NPP instance, NPPrint* platformPrint) {
+void NPP_Print(NPP instance, NPPrint* platformPrint){
 	DBG_TRACE("( instance=%p, platformPrint=%p )", instance, platformPrint);
 	NOTIMPLEMENTED();
 	DBG_TRACE(" -> void");
 }
 
 /* NPP_HandleEvent */
-int16_t NPP_HandleEvent(NPP instance, void* event) {
+int16_t NPP_HandleEvent(NPP instance, void* event){
 	DBG_TRACE("( instance=%p, event=%p )", instance, event);
 
 	int16_t res = kNPEventNotHandled;
@@ -791,7 +791,7 @@ int16_t NPP_HandleEvent(NPP instance, void* event) {
 }
 
 /* NPP_URLNotify */
-void NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyData) {
+void NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyData){
 	DBG_TRACE("( instance=%p, URL='%s', reason=%d, notifyData=%p )", instance, URL, reason, notifyData);
 
 	writeHandleNotify(notifyData, HMGR_SHOULD_EXIST);
@@ -826,7 +826,7 @@ void NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyD
 }
 
 /* NPP_GetValue */
-NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
+NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value){
 	DBG_TRACE("( instance=%p, variable=%d, value=%p )", instance, variable, value);
 
 	NPError result = NPERR_GENERIC_ERROR;
@@ -878,7 +878,7 @@ NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value) {
 }
 
 /* NPP_SetValue */
-NPError NPP_SetValue(NPP instance, NPNVariable variable, void *value) {
+NPError NPP_SetValue(NPP instance, NPNVariable variable, void *value){
 	DBG_TRACE("( instance=%p, variable=%d, value=%p )", instance, variable, value);
 	NOTIMPLEMENTED();
 	DBG_TRACE(" -> result=%d", NPERR_GENERIC_ERROR);
