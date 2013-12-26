@@ -2,6 +2,11 @@ pipelight-multi (0.2.4) UNRELEASED; urgency=low
 
   * Add Adobe Reader plugin
   * Change behaviour of install-dependency to stop on the first failure
+  * Added linuxWindowlessMode (required by browsers without XEMBED support,
+    like for example QT5 browsers)
+  * Several speed improvements like: Give control back to plugin/browser before
+    cleaning up stuff, use async calls when possible, improved refcounting
+    system, use cache for NPIdentifiers
 
  -- Michael Mueller <michael@fds-team.de>  Sat, 21 Dec 2013 01:01:06 +0100
 
