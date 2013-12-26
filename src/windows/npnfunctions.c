@@ -183,12 +183,14 @@ void NP_LOADDS NPN_Status(NPP instance, const char* message){
 
 	shockwaveInstanceWorkaround();
 
+#ifdef PIPELIGHT_SYNC
 	writeString(message);
 	writeHandleInstance(instance);
-#ifdef PIPELIGHT_SYNC
 	callFunction(FUNCTION_NPN_STATUS);
 	readResultVoid();
 #else
+	writeString(message);
+	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_STATUS_ASYNC);
 #endif
 
@@ -736,12 +738,14 @@ NPObject* NP_LOADDS NPN_RetainObject(NPObject *obj){
 		if(obj->referenceCount != REFCOUNT_UNDEFINED)
 			obj->referenceCount++;
 
+	#ifdef PIPELIGHT_SYNC
 		writeInt32(obj->referenceCount);
 		writeHandleObj(obj, HMGR_SHOULD_EXIST);
-	#ifdef PIPELIGHT_SYNC
 		callFunction(FUNCTION_NPN_RETAINOBJECT);
 		readResultVoid();
 	#else
+		writeInt32(obj->referenceCount);
+		writeHandleObj(obj, HMGR_SHOULD_EXIST);
 		callFunction(FUNCTION_NPN_RETAINOBJECT_ASYNC);
 	#endif
 	}
@@ -756,17 +760,20 @@ void NP_LOADDS NPN_ReleaseObject(NPObject *obj){
 	DBG_CHECKTHREAD();
 
 	if (obj){
-	#ifndef PIPELIGHT_SYNC
+	#ifdef PIPELIGHT_SYNC
+		writeInt32(obj->referenceCount);
+		writeHandleObjDecRef(obj, HMGR_SHOULD_EXIST);
+		callFunction(FUNCTION_NPN_RELEASEOBJECT);
+		readResultVoid();
+
+	#else
 		/* even without PIPELIGHT_SYNC we need a synchronized call in some cases (when a callback might happen) */
 		if (obj->referenceCount == REFCOUNT_UNDEFINED || obj->referenceCount == 1){
-	#endif
-
 			writeInt32(obj->referenceCount);
 			writeHandleObjDecRef(obj, HMGR_SHOULD_EXIST);
 			callFunction(FUNCTION_NPN_RELEASEOBJECT);
 			readResultVoid();
 
-	#ifndef PIPELIGHT_SYNC
 		}else{
 			writeInt32(obj->referenceCount);
 			writeHandleObjDecRef(obj, HMGR_SHOULD_EXIST);
@@ -1002,12 +1009,14 @@ void NP_LOADDS NPN_SetException(NPObject *obj, const NPUTF8 *message){
 	DBG_TRACE("( obj=%p, message='%s' )", obj, message);
 	DBG_CHECKTHREAD();
 
+#ifdef PIPELIGHT_SYNC
 	writeString(message);
 	writeHandleObj(obj);
-#ifdef PIPELIGHT_SYNC
 	callFunction(FUNCTION_NPN_SET_EXCEPTION);
 	readResultVoid();
 #else
+	writeString(message);
+	writeHandleObj(obj);
 	callFunction(FUNCTION_NPN_SET_EXCEPTION_ASYNC);
 #endif
 
@@ -1021,12 +1030,14 @@ void NP_LOADDS NPN_PushPopupsEnabledState(NPP instance, NPBool enabled){
 
 	shockwaveInstanceWorkaround();
 
+#ifdef PIPELIGHT_SYNC
 	writeInt32(enabled);
 	writeHandleInstance(instance);
-#ifdef PIPELIGHT_SYNC
 	callFunction(FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE);
 	readResultVoid();
 #else
+	writeInt32(enabled);
+	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE_ASYNC);
 #endif
 
@@ -1040,11 +1051,12 @@ void NP_LOADDS NPN_PopPopupsEnabledState(NPP instance){
 
 	shockwaveInstanceWorkaround();
 
-	writeHandleInstance(instance);
 #ifdef PIPELIGHT_SYNC
+	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_POP_POPUPS_ENABLED_STATE);
 	readResultVoid();
 #else
+	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_POP_POPUPS_ENABLED_STATE_ASYNC);
 #endif
 
