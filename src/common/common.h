@@ -411,6 +411,7 @@ extern size_t handleManager_count();
 extern void handleManager_clear();
 #if defined(__WIN32__) && !defined(PIPELIGHT_NOCACHE)
 extern NPIdentifier handleManager_lookupIdentifier(IDENT_TYPE type, void *value);
+extern void handleManager_updateIdentifier(NPIdentifier identifier);
 #endif
 
 #ifdef __WIN32__

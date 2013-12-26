@@ -33,6 +33,20 @@ static inline std::map<void*, HMGR_HANDLE>& __ptrToId(int type){
 	return ptrToId[type];
 }
 
+#if defined(__WIN32__) && !defined(PIPELIGHT_NOCACHE)
+
+static inline std::map<std::string, NPIdentifier>& __stringToNPIdentifier(){
+	static std::map<std::string, NPIdentifier> stringToNPIdentifier;
+	return stringToNPIdentifier;
+}
+
+static inline std::map<int32_t, NPIdentifier>& __intToNPIdentifier(){
+	static std::map<int32_t, NPIdentifier> intToNPIdentifier;
+	return intToNPIdentifier;
+}
+
+#endif
+
 /* freeSharedPtrMemory */
 void freeSharedPtrMemory(char *memory){
 	if (memory)
@@ -902,26 +916,40 @@ void handleManager_clear(){
 	Lookup NPIdentifier
 */
 NPIdentifier handleManager_lookupIdentifier(IDENT_TYPE type, void *value){
-	std::map<HMGR_HANDLE, void*> &idToPtr = __idToPtr(HMGR_TYPE_NPIdentifier);
-	std::map<HMGR_HANDLE, void*>::iterator it;
 
-	for (it = idToPtr.begin(); it != idToPtr.end(); it++){
-		NPIdentifierDescription *identifier = (NPIdentifierDescription *)it->second;
-		if (identifier->type != type) continue;
+	if (type == IDENT_TYPE_String){
+		std::map<std::string, NPIdentifier> &stringToNPIdentifier = __stringToNPIdentifier();
+		std::map<std::string, NPIdentifier>::const_iterator it;
 
-		if (type == IDENT_TYPE_Integer){
-			if (identifier->value.intid == (int32_t)value)
-				return (NPIdentifier)identifier;
+		it = stringToNPIdentifier.find(std::string((const char *)value));
+		if (it != stringToNPIdentifier.end())
+			return it->second;
 
-		}else if (type == IDENT_TYPE_String){
-			if (!strcmp(identifier->value.name, (const char *)value))
-				return (NPIdentifier)identifier;
+	}else if (type == IDENT_TYPE_Integer){
+		std::map<int32_t, NPIdentifier> &intToNPIdentifier = __intToNPIdentifier();
+		std::map<int32_t, NPIdentifier>::const_iterator it;
 
-		}else
-			break;
+		it = intToNPIdentifier.find((int32_t)value);
+		if (it != intToNPIdentifier.end())
+			return it->second;
 	}
 
 	return NULL;
+}
+
+void handleManager_updateIdentifier(NPIdentifier identifier){
+	NPIdentifierDescription *ident = (NPIdentifierDescription *)identifier;
+	DBG_ASSERT(ident != NULL, "got NULL identifier.");
+
+	if (ident->type == IDENT_TYPE_String && ident->value.name != NULL){
+		std::map<std::string, NPIdentifier> &stringToNPIdentifier = __stringToNPIdentifier();
+		stringToNPIdentifier.insert( std::pair<std::string, NPIdentifier>(std::string((const char *)ident->value.name), identifier) );
+
+	}else if (ident->type == IDENT_TYPE_Integer){
+		std::map<int32_t, NPIdentifier> &intToNPIdentifier = __intToNPIdentifier();
+		intToNPIdentifier.insert( std::pair<int32_t, NPIdentifier>(ident->value.intid, identifier) );
+
+	}
 }
 
 #endif

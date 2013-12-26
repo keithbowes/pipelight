@@ -559,6 +559,10 @@ NPIdentifier NP_LOADDS NPN_GetStringIdentifier(const NPUTF8* name){
 	readCommands(stack);
 	identifier = readHandleIdentifierCreate(stack, IDENT_TYPE_String, (void *)name);
 
+#ifndef PIPELIGHT_NOCACHE
+	handleManager_updateIdentifier(identifier);
+#endif
+
 	DBG_TRACE(" -> identifier=%p", identifier);
 	return identifier;
 }
@@ -595,6 +599,10 @@ NPIdentifier NP_LOADDS NPN_GetIntIdentifier(int32_t intid){
 	Stack stack;
 	readCommands(stack);
 	identifier = readHandleIdentifierCreate(stack, IDENT_TYPE_Integer, (void *)intid);
+
+#ifndef PIPELIGHT_NOCACHE
+	handleManager_updateIdentifier(identifier);
+#endif
 
 	DBG_TRACE(" -> identifier=%p", identifier);
 	return identifier;
@@ -666,7 +674,8 @@ NPUTF8* NP_LOADDS NPN_UTF8FromIdentifier(NPIdentifier identifier){
 	/* cache result */
 	if (str){
 		ident->type 		= IDENT_TYPE_String;
-		ident->value.name 	= strdup(str); 
+		ident->value.name 	= strdup(str);
+		handleManager_updateIdentifier(identifier); 
 	}else
 		ident->type 		= IDENT_TYPE_Unknown;
 #endif
@@ -712,7 +721,7 @@ int32_t NP_LOADDS NPN_IntFromIdentifier(NPIdentifier identifier){
 			/* cache result */
 			ident->type 		= IDENT_TYPE_Integer;
 			ident->value.intid 	= result;
-
+			handleManager_updateIdentifier(identifier);
 		}else
 			result = 0; /* result undefined */
 	}
