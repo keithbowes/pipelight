@@ -613,7 +613,7 @@ void readNPRect(Stack &stack, NPRect &rect){
 
 #ifdef __WIN32__
 
-NPObject* createNPObject(HMGR_HANDLE id, NPP instance = NULL, NPClass *cls = NULL){
+NPObject* createNPObject(HMGR_HANDLE id, NPP instance, NPClass *cls){
 	bool customObject  	= (cls != NULL);
 	NPObject* obj;
 
@@ -624,7 +624,7 @@ NPObject* createNPObject(HMGR_HANDLE id, NPP instance = NULL, NPClass *cls = NUL
 	if (cls->allocate){
 		obj = cls->allocate(instance, cls);
 	}else{
-		obj = (NPObject*)malloc(sizeof(NPObject));
+		obj = (NPObject *)malloc(sizeof(NPObject));
 	}
 
 	DBG_ASSERT(obj != NULL, "could not create object.");
@@ -646,8 +646,28 @@ NPObject* createNPObject(HMGR_HANDLE id, NPP instance = NULL, NPClass *cls = NUL
 	return obj;
 }
 
+#ifndef PIPELIGHT_NOCACHE
+
+NPIdentifierDescription* createNPIdentifier(HMGR_HANDLE id, IDENT_TYPE type, void *value){
+	NPIdentifierDescription* identifier = (NPIdentifierDescription *)malloc(sizeof(NPIdentifierDescription));
+
+	DBG_ASSERT(identifier != NULL, "could not create identifier.");
+	identifier->type = type;
+
+	if (type == IDENT_TYPE_Integer)
+		identifier->value.intid = (int32_t)value;
+	else if (type == IDENT_TYPE_String){
+		if (!(identifier->value.name  = strdup((const char *)value)))
+			identifier->type = IDENT_TYPE_Unknown;
+	}
+
+	return identifier;
+}
+
+#endif
+
 NPP createNPPInstance(HMGR_HANDLE id){
-	NPP instance = (NPP_t*)malloc(sizeof(NPP_t));
+	NPP instance = (NPP_t *)malloc(sizeof(NPP_t));
 
 	DBG_ASSERT(instance != NULL, "could not create instance.");
 	memset(instance, 0, sizeof(NPP_t));
@@ -656,7 +676,7 @@ NPP createNPPInstance(HMGR_HANDLE id){
 }
 
 NPStream* createNPStream(HMGR_HANDLE id){
-	NPStream *stream = (NPStream*)malloc(sizeof(NPStream));
+	NPStream *stream = (NPStream *)malloc(sizeof(NPStream));
 	Stack stack;
 
 	DBG_ASSERT(stream != NULL, "could not create stream.");
@@ -714,7 +734,7 @@ HMGR_HANDLE handleManager_getFreeID(HMGR_TYPE type){
 /*
 	Convert ID to ptr
 */
-void* handleManager_idToPtr(HMGR_TYPE type, HMGR_HANDLE id, NPP instance, NPClass *cls, HMGR_EXISTS exists){
+void* handleManager_idToPtr(HMGR_TYPE type, HMGR_HANDLE id, void *arg0, void *arg1, HMGR_EXISTS exists){
 	std::map<HMGR_HANDLE, void*> &idToPtr = __idToPtr(type);
 	std::map<HMGR_HANDLE, void*>::iterator it;
 	void* ptr;
@@ -728,7 +748,7 @@ void* handleManager_idToPtr(HMGR_TYPE type, HMGR_HANDLE id, NPP instance, NPClas
 	/* translate id -> ptr */
 	it = idToPtr.find(id);
 	if (it != idToPtr.end()){
-		DBG_ASSERT(!cls && exists != HMGR_SHOULD_NOT_EXIST, "expected new handle, but I already got this one.");
+		DBG_ASSERT(exists != HMGR_SHOULD_NOT_EXIST, "expected new handle, but I already got this one.");
 		return it->second;
 	}
 
@@ -736,9 +756,13 @@ void* handleManager_idToPtr(HMGR_TYPE type, HMGR_HANDLE id, NPP instance, NPClas
 
 	#ifdef __WIN32__
 		if (type == HMGR_TYPE_NPObject){
-			ptr = createNPObject(id, instance, cls);
+			ptr = createNPObject(id, (NPP)arg0, (NPClass *)arg1);
 		}else if (type == HMGR_TYPE_NPIdentifier){
-			ptr = (void*)id;
+		#ifdef PIPELIGHT_NOCACHE
+			ptr = (void *)id;
+		#else
+			ptr = createNPIdentifier(id, (IDENT_TYPE)(int)arg0, arg1);
+		#endif
 		}else if (type == HMGR_TYPE_NPPInstance){
 			ptr = createNPPInstance(id);
 		}else if (type == HMGR_TYPE_NPStream){

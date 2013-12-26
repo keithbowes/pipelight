@@ -138,7 +138,23 @@ typedef enum { PR_FALSE = 0, PR_TRUE = 1 } PRBool;
 #define writeHandleId			writeInt32
 #define readHandleId			readInt32
 
-#ifndef __WIN32__
+#ifdef __WIN32__
+
+enum IDENT_TYPE{
+	IDENT_TYPE_Unknown = 0,
+	IDENT_TYPE_Integer,
+	IDENT_TYPE_String
+};
+
+struct NPIdentifierDescription{
+	IDENT_TYPE  type;
+	union {
+		char    *name;
+		int32_t intid;
+	} value;
+};
+
+#else
 
 struct NotifyDataRefCount{
 	uint32_t referenceCount;
@@ -174,7 +190,7 @@ struct ParameterInfo{
 typedef std::vector<ParameterInfo> Stack;
 
 /* increase this whenever you do changes in the protocol stack */
-#define PIPELIGHT_PROTOCOL_VERSION 0x1000000B
+#define PIPELIGHT_PROTOCOL_VERSION 0x1000000C
 
 enum{
 	/* ------- Special ------- */
@@ -275,6 +291,7 @@ enum{
 	FUNCTION_NPN_IDENTIFIER_IS_STRING,
 	FUNCTION_NPN_UTF8_FROM_IDENTIFIER,
 	FUNCTION_NPN_INT_FROM_IDENTIFIER,
+	FUNCTION_NPN_INT_FROM_IDENTIFIER_SAFE,
 	FUNCTION_NPN_GET_STRINGIDENTIFIER,
 	FUNCTION_NPN_GET_INTIDENTIFIER,
 
@@ -349,10 +366,10 @@ extern bool initCommPipes(int out, int in);
 extern bool initCommIO();
 
 extern void setMultiPluginName(const std::string str);
-extern void setMultiPluginName(const char* str);
+extern void setMultiPluginName(const char *str);
 
-extern bool writeCommand(uint8_t command, const char* data = NULL, size_t length = 0);
-extern bool __writeString(const char* data, size_t length);
+extern bool writeCommand(uint8_t command, const char *data = NULL, size_t length = 0);
+extern bool __writeString(const char *data, size_t length);
 extern bool readCommands(Stack &stack, bool allowReturn = true, int abortTimeout = 0);
 
 extern int32_t readInt32(Stack &stack);
@@ -385,10 +402,10 @@ extern void readRECT2(Stack &stack, RECT2 &rect);
 extern void readNPRect(Stack &stack, NPRect &rect);
 
 extern HMGR_HANDLE handleManager_getFreeID(HMGR_TYPE type);
-extern void* handleManager_idToPtr(HMGR_TYPE type, HMGR_HANDLE id, NPP instance, NPClass *cls, HMGR_EXISTS exists);
+extern void* handleManager_idToPtr(HMGR_TYPE type, HMGR_HANDLE id, void *arg0, void *arg1, HMGR_EXISTS exists);
 extern HMGR_HANDLE handleManager_ptrToId(HMGR_TYPE type, void* ptr, HMGR_EXISTS exists);
-extern void handleManager_removeByPtr(HMGR_TYPE type, void* ptr);
-extern bool handleManager_existsByPtr(HMGR_TYPE type, void* ptr);
+extern void handleManager_removeByPtr(HMGR_TYPE type, void *ptr);
+extern bool handleManager_existsByPtr(HMGR_TYPE type, void *ptr);
 extern NPP handleManager_findInstance();
 extern size_t handleManager_count();
 extern void handleManager_clear();
@@ -538,7 +555,7 @@ inline void readResultVoid(){
 }
 
 /* Writes a handle */
-inline void writeHandle(HMGR_TYPE type, void* ptr, HMGR_EXISTS exists = HMGR_CAN_EXIST){
+inline void writeHandle(HMGR_TYPE type, void *ptr, HMGR_EXISTS exists = HMGR_CAN_EXIST){
 	writeHandleId(handleManager_ptrToId(type, ptr, exists));
 	writeInt32(type);
 }
@@ -549,7 +566,7 @@ inline void writeHandleObj(NPObject *obj, HMGR_EXISTS exists = HMGR_CAN_EXIST, b
 	#endif
 
 	writeInt32(deleteFromRemoteHandleManager);
-	writeHandle(HMGR_TYPE_NPObject, (void*)obj, exists);
+	writeHandle(HMGR_TYPE_NPObject, (void *)obj, exists);
 }
 
 inline void writeHandleIdentifier(NPIdentifier name, HMGR_EXISTS exists = HMGR_CAN_EXIST){
@@ -569,15 +586,15 @@ inline void writeHandleNotify(void* notifyData, HMGR_EXISTS exists = HMGR_CAN_EX
 }
 
 /* Reads a handle */
-inline void* __readHandle(HMGR_TYPE type, Stack &stack, NPP instance = NULL, NPClass *cls = NULL, HMGR_EXISTS exists = HMGR_CAN_EXIST){
+inline void* __readHandle(HMGR_TYPE type, Stack &stack, void *arg0 = NULL, void *arg1 = NULL, HMGR_EXISTS exists = HMGR_CAN_EXIST){
 	DBG_ASSERT(readInt32(stack) == type, "wrong handle type, expected %d.", type);
-	return handleManager_idToPtr(type, readHandleId(stack), instance, cls, exists);
+	return handleManager_idToPtr(type, readHandleId(stack), arg0, arg1, exists);
 }
 
 #ifndef __WIN32__
 
-inline NPObject* readHandleObj(Stack &stack, NPP instance = NULL, NPClass *cls = NULL, HMGR_EXISTS exists = HMGR_CAN_EXIST){
-	NPObject *obj = (NPObject*)__readHandle(HMGR_TYPE_NPObject, stack, instance, cls, exists);
+inline NPObject* readHandleObj(Stack &stack, HMGR_EXISTS exists = HMGR_CAN_EXIST){
+	NPObject *obj = (NPObject*)__readHandle(HMGR_TYPE_NPObject, stack, NULL, NULL, exists);
 	bool deleteFromRemoteHandleManager = (bool)readInt32(stack);
 	if (deleteFromRemoteHandleManager)
 		handleManager_removeByPtr(HMGR_TYPE_NPObject, (void*)obj);
@@ -590,12 +607,22 @@ inline NPIdentifier readHandleIdentifier(Stack &stack, HMGR_EXISTS exists = HMGR
 	return (NPIdentifier)__readHandle(HMGR_TYPE_NPIdentifier, stack, NULL, NULL, exists);
 }
 
+#ifdef __WIN32__
+#ifdef PIPELIGHT_NOCACHE
+#define readHandleIdentifierCreate(stack, type, value) readHandleIdentifier(stack, HMGR_CAN_EXIST)
+#else
+inline NPIdentifier readHandleIdentifierCreate(Stack &stack, IDENT_TYPE type = IDENT_TYPE_Unknown, void *value = NULL){
+	return (NPIdentifier)__readHandle(HMGR_TYPE_NPIdentifier, stack, (void *)type, value, HMGR_CAN_EXIST);
+}
+#endif
+#endif
+
 inline NPP readHandleInstance(Stack &stack, HMGR_EXISTS exists = HMGR_CAN_EXIST){
 	return (NPP)__readHandle(HMGR_TYPE_NPPInstance, stack, NULL, NULL, exists);
 }
 
 inline NPStream* readHandleStream(Stack &stack, HMGR_EXISTS exists = HMGR_CAN_EXIST){
-	return (NPStream*)__readHandle(HMGR_TYPE_NPStream, stack, NULL, NULL, exists);
+	return (NPStream *)__readHandle(HMGR_TYPE_NPStream, stack, NULL, NULL, exists);
 }
 
 inline void* readHandleNotify(Stack &stack, HMGR_EXISTS exists = HMGR_CAN_EXIST){
@@ -604,8 +631,16 @@ inline void* readHandleNotify(Stack &stack, HMGR_EXISTS exists = HMGR_CAN_EXIST)
 
 #ifdef __WIN32__
 
-inline NPObject* readHandleObjIncRef(Stack &stack, NPP instance = NULL, NPClass *cls = NULL, HMGR_EXISTS exists = HMGR_CAN_EXIST){
-	NPObject* obj = (NPObject*)__readHandle(HMGR_TYPE_NPObject, stack, instance, cls, exists);
+inline NPObject* readHandleObjIncRef(Stack &stack, HMGR_EXISTS exists = HMGR_CAN_EXIST){
+	NPObject *obj = (NPObject *)__readHandle(HMGR_TYPE_NPObject, stack, NULL, NULL, exists);
+	readInt32(stack); /* deleteFromRemoteHandleManager */
+	if (obj->referenceCount != REFCOUNT_UNDEFINED)
+		obj->referenceCount++;
+	return obj;
+}
+
+inline NPObject* readHandleObjIncRefCreate(Stack &stack, NPP instance = NULL, NPClass *cls = NULL){
+	NPObject* obj = (NPObject *)__readHandle(HMGR_TYPE_NPObject, stack, instance, cls, HMGR_SHOULD_NOT_EXIST);
 	readInt32(stack); /* deleteFromRemoteHandleManager */
 	if (obj->referenceCount != REFCOUNT_UNDEFINED)
 		obj->referenceCount++;
@@ -701,9 +736,9 @@ inline void readNPString(Stack &stack, NPString &string){
 inline void freeNPString(NPString &string){
 	if (string.UTF8Characters){
 		#ifdef __WIN32__
-			free((char*)string.UTF8Characters);
+			free((char *)string.UTF8Characters);
 		#else
-			sBrowserFuncs->memfree((char*)string.UTF8Characters);
+			sBrowserFuncs->memfree((char *)string.UTF8Characters);
 		#endif
 	}
 
@@ -717,8 +752,8 @@ inline void writeStringArray(char* str[], int count){
 }
 
 
-inline std::vector<char*> readStringArray(Stack &stack, int count){
-	std::vector<char*> result;
+inline std::vector<char *> readStringArray(Stack &stack, int count){
+	std::vector<char *> result;
 
 	for (int i = 0; i < count; i++)
 		result.push_back(readStringMalloc(stack));
@@ -726,12 +761,12 @@ inline std::vector<char*> readStringArray(Stack &stack, int count){
 	return result;
 }
 
-inline void freeStringArray(std::vector<char*> args){
+inline void freeStringArray(std::vector<char *> args){
 	for (std::vector<char*>::iterator it = args.begin(); it != args.end(); it++)
 		free(*it);
 }
 
-inline void writeIdentifierArray(NPIdentifier* identifiers, int count){
+inline void writeIdentifierArray(NPIdentifier *identifiers, int count){
 	for (int i = count - 1; i >= 0; i--)
 		writeHandleIdentifier(identifiers[i]);
 }
@@ -761,7 +796,7 @@ inline bool pluginInitOkay(){
 	uint32_t function = INIT_OKAY;
 	Stack stack;
 
-	if (!writeCommand(BLOCKCMD_CALL_DIRECT, (char*)&function, sizeof(uint32_t)))
+	if (!writeCommand(BLOCKCMD_CALL_DIRECT, (char *)&function, sizeof(uint32_t)))
 		return false;
 
 	if (!readCommands(stack, true, 20000))
@@ -846,7 +881,7 @@ inline std::string trim(std::string str){
 	return str;
 }
 
-inline void pokeString(char *dest, const char* str, size_t maxLength){
+inline void pokeString(char *dest, const char *str, size_t maxLength){
 	if (maxLength > 0){
 		size_t length = strlen(str);
 

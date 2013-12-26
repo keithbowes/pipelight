@@ -546,7 +546,7 @@ NPIdentifier NP_LOADDS NPN_GetStringIdentifier(const NPUTF8* name){
 
 	Stack stack;
 	readCommands(stack);
-	NPIdentifier identifier = readHandleIdentifier(stack);
+	NPIdentifier identifier = readHandleIdentifierCreate(stack, IDENT_TYPE_String, (void *)name);
 
 	DBG_TRACE(" -> identifier=%p", identifier);
 	return identifier;
@@ -574,7 +574,7 @@ NPIdentifier NP_LOADDS NPN_GetIntIdentifier(int32_t intid){
 
 	Stack stack;
 	readCommands(stack);
-	NPIdentifier identifier = readHandleIdentifier(stack);
+	NPIdentifier identifier = readHandleIdentifierCreate(stack, IDENT_TYPE_Integer, (void *)intid);
 
 	DBG_TRACE(" -> identifier=%p", identifier);
 	return identifier;
@@ -585,9 +585,32 @@ bool NP_LOADDS NPN_IdentifierIsString(NPIdentifier identifier){
 	DBG_TRACE("( identifier=%p )", identifier);
 	DBG_CHECKTHREAD();
 
+#ifdef PIPELIGHT_NOCACHE
 	writeHandleIdentifier(identifier);
 	callFunction(FUNCTION_NPN_IDENTIFIER_IS_STRING);
 	bool result = (bool)readResultInt32();
+
+#else
+	NPIdentifierDescription *ident = (NPIdentifierDescription *)identifier;
+	bool result;
+
+	DBG_ASSERT(ident != NULL, "got NULL identifier.");
+
+	if (ident->type != IDENT_TYPE_Unknown)
+		result = (ident->type == IDENT_TYPE_String);
+
+	else{
+		writeHandleIdentifier(identifier);
+		callFunction(FUNCTION_NPN_IDENTIFIER_IS_STRING);
+		result = (bool)readResultInt32();
+
+		/* cache result */
+		if (result){
+			ident->type 		= IDENT_TYPE_String;
+			ident->value.name 	= NULL;
+		}
+	}
+#endif
 
 	DBG_TRACE(" -> result=%d", result);
 	return result;
@@ -599,12 +622,42 @@ NPUTF8* NP_LOADDS NPN_UTF8FromIdentifier(NPIdentifier identifier){
 	DBG_TRACE("( identifier=%p )", identifier);
 	DBG_CHECKTHREAD();
 
+#ifdef PIPELIGHT_NOCACHE
 	writeHandleIdentifier(identifier);
 	callFunction(FUNCTION_NPN_UTF8_FROM_IDENTIFIER);
 
 	Stack stack;
 	readCommands(stack);
-	NPUTF8 *str = readStringMalloc(stack); /* plugin will free this with NPN_MemFree() */
+	NPUTF8 *str = readStringMalloc(stack);
+
+#else
+	NPIdentifierDescription *ident = (NPIdentifierDescription *)identifier;
+	NPUTF8 *str;
+
+	DBG_ASSERT(ident != NULL, "got NULL identifier.");
+
+	if (ident->type == IDENT_TYPE_String && ident->value.name != NULL)
+		str = strdup(ident->value.name);
+
+	else if (ident->type == IDENT_TYPE_Integer)
+		str = NULL;
+
+	else{
+		writeHandleIdentifier(identifier);
+		callFunction(FUNCTION_NPN_UTF8_FROM_IDENTIFIER);
+
+		Stack stack;
+		readCommands(stack);
+		str = readStringMalloc(stack);
+
+		/* cache result */
+		if (str){
+			ident->type 		= IDENT_TYPE_String;
+			ident->value.name 	= strdup(str); 
+		}else
+			ident->type 		= IDENT_TYPE_Unknown;
+	}
+#endif
 
 	DBG_TRACE(" -> str='%s'", str);
 	return str;
@@ -615,9 +668,40 @@ int32_t NP_LOADDS NPN_IntFromIdentifier(NPIdentifier identifier){
 	DBG_TRACE("( identifier=%p )", identifier);
 	DBG_CHECKTHREAD();
 
+#ifdef PIPELIGHT_NOCACHE
 	writeHandleIdentifier(identifier);
 	callFunction(FUNCTION_NPN_INT_FROM_IDENTIFIER);
 	int32_t result = readResultInt32();
+
+#else
+	NPIdentifierDescription *ident = (NPIdentifierDescription *)identifier;
+	int32_t result;
+
+	DBG_ASSERT(ident != NULL, "got NULL identifier.");
+
+	if (ident->type == IDENT_TYPE_Integer)
+		result = ident->value.intid;
+
+	else if (ident->type == IDENT_TYPE_String)
+		result = 0; /* result undefined */
+
+	else{
+		writeHandleIdentifier(identifier);
+		callFunction(FUNCTION_NPN_INT_FROM_IDENTIFIER_SAFE);
+
+		Stack stack;
+		readCommands(stack);
+		if ((bool)readInt32(stack)){
+			result = readInt32(stack);
+
+			/* cache result */
+			ident->type 		= IDENT_TYPE_Integer;
+			ident->value.intid 	= result;
+
+		}else
+			result = 0; /* result undefined */
+	}
+#endif
 
 	DBG_TRACE(" -> result=%d", result);
 	return result;
@@ -636,7 +720,7 @@ NPObject* NP_LOADDS NPN_CreateObject(NPP instance, NPClass *aClass){
 
 	Stack stack;
 	readCommands(stack);
-	NPObject* result = readHandleObjIncRef(stack, instance, aClass);
+	NPObject *result = readHandleObjIncRefCreate(stack, instance, aClass);
 
 	DBG_TRACE(" -> obj=%p", result);
 	return result;

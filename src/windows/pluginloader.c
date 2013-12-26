@@ -679,7 +679,7 @@ void dispatcher(int functionid, Stack &stack){
 
 		case WIN_HANDLE_MANAGER_FREE_OBJECT:
 			{
-				NPObject 	*obj = readHandleObjIncRef(stack, NULL, 0, HMGR_SHOULD_EXIST);
+				NPObject 	*obj = readHandleObjIncRef(stack, HMGR_SHOULD_EXIST);
 				DBG_TRACE("WIN_HANDLE_MANAGER_FREE_OBJECT( obj=%p )", obj);
 
 				objectKill(obj);
