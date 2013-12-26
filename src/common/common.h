@@ -132,7 +132,8 @@ extern char strMultiPluginName[64];
 
 typedef enum { PR_FALSE = 0, PR_TRUE = 1 } PRBool;
 
-#define REFCOUNT_UNDEFINED 0xffffffff
+#define REFCOUNT_CUSTOM			0x80000000
+#define REFCOUNT_MASK			0x7fffffff
 
 #define HMGR_HANDLE				uint32_t
 #define writeHandleId			writeInt32
@@ -638,16 +639,14 @@ inline void* readHandleNotify(Stack &stack, HMGR_EXISTS exists = HMGR_CAN_EXIST)
 inline NPObject* readHandleObjIncRef(Stack &stack, HMGR_EXISTS exists = HMGR_CAN_EXIST){
 	NPObject *obj = (NPObject *)__readHandle(HMGR_TYPE_NPObject, stack, NULL, NULL, exists);
 	readInt32(stack); /* deleteFromRemoteHandleManager */
-	if (obj->referenceCount != REFCOUNT_UNDEFINED)
-		obj->referenceCount++;
+	obj->referenceCount++;
 	return obj;
 }
 
 inline NPObject* readHandleObjIncRefCreate(Stack &stack, NPP instance = NULL, NPClass *cls = NULL){
 	NPObject* obj = (NPObject *)__readHandle(HMGR_TYPE_NPObject, stack, instance, cls, HMGR_SHOULD_NOT_EXIST);
 	readInt32(stack); /* deleteFromRemoteHandleManager */
-	if (obj->referenceCount != REFCOUNT_UNDEFINED)
-		obj->referenceCount++;
+	obj->referenceCount++;
 	return obj;
 }
 

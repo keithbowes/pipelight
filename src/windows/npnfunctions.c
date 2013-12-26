@@ -756,9 +756,7 @@ NPObject* NP_LOADDS NPN_RetainObject(NPObject *obj){
 	DBG_CHECKTHREAD();
 
 	if (obj){
-
-		if(obj->referenceCount != REFCOUNT_UNDEFINED)
-			obj->referenceCount++;
+		obj->referenceCount++;
 
 	#ifdef PIPELIGHT_SYNC
 		writeInt32(obj->referenceCount);
@@ -790,7 +788,7 @@ void NP_LOADDS NPN_ReleaseObject(NPObject *obj){
 
 	#else
 		/* even without PIPELIGHT_SYNC we need a synchronized call in some cases (when a callback might happen) */
-		if (obj->referenceCount == REFCOUNT_UNDEFINED || obj->referenceCount == 1){
+		if ((obj->referenceCount & REFCOUNT_MASK) == 1){
 			writeInt32(obj->referenceCount);
 			writeHandleObjDecRef(obj, HMGR_SHOULD_EXIST);
 			callFunction(FUNCTION_NPN_RELEASEOBJECT);

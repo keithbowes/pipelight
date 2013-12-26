@@ -650,7 +650,7 @@ NPObject* createNPObject(HMGR_HANDLE id, NPP instance, NPClass *cls){
 	*/
 	if (customObject){
 		DBG_TRACE("created custom object %p with class %p.", obj, cls);
-		obj->referenceCount = REFCOUNT_UNDEFINED;
+		obj->referenceCount = REFCOUNT_CUSTOM;
 
 	}else{
 		DBG_TRACE("created proxy object %p.", obj);
@@ -958,12 +958,9 @@ void handleManager_updateIdentifier(NPIdentifier identifier){
 
 /* objectDecRef */
 void objectDecRef(NPObject *obj, bool deleteFromRemoteHandleManager){
-	DBG_ASSERT(obj->referenceCount != 0, "reference count is zero.");
+	DBG_ASSERT(obj->referenceCount & REFCOUNT_MASK, "reference count is zero.");
 
-	if (obj->referenceCount != REFCOUNT_UNDEFINED)
-		obj->referenceCount--;
-
-	if (obj->referenceCount == 0){
+	if (--obj->referenceCount == 0){
 		DBG_TRACE("removing object %p from handle manager.", obj);
 		DBG_ASSERT(!obj->_class->deallocate, "proxy object has a deallocate method set.");
 
@@ -986,7 +983,7 @@ void objectDecRef(NPObject *obj, bool deleteFromRemoteHandleManager){
 
 /* objectKill */
 void objectKill(NPObject *obj){
-	DBG_ASSERT(obj->referenceCount == REFCOUNT_UNDEFINED, "reference count is not REFCOUNT_UNDEFINED.");
+	DBG_ASSERT(obj->referenceCount == REFCOUNT_CUSTOM + 1, "reference count is not REFCOUNT_CUSTOM + 1.");
 
 	obj->referenceCount = 0;
 

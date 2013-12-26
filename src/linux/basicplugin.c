@@ -797,10 +797,9 @@ void dispatcher(int functionid, Stack &stack){
 				uint32_t minReferenceCount 	= readInt32(stack);
 				DBG_TRACE("FUNCTION_NPN_RELEASEOBJECT( obj=%p, minReferenceCount=%d )", obj, minReferenceCount);
 
-				DBG_ASSERT( minReferenceCount == REFCOUNT_UNDEFINED || minReferenceCount <= obj->referenceCount,
-					"object referenceCount smaller than expected?");
+				DBG_ASSERT( (minReferenceCount & REFCOUNT_MASK) <= obj->referenceCount, "object referenceCount smaller than expected?");
 				if (obj->referenceCount == 1 && handleManager_existsByPtr(HMGR_TYPE_NPObject, obj))
-					DBG_ASSERT((minReferenceCount == REFCOUNT_UNDEFINED), "forgot to set killObject?");
+					DBG_ASSERT(minReferenceCount & REFCOUNT_CUSTOM, "forgot to set killObject?");
 
 				sBrowserFuncs->releaseobject(obj);
 
@@ -815,10 +814,9 @@ void dispatcher(int functionid, Stack &stack){
 				uint32_t minReferenceCount 	= readInt32(stack);
 				DBG_TRACE("FUNCTION_NPN_RELEASEOBJECT_ASYNC( obj=%p, minReferenceCount=%d ) -> void", obj, minReferenceCount);
 
-				DBG_ASSERT( minReferenceCount == REFCOUNT_UNDEFINED || minReferenceCount <= obj->referenceCount,
-					"object referenceCount smaller than expected?");
+				DBG_ASSERT( (minReferenceCount & REFCOUNT_MASK) <= obj->referenceCount, "object referenceCount smaller than expected?");
 				if (obj->referenceCount == 1 && handleManager_existsByPtr(HMGR_TYPE_NPObject, obj))
-					DBG_ASSERT((minReferenceCount == REFCOUNT_UNDEFINED), "forgot to set killObject?");
+					DBG_ASSERT(minReferenceCount & REFCOUNT_CUSTOM, "forgot to set killObject?");
 
 				sBrowserFuncs->releaseobject(obj);
 			}
@@ -832,8 +830,7 @@ void dispatcher(int functionid, Stack &stack){
 
 				sBrowserFuncs->retainobject(obj);
 
-				DBG_ASSERT( minReferenceCount == REFCOUNT_UNDEFINED || minReferenceCount <= obj->referenceCount,
-					"object referenceCount smaller than expected?");
+				DBG_ASSERT( (minReferenceCount & REFCOUNT_MASK) <= obj->referenceCount, "object referenceCount smaller than expected?");
 
 				DBG_TRACE("FUNCTION_NPN_RETAINOBJECT -> void");
 				returnCommand();
@@ -848,8 +845,7 @@ void dispatcher(int functionid, Stack &stack){
 
 				sBrowserFuncs->retainobject(obj);
 
-				DBG_ASSERT( minReferenceCount == REFCOUNT_UNDEFINED || minReferenceCount <= obj->referenceCount,
-					"object referenceCount smaller than expected?");
+				DBG_ASSERT( (minReferenceCount & REFCOUNT_MASK) <= obj->referenceCount, "object referenceCount smaller than expected?");
 			}
 			break;
 
