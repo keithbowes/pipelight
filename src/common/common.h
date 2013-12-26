@@ -409,6 +409,9 @@ extern bool handleManager_existsByPtr(HMGR_TYPE type, void *ptr);
 extern NPP handleManager_findInstance();
 extern size_t handleManager_count();
 extern void handleManager_clear();
+#if defined(__WIN32__) && !defined(PIPELIGHT_NOCACHE)
+extern NPIdentifier handleManager_lookupIdentifier(IDENT_TYPE type, void *value);
+#endif
 
 #ifdef __WIN32__
 extern void objectDecRef(NPObject *obj, bool deleteFromRemoteHandleManager = true);

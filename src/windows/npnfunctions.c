@@ -543,12 +543,21 @@ NPIdentifier NP_LOADDS NPN_GetStringIdentifier(const NPUTF8* name){
 	DBG_TRACE("( name='%s' )", name);
 	DBG_CHECKTHREAD();
 
+	NPIdentifier identifier;
+
+#ifndef PIPELIGHT_NOCACHE
+	if((identifier = handleManager_lookupIdentifier(IDENT_TYPE_String, (void *)name))){
+		DBG_TRACE(" -> identifier=%p (cached)", identifier);
+		return identifier;
+	}
+#endif
+
 	writeString(name);
 	callFunction(FUNCTION_NPN_GET_STRINGIDENTIFIER);
 
 	Stack stack;
 	readCommands(stack);
-	NPIdentifier identifier = readHandleIdentifierCreate(stack, IDENT_TYPE_String, (void *)name);
+	identifier = readHandleIdentifierCreate(stack, IDENT_TYPE_String, (void *)name);
 
 	DBG_TRACE(" -> identifier=%p", identifier);
 	return identifier;
@@ -571,12 +580,21 @@ NPIdentifier NP_LOADDS NPN_GetIntIdentifier(int32_t intid){
 	DBG_TRACE("( intid=%d )", intid);
 	DBG_CHECKTHREAD();
 
+	NPIdentifier identifier;
+
+#ifndef PIPELIGHT_NOCACHE
+	if((identifier = handleManager_lookupIdentifier(IDENT_TYPE_Integer, (void *)intid))){
+		DBG_TRACE(" -> identifier=%p (cached)", identifier);
+		return identifier;
+	}
+#endif
+
 	writeInt32(intid);
 	callFunction(FUNCTION_NPN_GET_INTIDENTIFIER);
 
 	Stack stack;
 	readCommands(stack);
-	NPIdentifier identifier = readHandleIdentifierCreate(stack, IDENT_TYPE_Integer, (void *)intid);
+	identifier = readHandleIdentifierCreate(stack, IDENT_TYPE_Integer, (void *)intid);
 
 	DBG_TRACE(" -> identifier=%p", identifier);
 	return identifier;
@@ -587,36 +605,33 @@ bool NP_LOADDS NPN_IdentifierIsString(NPIdentifier identifier){
 	DBG_TRACE("( identifier=%p )", identifier);
 	DBG_CHECKTHREAD();
 
-#ifdef PIPELIGHT_NOCACHE
-	writeHandleIdentifier(identifier);
-	callFunction(FUNCTION_NPN_IDENTIFIER_IS_STRING);
-	bool result = (bool)readResultInt32();
-
-#else
-	NPIdentifierDescription *ident = (NPIdentifierDescription *)identifier;
 	bool result;
 
+#ifndef PIPELIGHT_NOCACHE
+	NPIdentifierDescription *ident = (NPIdentifierDescription *)identifier;
 	DBG_ASSERT(ident != NULL, "got NULL identifier.");
 
-	if (ident->type != IDENT_TYPE_Unknown)
+	if (ident->type != IDENT_TYPE_Unknown){
 		result = (ident->type == IDENT_TYPE_String);
+		DBG_TRACE(" -> result=%d (cached)", result);
+		return result;
+	}
+#endif
 
-	else{
-		writeHandleIdentifier(identifier);
-		callFunction(FUNCTION_NPN_IDENTIFIER_IS_STRING);
-		result = (bool)readResultInt32();
+	writeHandleIdentifier(identifier);
+	callFunction(FUNCTION_NPN_IDENTIFIER_IS_STRING);
+	result = (bool)readResultInt32();
 
-		/* cache result */
-		if (result){
-			ident->type 		= IDENT_TYPE_String;
-			ident->value.name 	= NULL;
-		}
+#ifndef PIPELIGHT_NOCACHE
+	/* cache result */
+	if (result){
+		ident->type 		= IDENT_TYPE_String;
+		ident->value.name 	= NULL;
 	}
 #endif
 
 	DBG_TRACE(" -> result=%d", result);
 	return result;
-
 }
 
 /* NPN_UTF8FromIdentifier */
@@ -624,41 +639,36 @@ NPUTF8* NP_LOADDS NPN_UTF8FromIdentifier(NPIdentifier identifier){
 	DBG_TRACE("( identifier=%p )", identifier);
 	DBG_CHECKTHREAD();
 
-#ifdef PIPELIGHT_NOCACHE
+	NPUTF8 *str;
+
+#ifndef PIPELIGHT_NOCACHE
+	NPIdentifierDescription *ident = (NPIdentifierDescription *)identifier;
+	DBG_ASSERT(ident != NULL, "got NULL identifier.");
+
+	if (ident->type == IDENT_TYPE_String && ident->value.name != NULL){
+		str = strdup(ident->value.name);
+		DBG_TRACE(" -> str='%s' (cached)", str);
+		return str;
+	}else if (ident->type == IDENT_TYPE_Integer){
+		DBG_TRACE(" -> str=NULL (cached)");
+		return NULL;
+	}
+#endif
+
 	writeHandleIdentifier(identifier);
 	callFunction(FUNCTION_NPN_UTF8_FROM_IDENTIFIER);
 
 	Stack stack;
 	readCommands(stack);
-	NPUTF8 *str = readStringMalloc(stack);
+	str = readStringMalloc(stack);
 
-#else
-	NPIdentifierDescription *ident = (NPIdentifierDescription *)identifier;
-	NPUTF8 *str;
-
-	DBG_ASSERT(ident != NULL, "got NULL identifier.");
-
-	if (ident->type == IDENT_TYPE_String && ident->value.name != NULL)
-		str = strdup(ident->value.name);
-
-	else if (ident->type == IDENT_TYPE_Integer)
-		str = NULL;
-
-	else{
-		writeHandleIdentifier(identifier);
-		callFunction(FUNCTION_NPN_UTF8_FROM_IDENTIFIER);
-
-		Stack stack;
-		readCommands(stack);
-		str = readStringMalloc(stack);
-
-		/* cache result */
-		if (str){
-			ident->type 		= IDENT_TYPE_String;
-			ident->value.name 	= strdup(str); 
-		}else
-			ident->type 		= IDENT_TYPE_Unknown;
-	}
+#ifndef PIPELIGHT_NOCACHE
+	/* cache result */
+	if (str){
+		ident->type 		= IDENT_TYPE_String;
+		ident->value.name 	= strdup(str); 
+	}else
+		ident->type 		= IDENT_TYPE_Unknown;
 #endif
 
 	DBG_TRACE(" -> str='%s'", str);
@@ -670,24 +680,27 @@ int32_t NP_LOADDS NPN_IntFromIdentifier(NPIdentifier identifier){
 	DBG_TRACE("( identifier=%p )", identifier);
 	DBG_CHECKTHREAD();
 
+	int32_t result;
+
 #ifdef PIPELIGHT_NOCACHE
 	writeHandleIdentifier(identifier);
 	callFunction(FUNCTION_NPN_INT_FROM_IDENTIFIER);
-	int32_t result = readResultInt32();
+	result = readResultInt32();
 
 #else
 	NPIdentifierDescription *ident = (NPIdentifierDescription *)identifier;
-	int32_t result;
-
 	DBG_ASSERT(ident != NULL, "got NULL identifier.");
 
-	if (ident->type == IDENT_TYPE_Integer)
+	if (ident->type == IDENT_TYPE_Integer){
 		result = ident->value.intid;
+		DBG_TRACE(" -> result=%d (cached)", result);
+		return result;
 
-	else if (ident->type == IDENT_TYPE_String)
-		result = 0; /* result undefined */
+	}else if (ident->type == IDENT_TYPE_String){
+		DBG_TRACE(" -> result=0 (cached)");
+		return 0; /* result undefined */
 
-	else{
+	}else{
 		writeHandleIdentifier(identifier);
 		callFunction(FUNCTION_NPN_INT_FROM_IDENTIFIER_SAFE);
 

@@ -896,6 +896,36 @@ void handleManager_clear(){
 	}
 }
 
+#if defined(__WIN32__) && !defined(PIPELIGHT_NOCACHE)
+
+/*
+	Lookup NPIdentifier
+*/
+NPIdentifier handleManager_lookupIdentifier(IDENT_TYPE type, void *value){
+	std::map<HMGR_HANDLE, void*> &idToPtr = __idToPtr(HMGR_TYPE_NPIdentifier);
+	std::map<HMGR_HANDLE, void*>::iterator it;
+
+	for (it = idToPtr.begin(); it != idToPtr.end(); it++){
+		NPIdentifierDescription *identifier = (NPIdentifierDescription *)it->second;
+		if (identifier->type != type) continue;
+
+		if (type == IDENT_TYPE_Integer){
+			if (identifier->value.intid == (int32_t)value)
+				return (NPIdentifier)identifier;
+
+		}else if (type == IDENT_TYPE_String){
+			if (!strcmp(identifier->value.name, (const char *)value))
+				return (NPIdentifier)identifier;
+
+		}else
+			break;
+	}
+
+	return NULL;
+}
+
+#endif
+
 #ifdef __WIN32__
 
 /* objectDecRef */
