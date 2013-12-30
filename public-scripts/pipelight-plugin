@@ -11,7 +11,7 @@ DESTDIR=""
 DEBUG=1
 
 # Supported plugins
-STANDARD_PLUGINS=("silverlight5.1" "silverlight5.0" "silverlight4" "flash" "unity3d" "widewine")
+STANDARD_PLUGINS=("silverlight5.1" "silverlight5.0" "silverlight4" "flash" "unity3d" "widevine")
 ADDITIONAL_PLUGINS=("shockwave" "foxitpdf" "grandstream" "adobereader")
 ALL_PLUGINS=("${STANDARD_PLUGINS[@]}" "${ADDITIONAL_PLUGINS[@]}")
 

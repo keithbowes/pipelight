@@ -27,6 +27,7 @@ usage()
 	echo "	wine-grandstream-installer"
 	echo "	wine-mspatcha-installer"
 	echo "	wine-adobereader-installer"
+	echo "	wine-widevine-installer"
 	echo ""
 }
 
@@ -564,10 +565,10 @@ install_adobereader()
 	return "$res"
 }
 
-# > Install Widewine
+# > Install Widevine
 # arguments: None
 # $DOWNLOADFILE
-install_widewine()
+install_widevine()
 {
 	local system32="$WINEPREFIX/drive_c/windows/system32"
 	if ! unzip -p "$DOWNLOADFILE" "plugins/npwidevinemediaoptimizer.dll" > "$system32/npwidevinemediaoptimizer.dll"; then
@@ -766,8 +767,8 @@ while [ $# -gt 0 ] ; do
 			URL="http://ardownload.adobe.com/pub/adobe/reader/win/11.x/11.0.04/en_US/AdbeRdr11004_en_US.exe"
 			SHA="9660eec000a47c113796a9a351ad0027b7ef515b3fc9d1dd14589c0b0c7bc910"
 			;;
-		wine-widewine-installer)
-			INS=(install_widewine)
+		wine-widevine-installer)
+			INS=(install_widevine)
 			URL="https://dl.google.com/widevine/6.0.0.12442/WidevineMediaOptimizer_Win.xpi"
 			SHA="84cde1b83d8f5e4b287303a25e61227ce9a253268af6bd88b9a2f98c85129bc8"
 			EXT="zip"
