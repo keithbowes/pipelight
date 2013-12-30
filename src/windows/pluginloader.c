@@ -60,11 +60,13 @@ std::map<HWND, NPP> hwndToInstance;
 std::set<NPP> instanceList;
 
 /* variables */
+bool isEmbeddedMode		= false;
 bool isWindowlessMode	= false;
 bool isLinuxWindowlessMode = false;
-bool isEmbeddedMode		= false;
+
 bool stayInFullscreen 	= false;
 bool isSandboxed 		= false;
+bool forceSetWindow 	= false;
 
 /* hooks */
 bool unityHacks 		= false;
@@ -492,26 +494,27 @@ int main(int argc, char *argv[]){
 			regKey  = std::string(argv[++i]);
 
 		/* variables */
-		}else if (arg == "--windowless"){
-			isWindowlessMode = true;
-
-		}else if (arg == "--linuxwindowless"){
-			isLinuxWindowlessMode = true;
-
-		}else if (arg == "--embed"){
+		}else if (arg == "--embed")
 			isEmbeddedMode = true;
 
+		else if (arg == "--windowless")
+			isWindowlessMode = true;
+
+		else if (arg == "--linuxwindowless")
+			isLinuxWindowlessMode = true;
+
+		else if (arg == "--forcesetwindow")
+			forceSetWindow = true;
+
 		/* hooks */
-		}else if (arg == "--unityhacks"){
+		else if (arg == "--unityhacks")
 			unityHacks = true;
 
-		}else if (arg == "--windowclasshook"){
+		else if (arg == "--windowclasshook")
 			windowClassHook = true;
 
-		}else if (arg == "--rendertoplevelwindow"){
+		else if (arg == "--rendertoplevelwindow")
 			renderTopLevelWindow = true;
-
-		}
 	}
 
 	/* required arguments available? */
@@ -544,9 +547,10 @@ int main(int argc, char *argv[]){
 	}
 
 	/* debug info */
+	DBG_INFO("embedded mode         is %s.", (isEmbeddedMode ? "on" : "off"));
 	DBG_INFO("windowless mode       is %s.", (isWindowlessMode ? "on" : "off"));
 	DBG_INFO("linux windowless mode is %s.", (isLinuxWindowlessMode ? "on" : "off"));
-	DBG_INFO("embedded mode         is %s.", (isEmbeddedMode ? "on" : "off"));
+	DBG_INFO("force SetWindow       is %s.", (forceSetWindow ? "on" : "off"));
 	DBG_INFO("unity hacks           is %s.", (unityHacks ? "on" : "off"));
 	DBG_INFO("window class hook     is %s.", (windowClassHook ? "on" : "off"));
 	DBG_INFO("render toplevelwindow is %s.", (renderTopLevelWindow ? "on" : "off"));
@@ -1169,6 +1173,22 @@ void dispatcher(int functionid, Stack &stack){
 				instanceList.insert(instance);
 
 				NPError result = pluginFuncs.newp(mimeType.get(), instance, mode, argc, argn.data(), argv.data(), savedPtr);
+
+				/* call with empty structure - required for Widewine */
+				if (forceSetWindow && result == NPERR_NO_ERROR && ndata){
+					ndata->window.window			= 0;
+					ndata->window.type				= (NPWindowType)0;
+					ndata->window.x 				= 0;
+					ndata->window.y 				= 0;
+					ndata->window.width 			= 0;
+					ndata->window.height 			= 0;
+					ndata->window.clipRect.top 		= 0;
+					ndata->window.clipRect.left 	= 0;
+					ndata->window.clipRect.right 	= 0;
+					ndata->window.clipRect.bottom 	= 0;
+					pluginFuncs.setwindow(instance, &ndata->window);
+				}
+
 				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPP_NEW -> result=%d", result);
@@ -1379,7 +1399,6 @@ void dispatcher(int functionid, Stack &stack){
 						ndata->window.clipRect.left 	= 0;
 						ndata->window.clipRect.right 	= browser_width;
 						ndata->window.clipRect.bottom 	= browser_height;
-
 						pluginFuncs.setwindow(instance, &ndata->window);
 					}
 

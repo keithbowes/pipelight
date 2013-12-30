@@ -48,14 +48,15 @@ extern std::map<HWND, NPP> hwndToInstance;
 extern std::set<NPP> instanceList;
 
 /* variables */
+extern bool isEmbeddedMode;
 extern bool isWindowlessMode;
 extern bool isLinuxWindowlessMode;
-extern bool isEmbeddedMode;
+
 extern bool stayInFullscreen;
 extern bool isSandboxed;
+extern bool forceSetWindow;
 
 /* hooks */
-extern bool usermodeTimer;
 extern bool unityHacks;
 extern bool windowClassHook;
 

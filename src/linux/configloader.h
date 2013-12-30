@@ -75,12 +75,13 @@ struct PluginConfig{
 	std::string 	pluginLoaderPath;
 	std::string 	gccRuntimeDLLs;
 
+	bool			embed;
 	bool 			windowlessMode;
 	bool			linuxWindowlessMode;
-	bool			embed;
+
 	std::string 	fakeVersion;
-	std::map<std::string, std::string, stringInsensitiveCompare> overwriteArgs;
 	std::vector<MimeInfo> fakeMIMEtypes;
+	std::map<std::string, std::string, stringInsensitiveCompare> overwriteArgs;
 
 	std::string		dependencyInstaller;
 	std::vector<std::string> dependencies;
@@ -93,6 +94,7 @@ struct PluginConfig{
 	std::string		silverlightGraphicDriverCheck;
 
 	bool 			experimental_unityHacks;
+	bool 			experimental_forceSetWindow;
 	bool 			experimental_windowClassHook;
 	bool 			experimental_renderTopLevelWindow;
 };

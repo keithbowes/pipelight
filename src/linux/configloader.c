@@ -277,12 +277,13 @@ bool loadConfig(PluginConfig &config){
 	config.pluginLoaderPath 	= "";
 	config.gccRuntimeDLLs		= "";
 
+	config.embed 				= true;
 	config.windowlessMode 		= false;
 	config.linuxWindowlessMode 	= false;
-	config.embed 				= true;
+
 	config.fakeVersion			= "";
-	config.overwriteArgs.clear();
 	config.fakeMIMEtypes.clear();
+	config.overwriteArgs.clear();
 
 	config.dependencyInstaller 	= "";
 	config.dependencies.clear();
@@ -295,6 +296,7 @@ bool loadConfig(PluginConfig &config){
 	config.silverlightGraphicDriverCheck = "";
 
 	config.experimental_unityHacks = false;
+	config.experimental_forceSetWindow = false;
 	config.experimental_windowClassHook = false;
 	config.experimental_renderTopLevelWindow = false;
 
@@ -374,6 +376,10 @@ bool loadConfig(PluginConfig &config){
 		}else if (key == "gccruntimedlls"){
 			config.gccRuntimeDLLs = value;
 
+		}else if (key == "embed"){
+			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
+			config.embed = (value == "true" || value == "yes");
+
 		}else if (key == "windowlessmode"){
 			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
 			config.windowlessMode = (value == "true" || value == "yes");
@@ -382,20 +388,8 @@ bool loadConfig(PluginConfig &config){
 			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
 			config.linuxWindowlessMode = (value == "true" || value == "yes");
 
-		}else if (key == "embed"){
-			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
-			config.embed = (value == "true" || value == "yes");
-
 		}else if (key == "fakeversion"){
 			config.fakeVersion = value;
-
-		}else if (key == "overwritearg"){
-			std::string argKey;
-			std::string argValue;
-			if (!splitConfigValue(value, argKey, argValue))
-				continue;
-
-			config.overwriteArgs[argKey] = argValue;
 
 		}else if (key == "fakemimetype"){
 			MimeInfo info;
@@ -412,6 +406,14 @@ bool loadConfig(PluginConfig &config){
 
 			config.fakeMIMEtypes.push_back(info);
 
+		}else if (key == "overwritearg"){
+			std::string argKey;
+			std::string argValue;
+			if (!splitConfigValue(value, argKey, argValue))
+				continue;
+
+			config.overwriteArgs[argKey] = argValue;
+
 		}else if (key == "dependencyinstaller"){
 			config.dependencyInstaller = value;
 
@@ -426,11 +428,6 @@ bool loadConfig(PluginConfig &config){
 			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
 			config.quietInstallation = (value == "true" || value == "yes");
 
-		}else if (key == "silverlightgraphicdrivercheck" || key == "graphicdrivercheck"){
-			if (key == "graphicdrivercheck")
-				DBG_WARN("the configuration parameter graphicDriverCheck is deprecated.");
-			config.silverlightGraphicDriverCheck = value;
-
 		}else if (key == "eventasynccall"){
 			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
 			config.eventAsyncCall = (value == "true" || value == "yes");
@@ -442,9 +439,18 @@ bool loadConfig(PluginConfig &config){
 		}else if (key == "executejavascript"){
 			config.executeJavascript += value + "\n";
 
+		}else if (key == "silverlightgraphicdrivercheck" || key == "graphicdrivercheck"){
+			if (key == "graphicdrivercheck")
+				DBG_WARN("the configuration parameter graphicDriverCheck is deprecated.");
+			config.silverlightGraphicDriverCheck = value;
+
 		}else if (key == "experimental-unityhacks"){
 			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
 			config.experimental_unityHacks = (value == "true" || value == "yes");
+
+		}else if (key == "experimental-forcesetwindow"){
+			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
+			config.experimental_forceSetWindow = (value == "true" || value == "yes");
 
 		}else if (key == "experimental-windowclasshook"){
 			std::transform(value.begin(), value.end(), value.begin(), c_tolower);

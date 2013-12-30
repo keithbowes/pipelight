@@ -527,6 +527,9 @@ bool startWineProcess(){
 		if (config.experimental_unityHacks)
 			argv.push_back( "--unityhacks" );
 
+		if (config.experimental_forceSetWindow)
+			argv.push_back( "--forcesetwindow" );
+
 		if (config.experimental_windowClassHook)
 			argv.push_back( "--windowclasshook" );
 
@@ -859,7 +862,7 @@ void dispatcher(int functionid, Stack &stack){
 				NPVariant resultVariant;
 				resultVariant.type 				= NPVariantType_Void;
 				resultVariant.value.objectValue = NULL;
-				DBG_TRACE("FUNCTION_NPN_EVALUATE( instance=%p, obj=%p )", instance, obj);
+				DBG_TRACE("FUNCTION_NPN_EVALUATE( instance=%p, obj=%p, script='%s' )", instance, obj, script.UTF8Characters);
 
 				bool result = sBrowserFuncs->evaluate(instance, obj, &script, &resultVariant);
 				if (result)

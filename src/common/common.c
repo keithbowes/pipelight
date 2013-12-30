@@ -670,10 +670,8 @@ NPIdentifierDescription* createNPIdentifier(HMGR_HANDLE id, IDENT_TYPE type, voi
 
 	if (type == IDENT_TYPE_Integer)
 		identifier->value.intid = (int32_t)value;
-	else if (type == IDENT_TYPE_String){
-		if (!(identifier->value.name  = strdup((const char *)value)))
-			identifier->type = IDENT_TYPE_Unknown;
-	}
+	else if (type == IDENT_TYPE_String)
+		identifier->value.name  = value ? strdup((const char *)value) : NULL;
 
 	return identifier;
 }
