@@ -414,10 +414,14 @@ install_shockwave()
 		echo "@=\"2\""
 	) > "$tmpfile"
 
-	 "$WINE" regedit "$tmpfile"
+	"$WINE" regedit "$tmpfile"
+	local res=$?
+
+	# Cleanup
+	rm "$tmpfile"
 
 	# Successful
-	return 0
+	return "$res"
 }
 
 # > Install Unity3D
@@ -474,6 +478,7 @@ install_grandstream()
 
 	if ! unzip -p "$DOWNLOADFILE" "chrome_firefox_plugine_1.0.0.7.exe" > "$tmpfile"; then
 		echo "[$PRG] ERROR: Unable to extract installer from zip file." >&2
+		rm "$tmpfile"
 		return 1
 	fi
 
@@ -552,10 +557,26 @@ install_adobereader()
 	"$WINE" regedit "$tmpfile"
 	local res=$?
 
+	# Cleanup
 	rm "$tmpfile"
 
 	# Successful
 	return "$res"
+}
+
+# > Install Widewine
+# arguments: None
+# $DOWNLOADFILE
+install_widewine()
+{
+	local system32="$WINEPREFIX/drive_c/windows/system32"
+	if ! unzip -p "$DOWNLOADFILE" "plugins/npwidevinemediaoptimizer.dll" > "$system32/npwidevinemediaoptimizer.dll"; then
+		echo "[$PRG] ERROR: Unable to extract plugin from xip file." >&2
+		return 1
+	fi
+
+	# Successful
+	return 0
 }
 
 # Check if some visual feedback is possible
@@ -744,6 +765,12 @@ while [ $# -gt 0 ] ; do
 			INS=(install_adobereader)
 			URL="http://ardownload.adobe.com/pub/adobe/reader/win/11.x/11.0.04/en_US/AdbeRdr11004_en_US.exe"
 			SHA="9660eec000a47c113796a9a351ad0027b7ef515b3fc9d1dd14589c0b0c7bc910"
+			;;
+		wine-widewine-installer)
+			INS=(install_widewine)
+			URL="https://dl.google.com/widevine/6.0.0.12442/WidevineMediaOptimizer_Win.xpi"
+			SHA="84cde1b83d8f5e4b287303a25e61227ce9a253268af6bd88b9a2f98c85129bc8"
+			EXT="zip"
 			;;
 		*)
 			echo "[$PRG] ERROR: No installer script found for $DEP." >&2
