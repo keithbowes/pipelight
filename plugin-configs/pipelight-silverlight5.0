@@ -197,16 +197,6 @@ silverlightGraphicDriverCheck  = @@GRAPHIC_DRIVER_CHECK@@
 # might be removed at any time.
 
 #
-# Silverlight uses a lot of timer stuff do to the window redrawing
-# . In order to speed this up a bit the following switch enables
-# some API hooks to do most of timer stuff in user mode (without
-# having to call wine-server each time). It is still unclear
-# if this option has any significant effect on the performance.
-# [default: false]
-#
-# experimental-userModeTimer = true
-
-#
 # In order to make it possible to let a window stay opened in fullscreen, even
 # if the user clicks somewhere else it is necessary to install a window class
 # hook. With some plugins this could lead to other problems! [default: false]

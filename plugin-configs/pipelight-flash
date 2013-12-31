@@ -163,12 +163,6 @@ operaDetection      = true
 # might be removed at any time.
 
 #
-# It is currently unknown whether this option affects Flash
-# [default: false]
-#
-# experimental-userModeTimer = true
-
-#
 # In order to make it possible to let a window stay opened in fullscreen, even
 # if the user clicks somewhere else it is necessary to install a window class
 # hook. With some plugins this could lead to other problems! [default: false]

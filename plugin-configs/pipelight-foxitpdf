@@ -156,12 +156,6 @@ operaDetection      = true
 # might be removed at any time.
 
 #
-# It is currently unknown whether this option affects Foxit PDF Reader
-# [default: false]
-#
-# experimental-userModeTimer = true
-
-#
 # A sandbox is a method to isolate an untrusted program from the rest of
 # the system to prevent damage in case of a virus, program errors or
 # similar issues. We've been developing the ability to use a (self-created)
