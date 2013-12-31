@@ -3,7 +3,7 @@
 usage()
 {
 	echo ""
-	echo "Usage: ./install-dependency PACKAGES"
+	echo "Usage: ./install-dependency DEPENDENCY1 [DEPENDENCY2 ...]"
 	echo ""
 	echo "Environment variables:"
 	echo "  WINE                  path to the wine executable"
@@ -12,22 +12,23 @@ usage()
 	echo "  WINEARCH              usually win32"
 	echo "  QUIETINSTALLATION=1   don't show the original installation dialogs"
 	echo ""
-	echo "Packages:"
+	echo "Package dependencies:"
 	echo "	wine-silverlight4-installer"
 	echo "	wine-silverlight5.0-installer"
 	echo "	wine-silverlight5.1-installer"
-	echo "	wine-mpg2splt-installer"
-	echo "	wine-wininet-installer"
-	echo "	wine-browser-installer"
 	echo "	wine-flash-installer"
 	echo "	wine-flash-debug-installer"
-	echo "	wine-shockwave-installer"
-	echo "	wine-unity3d-installer"
-	echo "	wine-foxitpdf-installer"
-	echo "	wine-grandstream-installer"
-	echo "	wine-mspatcha-installer"
-	echo "	wine-adobereader-installer"
 	echo "	wine-widevine-installer"
+	echo "	wine-unity3d-installer"
+	echo "	wine-adobereader-installer"
+	echo "	wine-foxitpdf-installer"
+	echo "	wine-shockwave-installer"
+	echo "	wine-grandstream-installer"
+	echo ""
+	echo "Library dependencies:"
+	echo "	wine-mpg2splt-installer"
+	echo "	wine-wininet-installer"
+	echo "	wine-mspatcha-installer"
 	echo ""
 }
 
@@ -220,31 +221,6 @@ install_silverlight()
 	return 0
 }
 
-# > Configure Silverlight
-# arguments:
-# $1	- version
-# $DEP
-configure_silverlight()
-{
-	local VER="$1"
-	local cfgfile="$WINEPREFIX/silverlight.configured"
-
-	# Already configured before to the same version
-	if [ -f "$cfgfile" ] && [ "$VER" == ""$(cat "$cfgfile") ]; then return 0; fi
-	echo "[$PRG] Configure $DEP."
-
-	local programfiles="$WINEPREFIX/drive_c/Program Files"
-
-	# Try to register this plugin
-	if ! register_mozilla_plugin "@Microsoft.com/NpCtrl,version=1.0" "$programfiles/Silverlight/$VER/npctrl.dll"; then
-		echo "[$PRG] ERROR: Failed to configure $DEP." >&2
-		return 1
-	fi
-
-	echo "$VER" > "$cfgfile"
-	return 0
-}
-
 # > Extract cab library
 # arguments:
 # $1	- file to extract
@@ -312,32 +288,6 @@ install_wininet()
 	# Successful
 	return "$res"
 
-}
-
-# > Install firefox
-# arguments:
-# $DOWNLOADFILE
-install_firefox()
-{
-	local tmpfile=$(mktemp)
-	[ -f "$tmpfile" ] || return 1
-
-	(
-		echo "[Install]"
-		echo "QuickLaunchShortcut=false"
-		echo "DesktopShortcut=false"
-		echo "StartMenuShortcuts=false"
-		echo "MaintenanceService=false"
-	) > "$tmpfile"
-
-	local inifile=$("$WINE" winepath --windows "$tmpfile")
-	"$WINE" "$DOWNLOADFILE" "/INI=$inifile" 2>&1 | progressbar "Please wait, installing ..." "Running $DEP"
-
-	# Cleanup
-	rm "$tmpfile"
-
-	# Successful
-	return 0
 }
 
 # > Install flash
@@ -688,44 +638,25 @@ fi
 RET=0
 
 while [ $# -gt 0 ] ; do
-	DEP="$1"; INS=(); CFG=(); URL=""; SHA=""; EXT=""; DOWNLOADFILE=""; shift
+	DEP="$1"; INS=(); URL=""; SHA=""; EXT=""; DOWNLOADFILE=""; shift
 	case "$DEP" in
 		wine-prefix)
 			continue # The wine-prefix is created automatically for all packages
 			;;
 		wine-silverlight4-installer)
-			INS=(install_silverlight    "4.1.10329.0")
-			#CFG=(configure_silverlight "4.1.10329.0")
+			INS=(install_silverlight "4.1.10329.0")
 			URL="http://silverlight.dlservice.microsoft.com/download/6/A/1/6A13C54D-3F35-4082-977A-27F30ECE0F34/10329.00/runtime/Silverlight.exe"
 			SHA="b0e476090206b2e61ba897de9151a31e0182c0e62e8abd528c35d3857ad6131c"
 			;;
 		wine-silverlight5.0-installer)
-			INS=(install_silverlight    "5.0.61118.0")
-			#CFG=(configure_silverlight "5.0.61118.0")
+			INS=(install_silverlight "5.0.61118.0")
 			URL="http://silverlight.dlservice.microsoft.com/download/5/5/7/55748E53-D673-4225-8072-4C7A377BB513/runtime/Silverlight.exe"
 			SHA="dd45a55419026c592f8b6fc848dceface7e1ce98720bf13848a2e8ae366b29e8"
 			;;
 		wine-silverlight5.1-installer)
-			INS=(install_silverlight   "5.1.20913.0")
-			CFG=(configure_silverlight "5.1.20913.0")
+			INS=(install_silverlight "5.1.20913.0")
 			URL="http://silverlight.dlservice.microsoft.com/download/6/B/8/6B885B0B-73D4-4BCE-BFFF-154B4A402D22/20913.00/Silverlight.exe"
 			SHA="6254f18b680a2ab4d007e5a8a344539ee819bd33d1d054e1302fcd964d63f732"
-			;;
-		wine-mpg2splt-installer)
-			INS=(install_cabextract mpg2splt.ax --reg)
-			URL="http://download.microsoft.com/download/8/0/D/80D7E79D-C0E4-415A-BCCA-E229EAFE2679/dshow_nt.cab"
-			SHA="984ed15e23a00a33113f0012277e1e680c95782ce2c44f414e7af14e28e3f1a2"
-			;;
-		wine-wininet-installer)
-			INS=(install_wininet)
-			URL="http://download.microsoft.com/download/6/a/a/6aa52757-8531-41dc-9a87-e050d6b99106/IE5.01sp4-KB890923-Windows2000sp4-x86-ENU.exe"
-			SHA="a1dd58d0ae1fddfdb1ea93b3d3cf2d768de64e6e622f03abe99ca60aee9e83e3"
-			;;
-		wine-browser-installer)
-			INS=(install_firefox)
-			URL="http://download.mozilla.org/?product=firefox-22.0&os=win&lang=en-US"
-			SHA="abb189f17e65e73d61843247ad1af7c997318b7854fa850a04e5f9d9a20cdd03"
-			EXT="exe"
 			;;
 		wine-flash-installer)
 			INS=(install_flash "11_9_900_170")
@@ -737,41 +668,51 @@ while [ $# -gt 0 ] ; do
 			URL="http://download.macromedia.com/pub/flashplayer/updaters/11/flashplayer_11_plugin_debug.exe"
 			SHA="cdb215b0ae70b6921781822cef1cac11cc65765fcd02fc72bf3b3eb01992600b"
 			;;
-		wine-shockwave-installer)
-			INS=(install_shockwave "1207148")
-			URL="http://fpdownload.macromedia.com/get/shockwave/default/english/win95nt/latest/sw_lic_full_installer.exe"
-			SHA="6b9a8d01dc65d34b8fd7b2685868cd33c62bf355ff2097a11c24b1c6cf279cc0"
+		wine-widevine-installer)
+			INS=(install_widevine)
+			URL="https://dl.google.com/widevine/6.0.0.12442/WidevineMediaOptimizer_Win.xpi"
+			SHA="84cde1b83d8f5e4b287303a25e61227ce9a253268af6bd88b9a2f98c85129bc8"
+			EXT="zip"
 			;;
 		wine-unity3d-installer)
 			INS=(install_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayer.exe"
 			SHA="ea1da7ec8d11c6f2b91d8bb22f3c308e2f7b2fcdba1fe3f2bc13f7d294c108b7"
 			;;
+		wine-adobereader-installer)
+			INS=(install_adobereader)
+			URL="http://ardownload.adobe.com/pub/adobe/reader/win/11.x/11.0.04/en_US/AdbeRdr11004_en_US.exe"
+			SHA="9660eec000a47c113796a9a351ad0027b7ef515b3fc9d1dd14589c0b0c7bc910"
+			;;
 		wine-foxitpdf-installer)
 			INS=(install_foxitpdf)
 			URL="http://cdn04.foxitsoftware.com/pub/foxit/reader/desktop/win/6.x/6.1/enu/EnterpriseFoxitReader611.1031_enu.msi"
 			SHA="90b5ec6c1d9405ebadb714105e9fb689cc6a109926e0749ce09aa4a55e16f67d"
+			;;
+		wine-shockwave-installer)
+			INS=(install_shockwave "1207148")
+			URL="http://fpdownload.macromedia.com/get/shockwave/default/english/win95nt/latest/sw_lic_full_installer.exe"
+			SHA="6b9a8d01dc65d34b8fd7b2685868cd33c62bf355ff2097a11c24b1c6cf279cc0"
 			;;
 		wine-grandstream-installer)
 			INS=(install_grandstream)
 			URL="http://www.grandstream.com/products/tools/surveillance/webcontrl_plugin.zip"
 			SHA="1162798378997373701967f3f0f291ae4c858e8cae29e55a5249e24f47f70df2"
 			;;
+		wine-mpg2splt-installer)
+			INS=(install_cabextract mpg2splt.ax --reg)
+			URL="http://download.microsoft.com/download/8/0/D/80D7E79D-C0E4-415A-BCCA-E229EAFE2679/dshow_nt.cab"
+			SHA="984ed15e23a00a33113f0012277e1e680c95782ce2c44f414e7af14e28e3f1a2"
+			;;
+		wine-wininet-installer)
+			INS=(install_wininet)
+			URL="http://download.microsoft.com/download/6/a/a/6aa52757-8531-41dc-9a87-e050d6b99106/IE5.01sp4-KB890923-Windows2000sp4-x86-ENU.exe"
+			SHA="a1dd58d0ae1fddfdb1ea93b3d3cf2d768de64e6e622f03abe99ca60aee9e83e3"
+			;;
 		wine-mspatcha-installer)
 			INS=(install_mspatcha)
 			URL="http://download.microsoft.com/download/WindowsInstaller/Install/2.0/NT45/EN-US/InstMsiW.exe"
 			SHA="4c3516c0b5c2b76b88209b22e3bf1cb82d8e2de7116125e97e128952372eed6b"
-			;;
-		wine-adobereader-installer)
-			INS=(install_adobereader)
-			URL="http://ardownload.adobe.com/pub/adobe/reader/win/11.x/11.0.04/en_US/AdbeRdr11004_en_US.exe"
-			SHA="9660eec000a47c113796a9a351ad0027b7ef515b3fc9d1dd14589c0b0c7bc910"
-			;;
-		wine-widevine-installer)
-			INS=(install_widevine)
-			URL="https://dl.google.com/widevine/6.0.0.12442/WidevineMediaOptimizer_Win.xpi"
-			SHA="84cde1b83d8f5e4b287303a25e61227ce9a253268af6bd88b9a2f98c85129bc8"
-			EXT="zip"
 			;;
 		*)
 			echo "[$PRG] ERROR: No installer script found for $DEP." >&2
@@ -781,37 +722,29 @@ while [ $# -gt 0 ] ; do
 	esac
 
 	# Is already installed?
-	if ! is_installed "$SHA"; then
-		echo "[$PRG] Downloading and running $DEP."
-
-		# Fetch the download
-		if ! download "$URL" "$SHA" "$EXT"; then
-			echo "[$PRG] ERROR: Download of $DEP failed." >&2
-			RET=1
-			break
-		fi
-
-		# Do the installation
-		if ! eval "${INS[@]}"; then
-			echo "[$PRG] ERROR: Execution of $DEP failed." >&2
-			RET=1
-			break
-		fi
-
-		# Mark the package as installed
-		mark_installed "$SHA"
-
-	else
+	if is_installed "$SHA"; then
 		echo "[$PRG] $DEP is already installed in '$WINEPREFIX'."
+		continue
 	fi
 
-	# Do the configure step
-	if [ "${#CFG[*]}" -gt 0 ] && ! eval "${CFG[@]}"; then
-		echo "[$PRG] ERROR: Configuration of $DEP failed." >&2
+	echo "[$PRG] Downloading and running $DEP."
+
+	# Fetch the download
+	if ! download "$URL" "$SHA" "$EXT"; then
+		echo "[$PRG] ERROR: Download of $DEP failed." >&2
 		RET=1
 		break
 	fi
 
+	# Do the installation
+	if ! eval "${INS[@]}"; then
+		echo "[$PRG] ERROR: Execution of $DEP failed." >&2
+		RET=1
+		break
+	fi
+
+	# Mark the package as installed
+	mark_installed "$SHA"
 done
 
 exit "$RET"
