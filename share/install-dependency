@@ -261,6 +261,13 @@ install_cabextract()
 	while [ $# -gt 0 ] ; do
 		local cmd=$1; shift
 		case "$cmd" in
+			--rename)
+				if ! mv "$system32/$FILE" "$system32/$1"; then
+					echo "[$PRG] ERROR: Unable to rename extracted file." >&2
+					return 1
+				fi
+				FILE="$1"; shift
+				;;
 			--reg)
 				"$WINE" regsvr32.exe "$FILE"
 				;;
@@ -280,7 +287,7 @@ install_cabextract()
 # $DOWNLOADFILE
 install_wininet()
 {
-	if ! install_cabextract wininet.dll; then return 1; fi
+	if ! install_cabextract wininet.x86.5.0.3700.6713.dll --rename "wininet.dll"; then return 1; fi
 
 	# Setup wine dlloverride and adjust some wininet.dll related settings
 	local tmpfile=$(mktemp)
@@ -624,8 +631,8 @@ while [ $# -gt 0 ] ; do
 			;;
 		wine-wininet-installer)
 			INS=(install_wininet)
-			URL="http://download.microsoft.com/download/6/a/a/6aa52757-8531-41dc-9a87-e050d6b99106/IE5.01sp4-KB890923-Windows2000sp4-x86-ENU.exe"
-			SHA="a1dd58d0ae1fddfdb1ea93b3d3cf2d768de64e6e622f03abe99ca60aee9e83e3"
+			URL="http://download.microsoft.com/download/6/f/c/6fcc07f8-62e1-459e-aab3-06faa3adacff/IE-KB884931-v2-x86-enu.exe"
+			SHA="b3f31b0d523f03123e8def4f91ba2e64aaceb31d9bfe851516ad7f61b0268d4a"
 			;;
 		wine-browser-installer)
 			INS=(install_firefox)
