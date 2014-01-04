@@ -1,4 +1,6 @@
             SOURCE: http://go2.microsoft.com/fwlink/?LinkID=183382
+
+License extracted from the website, date: Sat, 04 Jan 2014 20:02:04 +0100
 _______________________________________________________________________________
 
 MICROSOFT SOFTWARE LICENSE TERMS

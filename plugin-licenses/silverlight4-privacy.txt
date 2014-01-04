@@ -1,4 +1,6 @@
             SOURCE: http://go2.microsoft.com/fwlink/?LinkID=200620
+
+License extracted from the website, date: Sat, 04 Jan 2014 20:02:05 +0100
 _______________________________________________________________________________
 
 
