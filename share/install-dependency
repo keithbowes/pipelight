@@ -107,6 +107,14 @@ download()
 	local tmpfile=$(mktemp --suffix=".$EXT")
 	[ -f "$tmpfile" ] || return 1
 
+	local filesize="$(wget "$URL" --spider --server-response -O - 2>&1 | sed -ne '/Content-Length/{s/.*: //;p}')"
+	local re='^[0-9]+$'
+	if [[ "$filesize" -eq "0" ]] || ! [[ "$filesize" =~ $re ]]; then
+		filesize="N/A"
+	else
+		filesize=$(($filesize/(1024*1024)))
+	fi
+
 	# Download to tmpfile
 	while true; do
 		if [ "$trycount" -le 0 ]; then
@@ -115,7 +123,7 @@ download()
 			return 1
 		fi
 
-		wget -O "$tmpfile" "$URL" 2>&1 | progressbar "Please wait, downloading ..." "Downloading $DEP"
+		wget -O "$tmpfile" "$URL" 2>&1 | progressbar "Please wait, downloading ..." "Downloading $DEP ($filesize MiB)"
 		if [ -f "$tmpfile" ] && [ "$SHA" == ""$(sha256sum "$tmpfile" | cut -d' ' -f1) ]; then
 			break
 		fi
