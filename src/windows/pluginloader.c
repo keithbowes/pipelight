@@ -1318,6 +1318,10 @@ void dispatcher(int functionid, Stack &stack){
 				if (ndata){
 					uint32_t browser_width  = browser.right - browser.left;
 					uint32_t browser_height = browser.bottom - browser.top;
+					bool     browser_resized;
+
+					browser_resized = ((ndata->browser.right - ndata->browser.left) != browser_width) ||
+									  ((ndata->browser.bottom - ndata->browser.top) != browser_height);
 
 					memcpy(&ndata->browser, &browser, sizeof(browser));
 
@@ -1372,7 +1376,7 @@ void dispatcher(int functionid, Stack &stack){
 							}else
 								DBG_ERROR("failed to create window!");
 
-						}else
+						}else if (browser_resized)
 							SetWindowPos(ndata->hWnd, 0, 0, 0, rect.right - rect.left, rect.bottom - rect.top, SWP_NOACTIVATE | SWP_NOMOVE);
 
 					}else{ /* linux windowless mode */
