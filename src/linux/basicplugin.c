@@ -96,60 +96,23 @@ void attach(){
 
 	/* load config file */
 	if (!loadConfig(config)){
-		DBG_ERROR("unable to load config file - aborting.");
+		DBG_ERROR("unable to load configuration - aborting.");
 		return;
 	}
 
-	/* ensure that all necessary keys are provided */
-	if 	(	config.winePath == "" || ((config.dllPath == "" || config.dllName == "") && config.regKey == "") ||
-			config.pluginLoaderPath == "" || config.winePrefix == "" ){
-		DBG_ERROR("Your configuration file doesn't contain all necessary keys - aborting.");
-		DBG_ERROR("please take a look at the original configuration file for more details.");
-		return;
-	}
-
-	/* sandbox specified, but doesn't exist */
-	if (config.sandboxPath != "" && !checkIfExists(config.sandboxPath)){
-		DBG_WARN("sandbox not found / not installed!");
-		config.sandboxPath = "";
-	}
-
-	/* check if hw acceleration should be used (only for Silverlight) */
-	if (config.silverlightGraphicDriverCheck != ""){
-		int gpuAcceleration = getEnvironmentInteger("PIPELIGHT_GPUACCELERATION", -1);
-
-		if (gpuAcceleration == 0){
-			DBG_INFO("enableGPUAcceleration set via commandline to 'false'");
-			config.overwriteArgs["enableGPUAcceleration"] = "false";
-
-		}else if (gpuAcceleration > 0){
-			DBG_INFO("enableGPUAcceleration set via commandline to 'true'");
-			config.overwriteArgs["enableGPUAcceleration"] = "true";
-			if (gpuAcceleration > 1)
-				config.experimental_renderTopLevelWindow = true;
-
-		}else if (config.overwriteArgs.find("enableGPUAcceleration") == config.overwriteArgs.end()){
-			if (!checkSilverlightGraphicDriver())
-				config.overwriteArgs["enableGPUAcceleration"] = "false";
-
-		}else{
-			DBG_INFO("enableGPUAcceleration set manually - skipping compatibility check.");
-		}
-	}
-
-	/* Check for correct installation */
+	/* check for correct installation */
 	if (!checkPluginInstallation()){
 		DBG_ERROR("plugin not correctly installed - aborting.");
 		return;
 	}
 
-	/* Start wine process */
+	/* start wine process */
 	if (!startWineProcess()){
 		DBG_ERROR("could not start wine process - aborting.");
 		return;
 	}
 
-	/* We want to be sure that wine is up and running until we return! */
+	/* we want to be sure that wine is up and running until we return! */
 	if (!pluginInitOkay()){
 		DBG_ERROR("error during the initialization of the wine process - aborting.");
 		return;

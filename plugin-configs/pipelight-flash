@@ -94,6 +94,14 @@ regKey              = @adobe.com/FlashPlayer
 # [default: false]
 #
 windowlessMode      = false
+windowlessOverwriteArg = wmode=opaque
+
+#
+# Some browsers that don't support XEmbed only work with "real"
+# windowlessmode. The following option can be used to force this
+# mode. [default: false]
+#
+linuxWindowlessMode = false
 
 #
 # embed defines whether the Flash plugin should be shown

@@ -423,45 +423,32 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 			DBG_INFO("already one timer running.");
 	}
 
-	if (saved)
-		writeMemory((char*)saved->buf, saved->len);
-	else
-		writeMemory(NULL, 0);
-
 	/*
 	We can't use this function as we may need to fake some values
 	writeStringArray(argv, argc);
 	writeStringArray(argn, argc);
 	*/
 
-	int realArgCount = 0;
+	std::map<std::string, std::string, stringInsensitiveCompare> tempArgs;
 	std::map<std::string, std::string>::iterator it;
-
-	/* argv */
-	for (int i = argc - 1; i >= 0; i--){
-		std::string key(argn[i]);
-		if (config.overwriteArgs.find(key) == config.overwriteArgs.end()){
-			writeString(argv[i]);
-			realArgCount++;
-		}
-	}
-
-	for (it = config.overwriteArgs.begin(); it != config.overwriteArgs.end(); it++){
-		writeString(it->second);
-		realArgCount++;
-	}
-
-	/* argn */
-	for (int i = argc - 1; i >= 0; i--){
-		std::string key(argn[i]);
-		if (config.overwriteArgs.find(key) == config.overwriteArgs.end())
-			writeString(argn[i]);
-	}
-
+	for (int i = 0; i < argc; i++)
+		tempArgs[std::string(argn[i])] = std::string(argv[i]);
 	for (it = config.overwriteArgs.begin(); it != config.overwriteArgs.end(); it++)
-		writeString(it->first);
+		tempArgs[it->first] = it->second;
+	if (config.windowlessMode){
+		for (it = config.windowlessOverwriteArgs.begin(); it != config.windowlessOverwriteArgs.end(); it++)
+			tempArgs[it->first] = it->second;
+	}
 
-	writeInt32(realArgCount);
+	if (saved)
+		writeMemory((char*)saved->buf, saved->len);
+	else
+		writeMemory(NULL, 0);
+	for (it = tempArgs.begin(); it != tempArgs.end(); it++)
+		writeString(it->second);
+	for (it = tempArgs.begin(); it != tempArgs.end(); it++)
+		writeString(it->first);
+	writeInt32(tempArgs.size());
 	writeInt32(mode);
 	writeHandleInstance(instance);
 	writeString(mimeType);

@@ -1033,32 +1033,32 @@ void readVariantIncRef(Stack &stack, NPVariant &variant){
 
 	switch(variant.type){
 		case NPVariantType_Null:
-			variant.value.objectValue = NULL;
+			variant.value.objectValue 	= NULL;
 			break;
 
 		case NPVariantType_Void:
-			variant.value.objectValue = NULL;
+			variant.value.objectValue	= NULL;
 			break;
 
 		case NPVariantType_Bool:
-			variant.value.boolValue 	= (bool)readInt32(stack);
+			variant.value.boolValue		= (bool)readInt32(stack);
 			break;
 
 		case NPVariantType_Int32:
-			variant.value.intValue  	= readInt32(stack);
+			variant.value.intValue		= readInt32(stack);
 			break;
 
 		case NPVariantType_Double:
-			variant.value.doubleValue  	= readDouble(stack);
+			variant.value.doubleValue	= readDouble(stack);
 			break;
 
 		case NPVariantType_String:
-			variant.value.stringValue.UTF8Characters 	= readStringMalloc(stack, stringLength);
-			variant.value.stringValue.UTF8Length 		= stringLength;
+			variant.value.stringValue.UTF8Characters	= readStringMalloc(stack, stringLength);
+			variant.value.stringValue.UTF8Length		= stringLength;
 			break;
 
 		case NPVariantType_Object:
-			variant.value.objectValue 	= readHandleObjIncRef(stack);
+			variant.value.objectValue	= readHandleObjIncRef(stack);
 			break;
 
 		default:
@@ -1080,32 +1080,32 @@ void readVariant(Stack &stack, NPVariant &variant){
 
 	switch(variant.type){
 		case NPVariantType_Null:
-			variant.value.objectValue = NULL;
+			variant.value.objectValue	= NULL;
 			break;
 
 		case NPVariantType_Void:
-			variant.value.objectValue = NULL;
+			variant.value.objectValue	= NULL;
 			break;
 
 		case NPVariantType_Bool:
-			variant.value.boolValue 	= (bool)readInt32(stack);
+			variant.value.boolValue		= (bool)readInt32(stack);
 			break;
 
 		case NPVariantType_Int32:
-			variant.value.intValue  	= readInt32(stack);
+			variant.value.intValue		= readInt32(stack);
 			break;
 
 		case NPVariantType_Double:
-			variant.value.doubleValue  	= readDouble(stack);
+			variant.value.doubleValue	= readDouble(stack);
 			break;
 
 		case NPVariantType_String:
-			variant.value.stringValue.UTF8Characters 	= readStringBrowserAlloc(stack, stringLength);
-			variant.value.stringValue.UTF8Length 		= stringLength;
+			variant.value.stringValue.UTF8Characters	= readStringBrowserAlloc(stack, stringLength);
+			variant.value.stringValue.UTF8Length		= stringLength;
 			break;
 
 		case NPVariantType_Object:
-			variant.value.objectValue 	= readHandleObj(stack);
+			variant.value.objectValue	= readHandleObj(stack);
 			break;
 
 		default:

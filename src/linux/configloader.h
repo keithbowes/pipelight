@@ -79,9 +79,10 @@ struct PluginConfig{
 	bool 			windowlessMode;
 	bool			linuxWindowlessMode;
 
-	std::string 	fakeVersion;
-	std::vector<MimeInfo> fakeMIMEtypes;
+	std::string 			fakeVersion;
+	std::vector<MimeInfo> 	fakeMIMEtypes;
 	std::map<std::string, std::string, stringInsensitiveCompare> overwriteArgs;
+	std::map<std::string, std::string, stringInsensitiveCompare> windowlessOverwriteArgs;
 
 	std::string		dependencyInstaller;
 	std::vector<std::string> dependencies;

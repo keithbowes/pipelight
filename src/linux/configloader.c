@@ -50,6 +50,9 @@
 #include "../common/common.h"
 #include "configloader.h"
 
+/* defined in basicplugin.h, but we don't want to pull in the whole header */
+extern bool checkSilverlightGraphicDriver();
+
 /* getHomeDirectory */
 static std::string getHomeDirectory(){
 	char *homeDir = getenv("HOME");
@@ -251,6 +254,7 @@ static  bool openConfig(std::ifstream &configFile, std::string &configPath, std:
 /* loadConfig, parses the config file */
 bool loadConfig(PluginConfig &config){
 	std::map<std::string, std::string> variables;
+	int environmentVariable;
 
 	/* Add $home to variables */
 	std::string homeDir = getHomeDirectory();
@@ -284,6 +288,7 @@ bool loadConfig(PluginConfig &config){
 	config.fakeVersion			= "";
 	config.fakeMIMEtypes.clear();
 	config.overwriteArgs.clear();
+	config.windowlessOverwriteArgs.clear();
 
 	config.dependencyInstaller 	= "";
 	config.dependencies.clear();
@@ -293,12 +298,12 @@ bool loadConfig(PluginConfig &config){
 	config.operaDetection 		= true;
 	config.executeJavascript 	= "";
 
-	config.silverlightGraphicDriverCheck = "";
+	config.silverlightGraphicDriverCheck 		= "";
 
-	config.experimental_unityHacks = false;
-	config.experimental_forceSetWindow = false;
-	config.experimental_windowClassHook = false;
-	config.experimental_renderTopLevelWindow = false;
+	config.experimental_unityHacks 				= false;
+	config.experimental_forceSetWindow 			= false;
+	config.experimental_windowClassHook 		= false;
+	config.experimental_renderTopLevelWindow 	= false;
 
 	/* open configuration file */
 	std::ifstream configFile;
@@ -339,16 +344,18 @@ bool loadConfig(PluginConfig &config){
 		if (key[0] == '$'){
 			variables[key] = value;
 
-		}else if (	key == "diagnosticmode"){
+		}else if (key == "diagnosticmode"){
 			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
 			config.diagnosticMode = (value == "true" || value == "yes");
 
 		}else if (key == "sandboxpath"){
-			config.sandboxPath = value;
+			if (checkIfExists(value))
+				config.sandboxPath = value;
+			else
+				DBG_WARN("sandbox not found or not installed!");
 
 		}else if (key == "winepath"){
 			config.winePath = value;
-
 			if (!checkIsFile(config.winePath))
 				config.winePath += "/bin/wine";
 
@@ -394,25 +401,25 @@ bool loadConfig(PluginConfig &config){
 		}else if (key == "fakemimetype"){
 			MimeInfo info;
 			std::string fakeType, remaining;
-
 			if (!splitConfigValue(value, fakeType, info.originalMime))
 				continue;
-
 			if (!splitConfigValue(fakeType, info.mimeType, remaining, ":"))
 				continue;
-
 			if (!splitConfigValue(remaining, info.extension, info.description, ":"))
 				continue;
-
 			config.fakeMIMEtypes.push_back(info);
 
 		}else if (key == "overwritearg"){
-			std::string argKey;
-			std::string argValue;
+			std::string argKey, argValue;
 			if (!splitConfigValue(value, argKey, argValue))
 				continue;
-
 			config.overwriteArgs[argKey] = argValue;
+
+		}else if (key == "windowlessoverwritearg"){
+			std::string argKey, argValue;
+			if (!splitConfigValue(value, argKey, argValue))
+				continue;
+			config.windowlessOverwriteArgs[argKey] = argValue;
 
 		}else if (key == "dependencyinstaller"){
 			config.dependencyInstaller = value;
@@ -466,7 +473,52 @@ bool loadConfig(PluginConfig &config){
 
 	}
 
+	/* config.linuxWindowlessMode implies windowlessMode */
+	if (config.linuxWindowlessMode)
+		config.windowlessMode = true;
+
 	/* set the multiplugin name */
 	setMultiPluginName(config.pluginName);
+
+	/* ensure that all necessary keys are provided */
+	if 	(	config.winePath == "" || ((config.dllPath == "" || config.dllName == "") &&
+			config.regKey == "") || config.pluginLoaderPath == "" || config.winePrefix == "" ){
+		DBG_ERROR("Your configuration file doesn't contain all necessary keys - aborting.");
+		DBG_ERROR("please take a look at the original configuration file for more details.");
+		return false;
+	}
+
+	/* environment variable to overwrite embedding */
+	environmentVariable = getEnvironmentInteger("PIPELIGHT_EMBED", -1);
+	if (environmentVariable >= 0){
+		config.embed = (environmentVariable >= 1);
+		DBG_INFO("embed set via commandline to %s", config.embed ? "true" : "false");
+	}
+
+	/* environment variable to overwrite windowlessmode */
+	environmentVariable = getEnvironmentInteger("PIPELIGHT_WINDOWLESSMODE", -1);
+	if (environmentVariable >= 0){
+		config.windowlessMode 		= (environmentVariable >= 1);
+		config.linuxWindowlessMode 	= (environmentVariable >= 2);
+		DBG_INFO("windowlessMode set via commandline to %s", 		config.windowlessMode ? "true" : "false");
+		DBG_INFO("linuxWindowlessMode set via commandline to %s", 	config.linuxWindowlessMode ? "true" : "false");
+	}
+
+	/* check if hw acceleration should be used (only for Silverlight) */
+	if (config.silverlightGraphicDriverCheck != ""){
+		environmentVariable = getEnvironmentInteger("PIPELIGHT_GPUACCELERATION", -1);
+		if (environmentVariable >= 0){
+			config.overwriteArgs["enableGPUAcceleration"] 	= (environmentVariable >= 1) ? "true" : "false";
+			config.experimental_renderTopLevelWindow 		= (environmentVariable >= 2);
+			DBG_INFO("enableGPUAcceleration set via commandline to %s", (environmentVariable >= 1) ? "true" : "false");
+
+		}else if (config.overwriteArgs.find("enableGPUAcceleration") == config.overwriteArgs.end()){
+			if (!checkSilverlightGraphicDriver())
+				config.overwriteArgs["enableGPUAcceleration"] = "false";
+
+		}else
+			DBG_INFO("enableGPUAcceleration set manually - skipping compatibility check.");
+	}
+
 	return true;
 }

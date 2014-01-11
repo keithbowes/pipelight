@@ -105,6 +105,13 @@ overwriteArg        = minRuntimeVersion=5.0.61118.0
 windowlessMode      = false
 
 #
+# Some browsers that don't support XEmbed only work with "real"
+# windowlessmode. The following option can be used to force this
+# mode. [default: false]
+#
+linuxWindowlessMode = false
+
+#
 # embed defines whether the Silverlight plugin should be shown
 # inside the browser (true) or an external window (false).
 # [default: true]
