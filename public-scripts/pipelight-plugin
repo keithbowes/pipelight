@@ -36,8 +36,8 @@ usage()
 	echo "Global commands (require root rights):"
 	echo "  --create-mozilla-plugins    create copies of libpipelight.so"
 	echo "  --remove-mozilla-plugins    remove copies of libpipelight.so"
-	echo "  --unlock-plugin PLUGIN      unlocks an additional plugin"
-	echo "  --lock-plugin   PLUGIN      locks an additional plugin"
+	echo "  --unlock PLUGIN             unlocks an additional plugin"
+	echo "  --lock   PLUGIN             locks an additional plugin"
 	echo "  --update                    update the dependency-installer script"
 	echo ""
 	echo "Advanced options:"
@@ -473,19 +473,19 @@ while [[ $# > 0 ]] ; do
 			DEBUG=0
 			;;
 
-		--enable)
+		--enable-plugin|--enable)
 			if ! enable_plugin "$1"; then RET=1; fi
 			shift
 			;;
-		--enable=*)
+		--enable-plugin=*|--enable=*)
 			if ! enable_plugin "${CMD#*=}"; then RET=1; fi
 			;;
 
-		--disable)
+		--disable-plugin|--disable)
 			if ! disable_plugin "$1"; then RET=1; fi
 			shift
 			;;
-		--disable=*)
+		--disable-plugin=*|--disable=*)
 			if ! disable_plugin "${CMD#*=}"; then RET=1; fi
 			;;
 
@@ -504,19 +504,19 @@ while [[ $# > 0 ]] ; do
 			if ! remove_mozilla_plugins; then RET=1; fi
 			;;
 
-		--unlock-plugin)
+		--unlock-plugin|--unlock)
 			if ! unlock_plugin "$1"; then RET=1; fi
 			shift
 			;;
-		--unlock-plugin=*)
+		--unlock-plugin=*|--unlock=*)
 			if ! unlock_plugin "${CMD#*=}"; then RET=1; fi
 			;;
 
-		--lock-plugin)
+		--lock-plugin|--lock)
 			if ! lock_plugin "$1"; then RET=1; fi
 			shift
 			;;
-		--lock-plugin=*)
+		--lock-plugin=*|--lock=*)
 			if ! lock_plugin "${CMD#*=}"; then RET=1; fi
 			;;
 
