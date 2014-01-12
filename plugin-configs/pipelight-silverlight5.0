@@ -40,7 +40,7 @@ wineDLLOverrides    = mscoree,mshtml,winegstreamer,winemenubuilder.exe=
 # Path to the plugin loader executable
 # (Should be set correctly by the make script)
 #
-pluginLoaderPath    = @@PLUGIN_LOADER_PATH@@
+pluginLoaderPath    = @@PLUGINLOADER_PATH@@
 
 #
 # Path to the runtime DLLs (libgcc_s_sjlj-1.dll, libspp-0.dll,

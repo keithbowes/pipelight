@@ -50,7 +50,7 @@ install: all
 	done
 
 	for config in $(notdir $(PLUGIN_CONFIGS)); do \
-		sed    's|@@PLUGIN_LOADER_PATH@@|$(prefix)/share/pipelight/$(pluginloader)|g' plugin-configs/$${config} > pipelight-config.tmp; \
+		sed    's|@@PLUGINLOADER_PATH@@|$(prefix)/share/pipelight/$(pluginloader)|g' plugin-configs/$${config} > pipelight-config.tmp; \
 		sed -i 's|@@DEPENDENCY_INSTALLER@@|$(prefix)/share/pipelight/install-dependency|g' pipelight-config.tmp; \
 		sed -i 's|@@SANDBOX_PATH@@|$(prefix)/share/pipelight/sandbox|g' pipelight-config.tmp; \
 		sed -i 's|@@GRAPHIC_DRIVER_CHECK@@|$(hwacceldefault)|g' pipelight-config.tmp; \
@@ -70,6 +70,8 @@ install: all
 	install -m 0644 src/linux/libpipelight.so "$(DESTDIR)$(prefix)/lib/pipelight/libpipelight.so"
 
 	sed    's|@@PLUGIN_SYSTEM_PATH@@|$(prefix)/lib/pipelight/|g' public-scripts/pipelight-plugin > pipelight-plugin.tmp
+	sed -i 's|@@CONFIG_PATH@@|$(prefix)/share/pipelight/configs|g' pipelight-plugin.tmp
+	sed -i 's|@@LICENSE_PATH@@|$(prefix)/share/pipelight/licenses|g' pipelight-plugin.tmp
 	sed -i 's|@@DEPENDENCY_INSTALLER@@|$(prefix)/share/pipelight/install-dependency|g' pipelight-plugin.tmp
 	sed -i 's|@@MOZ_PLUGIN_PATH@@|$(mozpluginpath)|g' pipelight-plugin.tmp
 	sed -i 's|@@PIPELIGHT_PUBKEY@@|$(prefix)/share/pipelight/signature.gpg|g' pipelight-plugin.tmp	

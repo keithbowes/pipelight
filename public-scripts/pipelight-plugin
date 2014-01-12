@@ -3,11 +3,13 @@
 # Global configuration
 ORIG_SYSTEMDIR="@@PLUGIN_SYSTEM_PATH@@"
 ORIG_PLUGINDIR="@@MOZ_PLUGIN_PATH@@"
+CONFIG_PATH="@@CONFIG_PATH@@"
+LICENSE_PATH="@@LICENSE_PATH@@"
 DEPENDENCY_INSTALLER_PATH="@@DEPENDENCY_INSTALLER@@"
 DEPENDENCY_INSTALLER_URL="https://bitbucket.org/mmueller2012/pipelight/raw/master/share/install-dependency.sig"
 PIPELIGHT_PUBKEY="@@PIPELIGHT_PUBKEY@@"
-LIBPIPELIGHT="libpipelight"
 DESTDIR=""
+ACCEPTALL=0
 DEBUG=1
 
 # Supported plugins
@@ -69,7 +71,7 @@ get_directories()
 	fi
 
 	# Fallback to Ubuntu path if not installed via make install
-	if [[ "$ORIG_SYSTEMDIR" =~ ^@@.*@@$ ]] && [ -f "$DESTDIR/usr/lib/pipelight/$LIBPIPELIGHT.so" ]; then
+	if [[ "$ORIG_SYSTEMDIR" =~ ^@@.*@@$ ]] && [ -f "$DESTDIR/usr/lib/pipelight/libpipelight.so" ]; then
 		ORIG_SYSTEMDIR="/usr/lib/pipelight"
 	elif [ ! -d "$DESTDIR$ORIG_SYSTEMDIR" ]; then
 		echo "ERROR: Failed to find $DESTDIR$ORIG_SYSTEMDIR." >&2
@@ -146,6 +148,53 @@ is_supported_plugin()
 	return 1
 }
 
+# > Shows the license agreement of a specific plugin and asks the user
+# arguments:
+# $1	- name of the plugin
+show_license_dialog()
+{
+	local PLUGIN="$1"
+
+	if [[ "$CONFIG_PATH" =~ ^@@.*@@$ ]]; then return 1; fi
+	if [[ "$LICENSE_PATH" =~ ^@@.*@@$ ]]; then return 1; fi
+
+	if [ ! -f "$CONFIG_PATH/pipelight-$PLUGIN" ]; then
+		echo "ERROR: Config file for plugin $PLUGIN not found, unable to check license" >&2
+		return 1
+	fi
+
+	local show_licenses=0
+	for license in $(sed -n 's|^[ \t]*dependency[ \t]*=[ \t]*wine-\(.*\)-installer[ \t]*$|\1|p' "$CONFIG_PATH/pipelight-$PLUGIN"); do
+		if [ -f "$LICENSE_PATH/license-$license.txt" ]; then
+			if [ "$show_licenses" -eq 0 ]; then
+				echo ""
+			fi
+			echo -en "\e[1;31m"
+
+			local re=$(echo -en "^\t")
+			while IFS= read line; do
+				if [ "$line" == "---" ]; then break; fi
+				echo "$line"
+			done < "$LICENSE_PATH/license-$license.txt"
+
+			echo -e "\e[0m"
+			echo ""
+			show_licenses=1
+		fi
+	done
+
+	if [ "$ACCEPTALL" -eq 0 ] && [ "$show_licenses" -ne 0 ]; then
+		read -p "Do you accept the license(s)? [Y/N] " -n 1 -r choice
+		echo ""
+		if [[ ! "$choice" =~ ^[Yy]$ ]]; then
+			return 1
+		fi
+	fi
+
+	return 0
+}
+
+
 # > Enables/Disables a given plugin
 # arguments:
 # $1	- name of the plugin
@@ -162,15 +211,15 @@ enable_plugin()
 		return 1
 	fi
 
-	local src="$SYSTEMDIR/$LIBPIPELIGHT-$PLUGIN.so"
-	local dst="$INSTALLDIR/$LIBPIPELIGHT-$PLUGIN.so"
+	local src="$SYSTEMDIR/libpipelight-$PLUGIN.so"
+	local dst="$INSTALLDIR/libpipelight-$PLUGIN.so"
 
 
 	if [ ! -f "$src" ]; then
 		if is_additional_plugin "$PLUGIN"; then
-			echo "ERROR: You first need to call this program with: --unlock-plugin $PLUGIN" >&2
+			echo "ERROR: You first need to call this program with: --unlock $PLUGIN" >&2
 		else
-			echo "ERROR: Your system is missing a copy of $SYSTEMDIR/$LIBPIPELIGHT.so at $src" >&2
+			echo "ERROR: Your system is missing a copy of $SYSTEMDIR/libpipelight.so at $src" >&2
 		fi
 		return 1
 	fi
@@ -187,9 +236,12 @@ enable_plugin()
 	elif [ -e "$dst" ]; then
 		echo "ERROR: $dst exists but is not a symlink, aborting - delete or rename this file manually." >&2
 		return 1
+	elif ! show_license_dialog "$PLUGIN"; then
+		echo "Aborting" >&1
+		return 1
 	fi
 
-	local srclnk="$ORIG_SYSTEMDIR/$LIBPIPELIGHT-$PLUGIN.so"
+	local srclnk="$ORIG_SYSTEMDIR/libpipelight-$PLUGIN.so"
 
 	if ! ln -s "$srclnk" "$dst"; then
 		echo "ERROR: Failed to create symlink from $src to $dst." >&2
@@ -218,7 +270,7 @@ disable_plugin()
 		return 1
 	fi
 
-	local dst="$INSTALLDIR/$LIBPIPELIGHT-$PLUGIN.so"
+	local dst="$INSTALLDIR/libpipelight-$PLUGIN.so"
 
 	# check if there is a file
 	if [ -L "$dst" ]; then
@@ -258,7 +310,7 @@ is_enabled_plugin()
 		return 1
 	fi
 
-	local dst="$INSTALLDIR/$LIBPIPELIGHT-$PLUGIN.so"
+	local dst="$INSTALLDIR/libpipelight-$PLUGIN.so"
 
 	# check if there is a file
 	[ -e "$dst" ] && [ -L "$dst" ]
@@ -300,7 +352,7 @@ create_mozilla_plugins()
 		local skip_additional=1
 	fi
 
-	local src="$SYSTEMDIR/$LIBPIPELIGHT.so"
+	local src="$SYSTEMDIR/libpipelight.so"
 
 	if [ ! -f "$src" ]; then
 		echo "ERROR: Can't find Pipelight installation at $src." >&2
@@ -309,7 +361,7 @@ create_mozilla_plugins()
 
 	# Create copy of the original plugin in libpipelight-*.so
 	for entry in "${PLUGIN_LIST[@]}"; do
-		local dst="$SYSTEMDIR/$LIBPIPELIGHT-$entry.so"
+		local dst="$SYSTEMDIR/libpipelight-$entry.so"
 
 		if [ -e "$dst" ]; then
 			if ! rm -f "$dst" 2>/dev/null; then
@@ -342,7 +394,7 @@ remove_mozilla_plugins()
 	fi
 
 	for entry in "${PLUGIN_LIST[@]}"; do
-		local dst="$SYSTEMDIR/$LIBPIPELIGHT-$entry.so"
+		local dst="$SYSTEMDIR/libpipelight-$entry.so"
 
 		if [ -e "$dst" ] && ! rm -f "$dst" 2>/dev/null; then
 			echo "ERROR: Failed to remove $dst." >&2
@@ -467,6 +519,9 @@ while [[ $# > 0 ]] ; do
 			;;
 		--destdir=*)
 			DESTDIR="${CMD#*=}"
+			;;
+		-y)
+			ACCEPTALL=1
 			;;
 
 		--debug)
