@@ -11,7 +11,7 @@ if [ "$RET" = "true" ]; then
 	if pipelight-plugin --list-enabled | grep "^silverlight.*$"; then
 		echo "You already have one (or more) Silverlight versions enabled." >&2
 	else
-		pipelight-plugin --enable silverlight
+		pipelight-plugin --accept --enable silverlight
 	fi
 
 else

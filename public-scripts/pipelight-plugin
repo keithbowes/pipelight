@@ -1,16 +1,14 @@
 #!/usr/bin/env bash
 
 # Global configuration
-ORIG_SYSTEMDIR="@@PLUGIN_SYSTEM_PATH@@"
-ORIG_PLUGINDIR="@@MOZ_PLUGIN_PATH@@"
+LIBRARY_PATH="@@LIBRARY_PATH@@"
+PLUGIN_PATH="@@MOZ_PLUGIN_PATH@@"
 CONFIG_PATH="@@CONFIG_PATH@@"
 LICENSE_PATH="@@LICENSE_PATH@@"
 DEPENDENCY_INSTALLER_PATH="@@DEPENDENCY_INSTALLER@@"
 DEPENDENCY_INSTALLER_URL="https://bitbucket.org/mmueller2012/pipelight/raw/master/share/install-dependency.sig"
 PIPELIGHT_PUBKEY="@@PIPELIGHT_PUBKEY@@"
-DESTDIR=""
 ACCEPTALL=0
-DEBUG=1
 
 # Supported plugins
 STANDARD_PLUGINS=("silverlight5.1" "silverlight5.0" "silverlight4" "flash" "unity3d" "widevine")
@@ -43,8 +41,7 @@ usage()
 	echo "  --update                    update the dependency-installer script"
 	echo ""
 	echo "Advanced options:"
-	echo "  --destdir=DIRECTORY         set fakeroot directory"
-	echo "  --debug                     show debug info"
+	echo "  --accept                    accept all licenses"
 	echo ""
 	echo "Supported standard plugins:"
 	for entry in "${STANDARD_PLUGINS[@]}"; do
@@ -66,42 +63,32 @@ get_directories()
 {
 	if [ ! -z "$INSTALLDIR" ]; then return 0; fi
 
-	if [ ! -z "$DESTDIR" ]; then
-		DESTDIR=$(readlink -m "$DESTDIR")
-	fi
-
 	# Fallback to Ubuntu path if not installed via make install
-	if [[ "$ORIG_SYSTEMDIR" =~ ^@@.*@@$ ]] && [ -f "$DESTDIR/usr/lib/pipelight/libpipelight.so" ]; then
-		ORIG_SYSTEMDIR="/usr/lib/pipelight"
-	elif [ ! -d "$DESTDIR$ORIG_SYSTEMDIR" ]; then
-		echo "ERROR: Failed to find $DESTDIR$ORIG_SYSTEMDIR." >&2
+	if [[ "$LIBRARY_PATH" =~ ^@@.*@@$ ]] && [ -f "/usr/lib/pipelight/libpipelight.so" ]; then
+		LIBRARY_PATH="/usr/lib/pipelight"
+	elif [ ! -d "$LIBRARY_PATH" ]; then
+		echo "ERROR: Failed to find $LIBRARY_PATH." >&2
 		exit 1
 	fi
 
-	if [[ "$ORIG_PLUGINDIR" =~ ^@@.*@@$ ]]; then
-		ORIG_PLUGINDIR="/usr/lib/mozilla/plugins"
+	if [[ "$PLUGIN_PATH" =~ ^@@.*@@$ ]]; then
+		PLUGIN_PATH="/usr/lib/mozilla/plugins"
 	fi
 
-	ORIG_SYSTEMDIR=$(readlink -m "$ORIG_SYSTEMDIR"); SYSTEMDIR="$DESTDIR$ORIG_SYSTEMDIR"
-	ORIG_PLUGINDIR=$(readlink -m "$ORIG_PLUGINDIR"); PLUGINDIR="$DESTDIR$ORIG_PLUGINDIR"
+	LIBRARY_PATH=$(readlink -m "$LIBRARY_PATH")
+	PLUGIN_PATH=$(readlink -m "$PLUGIN_PATH")
 
 	# Global installation
 	if [ $(/usr/bin/id -u) -eq 0 ]; then
-		INSTALLDIR="$PLUGINDIR"
+		INSTALLDIR="$PLUGIN_PATH"
 
 	# Use environment variable (only if it doesn't point to the global directory)
-	elif [ ! -z "$MOZ_PLUGIN_PATH" ] && [ "$MOZ_PLUGIN_PATH" != "$PLUGINDIR" ] && [ -d "$MOZ_PLUGIN_PATH" ]; then
+	elif [ ! -z "$MOZ_PLUGIN_PATH" ] && [ "$MOZ_PLUGIN_PATH" != "$PLUGIN_PATH" ] && [ -d "$MOZ_PLUGIN_PATH" ]; then
 		INSTALLDIR=$(readlink -m "$MOZ_PLUGIN_PATH")
 
 	# Local installation
 	else
 		INSTALLDIR="$HOME/.mozilla/plugins"
-	fi
-
-	if [ "$DEBUG" -eq 0 ]; then
-		echo "[*] SYSTEMDIR:  $SYSTEMDIR"
-		echo "[*] PLUGINDIR:  $PLUGINDIR"
-		echo "[*] INSTALLDIR: $INSTALLDIR"
 	fi
 
 	[ ! -z "$INSTALLDIR" ]
@@ -211,7 +198,7 @@ enable_plugin()
 		return 1
 	fi
 
-	local src="$SYSTEMDIR/libpipelight-$PLUGIN.so"
+	local src="$LIBRARY_PATH/libpipelight-$PLUGIN.so"
 	local dst="$INSTALLDIR/libpipelight-$PLUGIN.so"
 
 
@@ -219,7 +206,7 @@ enable_plugin()
 		if is_additional_plugin "$PLUGIN"; then
 			echo "ERROR: You first need to call this program with: --unlock $PLUGIN" >&2
 		else
-			echo "ERROR: Your system is missing a copy of $SYSTEMDIR/libpipelight.so at $src" >&2
+			echo "ERROR: Your system is missing a copy of $LIBRARY_PATH/libpipelight.so at $src" >&2
 		fi
 		return 1
 	fi
@@ -241,7 +228,7 @@ enable_plugin()
 		return 1
 	fi
 
-	local srclnk="$ORIG_SYSTEMDIR/libpipelight-$PLUGIN.so"
+	local srclnk="$LIBRARY_PATH/libpipelight-$PLUGIN.so"
 
 	if ! ln -s "$srclnk" "$dst"; then
 		echo "ERROR: Failed to create symlink from $src to $dst." >&2
@@ -352,7 +339,7 @@ create_mozilla_plugins()
 		local skip_additional=1
 	fi
 
-	local src="$SYSTEMDIR/libpipelight.so"
+	local src="$LIBRARY_PATH/libpipelight.so"
 
 	if [ ! -f "$src" ]; then
 		echo "ERROR: Can't find Pipelight installation at $src." >&2
@@ -361,7 +348,7 @@ create_mozilla_plugins()
 
 	# Create copy of the original plugin in libpipelight-*.so
 	for entry in "${PLUGIN_LIST[@]}"; do
-		local dst="$SYSTEMDIR/libpipelight-$entry.so"
+		local dst="$LIBRARY_PATH/libpipelight-$entry.so"
 
 		if [ -e "$dst" ]; then
 			if ! rm -f "$dst" 2>/dev/null; then
@@ -394,7 +381,7 @@ remove_mozilla_plugins()
 	fi
 
 	for entry in "${PLUGIN_LIST[@]}"; do
-		local dst="$SYSTEMDIR/libpipelight-$entry.so"
+		local dst="$LIBRARY_PATH/libpipelight-$entry.so"
 
 		if [ -e "$dst" ] && ! rm -f "$dst" 2>/dev/null; then
 			echo "ERROR: Failed to remove $dst." >&2
@@ -513,19 +500,8 @@ RET=0
 while [[ $# > 0 ]] ; do
 	CMD="$1"; shift
 	case "$CMD" in
-		--destdir)
-			DESTDIR="$1"
-			shift
-			;;
-		--destdir=*)
-			DESTDIR="${CMD#*=}"
-			;;
-		-y)
+		--accept|-y)
 			ACCEPTALL=1
-			;;
-
-		--debug)
-			DEBUG=0
 			;;
 
 		--enable-plugin|--enable)
