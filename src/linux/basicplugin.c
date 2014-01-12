@@ -995,7 +995,7 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPObject* obj 					= readHandleObj(stack);
 				std::shared_ptr<char> message 	= readStringAsMemory(stack);
-				DBG_TRACE("FUNCTION_NPN_SET_EXCEPTION( instance=%p, obj=%p )", obj, message.get());
+				DBG_TRACE("FUNCTION_NPN_SET_EXCEPTION( obj=%p, message='%s' )", obj, message.get());
 
 				sBrowserFuncs->setexception(obj, message.get());
 
@@ -1008,7 +1008,7 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				NPObject* obj 					= readHandleObj(stack);
 				std::shared_ptr<char> message 	= readStringAsMemory(stack);
-				DBG_TRACE("FUNCTION_NPN_SET_EXCEPTION_ASYNC( instance=%p, obj=%p ) -> void", obj, message.get());
+				DBG_TRACE("FUNCTION_NPN_SET_EXCEPTION_ASYNC( obj=%p, message='%s' ) -> void", obj, message.get());
 				sBrowserFuncs->setexception(obj, message.get());
 			}
 			break;
