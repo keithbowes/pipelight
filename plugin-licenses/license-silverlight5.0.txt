@@ -1,0 +1,9 @@
+[*] Microsoft Silverlight 5.0
+	By continuing the installation you agree that you've read and accepted the MICROSOFT SOFTWARE LICENSE TERMS:
+	http://go.microsoft.com/fwlink/?LinkId=229303
+
+	Microsoft Silverlight Privacy Statement:
+	http://go.microsoft.com/fwlink/?LinkId=229306
+
+	To find out more click here:
+	http://www.microsoft.com/silverlight/

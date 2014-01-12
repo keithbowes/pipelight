@@ -1,0 +1,6 @@
+[*] Adobe Flash Player
+	By continuing the installation you agree that you've read and accepted the ADOBE Personal Computer Software License Agreement:
+	http://wwwimages.adobe.com/www.adobe.com/content/dam/Adobe/en/legal/licenses-terms/pdf/Flash%20Player_11.0.pdf
+
+	To find out more click here:
+	http://get.adobe.com/flashplayer

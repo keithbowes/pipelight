@@ -1,0 +1,3 @@
+[*] Widevine Media Optimizer
+	To find out more about this plugin click here:
+	https://tools.google.com/dlpage/widevine

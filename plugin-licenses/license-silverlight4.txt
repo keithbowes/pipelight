@@ -1,0 +1,9 @@
+[*] Microsoft Silverlight 4
+	By continuing the installation you agree that you've read and accepted the MICROSOFT SOFTWARE LICENSE TERMS:
+	http://go2.microsoft.com/fwlink/?LinkID=183382
+
+	Microsoft Silverlight Privacy Statement:
+	http://go2.microsoft.com/fwlink/?LinkID=200620
+
+	To find out more click here:
+	http://www.microsoft.com/silverlight/

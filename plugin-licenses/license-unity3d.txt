@@ -1,0 +1,6 @@
+[*] Unity Web Player
+	By continuing the installation you agree that you've read and accepted the Web Player License Agreement:
+	http://unity3d.com/company/legal/webplayer-eula
+
+	To find out more click here:
+	http://unity3d.com/unity

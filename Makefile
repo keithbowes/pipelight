@@ -3,6 +3,7 @@ SUBDIRS= src/linux src/windows
 
 PLUGIN_CONFIGS=$(wildcard plugin-configs/*)
 PLUGIN_SCRIPTS=$(wildcard plugin-scripts/*)
+PLUGIN_LICENSES=$(wildcard plugin-licenses/*)
 
 version=unknown
 prefix=/usr/local/
@@ -60,7 +61,11 @@ install: all
 		rm pipelight-config.tmp; \
 	done
 
-	install -m 0644 $$(pwd)/plugin-licenses/*.txt "$(DESTDIR)$(prefix)/share/pipelight/licenses"
+	for license in $(notdir $(PLUGIN_LICENSES)); do \
+		sed    's|@@LICENSE_PATH@@|$(prefix)/share/pipelight/licenses|g' plugin-licenses/$${license} > pipelight-license.tmp; \
+		install -m 0644 pipelight-license.tmp "$(DESTDIR)$(prefix)/share/pipelight/licenses/$${license}"; \
+		rm pipelight-license.tmp; \
+	done
 
 	install -m 0644 src/linux/libpipelight.so "$(DESTDIR)$(prefix)/lib/pipelight/libpipelight.so"
 
@@ -78,8 +83,7 @@ uninstall:
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/hw-accel-default"
 	rm -f  $(DESTDIR)$(prefix)/share/pipelight/configure-*
 	rm -f  $(DESTDIR)$(prefix)/share/pipelight/configs/pipelight-*
-	rm -f  $(DESTDIR)$(prefix)/share/pipelight/licenses/*-license.txt
-	rm -f  $(DESTDIR)$(prefix)/share/pipelight/licenses/*-privacy.txt
+	rm -f  $(DESTDIR)$(prefix)/share/pipelight/licenses/license-*
 	rm -f "$(DESTDIR)$(prefix)/lib/pipelight/libpipelight.so"
 	rm -f "$(DESTDIR)$(prefix)/bin/pipelight-plugin"
 

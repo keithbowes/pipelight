@@ -1,0 +1,3 @@
+[*] Grandstream WebControl Plugin
+	To find out more about this plugin click here:
+	http://www.grandstream.com/support/tools

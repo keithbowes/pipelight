@@ -1,0 +1,6 @@
+[*] Foxit PDF Reader
+	By continuing the installation you agree that you've read and accepted the FOXIT CORPORATION LICENSE AGREEMENT FOR DESKTOP SOFTWARE APPLICATIONS:
+	http://www.foxitsoftware.com/Secure_PDF_Reader/eula.php
+
+	To find out more click here:
+	http://www.foxitsoftware.com/Secure_PDF_Reader/
