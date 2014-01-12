@@ -1,0 +1,47 @@
+From 9235a12bd03e0b03b93fff29ee77580d2b6cfb29 Mon Sep 17 00:00:00 2001
+From: Sebastian Lackner <sebastian@fds-team.de>
+Date: Sun, 12 Jan 2014 19:24:59 +0100
+Subject: Workaround for Qt5.2: Invalidate always whole drawing area for
+ repaint events
+
+---
+ src/windows/npnfunctions.c |   23 +----------------------
+ 1 file changed, 1 insertion(+), 22 deletions(-)
+
+diff --git a/src/windows/npnfunctions.c b/src/windows/npnfunctions.c
+index e92c095..b2c26a2 100644
+--- a/src/windows/npnfunctions.c
++++ b/src/windows/npnfunctions.c
+@@ -469,28 +469,7 @@ void NP_LOADDS NPN_InvalidateRect(NPP instance, NPRect *rect){
+ 				InvalidateRect(ndata->hWnd, NULL, false);
+ 
+ 		}else if (ndata->hDC){
+-
+-			if (!rect)
+-				ndata->invalidate = INVALIDATE_EVERYTHING;
+-
+-			else if (!ndata->invalidate){
+-				memcpy(&ndata->invalidateRect, rect, sizeof(*rect));
+-				ndata->invalidate = INVALIDATE_RECT;
+-
+-			}else if (ndata->invalidate == INVALIDATE_RECT){
+-
+-				/* Merge the NPRects */
+-				if (rect->top < ndata->invalidateRect.top)
+-					ndata->invalidateRect.top = rect->top;
+-				if (rect->left < ndata->invalidateRect.left)
+-					ndata->invalidateRect.left = rect->left;
+-				if (rect->bottom > ndata->invalidateRect.bottom)
+-					ndata->invalidateRect.bottom = rect->bottom;
+-				if (rect->right > ndata->invalidateRect.right)
+-					ndata->invalidateRect.right = rect->right;
+-
+-			}
+-
++			ndata->invalidate = INVALIDATE_EVERYTHING;
+ 			invalidateLinuxWindowless = true;
+ 		}
+ 	}
+-- 
+1.7.9.5
+
