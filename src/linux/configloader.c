@@ -241,7 +241,7 @@ static  bool openConfig(std::ifstream &configFile, std::string &configPath, std:
 		if (configFile.is_open()) return true;
 
 		/* default config */
-		configPath = PREFIX "/share/pipelight/" + configName;
+		configPath = PIPELIGHT_CONFIG_PATH "/" + configName;
 		DBG_INFO("trying to load config file from '%s'.", configPath.c_str());
 		configFile.open(configPath);
 		if (configFile.is_open()) return true;

@@ -9,6 +9,3 @@ override_dh_auto_install:
 		$(MAKE) DESTDIR=$$(pwd)/debian/pipelight-multi install
 		mkdir -p $$(pwd)/debian/pipelight/usr/share/pipelight
 		install -m 0644 "$$(pwd)/share/README-pipelight" "$$(pwd)/debian/pipelight/usr/share/pipelight"
-
-		mkdir -p $$(pwd)/debian/pipelight-multi/usr/share/pipelight/plugin-licenses
-		install -m 0644 $$(pwd)/plugin-licenses/*.txt "$$(pwd)/debian/pipelight-multi/usr/share/pipelight/plugin-licenses"

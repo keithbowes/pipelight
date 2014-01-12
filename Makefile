@@ -31,12 +31,22 @@ all: $(SUBDIRS)
 	$(MAKE) -C $@
 
 install: all
-	test -d "$(DESTDIR)$(prefix)/share/pipelight" || mkdir -p "$(DESTDIR)$(prefix)/share/pipelight"
-	test -d "$(DESTDIR)$(prefix)/bin/" || mkdir -p "$(DESTDIR)$(prefix)/bin/"
-	test -d "$(DESTDIR)$(prefix)/lib/pipelight" || mkdir -p "$(DESTDIR)$(prefix)/lib/pipelight"
+	mkdir -p "$(DESTDIR)$(prefix)/share/pipelight"
+	mkdir -p "$(DESTDIR)$(prefix)/share/pipelight/configs"
+	mkdir -p "$(DESTDIR)$(prefix)/share/pipelight/licenses"
+	mkdir -p "$(DESTDIR)$(prefix)/lib/pipelight"
+	mkdir -p "$(DESTDIR)$(prefix)/bin/"
 
 	install -m 0644 share/signature.gpg "$(DESTDIR)$(prefix)/share/pipelight/signature.gpg"
 	install -m 0755 "src/windows/$(pluginloader)" "$(DESTDIR)$(prefix)/share/pipelight/$(pluginloader)"
+	install -m 0755 share/install-dependency "$(DESTDIR)$(prefix)/share/pipelight/install-dependency"
+	install -m 0755 share/hw-accel-default "$(DESTDIR)$(prefix)/share/pipelight/hw-accel-default"
+
+	for script in $(notdir $(PLUGIN_SCRIPTS)); do \
+		sed    's|@@WINE_PATH@@|$(winepath)|g' plugin-scripts/$${script} > pipelight-script.tmp; \
+		install -m 0755 pipelight-script.tmp "$(DESTDIR)$(prefix)/share/pipelight/$${script}"; \
+		rm pipelight-script.tmp; \
+	done
 
 	for config in $(notdir $(PLUGIN_CONFIGS)); do \
 		sed    's|@@PLUGIN_LOADER_PATH@@|$(prefix)/share/pipelight/$(pluginloader)|g' plugin-configs/$${config} > pipelight-config.tmp; \
@@ -46,18 +56,13 @@ install: all
 		sed -i 's|@@WINE_PATH@@|$(winepath)|g' pipelight-config.tmp; \
 		sed -i 's|@@GCC_RUNTIME_DLLS@@|$(gccruntimedlls)|g' pipelight-config.tmp; \
 		sed -i 's|@@QUIET_INSTALLATION@@|$(quietinstallation)|g' pipelight-config.tmp; \
-		install -m 0644 pipelight-config.tmp "$(DESTDIR)$(prefix)/share/pipelight/$${config}"; \
+		install -m 0644 pipelight-config.tmp "$(DESTDIR)$(prefix)/share/pipelight/configs/$${config}"; \
 		rm pipelight-config.tmp; \
 	done
 
-	for script in $(notdir $(PLUGIN_SCRIPTS)); do \
-		sed    's|@@WINE_PATH@@|$(winepath)|g' plugin-scripts/$${script} > pipelight-script.tmp; \
-		install -m 0755 pipelight-script.tmp "$(DESTDIR)$(prefix)/share/pipelight/$${script}"; \
-		rm pipelight-script.tmp; \
-	done
+	install -m 0644 $$(pwd)/plugin-licenses/*.txt "$(DESTDIR)$(prefix)/share/pipelight/licenses"
 
-	install -m 0755 share/install-dependency "$(DESTDIR)$(prefix)/share/pipelight/install-dependency"
-	install -m 0755 share/hw-accel-default "$(DESTDIR)$(prefix)/share/pipelight/hw-accel-default"
+	install -m 0644 src/linux/libpipelight.so "$(DESTDIR)$(prefix)/lib/pipelight/libpipelight.so"
 
 	sed    's|@@PLUGIN_SYSTEM_PATH@@|$(prefix)/lib/pipelight/|g' public-scripts/pipelight-plugin > pipelight-plugin.tmp
 	sed -i 's|@@DEPENDENCY_INSTALLER@@|$(prefix)/share/pipelight/install-dependency|g' pipelight-plugin.tmp
@@ -66,18 +71,20 @@ install: all
 	install -m 0755 pipelight-plugin.tmp "$(DESTDIR)$(prefix)/bin/pipelight-plugin"
 	rm pipelight-plugin.tmp
 
-	install -m 0644 src/linux/libpipelight.so "$(DESTDIR)$(prefix)/lib/pipelight/libpipelight.so"
-
 uninstall:
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/signature.gpg"
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/$(pluginloader)"
-	rm -f  $(DESTDIR)$(prefix)/share/pipelight/pipelight-*
-	rm -f  $(DESTDIR)$(prefix)/share/pipelight/configure-*
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/install-dependency"
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/hw-accel-default"
-	rm -f "$(DESTDIR)$(prefix)/bin/pipelight-plugin"
+	rm -f  $(DESTDIR)$(prefix)/share/pipelight/configure-*
+	rm -f  $(DESTDIR)$(prefix)/share/pipelight/configs/pipelight-*
+	rm -f  $(DESTDIR)$(prefix)/share/pipelight/licenses/*-license.txt
+	rm -f  $(DESTDIR)$(prefix)/share/pipelight/licenses/*-privacy.txt
 	rm -f "$(DESTDIR)$(prefix)/lib/pipelight/libpipelight.so"
+	rm -f "$(DESTDIR)$(prefix)/bin/pipelight-plugin"
 
+	rmdir --ignore-fail-on-non-empty "$(DESTDIR)$(prefix)/share/pipelight/configs"
+	rmdir --ignore-fail-on-non-empty "$(DESTDIR)$(prefix)/share/pipelight/licenses"
 	rmdir --ignore-fail-on-non-empty "$(DESTDIR)$(prefix)/share/pipelight"
 	rmdir --ignore-fail-on-non-empty "$(DESTDIR)$(prefix)/lib/pipelight"
 

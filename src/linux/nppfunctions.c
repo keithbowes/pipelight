@@ -444,11 +444,13 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 		writeMemory((char*)saved->buf, saved->len);
 	else
 		writeMemory(NULL, 0);
+
 	for (it = tempArgs.begin(); it != tempArgs.end(); it++)
 		writeString(it->second);
 	for (it = tempArgs.begin(); it != tempArgs.end(); it++)
 		writeString(it->first);
 	writeInt32(tempArgs.size());
+
 	writeInt32(mode);
 	writeHandleInstance(instance);
 	writeString(mimeType);

@@ -14,7 +14,7 @@ basicplugin.o: basicplugin.c basicplugin.h configloader.h $(COMMONHDR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c basicplugin.c -o basicplugin.o
 
 configloader.o: configloader.c configloader.h $(COMMONHDR)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -DPREFIX='"$(prefix)"' -c configloader.c -o configloader.o
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -DPIPELIGHT_CONFIG_PATH='"$(prefix)/share/pipelight/configs"' -c configloader.c -o configloader.o
 
 diagnostic.o: diagnostic.c diagnostic.h basicplugin.h configloader.h $(COMMONHDR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c diagnostic.c -o diagnostic.o
