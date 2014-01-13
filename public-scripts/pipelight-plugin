@@ -155,16 +155,21 @@ show_license_dialog()
 		if [ -f "$LICENSE_PATH/license-$license.txt" ]; then
 			if [ "$show_licenses" -eq 0 ]; then
 				echo ""
+				echo "The following modules require a license confirmation before they can be enabled:"
+				echo ""
 			fi
-			echo -en "\e[1;31m"
 
-			local re=$(echo -en "^\t")
+			local color0=$(echo -en "\e[0m")
+			local color1=$(echo -en "\e[1;31m")
+			local color2=$(echo -en "\e[1m")
+
 			while IFS= read line; do
 				if [ "$line" == "---" ]; then break; fi
-				echo "$line"
+				echo "$line" | sed 	-e 's|^\(\[\*\].*\)$|'"$color1"'\1'"$color0"'|g' \
+									-e 's|\(http://[^ \t]*\)|'"$color2"'\1'"$color0"'|g' \
+									-e 's|\(/usr/[^ \t]*\)|'"$color2"'\1'"$color0"'|g'
 			done < "$LICENSE_PATH/license-$license.txt"
 
-			echo -e "\e[0m"
 			echo ""
 			show_licenses=1
 		fi
