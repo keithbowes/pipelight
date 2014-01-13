@@ -98,7 +98,7 @@ struct PluginConfig{
 	bool 			experimental_unityHacks;
 	bool 			experimental_forceSetWindow;
 	bool 			experimental_windowClassHook;
-	bool 			experimental_renderTopLevelWindow;
+	bool 			experimental_strictDrawOrdering;
 };
 
 extern bool loadConfig(PluginConfig &config);

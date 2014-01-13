@@ -304,7 +304,7 @@ bool loadConfig(PluginConfig &config){
 	config.experimental_unityHacks 				= false;
 	config.experimental_forceSetWindow 			= false;
 	config.experimental_windowClassHook 		= false;
-	config.experimental_renderTopLevelWindow 	= false;
+	config.experimental_strictDrawOrdering 		= false;
 
 	/* open configuration file */
 	std::ifstream configFile;
@@ -467,9 +467,9 @@ bool loadConfig(PluginConfig &config){
 			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
 			config.experimental_windowClassHook = (value == "true" || value == "yes");
 
-		}else if (key == "experimental-rendertoplevelwindow"){
+		}else if (key == "experimental-strictdrawordering"){
 			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
-			config.experimental_renderTopLevelWindow = (value == "true" || value == "yes");
+			config.experimental_strictDrawOrdering = (value == "true" || value == "yes");
 
 		}else{
 			DBG_WARN("unrecognized configuration key '%s'.", key.c_str());
@@ -513,7 +513,7 @@ bool loadConfig(PluginConfig &config){
 		environmentVariable = getEnvironmentInteger("PIPELIGHT_GPUACCELERATION", -1);
 		if (environmentVariable >= 0){
 			config.overwriteArgs["enableGPUAcceleration"] 	= (environmentVariable >= 1) ? "true" : "false";
-			config.experimental_renderTopLevelWindow 		= (environmentVariable >= 2);
+			config.experimental_strictDrawOrdering 			= (environmentVariable >= 2);
 			DBG_INFO("enableGPUAcceleration set via commandline to %s", (environmentVariable >= 1) ? "true" : "false");
 
 		}else if (config.overwriteArgs.find("enableGPUAcceleration") == config.overwriteArgs.end()){

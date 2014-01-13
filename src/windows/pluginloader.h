@@ -60,9 +60,6 @@ extern bool forceSetWindow;
 extern bool unityHacks;
 extern bool windowClassHook;
 
-/* not implemented yet */
-extern bool renderTopLevelWindow;
-
 /* linux windowless */
 extern bool invalidateLinuxWindowless;
 

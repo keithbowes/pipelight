@@ -72,9 +72,6 @@ bool forceSetWindow 	= false;
 bool unityHacks 		= false;
 bool windowClassHook 	= false;
 
-/* not implemented yet */
-bool renderTopLevelWindow = false;
-
 /* linux windowless */
 bool invalidateLinuxWindowless = false;
 
@@ -512,9 +509,6 @@ int main(int argc, char *argv[]){
 
 		else if (arg == "--windowclasshook")
 			windowClassHook = true;
-
-		else if (arg == "--rendertoplevelwindow")
-			renderTopLevelWindow = true;
 	}
 
 	/* required arguments available? */
@@ -553,7 +547,6 @@ int main(int argc, char *argv[]){
 	DBG_INFO("force SetWindow       is %s.", (forceSetWindow ? "on" : "off"));
 	DBG_INFO("unity hacks           is %s.", (unityHacks ? "on" : "off"));
 	DBG_INFO("window class hook     is %s.", (windowClassHook ? "on" : "off"));
-	DBG_INFO("render toplevelwindow is %s.", (renderTopLevelWindow ? "on" : "off"));
 
 	DBG_ASSERT(initCommIO(), "unable to initialize communication channel.");
 

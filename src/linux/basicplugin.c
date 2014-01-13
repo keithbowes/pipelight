@@ -449,6 +449,9 @@ bool startWineProcess(){
 			setenv("Path", runtime.c_str(), true);
 		}
 
+		if (config.experimental_strictDrawOrdering)
+			setenv("WINE_STRICT_DRAW_ORDERING", "1", true);
+
 		/* Generate argv array */
 		std::vector<const char*> argv;
 
@@ -495,9 +498,6 @@ bool startWineProcess(){
 
 		if (config.experimental_windowClassHook)
 			argv.push_back( "--windowclasshook" );
-
-		if (config.experimental_renderTopLevelWindow)
-			argv.push_back( "--rendertoplevelwindow" );
 
 		argv.push_back(NULL);
 
