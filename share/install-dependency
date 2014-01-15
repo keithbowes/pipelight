@@ -696,8 +696,8 @@ while [ $# -gt 0 ] ; do
 			;;
 		wine-adobereader-installer)
 			INS=(install_adobereader)
-			URL="http://ardownload.adobe.com/pub/adobe/reader/win/11.x/11.0.04/en_US/AdbeRdr11004_en_US.exe"
-			SHA="9660eec000a47c113796a9a351ad0027b7ef515b3fc9d1dd14589c0b0c7bc910"
+			URL="http://ardownload.adobe.com/pub/adobe/reader/win/11.x/11.0.06/en_US/AdbeRdr11006_en_US.exe"
+			SHA="7eb5dd2905d5cce9912019efa89e939a187cd099583d0216e517c71bd38dc6a8"
 			;;
 		wine-foxitpdf-installer)
 			INS=(install_foxitpdf)
