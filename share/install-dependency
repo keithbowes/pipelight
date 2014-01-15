@@ -674,14 +674,14 @@ while [ $# -gt 0 ] ; do
 			SHA="6254f18b680a2ab4d007e5a8a344539ee819bd33d1d054e1302fcd964d63f732"
 			;;
 		wine-flash-installer)
-			INS=(install_flash "11_9_900_170")
-			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/11.9.900.170/install_flash_player.exe"
-			SHA="2ec22dbc204b8d02925dfbd261d62e12a64b4a1048c476d306eeff131d850d7c"
+			INS=(install_flash "12_0_0_43")
+			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/12.0.0.43/install_flash_player.exe"
+			SHA="1d29c294aa0dd4b57d62efb06862d1711ea341af99c96597d71f9c9cc453791d"
 			;;
 		wine-flash-debug-installer)
-			INS=(install_flash "11_9_900_170")
-			URL="http://download.macromedia.com/pub/flashplayer/updaters/11/flashplayer_11_plugin_debug.exe"
-			SHA="cdb215b0ae70b6921781822cef1cac11cc65765fcd02fc72bf3b3eb01992600b"
+			INS=(install_flash "12_0_0_43")
+			URL="http://download.macromedia.com/pub/flashplayer/updaters/12/flashplayer_12_plugin_debug.exe"
+			SHA="d0f025d81fa20fb3efdb84078f3908fb0e1bbd906523a82a42fcead5a85d2915"
 			;;
 		wine-widevine-installer)
 			INS=(install_widevine)
@@ -692,7 +692,7 @@ while [ $# -gt 0 ] ; do
 		wine-unity3d-installer)
 			INS=(install_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayer.exe"
-			SHA="ea1da7ec8d11c6f2b91d8bb22f3c308e2f7b2fcdba1fe3f2bc13f7d294c108b7"
+			SHA="a08303415e7a1847d1417ed258932cbed2dbe2f4256c4f3511ff991082e2cd98"
 			;;
 		wine-adobereader-installer)
 			INS=(install_adobereader)
@@ -701,8 +701,8 @@ while [ $# -gt 0 ] ; do
 			;;
 		wine-foxitpdf-installer)
 			INS=(install_foxitpdf)
-			URL="http://cdn04.foxitsoftware.com/pub/foxit/reader/desktop/win/6.x/6.1/enu/EnterpriseFoxitReader611.1031_enu.msi"
-			SHA="90b5ec6c1d9405ebadb714105e9fb689cc6a109926e0749ce09aa4a55e16f67d"
+			URL="http://cdn04.foxitsoftware.com/pub/foxit/reader/desktop/win/6.x/6.1/enu/EnterpriseFoxitReader612.1224_enu.msi"
+			SHA="fc4a7a6b4cc5fa8b5a79c8e5193c33bfde2936bccbbde385565d5be60bfcb390"
 			;;
 		wine-shockwave-installer)
 			INS=(install_shockwave "1207148")
