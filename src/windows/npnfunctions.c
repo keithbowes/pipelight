@@ -183,7 +183,7 @@ void NP_LOADDS NPN_Status(NPP instance, const char* message){
 
 	shockwaveInstanceWorkaround();
 
-#ifdef PIPELIGHT_SYNC
+#if 1 /*def PIPELIGHT_SYNC*/
 	writeString(message);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_STATUS);
@@ -714,7 +714,7 @@ NPObject* NP_LOADDS NPN_RetainObject(NPObject *obj){
 	if (obj){
 		obj->referenceCount++;
 
-	#ifdef PIPELIGHT_SYNC
+	#if 1 /*def PIPELIGHT_SYNC*/
 		writeInt32(obj->referenceCount);
 		writeHandleObj(obj, HMGR_SHOULD_EXIST);
 		callFunction(FUNCTION_NPN_RETAINOBJECT);
@@ -736,7 +736,7 @@ void NP_LOADDS NPN_ReleaseObject(NPObject *obj){
 	DBG_CHECKTHREAD();
 
 	if (obj){
-	#ifdef PIPELIGHT_SYNC
+	#if 1 /*def PIPELIGHT_SYNC*/
 		writeInt32(obj->referenceCount);
 		writeHandleObjDecRef(obj, HMGR_SHOULD_EXIST);
 		callFunction(FUNCTION_NPN_RELEASEOBJECT);
@@ -982,7 +982,7 @@ void NP_LOADDS NPN_SetException(NPObject *obj, const NPUTF8 *message){
 	DBG_TRACE("( obj=%p, message='%s' )", obj, message);
 	DBG_CHECKTHREAD();
 
-#ifdef PIPELIGHT_SYNC
+#if 1 /*def PIPELIGHT_SYNC*/
 	writeString(message);
 	writeHandleObj(obj);
 	callFunction(FUNCTION_NPN_SET_EXCEPTION);
@@ -1003,7 +1003,7 @@ void NP_LOADDS NPN_PushPopupsEnabledState(NPP instance, NPBool enabled){
 
 	shockwaveInstanceWorkaround();
 
-#ifdef PIPELIGHT_SYNC
+#if 1 /*def PIPELIGHT_SYNC*/
 	writeInt32(enabled);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE);
@@ -1024,7 +1024,7 @@ void NP_LOADDS NPN_PopPopupsEnabledState(NPP instance){
 
 	shockwaveInstanceWorkaround();
 
-#ifdef PIPELIGHT_SYNC
+#if 1 /*def PIPELIGHT_SYNC*/
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPN_POP_POPUPS_ENABLED_STATE);
 	readResultVoid();
