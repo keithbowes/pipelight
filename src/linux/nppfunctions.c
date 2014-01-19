@@ -431,8 +431,12 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 
 	std::map<std::string, std::string, stringInsensitiveCompare> tempArgs;
 	std::map<std::string, std::string>::iterator it;
-	for (int i = 0; i < argc; i++)
-		tempArgs[std::string(argn[i])] = std::string(argv[i]);
+	for (int i = 0; i < argc; i++){
+		if (!argn[i] || !argv[i])
+			DBG_ERROR("malformed argument '%s' -> '%s'", argn[i], argv[i]);
+		if (argn[i])
+			tempArgs[std::string(argn[i])] = argv[i] ? std::string(argv[i]) : "";
+	}
 	for (it = config.overwriteArgs.begin(); it != config.overwriteArgs.end(); it++)
 		tempArgs[it->first] = it->second;
 	if (config.windowlessMode){
