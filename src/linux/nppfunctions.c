@@ -103,12 +103,12 @@ NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs *bFuncs, NPPluginFuncs* pFuncs)
 			!sBrowserFuncs->removeproperty ||
 			!sBrowserFuncs->requestread ||
 			!sBrowserFuncs->retainobject ||
-			!sBrowserFuncs->scheduletimer ||
+			/* !sBrowserFuncs->scheduletimer || */
 			!sBrowserFuncs->setexception ||
 			!sBrowserFuncs->setproperty ||
 			!sBrowserFuncs->status ||
 			!sBrowserFuncs->uagent ||
-			!sBrowserFuncs->unscheduletimer ||
+			/*!sBrowserFuncs->unscheduletimer || */
 			!sBrowserFuncs->utf8fromidentifier ||
 			!sBrowserFuncs->write ){
 		DBG_ERROR("your browser doesn't support all required functions!");
