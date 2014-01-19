@@ -139,13 +139,12 @@ typedef enum { PR_FALSE = 0, PR_TRUE = 1 } PRBool;
 #define writeHandleId			writeInt32
 #define readHandleId			readInt32
 
-#ifdef __WIN32__
-
 enum IDENT_TYPE{
-	IDENT_TYPE_Unknown = 0,
-	IDENT_TYPE_Integer,
+	IDENT_TYPE_Integer = 0,
 	IDENT_TYPE_String
 };
+
+#ifdef __WIN32__
 
 struct NPIdentifierDescription{
 	IDENT_TYPE  type;
@@ -164,9 +163,11 @@ struct NotifyDataRefCount{
 #endif
 
 enum HMGR_TYPE{
-	HMGR_TYPE_NPObject = 0,
+	HMGR_TYPE_NPObject 		= 0,
+#ifdef PIPELIGHT_NOCACHE
 	HMGR_TYPE_NPIdentifier,
-	HMGR_TYPE_NPPInstance,
+#endif
+	HMGR_TYPE_NPPInstance 	= 2,
 	HMGR_TYPE_NPStream,
 	HMGR_TYPE_NotifyData,
 	HMGR_NUMTYPES
@@ -191,7 +192,7 @@ struct ParameterInfo{
 typedef std::vector<ParameterInfo> Stack;
 
 /* increase this whenever you do changes in the protocol stack */
-#define PIPELIGHT_PROTOCOL_VERSION 0x1000000C
+#define PIPELIGHT_PROTOCOL_VERSION 0x1000000D
 
 enum{
 	/* ------- Special ------- */
@@ -292,7 +293,6 @@ enum{
 	FUNCTION_NPN_IDENTIFIER_IS_STRING,
 	FUNCTION_NPN_UTF8_FROM_IDENTIFIER,
 	FUNCTION_NPN_INT_FROM_IDENTIFIER,
-	FUNCTION_NPN_INT_FROM_IDENTIFIER_SAFE,
 	FUNCTION_NPN_GET_STRINGIDENTIFIER,
 	FUNCTION_NPN_GET_INTIDENTIFIER,
 
@@ -575,7 +575,41 @@ inline void writeHandleObj(NPObject *obj, HMGR_EXISTS exists = HMGR_CAN_EXIST, b
 }
 
 inline void writeHandleIdentifier(NPIdentifier name, HMGR_EXISTS exists = HMGR_CAN_EXIST){
+#ifdef PIPELIGHT_NOCACHE
 	writeHandle(HMGR_TYPE_NPIdentifier, name, exists);
+
+#elif defined(__WIN32__)
+	NPIdentifierDescription *ident = (NPIdentifierDescription *)name;
+	DBG_ASSERT(ident != NULL, "got NULL identifier.");
+
+	switch(ident->type){
+		case IDENT_TYPE_Integer:
+			writeInt32(ident->value.intid);
+			break;
+
+		case IDENT_TYPE_String:
+			writeString(ident->value.name);
+			break;
+
+		default:
+			DBG_ABORT("unsupported identifier type.");
+			break;
+	}
+
+	writeInt32(ident->type);
+
+#else
+	if (sBrowserFuncs->identifierisstring(name)){
+		NPUTF8 *str = sBrowserFuncs->utf8fromidentifier(name);
+		writeString((char *)str);
+		if (str) sBrowserFuncs->memfree(str);
+		writeInt32(IDENT_TYPE_String);
+
+	}else{
+		writeInt32(sBrowserFuncs->intfromidentifier(name));
+		writeInt32(IDENT_TYPE_Integer);
+	}
+#endif
 }
 
 inline void writeHandleInstance(NPP instance, HMGR_EXISTS exists = HMGR_CAN_EXIST){
@@ -609,17 +643,44 @@ inline NPObject* readHandleObj(Stack &stack, HMGR_EXISTS exists = HMGR_CAN_EXIST
 #endif
 
 inline NPIdentifier readHandleIdentifier(Stack &stack, HMGR_EXISTS exists = HMGR_CAN_EXIST){
+#ifdef PIPELIGHT_NOCACHE
 	return (NPIdentifier)__readHandle(HMGR_TYPE_NPIdentifier, stack, NULL, NULL, exists);
+
+#else
+	NPIdentifier identifier;
+	int32_t type = readInt32(stack);
+
+	switch(type){
+		case IDENT_TYPE_Integer:
+		#ifdef __WIN32__
+			identifier = NPN_GetIntIdentifier(readInt32(stack));
+		#else
+			identifier = sBrowserFuncs->getintidentifier(readInt32(stack));
+		#endif
+			break;
+
+		case IDENT_TYPE_String:
+			{
+				std::shared_ptr<char> utf8name = readStringAsMemory(stack);
+			#ifdef __WIN32__
+				identifier = NPN_GetStringIdentifier(utf8name.get());
+			#else
+				identifier = sBrowserFuncs->getstringidentifier(utf8name.get());
+			#endif
+			}
+			break;
+
+		default:
+			DBG_ABORT("unsupported identifier type.");
+			break;
+	}
+
+	return identifier;
+#endif
 }
 
 #ifdef __WIN32__
-#ifdef PIPELIGHT_NOCACHE
-#define readHandleIdentifierCreate(stack, type, value) readHandleIdentifier(stack, HMGR_CAN_EXIST)
-#else
-inline NPIdentifier readHandleIdentifierCreate(Stack &stack, IDENT_TYPE type = IDENT_TYPE_Unknown, void *value = NULL){
-	return (NPIdentifier)__readHandle(HMGR_TYPE_NPIdentifier, stack, (void *)type, value, HMGR_CAN_EXIST);
-}
-#endif
+#define readHandleIdentifierCreate(stack) readHandleIdentifier(stack, HMGR_CAN_EXIST)
 #endif
 
 inline NPP readHandleInstance(Stack &stack, HMGR_EXISTS exists = HMGR_CAN_EXIST){

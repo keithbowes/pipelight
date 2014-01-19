@@ -660,24 +660,6 @@ NPObject* createNPObject(HMGR_HANDLE id, NPP instance, NPClass *cls){
 	return obj;
 }
 
-#ifndef PIPELIGHT_NOCACHE
-
-NPIdentifierDescription* createNPIdentifier(HMGR_HANDLE id, IDENT_TYPE type, void *value){
-	NPIdentifierDescription* identifier = (NPIdentifierDescription *)malloc(sizeof(NPIdentifierDescription));
-
-	DBG_ASSERT(identifier != NULL, "could not create identifier.");
-	identifier->type = type;
-
-	if (type == IDENT_TYPE_Integer)
-		identifier->value.intid = (int32_t)value;
-	else if (type == IDENT_TYPE_String)
-		identifier->value.name  = value ? strdup((const char *)value) : NULL;
-
-	return identifier;
-}
-
-#endif
-
 NPP createNPPInstance(HMGR_HANDLE id){
 	NPP instance = (NPP_t *)malloc(sizeof(NPP_t));
 
@@ -769,11 +751,9 @@ void* handleManager_idToPtr(HMGR_TYPE type, HMGR_HANDLE id, void *arg0, void *ar
 	#ifdef __WIN32__
 		if (type == HMGR_TYPE_NPObject){
 			ptr = createNPObject(id, (NPP)arg0, (NPClass *)arg1);
-		}else if (type == HMGR_TYPE_NPIdentifier){
 		#ifdef PIPELIGHT_NOCACHE
+		}else if (type == HMGR_TYPE_NPIdentifier){
 			ptr = (void *)id;
-		#else
-			ptr = createNPIdentifier(id, (IDENT_TYPE)(int)arg0, arg1);
 		#endif
 		}else if (type == HMGR_TYPE_NPPInstance){
 			ptr = createNPPInstance(id);

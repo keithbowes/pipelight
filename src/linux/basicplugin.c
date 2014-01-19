@@ -1203,6 +1203,8 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
+	#ifdef PIPELIGHT_NOCACHE
+
 		case FUNCTION_NPN_IDENTIFIER_IS_STRING:
 			{
 				NPIdentifier identifier 		= readHandleIdentifier(stack);
@@ -1245,21 +1247,6 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		case FUNCTION_NPN_INT_FROM_IDENTIFIER_SAFE:
-			{
-				NPIdentifier identifier 		= readHandleIdentifier(stack);
-				DBG_TRACE("FUNCTION_NPN_INT_FROM_IDENTIFIER_SAFE( identifier=%p )", identifier );
-
-				bool resultBool = !sBrowserFuncs->identifierisstring(identifier);
-				if (resultBool)
-					writeInt32(sBrowserFuncs->intfromidentifier(identifier));
-				writeInt32(resultBool);
-
-				DBG_TRACE("FUNCTION_NPN_INT_FROM_IDENTIFIER_SAFE -> ( resultBool=%d, ... )", resultBool );
-				returnCommand();
-			}
-			break;
-
 		case FUNCTION_NPN_GET_STRINGIDENTIFIER:
 			{
 				std::shared_ptr<char> utf8name 	= readStringAsMemory(stack);
@@ -1285,6 +1272,8 @@ void dispatcher(int functionid, Stack &stack){
 				returnCommand();
 			}
 			break;
+
+	#endif
 
 		case FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE:
 			{
