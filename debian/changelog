@@ -1,3 +1,14 @@
+pipelight-multi (0.2.4.2) RELEASED; urgency=high
+
+  * Improved identifier caching system to ensure that the linux side never
+    uses invalid values
+  * Don't require ScheduleTimer and UnscheduleTimer function calls
+  * Revert PIPELIGHT_SYNC in some specific cases, where some browsers seem
+    to behave differently - will be readded later after some more testing
+
+ -- Michael Mueller <michael@fds-team.de>  Mon, 20 Jan 2014 01:11:27 +0100
+
+
 pipelight-multi (0.2.4.1) RELEASED; urgency=high
 
   * Fix a regression with Firefox/Opera browsers, which pass a malformed
