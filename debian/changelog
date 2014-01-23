@@ -1,3 +1,10 @@
+pipelight-multi (0.2.5) UNRELEASED; urgency=low
+
+  * Add Hikvision Webcontrol plugin as experimental plugin
+
+ -- Michael Mueller <michael@fds-team.de>  Thu, 23 Jan 2014 02:52:01 +0100
+
+
 pipelight-multi (0.2.4.2) RELEASED; urgency=high
 
   * Improved identifier caching system to ensure that the linux side never

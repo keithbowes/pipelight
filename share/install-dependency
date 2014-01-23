@@ -545,6 +545,27 @@ install_widevine()
 	return 0
 }
 
+# > Install Hikvision
+# arguments: None
+# $DOWNLOADFILE
+install_hikvision()
+{
+	if [ "$QUIETINSTALLATION" -eq 0 ]; then
+		"$WINE" "$DOWNLOADFILE" 2>&1
+	else
+		"$WINE" "$DOWNLOADFILE" /silent 2>&1 | progressbar "Please wait, installing ..." "Running $DEP"
+	fi
+
+	local installdir="$WINEPREFIX/drive_c/Program Files/Web Components"
+	if [ ! -f "$installdir/npWebVideoPlugin.dll" ]; then
+		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
+		return 1
+	fi
+
+	# Successful
+	return 0
+}
+
 # Check if some visual feedback is possible
 if command -v zenity >/dev/null 2>&1; then
 	progressbar()
@@ -728,6 +749,11 @@ while [ $# -gt 0 ] ; do
 			INS=(install_mspatcha)
 			URL="http://download.microsoft.com/download/WindowsInstaller/Install/2.0/NT45/EN-US/InstMsiW.exe"
 			SHA="4c3516c0b5c2b76b88209b22e3bf1cb82d8e2de7116125e97e128952372eed6b"
+			;;
+		wine-hikvision-installer)
+			INS=(install_hikvision)
+			URL="http://cctvone.com/fillib/IP%20Camera/Hikvision-2DC-Series/CD/IE%20Client/WebComponents.exe"
+			SHA="04fec22ca61c657f6f46160e55334e3defeea0e193bc8ec6d7bb45c87e773361"
 			;;
 		*)
 			echo "[$PRG] ERROR: No installer script found for $DEP." >&2

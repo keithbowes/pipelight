@@ -1,0 +1,3 @@
+[*] Hikvision WebControl Plugin
+	To find out more about this plugin click here:
+	http://www.hikvision.com/en/
