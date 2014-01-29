@@ -713,7 +713,7 @@ while [ $# -gt 0 ] ; do
 		wine-unity3d-installer)
 			INS=(install_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayer.exe"
-			SHA="a08303415e7a1847d1417ed258932cbed2dbe2f4256c4f3511ff991082e2cd98"
+			SHA="69d4cd31aed787f8348e97808fa0200efecdf677f41bda79709c6bf516db1cc9"
 			;;
 		wine-adobereader-installer)
 			INS=(install_adobereader)
