@@ -24,6 +24,7 @@ usage()
 	echo "	wine-foxitpdf-installer"
 	echo "	wine-shockwave-installer"
 	echo "	wine-grandstream-installer"
+	echo "  wine-npactivex-installer"
 	echo ""
 	echo "Library dependencies:"
 	echo "	wine-mpg2splt-installer"
@@ -566,6 +567,27 @@ install_hikvision()
 	return 0
 }
 
+# > Install NP-ActiveX
+# arguments: None
+# $DOWNLOADFILE
+install_npactivex()
+{
+	INTSHA="$1"
+
+	local system32="$WINEPREFIX/drive_c/windows/system32"
+
+	# The exit code is 1, but the output is still valid
+	unzip -p "$DOWNLOADFILE" "npactivex.dll" > "$system32/npactivex.dll"
+
+	if [ ! -f "$system32/npactivex.dll" ]; then
+		echo "[$PRG] ERROR: Unable to extract plugin from crx file." >&2
+		return 1
+	fi
+
+	# Successful
+	return 0
+}
+
 # Check if some visual feedback is possible
 if command -v zenity >/dev/null 2>&1; then
 	progressbar()
@@ -754,6 +776,12 @@ while [ $# -gt 0 ] ; do
 			INS=(install_hikvision)
 			URL="http://cctvone.com/fillib/IP%20Camera/Hikvision-2DC-Series/CD/IE%20Client/WebComponents.exe"
 			SHA="04fec22ca61c657f6f46160e55334e3defeea0e193bc8ec6d7bb45c87e773361"
+			;;
+		wine-npactivex-installer)
+			INS=(install_npactivex)
+			URL="https://np-activex.googlecode.com/files/extension_1_5_0_7.crx"
+			SHA="12ba6c79079f53172ca897f717911c2613219236dca5ae58662d41636490e7a9"
+			EXT="zip"
 			;;
 		*)
 			echo "[$PRG] ERROR: No installer script found for $DEP." >&2
