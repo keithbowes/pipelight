@@ -61,7 +61,7 @@ is_installed()
 {
 	local SHA="$1"
 	local ckfile="$WINEPREFIX/$DEP.installed"
-	[ -f "$ckfile" ] && [ "$SHA" == ""$(cat "$ckfile") ]
+	[ -f "$ckfile" ] && [ "$SHA" == "$(cat "$ckfile")" ]
 	return $?
 }
 
@@ -92,14 +92,14 @@ download()
 
 	# Reuse files from the netflix-desktop package if available
 	local dlfile="/var/lib/wine-browser-installer/$DEP.$EXT"
-	if [ -f "$dlfile" ] && [ "$SHA" == ""$(sha256sum "$dlfile" | cut -d' ' -f1) ]; then
+	if [ -f "$dlfile" ] && [ "$SHA" == "$(sha256sum "$dlfile" | cut -d' ' -f1)" ]; then
 		DOWNLOADFILE="$dlfile"
 		return 0
 	fi
 
 	# Reuse existing download
 	local dlfile="/tmp/pipelight-$DEP.$EXT"
-	if [ -f "$dlfile" ] && [ "$SHA" == ""$(sha256sum "$dlfile" | cut -d' ' -f1) ]; then
+	if [ -f "$dlfile" ] && [ "$SHA" == "$(sha256sum "$dlfile" | cut -d' ' -f1)" ]; then
 		DOWNLOADFILE="$dlfile"
 		return 0
 	fi
@@ -125,7 +125,7 @@ download()
 		fi
 
 		wget -O "$tmpfile" "$URL" 2>&1 | progressbar "Please wait, downloading ..." "Downloading $DEP ($filesize MiB)"
-		if [ -f "$tmpfile" ] && [ "$SHA" == ""$(sha256sum "$tmpfile" | cut -d' ' -f1) ]; then
+		if [ -f "$tmpfile" ] && [ "$SHA" == "$(sha256sum "$tmpfile" | cut -d' ' -f1)" ]; then
 			break
 		fi
 
@@ -568,18 +568,20 @@ install_hikvision()
 }
 
 # > Install NP-ActiveX
-# arguments: None
+# arguments:
+# $1	- checksum of npactivex.dll
 # $DOWNLOADFILE
 install_npactivex()
 {
-	INTSHA="$1"
+	DLLSHA="$1"
 
 	local system32="$WINEPREFIX/drive_c/windows/system32"
 
 	# The exit code is 1, but the output is still valid
 	unzip -p "$DOWNLOADFILE" "npactivex.dll" > "$system32/npactivex.dll"
 
-	if [ ! -f "$system32/npactivex.dll" ]; then
+	local installfile="$system32/npactivex.dll"
+	if [ ! -f "$installfile" ] || [ "$DLLSHA" != "$(sha256sum "$installfile" | cut -d' ' -f1)" ]; then
 		echo "[$PRG] ERROR: Unable to extract plugin from crx file." >&2
 		return 1
 	fi
@@ -778,7 +780,7 @@ while [ $# -gt 0 ] ; do
 			SHA="04fec22ca61c657f6f46160e55334e3defeea0e193bc8ec6d7bb45c87e773361"
 			;;
 		wine-npactivex-installer)
-			INS=(install_npactivex)
+			INS=(install_npactivex "6a31dac35cfda77ef4be724f226c5b54404aec61a81e663e47d39c7c9dd1580e")
 			URL="https://np-activex.googlecode.com/files/extension_1_5_0_7.crx"
 			SHA="12ba6c79079f53172ca897f717911c2613219236dca5ae58662d41636490e7a9"
 			EXT="zip"
