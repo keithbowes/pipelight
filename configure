@@ -18,7 +18,8 @@ usage ()
 	echo "Usage: ./configure [--prefix=PREFIX] [--wine-path=PATH]"
 	echo "                   [--moz-plugin-path=PATH] [--gcc-runtime-dlls=PATH]"
 	echo "                   [--show-installation-dialogs] [--win32-static]"
-	echo "                   [--win32-prebuilt] [--win32-winegcc] [--no-gpu-accel]"
+	echo "                   [--win32-prebuilt] [--win32-cxx=COMPILER] [--no-gpu-accel]"
+	echo "                   [--pluginloader-name=NAME]"
 	echo ""
 }
 
@@ -63,9 +64,19 @@ while [[ $# > 0 ]] ; do
 		--win32-prebuilt)
 			win32cxx="prebuilt"
 			;;
-		--win32-winegcc)
-			win32cxx="wineg++ -m32"
-			pluginloader="pluginloader.exe.so"
+
+		--win32-cxx=*)
+			win32cxx=${CMD#*=}
+			;;
+		--win32-cxx)
+			win32cxx="$1"; shift
+			;;
+
+		--pluginloader-name=*)
+			pluginloader=${CMD#*=}
+			;;
+		--pluginloader-name)
+			pluginloader="$1"; shift
 			;;
 
 		--no-gpu-accel)
