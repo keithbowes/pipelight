@@ -55,6 +55,8 @@
 #ifdef MINGW32_FALLBACK
 	typedef LONG (* WINAPI RegGetValueAPtr)(HKEY hkey, LPCSTR lpSubKey, LPCSTR lpValue, DWORD dwFlags, LPDWORD pdwType, PVOID pvData, LPDWORD pcbData);
 	RegGetValueAPtr RegGetValueA = NULL;
+	#define RRF_RT_ANY   0x0000FFFF
+	#define RRF_RT_REG_SZ 0x00000002
 #endif
 
 /* BEGIN GLOBAL VARIABLES */
