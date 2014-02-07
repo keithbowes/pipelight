@@ -19,7 +19,7 @@ usage ()
 	echo "                   [--moz-plugin-path=PATH] [--gcc-runtime-dlls=PATH]"
 	echo "                   [--show-installation-dialogs] [--win32-static]"
 	echo "                   [--win32-prebuilt] [--win32-cxx=COMPILER] [--no-gpu-accel]"
-	echo "                   [--pluginloader-name=NAME]"
+	echo "                   [--pluginloader-name=NAME] [--win32-flags=FLAGS]"
 	echo ""
 }
 
@@ -59,7 +59,7 @@ while [[ $# > 0 ]] ; do
 			;;
 
 		--win32-static)
-			win32flags="-static-libgcc -static-libstdc++ -static"
+			win32flags="$win32flags -static-libgcc -static-libstdc++ -static"
 			;;
 		--win32-prebuilt)
 			win32cxx="prebuilt"
@@ -70,6 +70,13 @@ while [[ $# > 0 ]] ; do
 			;;
 		--win32-cxx)
 			win32cxx="$1"; shift
+			;;
+
+		--win32-flags=*)
+			win32flags="$win32flags "${CMD#*=}
+			;;
+		--win32-flags)
+			win32flags="$win32flags $1"; shift
 			;;
 
 		--pluginloader-name=*)
