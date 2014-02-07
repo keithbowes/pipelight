@@ -52,6 +52,11 @@
 #include <windows.h>
 #include <objbase.h>							// for CoInitializeEx
 
+#ifdef MINGW32_FALLBACK
+	typedef LONG (* WINAPI RegGetValueAPtr)(HKEY hkey, LPCSTR lpSubKey, LPCSTR lpValue, DWORD dwFlags, LPDWORD pdwType, PVOID pvData, LPDWORD pcbData);
+	RegGetValueAPtr RegGetValueA = NULL;
+#endif
+
 /* BEGIN GLOBAL VARIABLES */
 
 char clsName[] = "VirtualBrowser";
@@ -459,9 +464,18 @@ int main(int argc, char *argv[]){
 		When compiling with wineg++ the _controlfp_s isn't available
 		We should find a workaround for this (asm implementation) as soon as wineg++ support works properly
 	*/
-	#ifndef __WINE__
+	#if !defined(__WINE__) && !defined(MINGW32_FALLBACK)
 		unsigned int control_word;
 		_controlfp_s(&control_word, _CW_DEFAULT, MCW_PC);
+	#else
+		#warning "Setting the floating point precission is not yet supported for your compiler! You may get weird issues with Silverlight."
+	#endif
+
+	#ifdef MINGW32_FALLBACK
+		HMODULE advapi32 = LoadLibrary("advapi32.dll");
+		DBG_ASSERT(advapi32, "could not load advapi32.dll.");
+		RegGetValueA = (RegGetValueAPtr)GetProcAddress(advapi32, "RegGetValueA");
+		DBG_ASSERT(RegGetValueA, "failed to get pointer to RegGetValueA.");
 	#endif
 
 	setbuf(stderr, NULL); /* Disable stderr buffering */
