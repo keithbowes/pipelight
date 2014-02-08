@@ -58,7 +58,7 @@
 	#define RRF_RT_ANY   0x0000FFFF
 	#define RRF_RT_REG_SZ 0x00000002
 
-	typedef errno_t (* _controlfp_sPtr)(unsigned int *currentControl, unsigned int newControl, unsigned int mask);
+	typedef int (* __cdecl _controlfp_sPtr)(unsigned int *currentControl, unsigned int newControl, unsigned int mask);
 	_controlfp_sPtr _controlfp_s = NULL;
 	#if defined(_WIN64) || defined(_AMD64)
 		#error "The defined _CW_DEFAULT value is 32 bit only. You need to replace it and remove this check."
