@@ -590,6 +590,32 @@ install_npactivex()
 	return 0
 }
 
+# > Install Roblox
+# arguments:
+# $1	- version "number"
+# $DOWNLOADFILE
+install_roblox()
+{
+	VER="$1"
+
+	"$WINE" "$DOWNLOADFILE" 2>&1
+
+	local installdir="$WINEPREFIX/drive_c/users/$USER/Local Settings/Application Data/RobloxVersions/version-$VER"
+	if [ ! -f "$installdir/NPRobloxProxy.dll" ]; then
+		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
+		return 1
+	fi
+
+	if ! "$WINE" regsvr32 "$installdir/RobloxProxy.dll"; then
+		echo "[$PRG] ERROR: Unable to register Roblox Launcher class." >&2
+		return 1
+	fi
+	# Successful
+	return 0
+}
+
+
+
 # Check if some visual feedback is possible
 if command -v zenity >/dev/null 2>&1; then
 	progressbar()
@@ -784,6 +810,11 @@ while [ $# -gt 0 ] ; do
 			URL="https://np-activex.googlecode.com/files/extension_1_5_0_7.crx"
 			SHA="12ba6c79079f53172ca897f717911c2613219236dca5ae58662d41636490e7a9"
 			EXT="zip"
+			;;
+		wine-roblox-installer)
+			INS=(install_roblox "afc74353f06542bd")
+			URL="http://setup.roblox.com/version-afc74353f06542bd-Roblox.exe"
+			SHA="ef3f1590ff0f1e9b63f4613e38bb951defdd86c290d73ac25a0e2295dee3647a"
 			;;
 		*)
 			echo "[$PRG] ERROR: No installer script found for $DEP." >&2
