@@ -57,6 +57,14 @@
 	RegGetValueAPtr RegGetValueA = NULL;
 	#define RRF_RT_ANY   0x0000FFFF
 	#define RRF_RT_REG_SZ 0x00000002
+
+	typedef errno_t (* _controlfp_sPtr)(unsigned int *currentControl, unsigned int newControl, unsigned int mask);
+	_controlfp_sPtr _controlfp_s = NULL;
+	#if defined(_WIN64) || defined(_AMD64)
+		#error "The defined _CW_DEFAULT value is 32 bit only. You need to replace it and remove this check."
+	#endif
+	#define _CW_DEFAULT 0x9001F
+	#define MCW_PC 0x00030000
 #endif
 
 /* BEGIN GLOBAL VARIABLES */
@@ -462,11 +470,14 @@ int main(int argc, char *argv[]){
 	/* get the main thread ID */
 	mainThreadID = GetCurrentThreadId();
 
-	/*
-		When compiling with wineg++ the _controlfp_s isn't available
-		We should find a workaround for this (asm implementation) as soon as wineg++ support works properly
-	*/
-	#if !defined(__WINE__) && !defined(MINGW32_FALLBACK)
+	#ifdef MINGW32_FALLBACK
+		HMODULE msvcrt = LoadLibrary("msvcrt.dll");
+		DBG_ASSERT(msvcrt, "could not load msvcrt.dll.");
+		_controlfp_s = (_controlfp_sPtr)GetProcAddress(msvcrt, "_controlfp_s");
+		DBG_ASSERT(_controlfp_s, "failed to get pointer to _controlfp_s.");
+	#endif
+
+	#if !defined(__WINE__)
 		unsigned int control_word;
 		_controlfp_s(&control_word, _CW_DEFAULT, MCW_PC);
 	#else
