@@ -53,6 +53,13 @@ atexit()
 	done
 }
 
+mktemp_with_ext()
+{
+	file=$(mktemp --suffix=".$1" 2>/dev/null)
+	if [ "$?" -ne 0 ]; then file=$(mktemp); fi
+	echo "$file"
+}
+
 # > Checks if a dependency is already installed
 # arguments:
 # $1	- SHA256
@@ -105,7 +112,7 @@ download()
 	fi
 
 	local trycount=3
-	local tmpfile=$(mktemp --suffix=".$EXT")
+	local tmpfile=$(mktemp_with_ext "$EXT")
 	[ -f "$tmpfile" ] || return 1
 
 	local filesize="$(wget "$URL" --spider --server-response -O - 2>&1 | sed -ne '/Content-Length/{s/.*: //;p}')"
@@ -440,7 +447,7 @@ install_foxitpdf()
 # $DOWNLOADFILE
 install_grandstream()
 {
-	local tmpfile=$(mktemp --suffix=".exe")
+	local tmpfile=$(mktemp_with_ext "exe")
 	[ -f "$tmpfile" ] || return 1
 
 	if ! unzip -p "$DOWNLOADFILE" "chrome_firefox_plugine_1.0.0.7.exe" > "$tmpfile"; then
