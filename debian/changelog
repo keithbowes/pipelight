@@ -1,6 +1,12 @@
 pipelight-multi (0.2.5) UNRELEASED; urgency=low
 
+  * Update version of Unity3D, Flash, Shockwave
+  * Add np-ActiveX plugin
+  * Add Roblox plugin
   * Add Hikvision Webcontrol plugin as experimental plugin
+  * install-dependency: Fix compatibility with old versions of mktemp
+  * Add compile flag -DMINGW32_FALLBACK for old versions of Mingw
+  * Increase startup timeout for Wine from 20sec to 1min (for slow PCs)
 
  -- Michael Mueller <michael@fds-team.de>  Thu, 23 Jan 2014 02:52:01 +0100
 
