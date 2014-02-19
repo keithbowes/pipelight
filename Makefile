@@ -6,15 +6,20 @@ PLUGIN_SCRIPTS=$(wildcard plugin-scripts/*)
 PLUGIN_LICENSES=$(wildcard plugin-licenses/*)
 
 version=unknown
-prefix=/usr/local/
+prefix=/usr/local
+winepath=/opt/wine-compholio
 mozpluginpath=/usr/lib/mozilla/plugins
-gccruntimedlls=/usr/lib/gcc/i686-w64-mingw32/4.6/
-winepath=/opt/wine-compholio/bin/wine
-quietinstallation=true
+gccruntimedlls=
 win32cxx=i686-w64-mingw32-g++
-win32flags=
-pluginloader=pluginloader.exe
+win32flags=-static-libgcc -static-libstdc++ -static
+quietinstallation=true
 nogpuaccel=false
+
+ifeq ($(win32cxx),wineg++)
+	pluginloader=pluginloader.exe.so
+else
+	pluginloader=pluginloader.exe
+endif
 
 -include config.make
 
@@ -23,7 +28,6 @@ ifeq ($(nogpuaccel),true)
 else
 	hwacceldefault=$(prefix)/share/pipelight/hw-accel-default
 endif
-
 
 export
 all: $(SUBDIRS)
