@@ -751,7 +751,7 @@ while [ $# -gt 0 ] ; do
 			URL="http://silverlight.dlservice.microsoft.com/download/6/B/8/6B885B0B-73D4-4BCE-BFFF-154B4A402D22/20913.00/Silverlight.exe"
 			SHA="6254f18b680a2ab4d007e5a8a344539ee819bd33d1d054e1302fcd964d63f732"
 			;;
-		wine-flash-installer)
+		wine-flash-installer) # http://www.adobe.com/de/software/flash/about/
 			INS=(install_flash "12_0_0_44")
 			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/12.0.0.44/install_flash_player.exe"
 			SHA="e57c2e9ad2fd0fccbaea29f3ef2bb577a04f7367f633265ddb03686a70085f3a"
@@ -761,7 +761,7 @@ while [ $# -gt 0 ] ; do
 			URL="http://download.macromedia.com/pub/flashplayer/updaters/12/flashplayer_12_plugin_debug.exe"
 			SHA="229cc87cdacab28ff47dfb64866796c8615086c10de3b3ecdac02003e8450066"
 			;;
-		wine-widevine-installer)
+		wine-widevine-installer) # http://www.widevine.com/download/videooptimizer/index.html
 			INS=(install_widevine)
 			URL="https://dl.google.com/widevine/6.0.0.12442/WidevineMediaOptimizer_Win.xpi"
 			SHA="84cde1b83d8f5e4b287303a25e61227ce9a253268af6bd88b9a2f98c85129bc8"
@@ -772,17 +772,17 @@ while [ $# -gt 0 ] ; do
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayer.exe"
 			SHA="69d4cd31aed787f8348e97808fa0200efecdf677f41bda79709c6bf516db1cc9"
 			;;
-		wine-adobereader-installer)
+		wine-adobereader-installer) # http://get.adobe.com/de/reader/otherversions/
 			INS=(install_adobereader)
 			URL="http://ardownload.adobe.com/pub/adobe/reader/win/11.x/11.0.06/en_US/AdbeRdr11006_en_US.exe"
 			SHA="7eb5dd2905d5cce9912019efa89e939a187cd099583d0216e517c71bd38dc6a8"
 			;;
-		wine-foxitpdf-installer)
+		wine-foxitpdf-installer) # http://www.foxitsoftware.com/Secure_PDF_Reader/version_history.php
 			INS=(install_foxitpdf)
 			URL="http://cdn04.foxitsoftware.com/pub/foxit/reader/desktop/win/6.x/6.1/enu/EnterpriseFoxitReader612.1224_enu.msi"
 			SHA="fc4a7a6b4cc5fa8b5a79c8e5193c33bfde2936bccbbde385565d5be60bfcb390"
 			;;
-		wine-shockwave-installer)
+		wine-shockwave-installer) # http://get.adobe.com/de/shockwave/otherversions/
 			INS=(install_shockwave "1209149")
 			URL="http://fpdownload.macromedia.com/get/shockwave/default/english/win95nt/latest/sw_lic_full_installer.exe"
 			SHA="e0925bcd0a386f4ace35dcd292ee2f52523e98af53435330fb5c1d02196e5555"
@@ -812,7 +812,7 @@ while [ $# -gt 0 ] ; do
 			URL="http://cctvone.com/fillib/IP%20Camera/Hikvision-2DC-Series/CD/IE%20Client/WebComponents.exe"
 			SHA="04fec22ca61c657f6f46160e55334e3defeea0e193bc8ec6d7bb45c87e773361"
 			;;
-		wine-npactivex-installer)
+		wine-npactivex-installer) # https://code.google.com/p/np-activex/downloads/list
 			INS=(install_npactivex "6a31dac35cfda77ef4be724f226c5b54404aec61a81e663e47d39c7c9dd1580e")
 			URL="https://np-activex.googlecode.com/files/extension_1_5_0_7.crx"
 			SHA="12ba6c79079f53172ca897f717911c2613219236dca5ae58662d41636490e7a9"
