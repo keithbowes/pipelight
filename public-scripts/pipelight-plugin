@@ -475,6 +475,7 @@ update_dependency_installer()
 
 	# Grab the latest version if the dependency-installer script
 	if ! wget -O "$tmpfile" "$DEPENDENCY_INSTALLER_URL"; then
+		echo ""
 		echo "ERROR: Failed to download latest dependency-installer script" >&2
 		rm "$tmpfile"
 		return 1
@@ -488,30 +489,35 @@ update_dependency_installer()
 
 	# Ensure the signature is valid, extract the content
 	if ! gpg --batch --no-default-keyring --keyring "$PIPELIGHT_PUBKEY" --decrypt "$tmpfile" > "$decfile"; then
-		echo "ERROR: Failed to verify signature of the dependency-installer script" >&2
 		rm "$tmpfile"
 		rm "$decfile"
+		echo ""
+		echo "ERROR: Failed to verify signature of the dependency-installer script" >&2
 		return 1
 	fi
-
-	# Grab the new sha256sum
-	local newsha=$(sha256sum "$decfile" | cut -d' ' -f1)
 
 	# We don't need the original one anymore
 	rm "$tmpfile"
 
-	# Set appropriate file rights
-	chmod 0755 "$decfile" || return 1
-
-	# Move the file at its final place
-	if ! mv -f "$decfile" "$DEPENDENCY_INSTALLER_PATH"; then
+	# Check if something has changed by comparing the sha256sum
+	local sha="$(sha256sum "$decfile" | cut -d' ' -f1)"
+	if [ -f "$DEPENDENCY_INSTALLER_PATH" ] && [ "$sha" == "$(sha256sum "$DEPENDENCY_INSTALLER_PATH" | cut -d' ' -f1)" ]; then
 		rm "$decfile"
+		echo ""
+		echo "Script dependency-installer is already up-to-date."
+		return 0
+	fi
+
+	if ! install -m 0755 "$decfile" "$DEPENDENCY_INSTALLER_PATH" 2>/dev/null; then
+		rm "$decfile"
+		echo ""
 		echo "ERROR: Root rights required to replace dependency-installer script" >&2
 		return 1
 	fi
 
+	rm "$decfile"
 	echo ""
-	echo "Script dependency-installer has been updated to version $newsha"
+	echo "Script dependency-installer has been updated to version $sha"
 	return 0
 }
 
