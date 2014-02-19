@@ -313,16 +313,11 @@ BOOL WINAPI myTrackPopupMenu(HMENU hMenu, UINT uFlags, int x, int y, int nReserv
 }
 
 bool installPopupHook(){
-	HMODULE user32 = LoadLibraryA("user32.dll");
-
-	if (!user32)
-		return false;
-
 	if (!originalTrackPopupMenuEx)
-		originalTrackPopupMenuEx    = (TrackPopupMenuExPtr)	patchDLLExport(user32, "TrackPopupMenuEx", (void*)&myTrackPopupMenuEx);
+		originalTrackPopupMenuEx    = (TrackPopupMenuExPtr)	patchDLLExport(module_user32, "TrackPopupMenuEx", (void*)&myTrackPopupMenuEx);
 
 	if (!originalTrackPopupMenu)
-		originalTrackPopupMenu   	= (TrackPopupMenuPtr)	patchDLLExport(user32, "TrackPopupMenu", (void*)&myTrackPopupMenu);
+		originalTrackPopupMenu   	= (TrackPopupMenuPtr)	patchDLLExport(module_user32, "TrackPopupMenu", (void*)&myTrackPopupMenu);
 
 	return (originalTrackPopupMenuEx && originalTrackPopupMenu);
 }
@@ -424,16 +419,11 @@ HWND WINAPI myCreateWindowExW(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWi
 }
 
 bool installWindowClassHook(){
-	HMODULE user32 = LoadLibraryA("user32.dll");
-
-	if(!user32)
-		return false;
-
 	if (!originalCreateWindowExA)
-		originalCreateWindowExA     = (CreateWindowExAPtr)patchDLLExport(user32, "CreateWindowExA", (void*)&myCreateWindowExA);
+		originalCreateWindowExA     = (CreateWindowExAPtr)patchDLLExport(module_user32, "CreateWindowExA", (void*)&myCreateWindowExA);
 
 	if (!originalCreateWindowExW)
-		originalCreateWindowExW     = (CreateWindowExWPtr)patchDLLExport(user32, "CreateWindowExW", (void*)&myCreateWindowExW);
+		originalCreateWindowExW     = (CreateWindowExWPtr)patchDLLExport(module_user32, "CreateWindowExW", (void*)&myCreateWindowExW);
 
 	InitializeCriticalSection(&prevWndProcCS);
 
@@ -486,13 +476,8 @@ HDESK WINAPI myOpenInputDesktop(DWORD dwFlags, BOOL fInherit, ACCESS_MASK dwDesi
 }
 
 bool installUnityHooks(){
-	HMODULE user32 = LoadLibraryA("user32.dll");
-
-	if(!user32)
-		return false;
-
 	if(!originalOpenInputDesktop)
-		originalOpenInputDesktop    = (OpenInputDesktopPtr)patchDLLExport(user32,   "OpenInputDesktop", (void*)&myOpenInputDesktop);
+		originalOpenInputDesktop    = (OpenInputDesktopPtr)patchDLLExport(module_user32, "OpenInputDesktop", (void*)&myOpenInputDesktop);
 
 	/*
 		The SetNamedPipeHandleState hackfix is now done by a Wine patch since

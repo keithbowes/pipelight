@@ -102,6 +102,13 @@ std::string np_Language;
 
 NPPluginFuncs pluginFuncs = {sizeof(pluginFuncs), (NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR};
 
+/* libraries */
+HMODULE module_msvcrt;
+HMODULE module_advapi32;
+HMODULE module_user32;
+HMODULE module_kernel32;
+HMODULE module_ntdll;
+
 /* END GLOBAL VARIABLES */
 
 /* wine specific definitions */
@@ -133,8 +140,8 @@ std::string convertToWindowsPath(const std::string &linux_path){
 	char path[MAX_PATH];
 
 	if (!wine_get_dos_file_name){
-		if (!(wine_get_dos_file_name = (wine_get_dos_file_namePtr)GetProcAddress(GetModuleHandleA("kernel32.dll"), "wine_get_dos_file_name"))){
-			DBG_ERROR("Unable to find wine function 'wine_get_dos_file_name'.");
+		if (!(wine_get_dos_file_name = (wine_get_dos_file_namePtr)GetProcAddress(module_kernel32, "wine_get_dos_file_name"))){
+			DBG_ERROR("Unable to find wine function wine_get_dos_file_name.");
 			return "";
 		}
 	}
@@ -156,8 +163,8 @@ std::string getWineVersion(){
 	const char *wine_version;
 
 	if (!wine_get_version){
-		if (!(wine_get_version = (wine_get_versionPtr)GetProcAddress(GetModuleHandleA("ntdll.dll"), "wine_get_version"))){
-			DBG_ERROR("Unable to find wine function 'wine_get_version'.");
+		if (!(wine_get_version = (wine_get_versionPtr)GetProcAddress(module_ntdll, "wine_get_version"))){
+			DBG_ERROR("Unable to find wine function wine_get_version.");
 			return "";
 		}
 	}
@@ -470,25 +477,25 @@ int main(int argc, char *argv[]){
 	/* get the main thread ID */
 	mainThreadID = GetCurrentThreadId();
 
-	#ifdef MINGW32_FALLBACK
-		HMODULE msvcrt = LoadLibrary("msvcrt.dll");
-		DBG_ASSERT(msvcrt, "could not load msvcrt.dll.");
-		_controlfp_s = (_controlfp_sPtr)GetProcAddress(msvcrt, "_controlfp_s");
-		DBG_ASSERT(_controlfp_s, "failed to get pointer to _controlfp_s.");
-	#endif
+	/* load all the required external libraries */
+#ifdef MINGW32_FALLBACK
+	DBG_ASSERT((module_msvcrt	= LoadLibraryA("msvcrt.dll")),			"failed to load msvcrt.dll.");
+	DBG_ASSERT((module_advapi32	= LoadLibraryA("advapi32.dll")),		"failed to load advapi32.dll.");
+#endif
+	DBG_ASSERT((module_user32	= LoadLibraryA("user32.dll")),			"failed to load user32.dll.");
+	DBG_ASSERT((module_kernel32	= GetModuleHandleA("kernel32.dll")),	"failed to get address of kernel32.dll.");
+	DBG_ASSERT((module_ntdll	= GetModuleHandleA("ntdll.dll")),		"failed to get address of ntdll.dll.");
+
+#ifdef MINGW32_FALLBACK
+	DBG_ASSERT((_controlfp_s = (_controlfp_sPtr)GetProcAddress(module_msvcrt, "_controlfp_s")),		"failed to get pointer to _controlfp_s.");
+	DBG_ASSERT((RegGetValueA = (RegGetValueAPtr)GetProcAddress(module_advapi32, "RegGetValueA")),	"failed to get pointer to RegGetValueA.");
+#endif
 
 	#if !defined(__WINE__)
 		unsigned int control_word;
 		_controlfp_s(&control_word, _CW_DEFAULT, MCW_PC);
 	#else
 		#warning "Setting the floating point precission is not yet supported for your compiler! You may get weird issues with Silverlight."
-	#endif
-
-	#ifdef MINGW32_FALLBACK
-		HMODULE advapi32 = LoadLibrary("advapi32.dll");
-		DBG_ASSERT(advapi32, "could not load advapi32.dll.");
-		RegGetValueA = (RegGetValueAPtr)GetProcAddress(advapi32, "RegGetValueA");
-		DBG_ASSERT(RegGetValueA, "failed to get pointer to RegGetValueA.");
 	#endif
 
 	setbuf(stderr, NULL); /* Disable stderr buffering */

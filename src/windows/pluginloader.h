@@ -76,6 +76,13 @@ extern std::string np_Language;
 extern NPPluginFuncs pluginFuncs;
 extern NPNetscapeFuncs browserFuncs;
 
+/* libraries */
+extern HMODULE module_msvcrt;
+extern HMODULE module_advapi32;
+extern HMODULE module_user32;
+extern HMODULE module_kernel32;
+extern HMODULE module_ntdll;
+
 /*
 	NP Class functions
 */
