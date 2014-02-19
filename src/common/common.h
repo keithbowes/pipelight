@@ -863,7 +863,7 @@ inline bool pluginInitOkay(){
 	if (!writeCommand(BLOCKCMD_CALL_DIRECT, (char *)&function, sizeof(uint32_t)))
 		return false;
 
-	if (!readCommands(stack, true, 20000))
+	if (!readCommands(stack, true, 60000))
 		return false;
 
 	/* ensure that we're using the correct protocol version */
