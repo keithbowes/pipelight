@@ -112,6 +112,7 @@ dependencyInstaller = @@DEPENDENCY_INSTALLER@@
 #   wine-Roblox-installer
 #
 dependency          = wine-roblox-installer
+dependency          = wine-wininet-installer
 
 #
 # Doesn't show any dialogs which require manual confirmation during
