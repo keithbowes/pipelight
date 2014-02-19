@@ -1,11 +1,7 @@
-IMPORTANT NOTICE: the patches that used to be stored here have MOVED to a new bazaar branch.
-
-Bazaar Address:
-  lp:netflix-desktop/wine-compholio
+IMPORTANT NOTICE: the patches that used to be stored here have MOVED to a new git branch.
 
 Browsable URL:
-  https://code.launchpad.net/~pipelight/netflix-desktop/wine-compholio
-  http://bazaar.launchpad.net/~pipelight/netflix-desktop/wine-compholio/files/head:/patches/
+  https://github.com/compholio/wine-compholio-daily
 
 Tarball (Mirror):
   http://fds-team.de/mirror/wine-patches.tar.gz
