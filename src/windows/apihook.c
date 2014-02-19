@@ -229,7 +229,6 @@ bool menuHandler(NPP instance, UINT identifier, const std::vector<MenuEntry> &en
 
 typedef BOOL (* WINAPI TrackPopupMenuExPtr)(HMENU hMenu, UINT fuFlags, int x, int y, HWND hWnd, LPTPMPARAMS lptpm);
 typedef BOOL (* WINAPI TrackPopupMenuPtr)(HMENU hMenu, UINT uFlags, int x, int y, int nReserved, HWND hWnd, const RECT *prcRect);
-
 TrackPopupMenuExPtr originalTrackPopupMenuEx    = NULL;
 TrackPopupMenuPtr 	originalTrackPopupMenu  	= NULL;
 
@@ -326,7 +325,6 @@ bool installPopupHook(){
 
 typedef HWND (* WINAPI CreateWindowExAPtr)(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
 typedef HWND (* WINAPI CreateWindowExWPtr)(DWORD dwExStyle, LPCWSTR lpClassName, LPCWSTR lpWindowName, DWORD dwStyle, int x, int y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
-
 CreateWindowExAPtr originalCreateWindowExA = NULL;
 CreateWindowExWPtr originalCreateWindowExW = NULL;
 
@@ -426,31 +424,13 @@ bool installWindowClassHook(){
 		originalCreateWindowExW     = (CreateWindowExWPtr)patchDLLExport(module_user32, "CreateWindowExW", (void*)&myCreateWindowExW);
 
 	InitializeCriticalSection(&prevWndProcCS);
-
 	return (originalCreateWindowExA && originalCreateWindowExW);
 }
 
 /* -------- Unity hooks --------*/
 
-typedef BOOL (* WINAPI SetNamedPipeHandleStatePtr)(HANDLE hNamedPipe, LPDWORD lpMode, LPDWORD lpMaxCollectionCount, LPDWORD lpCollectDataTimeout);
 typedef HDESK (* WINAPI OpenInputDesktopPtr)(DWORD dwFlags, BOOL fInherit, ACCESS_MASK dwDesiredAccess);
-
-SetNamedPipeHandleStatePtr originalSetNamedPipeHandleState = NULL;
 OpenInputDesktopPtr originalOpenInputDesktop = NULL;
-
-/*
-	Unity uses named pipes in message mode during the update of the engine,
-	but Wine doesn't support them yet and therefore the update will fail.
-	Since Linux doesn't support similar types of pipes, we can not use a
-	simple patch to implement this feature, instead we do something risky here
-	and claim that the pipe is now in message mode. This only works if the
-	size of the message is small and some Wine functions will behave wrong,
-	but I tested it several times and Unity was always able to update.
-*/
-BOOL WINAPI mySetNamedPipeHandleState(HANDLE hNamedPipe, LPDWORD lpMode, LPDWORD lpMaxCollectionCount, LPDWORD lpCollectDataTimeout){
-	originalSetNamedPipeHandleState(hNamedPipe, lpMode, lpMaxCollectionCount, lpCollectDataTimeout);
-	return true;
-}
 
 /*
 	OpenInputDesktop is not supported by Wine, but Unity will enter an endless
@@ -478,26 +458,6 @@ HDESK WINAPI myOpenInputDesktop(DWORD dwFlags, BOOL fInherit, ACCESS_MASK dwDesi
 bool installUnityHooks(){
 	if(!originalOpenInputDesktop)
 		originalOpenInputDesktop    = (OpenInputDesktopPtr)patchDLLExport(module_user32, "OpenInputDesktop", (void*)&myOpenInputDesktop);
-
-	/*
-		The SetNamedPipeHandleState hackfix is now done by a Wine patch since
-		function is not directly called by the Unity plugin, but by the updater.
-		Since this is an external process and therefore doesn't care about
-		our hook, we either need to inject code into another process or use a
-		Wine patch.
-	*/
-
-	/*
-		HMODULE kernel32 = LoadLibrary("kernel32.dll");
-
-		if(!kernel32)
-			return false;
-
-		if(!originalSetNamedPipeHandleState)
-			originalSetNamedPipeHandleState    = (SetNamedPipeHandleStatePtr)patchDLLExport(kernel32,   "SetNamedPipeHandleState", (void*)&mySetNamedPipeHandleState);
-
-		return (originalOpenInputDesktop && originalSetNamedPipeHandleState);
-	*/
 
 	return originalOpenInputDesktop;
 }
