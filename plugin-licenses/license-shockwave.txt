@@ -1,5 +1,6 @@
 [*] Adobe Shockwave Player
-	By continuing the installation you agree that you've read and accepted the ADOBE SOFTWARE LICENSE AGREEMENT:
+	By continuing the installation you agree that you've read and accepted the
+	ADOBE SOFTWARE LICENSE AGREEMENT:
 	http://wwwimages.adobe.com/www.adobe.com/content/dam/Adobe/en/legal/licenses-terms/pdf/Shockwave%2011.0.pdf
 
 	To find out more click here:

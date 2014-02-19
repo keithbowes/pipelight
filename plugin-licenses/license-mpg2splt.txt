@@ -1,6 +1,7 @@
 [*] mpg2splt.ax
 	This library is part of the Microsoft DirectX End-User Runtime.
-	By continuing the installation you agree that you've read and accepted the Microsoft Software License Terms.
+	By continuing the installation you agree that you've read and accepted the
+	Microsoft Software License Terms.
 	You can find them in @@LICENSE_PATH@@/license-mpg2splt.txt
 
 	To find out more click here:

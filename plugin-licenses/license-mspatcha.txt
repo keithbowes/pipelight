@@ -1,6 +1,8 @@
 [*] mspatcha.dll
-	This library is part of the Windows Installer 2.0 Redistributable Windows 2000 and Windows NT 4.0
-	By continuing the installation you agree that you've read and accepted the End-User License Agreement for Microsoft Software:
+	This library is part of the Windows Installer 2.0 Redistributable Windows
+	2000 and Windows NT 4.0. By continuing the installation you agree that
+	you've read and accepted the End-User License Agreement for Microsoft
+	Software:
 	http://download.microsoft.com/download/WindowsInstaller/Install/2.0/NT45/EN-US/License.txt
 
 	To find out more click here:

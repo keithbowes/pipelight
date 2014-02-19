@@ -1,5 +1,6 @@
 [*] Microsoft Silverlight 5.1
-	By continuing the installation you agree that you've read and accepted the MICROSOFT SOFTWARE LICENSE TERMS:
+	By continuing the installation you agree that you've read and accepted the
+	MICROSOFT SOFTWARE LICENSE TERMS:
 	http://go.microsoft.com/fwlink/?LinkId=229303
 
 	Microsoft Silverlight Privacy Statement:
