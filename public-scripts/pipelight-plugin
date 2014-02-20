@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+VERSION="@@VERSION@@"
 
 # Global configuration
 LIBRARY_PATH="@@LIBRARY_PATH@@"
@@ -27,11 +28,16 @@ usage()
 	echo "Environment variables:"
 	echo "  MOZ_PLUGIN_PATH             overwrite plugin path"
 	echo ""
-	echo "Commands:"
+	echo "Options:"
+	echo "  --accept                    accept all licenses"
+	echo ""	
+	echo "User commands:"
 	echo "  --enable  PLUGIN            enable plugin"
 	echo "  --disable PLUGIN            disable plugin"
 	echo "  --disable-all               disable all plugins"
 	echo "  --list-enabled              list enabled plugins"
+	echo "  --help                      shows this help"
+	echo "  --version                   shows the current version of Pipelight"
 	echo ""
 	echo "Global commands (require root rights):"
 	echo "  --create-mozilla-plugins    create copies of libpipelight.so"
@@ -40,8 +46,6 @@ usage()
 	echo "  --lock   PLUGIN             locks an additional plugin"
 	echo "  --update                    update the dependency-installer script"
 	echo ""
-	echo "Advanced options:"
-	echo "  --accept                    accept all licenses"
 	echo ""
 	echo "Supported standard plugins:"
 	for entry in "${STANDARD_PLUGINS[@]}"; do
@@ -53,6 +57,17 @@ usage()
 		echo "  $entry"
 	done
 	echo ""
+}
+
+version()
+{
+	if [[ "$VERSION" =~ ^@@.*@@$ ]]; then
+		echo "Pipelight version unknown"
+		return 1
+	fi
+
+	echo "Pipelight $VERSION"
+	return 0
 }
 
 # > Get directories
@@ -589,6 +604,9 @@ while [[ $# > 0 ]] ; do
 
 		--help)
 			usage
+			;;
+		--version)
+			if ! version; then RET=1; fi
 			;;
 		*)
 			echo "ERROR: Unknown argument $CMD." >&2
