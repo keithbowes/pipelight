@@ -204,16 +204,6 @@ void runDiagnostic(NPP instance){
 		(config.winePath != "" && checkIfExists(config.winePath)) ? "okay" : "failed", \
 		(config.winePath != "") ? config.winePath : "not set" );
 
-	/* Check if wine exists */
-	if (config.winePath != ""){
-
-		debugStatusMessage(instance, \
-			"Checking if wine exists", \
-			checkIfExists(config.winePath) ? "okay" : "failed", \
-			config.winePath );
-
-	}
-
 	/* Check winePrefix */
 	bool winePrefixFound = (config.winePrefix != "" && checkIfExists(config.winePrefix));
 
