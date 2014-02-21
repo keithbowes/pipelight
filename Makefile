@@ -50,7 +50,7 @@ install: all
 
 	for script in $(notdir $(PLUGIN_SCRIPTS)); do \
 		sed    's|@@WINE_PATH@@|$(winepath)|g' share/scripts/$${script} > pipelight-script.tmp; \
-		install -m 0755 pipelight-script.tmp "$(DESTDIR)$(prefix)/share/pipelight/scripts/$${script}"; \
+		install -m 0755 pipelight-script.tmp "$(DESTDIR)$(prefix)/share/pipelight/scripts/$${script%.*}"; \
 		rm pipelight-script.tmp; \
 	done
 
@@ -62,13 +62,13 @@ install: all
 		sed -i 's|@@WINE_PATH@@|$(winepath)|g' pipelight-config.tmp; \
 		sed -i 's|@@GCC_RUNTIME_DLLS@@|$(gccruntimedlls)|g' pipelight-config.tmp; \
 		sed -i 's|@@QUIET_INSTALLATION@@|$(quietinstallation)|g' pipelight-config.tmp; \
-		install -m 0644 pipelight-config.tmp "$(DESTDIR)$(prefix)/share/pipelight/configs/$${config}"; \
+		install -m 0644 pipelight-config.tmp "$(DESTDIR)$(prefix)/share/pipelight/configs/$${config%.*}"; \
 		rm pipelight-config.tmp; \
 	done
 
 	for license in $(notdir $(PLUGIN_LICENSES)); do \
 		sed    's|@@LICENSE_PATH@@|$(prefix)/share/pipelight/licenses|g' share/licenses/$${license} > pipelight-license.tmp; \
-		install -m 0644 pipelight-license.tmp "$(DESTDIR)$(prefix)/share/pipelight/licenses/$${license}"; \
+		install -m 0644 pipelight-license.tmp "$(DESTDIR)$(prefix)/share/pipelight/licenses/$${license%.*}"; \
 		rm pipelight-license.tmp; \
 	done
 
