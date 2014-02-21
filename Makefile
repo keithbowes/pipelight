@@ -1,9 +1,9 @@
 SUBDIRS= src/linux src/windows
 .PHONY:	all $(SUBDIRS) clean install uninstall
 
-PLUGIN_CONFIGS=$(wildcard plugin-configs/*)
-PLUGIN_SCRIPTS=$(wildcard plugin-scripts/*)
-PLUGIN_LICENSES=$(wildcard plugin-licenses/*)
+PLUGIN_CONFIGS=$(wildcard share/configs/*)
+PLUGIN_SCRIPTS=$(wildcard share/scripts/*)
+PLUGIN_LICENSES=$(wildcard share/licenses/*)
 
 version=unknown
 prefix=/usr/local
@@ -48,13 +48,13 @@ install: all
 	install -m 0755 share/hw-accel-default "$(DESTDIR)$(prefix)/share/pipelight/hw-accel-default"
 
 	for script in $(notdir $(PLUGIN_SCRIPTS)); do \
-		sed    's|@@WINE_PATH@@|$(winepath)|g' plugin-scripts/$${script} > pipelight-script.tmp; \
+		sed    's|@@WINE_PATH@@|$(winepath)|g' share/scripts/$${script} > pipelight-script.tmp; \
 		install -m 0755 pipelight-script.tmp "$(DESTDIR)$(prefix)/share/pipelight/$${script}"; \
 		rm pipelight-script.tmp; \
 	done
 
 	for config in $(notdir $(PLUGIN_CONFIGS)); do \
-		sed    's|@@PLUGINLOADER_PATH@@|$(prefix)/share/pipelight/$(pluginloader)|g' plugin-configs/$${config} > pipelight-config.tmp; \
+		sed    's|@@PLUGINLOADER_PATH@@|$(prefix)/share/pipelight/$(pluginloader)|g' share/configs/$${config} > pipelight-config.tmp; \
 		sed -i 's|@@DEPENDENCY_INSTALLER@@|$(prefix)/share/pipelight/install-dependency|g' pipelight-config.tmp; \
 		sed -i 's|@@SANDBOX_PATH@@|$(prefix)/share/pipelight/sandbox|g' pipelight-config.tmp; \
 		sed -i 's|@@GRAPHIC_DRIVER_CHECK@@|$(hwacceldefault)|g' pipelight-config.tmp; \
@@ -66,14 +66,14 @@ install: all
 	done
 
 	for license in $(notdir $(PLUGIN_LICENSES)); do \
-		sed    's|@@LICENSE_PATH@@|$(prefix)/share/pipelight/licenses|g' plugin-licenses/$${license} > pipelight-license.tmp; \
+		sed    's|@@LICENSE_PATH@@|$(prefix)/share/pipelight/licenses|g' share/licenses/$${license} > pipelight-license.tmp; \
 		install -m 0644 pipelight-license.tmp "$(DESTDIR)$(prefix)/share/pipelight/licenses/$${license}"; \
 		rm pipelight-license.tmp; \
 	done
 
 	install -m 0644 src/linux/libpipelight.so "$(DESTDIR)$(prefix)/lib/pipelight/libpipelight.so"
 
-	sed    's|@@VERSION@@|$(version)|g' public-scripts/pipelight-plugin > pipelight-plugin.tmp
+	sed    's|@@VERSION@@|$(version)|g' bin/pipelight-plugin > pipelight-plugin.tmp
 	sed -i 's|@@LIBRARY_PATH@@|$(prefix)/lib/pipelight/|g' pipelight-plugin.tmp
 	sed -i 's|@@CONFIG_PATH@@|$(prefix)/share/pipelight/configs|g' pipelight-plugin.tmp
 	sed -i 's|@@LICENSE_PATH@@|$(prefix)/share/pipelight/licenses|g' pipelight-plugin.tmp
