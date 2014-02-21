@@ -41,7 +41,8 @@ install: all
 	mkdir -p "$(DESTDIR)$(prefix)/share/pipelight/licenses"
 	mkdir -p "$(DESTDIR)$(prefix)/share/pipelight/scripts"
 	mkdir -p "$(DESTDIR)$(prefix)/lib/pipelight"
-	mkdir -p "$(DESTDIR)$(prefix)/bin/"
+	mkdir -p "$(DESTDIR)$(prefix)/bin"
+	mkdir -p "$(DESTDIR)$(prefix)/share/man/man1"
 
 	install -m 0644 share/signature.gpg "$(DESTDIR)$(prefix)/share/pipelight/signature.gpg"
 	install -m 0755 "src/windows/$(pluginloader)" "$(DESTDIR)$(prefix)/share/pipelight/$(pluginloader)"
@@ -84,6 +85,11 @@ install: all
 	install -m 0755 pipelight-plugin.tmp "$(DESTDIR)$(prefix)/bin/pipelight-plugin"
 	rm pipelight-plugin.tmp
 
+	sed    's|@@VERSION@@|$(version)|g' pipelight-plugin.1.in > pipelight-manpage.tmp
+	sed -i 's|@@PREFIX@@|$(prefix)|g' pipelight-manpage.tmp
+	install -m 0755 pipelight-manpage.tmp "$(DESTDIR)$(prefix)/share/man/man1/pipelight-plugin.1"
+	rm pipelight-manpage.tmp
+
 uninstall:
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/signature.gpg"
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/$(pluginloader)"
@@ -94,6 +100,7 @@ uninstall:
 	rm -f  $(DESTDIR)$(prefix)/share/pipelight/licenses/license-*
 	rm -f "$(DESTDIR)$(prefix)/lib/pipelight/libpipelight.so"
 	rm -f "$(DESTDIR)$(prefix)/bin/pipelight-plugin"
+	rm -f "$(DESTDIR)$(prefix)/share/man/man1/pipelight-plugin.1"
 
 	rmdir --ignore-fail-on-non-empty "$(DESTDIR)$(prefix)/share/pipelight/configs"
 	rmdir --ignore-fail-on-non-empty "$(DESTDIR)$(prefix)/share/pipelight/licenses"

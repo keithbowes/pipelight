@@ -1,0 +1,193 @@
+.TH PIPELIGHT "1" "February 2014" "@@VERSION@@" "Pipelight"
+.SH NAME
+Pipelight \- use Windows plugins in Linux browsers (based on Wine)
+.SH SYNOPSIS
+.B pipelight-plugin
+[\fIOPTIONS \fR...] \fICOMMAND\fR
+.PP
+For a list of possible options and commands please take a look at the
+\fBOPTIONS/COMMANDS\fR section on the man page.
+.SH DESCRIPTION
+Pipelight is a special browser plugin which allows one to use Windows only
+plugins inside Linux browsers. Currently supported plugins are Silverlight,
+Flash, Shockwave, the Unity3D Webplayer, and some more (see the \fBPLUGINS\fR
+section).
+.PP
+The commandline utility \fBpipelight-plugin\fR allows you to enable/disable
+plugins and to update the plugin database.
+.SH OPTIONS/COMMANDS
+.SS "Options:"
+.TP
+\fB\-y, \-\-accept\fR
+Don't ask the user for license confirmation, instead enable plugins directly.
+Can be used to automate the process of accepting the license agreement.
+.SS "User commands:"
+.TP
+\fB\-\-enable\fR \fIPLUGIN\fR
+Enables the specified plugin for the current user (by creating a symlink in
+\fI$HOME/.mozilla/plugins\fR). When you run this command as root the plugin is
+enabled system-wide by creating a symlink in the mozilla plugins directory
+instead (often located at \fI/usr/lib/mozilla/plugins\fR). For a list of
+plugins see the \fBPLUGINS\fR section in this man page.
+.TP
+\fB\-\-disable\fR \fIPLUGIN\fR
+Disables the specified plugin for the current user, or disables the system-wide
+symlink when executed as root. Please note that a plugin may still stay
+active if it was enabled both system-wide and for the current user before.
+.TP
+\fB\-\-disable\-all\fR
+Disables all enabled plugins. For more details see \fB--disable\fR.
+.TP
+\fB\-\-list\-enabled\fR
+Returns a list of all plugins which are enabled for the current user. The
+result contains one plugin per line in order to simplify parsing by external
+scripts.
+.TP
+\fB\-\-help\fR
+Shows a short version of this help.
+.TP
+\fB\-\-version\fR
+Shows the current version of Pipelight.
+.SS "Global commands (require root rights):"
+.TP
+\fB\-\-create\-mozilla\-plugins\fR
+In order to make it possible to use multiple Windows plugins with Pipelight at
+the same time, it is necessary to have multiple copies of \fIlibpipelight.so\fR
+installed. This command is typically used in the installation process of Pipelight
+itself to create all the necessary copies. On a first execution it will only create
+the libraries for the standard plugins, on all future executions it will
+additionally update all unlocked additional plugins.
+.TP
+\fB\-\-remove\-mozilla\-plugins\fR
+Removes all the copies of \fIlibpipelight.so\fR. This command is typically
+used during the uninstallation (but not for updating!). All unlocked plugins
+are locked again afterwards.
+.TP
+\fB\-\-unlock\fR PLUGIN
+To save some disk space the default installation of Pipelight only creates
+copies of \fIlibpipelight.so\fR for the most commonly used plugins. This
+command can be used to unlock an additional plugin by creating another copy of
+\fIlibpipelight.so\fR. Afterwards you can \fB--enable\fR it like any other
+standard plugin.
+.TP
+\fB\-\-lock\fR PLUGIN
+Removes the copy of \fIlibpipelight.so\fR for a specific plugin. This command
+can only be used for additional plugins, not for the standard plugins.
+.TP
+\fB\-\-update\fR
+Establishes a connection to the Pipelight upstream repository and downloads
+the latest version of the plugin database (called \fIdependency-installer\fR)
+containing the plugin URLs and checksums. The main purpose of this command is
+to update the plugins between the official Pipelight releases. The signature
+of the downloaded file is checked to prevent corruption or modification.
+.SH "ENVIRONMENT VARIABLES"
+You can export the following environment variables to modify the behaviour of
+\fBpipelight-plugin\fR.
+.TP
+\fBMOZ_PLUGIN_PATH\fR
+Create the plugin symlinks in the provided path instead of
+\fI$HOME/.mozilla/plugins\fR. You can use this environment variable to keep
+your Pipelight plugins separate from your other browser plugins.
+.SH PLUGINS
+Pipelight currently supports the following browser plugins:
+.TP
+\fBStandard plugins\fR
+silverlight5.1,
+silverlight5.0,
+silverlight4,
+flash,
+unity3d,
+widevine
+.TP
+\fBAdditional plugins (experimental or not often used):\fR
+shockwave,
+foxitpdf,
+grandstream,
+adobereader,
+hikvision,
+npactivex,
+roblox
+.SH EXAMPLES
+.PP
+Here are some typical examples how to use \fBpipelight-plugin\fR.
+.PP
+$ sudo pipelight-plugin --update
+.PP
+Downloads the latest version of the plugin database. If there was a new
+update, it will be installed on the next browser restart or when the plugin is
+reloaded the next time.
+.PP
+$ sudo pipelight-plugin --enable silverlight --enable unity3d
+.PP
+Enable multiple plugins (in this example Silverlight and the Unity3D Webplayer)
+system-wide.
+.PP
+$ MOZ_PLUGIN_PATH=$HOME/myplugins pipelight-plugin --enable silverlight
+.br
+$ MOZ_PLUGIN_PATH=$HOME/myplugins/ google-chrome --user-data-dir=$HOME/.config/chrome-pipelight
+.PP
+The first line enables Silverlight in the (self-defined) plugin directory
+\fI$HOME/myplugins\fR, afterwards Google-Chrome is started with the same
+environment variable, such that it can detect the Silverlight plugin. All other
+browsers will not have Silverlight enabled, because they don't search for
+plugins in the custom plugin directory.
+.SH FILES
+.TP
+\fI@@PREFIX@@/bin/pipelight-plugin\fR
+Commandline utility to enable/disable plugins and to update the plugin database.
+.TP
+\fI@@PREFIX@@/lib/pipelight/libpipelight*.so\fR
+The shared library \fIlibpipelight.so\fR and additional copies for all
+unlocked and standard plugins.
+.TP
+\fI@@PREFIX@@/share/pipelight/licenses/*\fR
+License information for supported plugins.
+.TP
+\fI@@PREFIX@@/share/pipelight/configs/*\fR
+Configuration files containing for example which dependencies are required for
+a specific plugin, and where Pipelight can find the plugin DLLs. Normally
+there should be \fBno\fR need to edit them manually!
+.TP
+\fI@@PREFIX@@/share/pipelight/scripts/*\fR
+Helper scripts for specific plugins, for example to enable/disable GPU acceleration.
+.TP
+\fI@@PREFIX@@/share/pipelight/*\fR
+Directory containing other files used internally by Pipelight.
+.TP
+\fI/usr/lib/mozilla/plugins/libpipelight-*.so\fR
+Symlinks to all enabled system-wide plugins.
+.TP
+\fI$HOME/.mozilla/plugins/libpipelight-*.so\fR
+Symlinks to all enabled user-specific plugins.
+.SH COPYRIGHT
+Pipelight can be distributed under the terms of the
+\fIMPL-1.1\fR
+or
+\fIGPL-2.0\fR
+or
+\fILGPL-2.1\fR
+license.
+.br
+Please note that most of the plugins also have their own end-user license
+agreement. Take a look there or ask the developers if you want to redistribute
+Pipelight with third-party plugins included.
+.SH BUGS
+Bugs can be reported on the
+.UR https://launchpad.net/pipelight
+.B Pipelight Launchpad project page
+.UE .
+Please note that Pipelight uses a patched wine version, so don't report Wine
+related bugs at the official Wine bug tracker. Instead report them also at the
+Pipelight project page (unless you can reproduce them with an unpatched
+version of Wine).
+.SH "SEE ALSO"
+.UR https://launchpad.net/pipelight
+.B Pipelight Launchpad project page
+.UE ,
+.br
+.UR http://fds-team.de/cms/pipelight-installation.html
+.B Installation instructions
+.UE ,
+.br
+.B #pipelight
+on IRC freenode
