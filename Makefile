@@ -39,6 +39,7 @@ install: all
 	mkdir -p "$(DESTDIR)$(prefix)/share/pipelight"
 	mkdir -p "$(DESTDIR)$(prefix)/share/pipelight/configs"
 	mkdir -p "$(DESTDIR)$(prefix)/share/pipelight/licenses"
+	mkdir -p "$(DESTDIR)$(prefix)/share/pipelight/scripts"
 	mkdir -p "$(DESTDIR)$(prefix)/lib/pipelight"
 	mkdir -p "$(DESTDIR)$(prefix)/bin/"
 
@@ -49,7 +50,7 @@ install: all
 
 	for script in $(notdir $(PLUGIN_SCRIPTS)); do \
 		sed    's|@@WINE_PATH@@|$(winepath)|g' share/scripts/$${script} > pipelight-script.tmp; \
-		install -m 0755 pipelight-script.tmp "$(DESTDIR)$(prefix)/share/pipelight/$${script}"; \
+		install -m 0755 pipelight-script.tmp "$(DESTDIR)$(prefix)/share/pipelight/scripts/$${script}"; \
 		rm pipelight-script.tmp; \
 	done
 
@@ -88,7 +89,7 @@ uninstall:
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/$(pluginloader)"
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/install-dependency"
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/hw-accel-default"
-	rm -f  $(DESTDIR)$(prefix)/share/pipelight/configure-*
+	rm -f  $(DESTDIR)$(prefix)/share/pipelight/scripts/configure-*
 	rm -f  $(DESTDIR)$(prefix)/share/pipelight/configs/pipelight-*
 	rm -f  $(DESTDIR)$(prefix)/share/pipelight/licenses/license-*
 	rm -f "$(DESTDIR)$(prefix)/lib/pipelight/libpipelight.so"
@@ -96,6 +97,7 @@ uninstall:
 
 	rmdir --ignore-fail-on-non-empty "$(DESTDIR)$(prefix)/share/pipelight/configs"
 	rmdir --ignore-fail-on-non-empty "$(DESTDIR)$(prefix)/share/pipelight/licenses"
+	rmdir --ignore-fail-on-non-empty "$(DESTDIR)$(prefix)/share/pipelight/scripts"
 	rmdir --ignore-fail-on-non-empty "$(DESTDIR)$(prefix)/share/pipelight"
 	rmdir --ignore-fail-on-non-empty "$(DESTDIR)$(prefix)/lib/pipelight"
 
