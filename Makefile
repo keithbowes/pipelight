@@ -7,7 +7,7 @@ PLUGIN_LICENSES=$(wildcard share/licenses/*)
 
 version=unknown
 prefix=/usr/local
-winepath=/opt/wine-compholio
+winepath=/opt/wine-compholio/bin/wine
 mozpluginpath=/usr/lib/mozilla/plugins
 gccruntimedlls=
 win32cxx=i686-w64-mingw32-g++

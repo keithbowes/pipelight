@@ -3,7 +3,7 @@
 # Default configuration
 version="unknown"
 prefix="/usr/local"
-winepath="/opt/wine-compholio"
+winepath="/opt/wine-compholio/bin/wine"
 mozpluginpath="/usr/lib/mozilla/plugins"
 gccruntimedlls=""
 win32cxx=""
