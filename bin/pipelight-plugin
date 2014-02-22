@@ -353,7 +353,7 @@ is_enabled_plugin()
 disable_all_plugin()
 {
 	for entry in "${ALL_PLUGINS[@]}"; do
-		if ! disable_plugin "$INSTALLDIR" "$entry"; then return 1; fi
+		if ! disable_plugin "$entry"; then return 1; fi
 	done
 
 	return 0
