@@ -43,6 +43,11 @@ Returns a list of all plugins which are enabled for the current user. The
 result contains one plugin per line in order to simplify parsing by external
 scripts.
 .TP
+\fB\-\-list\-enabled\-all\fR
+Returns a list which contains both the plugins enabled for the current user and
+additionally the system-wide enabled plugins. If a plugin is enabled multiple
+times it also appears multiple times in the list.
+.TP
 \fB\-\-help\fR
 Shows a short version of this help.
 .TP
