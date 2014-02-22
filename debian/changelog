@@ -1,3 +1,10 @@
+pipelight-multi (0.2.6) UNRELEASED; urgency=low
+
+  * Add pipelight commandline switch --list-enabled-all
+
+ -- Michael Mueller <michael@fds-team.de>  Sat, 22 Feb 2014 22:52:12 +0100
+
+
 pipelight-multi (0.2.5) RELEASED; urgency=low
 
   * Update Flash to 12.0.0.70

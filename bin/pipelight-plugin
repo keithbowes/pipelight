@@ -35,7 +35,8 @@ usage()
 	echo "  --enable  PLUGIN            enable plugin"
 	echo "  --disable PLUGIN            disable plugin"
 	echo "  --disable-all               disable all plugins"
-	echo "  --list-enabled              list enabled plugins"
+	echo "  --list-enabled              list enabled plugins for the current user"
+	echo "  --list-enabled-all          list all enabled plugins"
 	echo "  --help                      shows this help"
 	echo "  --version                   shows the current version of Pipelight"
 	echo ""
@@ -319,10 +320,12 @@ disable_plugin()
 
 # > Checks if a plugin is enabled
 # arguments:
-# $1	- name of the plugin
+# $1	- directory to check
+# $2	- name of the plugin
 is_enabled_plugin()
 {
-	local PLUGIN="$1"
+	local DIRECTORY="$1"
+	local PLUGIN="$2"
 	if ! get_directories; then return 1; fi
 
 	PLUGIN=$(resolve_plugin_alias "$PLUGIN")
@@ -333,12 +336,13 @@ is_enabled_plugin()
 		return 1
 	fi
 
-	if [ ! -d "$INSTALLDIR" ]; then
-		echo "ERROR: Your plugin dir $INSTALLDIR does not exist - are you running this as a wrong user?" >&2
+	if [ ! -d "$DIRECTORY" ]; then
+		# Don't complain if the directory doesn't exist
+		# echo "ERROR: Your plugin dir $DIRECTORY does not exist - are you running this as a wrong user?" >&2
 		return 1
 	fi
 
-	local dst="$INSTALLDIR/libpipelight-$PLUGIN.so"
+	local dst="$DIRECTORY/libpipelight-$PLUGIN.so"
 
 	# check if there is a file
 	[ -e "$dst" ] && [ -L "$dst" ]
@@ -349,7 +353,7 @@ is_enabled_plugin()
 disable_all_plugin()
 {
 	for entry in "${ALL_PLUGINS[@]}"; do
-		if ! disable_plugin "$entry"; then return 1; fi
+		if ! disable_plugin "$INSTALLDIR" "$entry"; then return 1; fi
 	done
 
 	return 0
@@ -359,8 +363,24 @@ disable_all_plugin()
 list_enabled_plugins()
 {
 	for entry in "${ALL_PLUGINS[@]}"; do
-		if is_enabled_plugin "$entry"; then	echo "$entry"; fi
+		if is_enabled_plugin "$INSTALLDIR" "$entry"; then	echo "$entry"; fi
 	done
+
+	return 0
+}
+
+# > List all enabled plugins
+list_all_enabled_plugins()
+{
+	for entry in "${ALL_PLUGINS[@]}"; do
+		if is_enabled_plugin "$INSTALLDIR" "$entry"; then	echo "$entry"; fi
+	done
+
+	if [ "$INSTALLDIR" != "$PLUGIN_PATH" ]; then
+		for entry in "${ALL_PLUGINS[@]}"; do
+			if is_enabled_plugin "$PLUGIN_PATH" "$entry"; then	echo "$entry"; fi
+		done
+	fi
 
 	return 0
 }
@@ -573,6 +593,9 @@ while [[ $# > 0 ]] ; do
 
 		--list-enabled)
 			if ! list_enabled_plugins; then RET=1; fi
+			;;
+		--list-enabled-all)
+			if ! list_all_enabled_plugins; then RET=1; fi
 			;;
 
 		--create-mozilla-plugins)
