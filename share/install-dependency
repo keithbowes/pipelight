@@ -779,8 +779,8 @@ while [ $# -gt 0 ] ; do
 			;;
 		wine-foxitpdf-installer) # http://www.foxitsoftware.com/Secure_PDF_Reader/version_history.php
 			INS=(install_foxitpdf)
-			URL="http://cdn04.foxitsoftware.com/pub/foxit/reader/desktop/win/6.x/6.1/enu/EnterpriseFoxitReader612.1224_enu.msi"
-			SHA="fc4a7a6b4cc5fa8b5a79c8e5193c33bfde2936bccbbde385565d5be60bfcb390"
+			URL="http://cdn04.foxitsoftware.com/pub/foxit/reader/desktop/win/6.x/6.1/enu/EnterpriseFoxitReader614.0217_enu.msi"
+			SHA="cc196393907aa131f7cfa4088693404e031186fc4e3e84e00fd6a37542a7d394"
 			;;
 		wine-shockwave-installer) # http://get.adobe.com/de/shockwave/otherversions/
 			INS=(install_shockwave "1209149")
@@ -819,9 +819,9 @@ while [ $# -gt 0 ] ; do
 			EXT="zip"
 			;;
 		wine-roblox-installer)
-			INS=(install_roblox "256d780acc6049ae")
-			URL="http://setup.roblox.com/version-256d780acc6049ae-Roblox.exe"
-			SHA="5ffa8e7e3b9430ce0e407651a7336762420b35c8b6b7fb16392586f4997bbfd8"
+			INS=(install_roblox "7cb30356092f43ac")
+			URL="http://setup.roblox.com/version-7cb30356092f43ac-Roblox.exe"
+			SHA="cd1ab40f867f5cfd2062ba6389ddd716f523e8400d7748d7281392b2e9313800"
 			;;
 		*)
 			echo "[$PRG] ERROR: No installer script found for $DEP." >&2
