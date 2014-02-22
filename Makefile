@@ -87,7 +87,7 @@ install: all
 
 	sed    's|@@VERSION@@|$(version)|g' pipelight-plugin.1.in > pipelight-manpage.tmp
 	sed -i 's|@@PREFIX@@|$(prefix)|g' pipelight-manpage.tmp
-	install -m 0755 pipelight-manpage.tmp "$(DESTDIR)$(prefix)/share/man/man1/pipelight-plugin.1"
+	install -m 0644 pipelight-manpage.tmp "$(DESTDIR)$(prefix)/share/man/man1/pipelight-plugin.1"
 	rm pipelight-manpage.tmp
 
 uninstall:
