@@ -1347,8 +1347,8 @@ void dispatcher(int functionid, Stack &stack){
 					uint32_t browser_height = browser.bottom - browser.top;
 					bool     browser_resized;
 
-					browser_resized = ((ndata->browser.right - ndata->browser.left) != browser_width) ||
-									  ((ndata->browser.bottom - ndata->browser.top) != browser_height);
+					browser_resized = ((unsigned)(ndata->browser.right - ndata->browser.left) != browser_width) ||
+									  ((unsigned)(ndata->browser.bottom - ndata->browser.top) != browser_height);
 
 					memcpy(&ndata->browser, &browser, sizeof(browser));
 
