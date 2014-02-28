@@ -87,11 +87,12 @@ bool forceSetWindow 	= false;
 bool unityHacks 		= false;
 bool windowClassHook 	= false;
 
-/* linux windowless */
-bool invalidateLinuxWindowless = false;
-
 /* user agent and plugin data */
 char strUserAgent[1024] = {0};
+
+/* pending actions */
+bool pendingInvalidateLinuxWindowless = false;
+LONG pendingAsyncCalls = 0;
 
 std::string np_MimeType;
 std::string np_FileExtents;
@@ -750,11 +751,34 @@ void dispatcher(int functionid, Stack &stack){
 						break;
 				}
 
+				/* handle pending async calls */
+				if (pendingAsyncCalls > 0){
+					LONG asyncCallCount = 0;
+
+					for (std::set<NPP>::iterator it = instanceList.begin(); it != instanceList.end(); it++){
+						NPP instance 		= *it;
+						NetscapeData* ndata = (NetscapeData*)instance->ndata;
+
+						/* TODO: Swap order before invoking the provided callback functions */
+
+						/* Call async callbacks (if any) */
+						AsyncCallback *asyncCall, *nextAsyncCall;
+						for (asyncCall = (AsyncCallback *)InterlockedExchangePointer(&ndata->asyncCalls, NULL); asyncCall; asyncCall = nextAsyncCall){
+							nextAsyncCall = asyncCall->next;
+							asyncCall->func(asyncCall->userData);
+							asyncCallCount++;
+							free(asyncCall);
+						}
+					}
+
+					InterlockedExchangeAdd(&pendingAsyncCalls, -asyncCallCount);
+				}
+
 				/* Invalidate rects after returning from the event handler */
 				if (isLinuxWindowlessMode){
 					uint32_t invalidateCount = 0;
 
-					if (invalidateLinuxWindowless){
+					if (pendingInvalidateLinuxWindowless){
 						for (std::set<NPP>::iterator it = instanceList.begin(); it != instanceList.end(); it++){
 							NPP instance 		= *it;
 							NetscapeData* ndata = (NetscapeData*)instance->ndata;
@@ -769,7 +793,7 @@ void dispatcher(int functionid, Stack &stack){
 							invalidateCount++;
 						}
 
-						invalidateLinuxWindowless = false;
+						pendingInvalidateLinuxWindowless = false;
 					}
 
 					writeInt32(invalidateCount);
@@ -1184,6 +1208,7 @@ void dispatcher(int functionid, Stack &stack){
 					ndata->cache_clientWidthIdentifier  = NULL;
 					ndata->hWnd 						= NULL;
 					ndata->hDC 							= NULL;
+					ndata->asyncCalls					= NULL;
 
 					if (NPN_GetValue(instance, NPNVPluginElementNPObject, &ndata->cache_pluginElementNPObject) != NPERR_NO_ERROR)
 						DBG_ERROR("unable to get plugin element NPObject.");
@@ -1257,6 +1282,14 @@ void dispatcher(int functionid, Stack &stack){
 						NPN_ReleaseObject(ndata->cache_pluginElementNPObject);
 
 					/* not necessary to free the value ndata->cache_clientWidthIdentifier */
+
+					/* Free memory for async calls */
+					AsyncCallback *asyncCall, *nextAsyncCall;
+					for (asyncCall = (AsyncCallback *)InterlockedExchangePointer(&ndata->asyncCalls, NULL); asyncCall; asyncCall = nextAsyncCall){
+						nextAsyncCall = asyncCall->next;
+						free(asyncCall);
+					}
+
 				}
 
 				if (result == NPERR_NO_ERROR){

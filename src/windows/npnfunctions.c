@@ -491,7 +491,7 @@ void NP_LOADDS NPN_InvalidateRect(NPP instance, NPRect *rect){
 
 			}
 
-			invalidateLinuxWindowless = true;
+			pendingInvalidateLinuxWindowless = true;
 		}
 	}
 
@@ -512,7 +512,7 @@ void NP_LOADDS NPN_InvalidateRegion(NPP instance, NPRegion region){
 
 		else if (ndata->hDC){
 			ndata->invalidate = INVALIDATE_EVERYTHING;
-			invalidateLinuxWindowless = true;
+			pendingInvalidateLinuxWindowless = true;
 		}
 	}
 
@@ -1077,7 +1077,24 @@ bool NP_LOADDS NPN_Enumerate(NPP instance, NPObject *obj, NPIdentifier **identif
 /* NPN_PluginThreadAsyncCall */
 void NP_LOADDS NPN_PluginThreadAsyncCall(NPP instance, void (*func)(void *), void *userData){
 	DBG_TRACE("( instance=%p, func=%p, userData=%p )", instance, func, userData);
-	NOTIMPLEMENTED();
+
+	NetscapeData* ndata = (NetscapeData *)instance->ndata;
+	if (ndata){
+		AsyncCallback *asyncCall = (AsyncCallback *)malloc(sizeof(AsyncCallback));
+		DBG_ASSERT(asyncCall, "unable to schedule async call, out of memory.");
+
+		asyncCall->func 	= func;
+		asyncCall->userData	= userData;
+
+		/* append at the end of the list */
+		do{
+			asyncCall->next = ndata->asyncCalls;
+		}while (InterlockedCompareExchangePointer(&ndata->asyncCalls, asyncCall, asyncCall->next) != asyncCall->next);
+
+		/* notify main thread that we've added something */
+		InterlockedIncrement(&pendingAsyncCalls);
+	}
+
 	DBG_TRACE(" -> void");
 }
 

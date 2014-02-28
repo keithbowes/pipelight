@@ -60,11 +60,12 @@ extern bool forceSetWindow;
 extern bool unityHacks;
 extern bool windowClassHook;
 
-/* linux windowless */
-extern bool invalidateLinuxWindowless;
-
 /* user agent and plugin data */
 extern char strUserAgent[1024];
+
+/* pending actions */
+extern bool pendingInvalidateLinuxWindowless;
+extern LONG pendingAsyncCalls;
 
 extern std::string np_MimeType;
 extern std::string np_FileExtents;
@@ -178,6 +179,12 @@ typedef unsigned long int XID;
 #define Button4	4
 #define Button5	5
 
+struct AsyncCallback {
+	AsyncCallback *next;
+	void (*func)(void *);
+	void *userData;
+};
+
 /* public */
 struct NetscapeData{
 	bool		windowlessMode;
@@ -198,6 +205,10 @@ struct NetscapeData{
 	int 		invalidate;
 	NPRect 		invalidateRect;
 	unsigned char keystate[256];
+
+	/* asny calls */
+	AsyncCallback *asyncCalls;
+
 };
 
 extern void changeEmbeddedMode(bool newEmbed);
