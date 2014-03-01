@@ -181,6 +181,8 @@ typedef unsigned long int XID;
 
 struct AsyncCallback {
 	AsyncCallback *next;
+	AsyncCallback *prev;
+
 	void (*func)(void *);
 	void *userData;
 };

@@ -759,15 +759,32 @@ void dispatcher(int functionid, Stack &stack){
 						NPP instance 		= *it;
 						NetscapeData* ndata = (NetscapeData*)instance->ndata;
 
-						/* TODO: Swap order before invoking the provided callback functions */
-
 						/* Call async callbacks (if any) */
-						AsyncCallback *asyncCall, *nextAsyncCall;
-						for (asyncCall = (AsyncCallback *)InterlockedExchangePointer((void **)&ndata->asyncCalls, NULL); asyncCall; asyncCall = nextAsyncCall){
-							nextAsyncCall = asyncCall->next;
-							asyncCall->func(asyncCall->userData);
-							asyncCallCount++;
-							free(asyncCall);
+						AsyncCallback *asyncCall = (AsyncCallback *)InterlockedExchangePointer((void **)&ndata->asyncCalls, NULL);
+						AsyncCallback *nextAsyncCall;
+
+						if (asyncCall){
+
+							/* reverse order */
+							asyncCall->prev = NULL;
+							nextAsyncCall	= asyncCall->next;
+							while (nextAsyncCall){
+								nextAsyncCall->prev = asyncCall;
+								asyncCall			= nextAsyncCall;
+								nextAsyncCall		= asyncCall->next;
+							}
+
+							while (asyncCall){
+								nextAsyncCall = asyncCall->prev;
+
+								/* call function and free memory */
+								asyncCall->func(asyncCall->userData);
+								asyncCallCount++;
+								free(asyncCall);
+
+								asyncCall = nextAsyncCall;
+							}
+
 						}
 					}
 
