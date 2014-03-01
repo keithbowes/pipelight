@@ -819,9 +819,9 @@ while [ $# -gt 0 ] ; do
 			EXT="zip"
 			;;
 		wine-roblox-installer)
-			INS=(install_roblox "7cb30356092f43ac")
-			URL="http://setup.roblox.com/version-7cb30356092f43ac-Roblox.exe"
-			SHA="cd1ab40f867f5cfd2062ba6389ddd716f523e8400d7748d7281392b2e9313800"
+			INS=(install_roblox "9dddd6d1e4534c53")
+			URL="http://setup.roblox.com/version-9dddd6d1e4534c53-Roblox.exe"
+			SHA="daffe28895800409649df95c75b1d44e5360e61e4b222546b429e247a56ab51d"
 			;;
 		*)
 			echo "[$PRG] ERROR: No installer script found for $DEP." >&2
