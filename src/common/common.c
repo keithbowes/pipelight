@@ -5,7 +5,7 @@
 
 #include "common.h"
 
-#ifndef __WIN32__
+#ifndef PLUGINLOADER
 	#include <sys/time.h>						// for select etc.
 	#include <sys/types.h>
 	#include <unistd.h>
@@ -16,7 +16,7 @@ FILE *commPipeIn	= NULL;
 
 char strMultiPluginName[64] = "unknown";
 
-#ifdef __WIN32__
+#ifdef PLUGINLOADER
 	DWORD mainThreadID 		= 0;
 #endif
 
@@ -33,7 +33,7 @@ static inline std::map<void*, HMGR_HANDLE>& __ptrToId(int type){
 	return ptrToId[type];
 }
 
-#if defined(__WIN32__) && !defined(PIPELIGHT_NOCACHE)
+#if defined(PLUGINLOADER) && !defined(PIPELIGHT_NOCACHE)
 
 static inline std::map<std::string, NPIdentifier>& __stringToNPIdentifier(){
 	static std::map<std::string, NPIdentifier> stringToNPIdentifier;
@@ -69,7 +69,7 @@ bool initCommPipes(int out, int in){
 	if (commPipeOut) 	fclose(commPipeOut);
 	if (commPipeIn)		fclose(commPipeIn);
 
-	#if defined(__WINE__) || !defined(__WIN32__)
+	#if defined(__WINE__) || !defined(PLUGINLOADER)
 		commPipeOut = fdopen(out, "wb");
 		commPipeIn	= fdopen(in,  "rb");
 	#else
@@ -86,7 +86,7 @@ bool initCommPipes(int out, int in){
 		return false;
 	}
 
-	#ifndef __WIN32__
+	#ifndef PLUGINLOADER
 		/* Disable buffering for input pipe (to allow waiting for a pipe) */
 		setbuf(commPipeIn, NULL);
 	#endif
@@ -95,7 +95,7 @@ bool initCommPipes(int out, int in){
 }
 
 bool initCommIO(){
-	#if defined(__WINE__) || !defined(__WIN32__)
+	#if defined(__WINE__) || !defined(PLUGINLOADER)
 		return initCommPipes(dup(1), dup(0));
 	#else
 		return initCommPipes(_dup(1), _dup(0));
@@ -148,7 +148,7 @@ inline void receiveData(char *data, size_t length){
 inline bool receiveCommand(char *data, size_t length, int abortTimeout){
 	size_t pos;
 
-	#ifndef __WIN32__
+	#ifndef PLUGINLOADER
 	if (abortTimeout){
 		fd_set rfds;
 		struct timeval tv;
@@ -177,7 +177,7 @@ inline bool receiveCommand(char *data, size_t length, int abortTimeout){
 	for (; length; data += pos, length -= pos){
 		pos = fread( data, sizeof(char), length, commPipeIn);
 		if (pos == 0){
-			#ifdef __WIN32__
+			#ifdef PLUGINLOADER
 			if (!handleManager_findInstance()) exit(0);
 			#endif
 			DBG_ABORT("unable to receive data.");
@@ -261,7 +261,7 @@ bool readCommands(Stack &stack, bool allowReturn, int abortTimeout){
 	char		*blockData;
 	uint32_t 	function;
 
-	#ifdef __WIN32__
+	#ifdef PLUGINLOADER
 		DBG_ASSERT(abortTimeout == 0, "readCommand called with abortTimeout, but not allowed on Windows.");
 	#endif
 
@@ -440,7 +440,7 @@ char* readStringMalloc(Stack &stack){
 	return readStringMalloc(stack, resultLength);
 }
 
-#ifndef __WIN32__
+#ifndef PLUGINLOADER
 
 char* readStringBrowserAlloc(Stack &stack, size_t &resultLength){
 	Stack::reverse_iterator rit = stack.rbegin();
@@ -529,7 +529,7 @@ char* readMemoryMalloc(Stack &stack){
 	return readMemoryMalloc(stack, resultLength);
 }
 
-#ifndef __WIN32__
+#ifndef PLUGINLOADER
 
 char* readMemoryBrowserAlloc(Stack &stack, size_t &resultLength){
 	Stack::reverse_iterator rit = stack.rbegin();
@@ -625,7 +625,7 @@ void readNPRect(Stack &stack, NPRect &rect){
 	stack.pop_back();
 }
 
-#ifdef __WIN32__
+#ifdef PLUGINLOADER
 
 NPObject* createNPObject(HMGR_HANDLE id, NPP instance, NPClass *cls){
 	bool customObject  	= (cls != NULL);
@@ -748,7 +748,7 @@ void* handleManager_idToPtr(HMGR_TYPE type, HMGR_HANDLE id, void *arg0, void *ar
 
 	DBG_ASSERT(exists != HMGR_SHOULD_EXIST, "got non-existent ID.");
 
-	#ifdef __WIN32__
+	#ifdef PLUGINLOADER
 		if (type == HMGR_TYPE_NPObject){
 			ptr = createNPObject(id, (NPP)arg0, (NPClass *)arg1);
 		#ifdef PIPELIGHT_NOCACHE
@@ -800,7 +800,7 @@ HMGR_HANDLE handleManager_ptrToId(HMGR_TYPE type, void* ptr, HMGR_EXISTS exists)
 
 	DBG_ASSERT(exists != HMGR_SHOULD_EXIST, "got non-existent pointer.");
 
-	#ifdef __WIN32__
+	#ifdef PLUGINLOADER
 		DBG_ASSERT(type == HMGR_TYPE_NotifyData, "cannot create remote object of type %d.", type);
 	#else
 		DBG_ASSERT(type != HMGR_TYPE_NotifyData, "cannot create local object of type %d.", type);
@@ -888,7 +888,7 @@ void handleManager_clear(){
 	}
 }
 
-#if defined(__WIN32__) && !defined(PIPELIGHT_NOCACHE)
+#if defined(PLUGINLOADER) && !defined(PIPELIGHT_NOCACHE)
 
 /*
 	Lookup NPIdentifier
@@ -932,7 +932,7 @@ void handleManager_updateIdentifier(NPIdentifier identifier){
 
 #endif
 
-#ifdef __WIN32__
+#ifdef PLUGINLOADER
 
 /* objectDecRef */
 void objectDecRef(NPObject *obj, bool deleteFromRemoteHandleManager){
@@ -1049,7 +1049,7 @@ void readVariantIncRef(Stack &stack, NPVariant &variant){
 
 #endif
 
-#ifndef __WIN32__
+#ifndef PLUGINLOADER
 
 /* readVariant */
 void readVariant(Stack &stack, NPVariant &variant){
@@ -1111,7 +1111,7 @@ void freeVariant(NPVariant &variant){
 
 /* writeVariantConst */
 void writeVariantConst(const NPVariant &variant, bool deleteFromRemoteHandleManager){
-	#ifndef __WIN32__
+	#ifndef PLUGINLOADER
 		DBG_ASSERT(!deleteFromRemoteHandleManager, "deleteFromRemoteHandleManager set on Linux side.");
 	#endif
 

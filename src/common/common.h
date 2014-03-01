@@ -8,7 +8,7 @@
 #include <string.h>								/* for strlen */
 #include <stdlib.h>								/* for getenv, exit, ... */
 
-#if defined(__WIN32__) && !defined(__WINE__)
+#if defined(PLUGINLOADER) && !defined(__WINE__)
 	#include <io.h>
 #endif
 
@@ -20,7 +20,7 @@
 #ifdef __WINE__
 	#include <sys/stat.h>						/* for stat */
 
-#elif __WIN32__
+#elif PLUGINLOADER
 	#include <windows.h>						/* for GetFileAttributes */
 
 #else
@@ -30,7 +30,7 @@
 #endif
 
 /* init */
-#ifndef __WIN32__
+#ifndef PLUGINLOADER
 
 #define INIT_EARLY 	__attribute__((init_priority(101)))
 #define CONSTRUCTOR __attribute__((constructor(102)))
@@ -39,7 +39,7 @@
 #endif
 
 /* debug */
-#ifdef __WIN32__
+#ifdef PLUGINLOADER
 	#define PIPELIGHT_DEBUG_MSG "PIPELIGHT:WIN"
 #else
 	#define PIPELIGHT_DEBUG_MSG "PIPELIGHT:LIN"
@@ -49,7 +49,7 @@
 
 extern char strMultiPluginName[64];
 
-#ifdef __WIN32__
+#ifdef PLUGINLOADER
 	extern DWORD mainThreadID;
 #endif
 
@@ -114,7 +114,7 @@ extern char strMultiPluginName[64];
 #define NOTIMPLEMENTED(fmt, ...) \
 	DBG_ERROR("STUB! " fmt, ##__VA_ARGS__)
 
-#ifdef __WIN32__
+#ifdef PLUGINLOADER
 	#if defined(PIPELIGHT_DEBUG) && !defined(__WINE__)
 
 		#define DBG_CHECKTHREAD() \
@@ -144,7 +144,7 @@ enum IDENT_TYPE{
 	IDENT_TYPE_String
 };
 
-#ifdef __WIN32__
+#ifdef PLUGINLOADER
 
 struct NPIdentifierDescription{
 	IDENT_TYPE  type;
@@ -326,7 +326,7 @@ enum{
 	INVALIDATE_RECT,
 };
 
-#ifndef __WIN32__
+#ifndef PLUGINLOADER
 	struct POINT{
 		uint32_t x;
 		uint32_t y;
@@ -382,7 +382,7 @@ extern std::shared_ptr<char> readStringAsMemory(Stack &stack);
 extern char* readStringMalloc(Stack &stack, size_t &resultLength);
 extern char* readStringMalloc(Stack &stack);
 
-#ifndef __WIN32__
+#ifndef PLUGINLOADER
 extern char* readStringBrowserAlloc(Stack &stack, size_t &resultLength);
 extern char* readStringBrowserAlloc(Stack &stack);
 #endif
@@ -392,7 +392,7 @@ extern std::shared_ptr<char> readMemory(Stack &stack);
 extern char* readMemoryMalloc(Stack &stack, size_t &resultLength);
 extern char* readMemoryMalloc(Stack &stack);
 
-#ifndef __WIN32__
+#ifndef PLUGINLOADER
 extern char* readMemoryBrowserAlloc(Stack &stack, size_t &resultLength);
 extern char* readMemoryBrowserAlloc(Stack &stack);
 #endif
@@ -410,12 +410,12 @@ extern bool handleManager_existsByPtr(HMGR_TYPE type, void *ptr);
 extern NPP handleManager_findInstance();
 extern size_t handleManager_count();
 extern void handleManager_clear();
-#if defined(__WIN32__) && !defined(PIPELIGHT_NOCACHE)
+#if defined(PLUGINLOADER) && !defined(PIPELIGHT_NOCACHE)
 extern NPIdentifier handleManager_lookupIdentifier(IDENT_TYPE type, void *value);
 extern void handleManager_updateIdentifier(NPIdentifier identifier);
 #endif
 
-#ifdef __WIN32__
+#ifdef PLUGINLOADER
 extern void objectDecRef(NPObject *obj, bool deleteFromRemoteHandleManager = true);
 extern void objectKill(NPObject *obj);
 extern void freeVariantDecRef(NPVariant &variant, bool deleteFromRemoteHandleManager = true);
@@ -423,7 +423,7 @@ extern void writeVariantReleaseDecRef(NPVariant &variant);
 extern void readVariantIncRef(Stack &stack, NPVariant &variant);
 #endif
 
-#ifndef __WIN32__
+#ifndef PLUGINLOADER
 extern void readVariant(Stack &stack, NPVariant &variant);
 extern void freeVariant(NPVariant &variant);
 #endif
@@ -566,7 +566,7 @@ inline void writeHandle(HMGR_TYPE type, void *ptr, HMGR_EXISTS exists = HMGR_CAN
 }
 
 inline void writeHandleObj(NPObject *obj, HMGR_EXISTS exists = HMGR_CAN_EXIST, bool deleteFromRemoteHandleManager = false){
-	#ifndef __WIN32__
+	#ifndef PLUGINLOADER
 		DBG_ASSERT(!deleteFromRemoteHandleManager, "deleteFromRemoteHandleManager set on Linux side.");
 	#endif
 
@@ -578,7 +578,7 @@ inline void writeHandleIdentifier(NPIdentifier name, HMGR_EXISTS exists = HMGR_C
 #ifdef PIPELIGHT_NOCACHE
 	writeHandle(HMGR_TYPE_NPIdentifier, name, exists);
 
-#elif defined(__WIN32__)
+#elif defined(PLUGINLOADER)
 	NPIdentifierDescription *ident = (NPIdentifierDescription *)name;
 	DBG_ASSERT(ident != NULL, "got NULL identifier.");
 
@@ -630,7 +630,7 @@ inline void* __readHandle(HMGR_TYPE type, Stack &stack, void *arg0 = NULL, void 
 	return handleManager_idToPtr(type, readHandleId(stack), arg0, arg1, exists);
 }
 
-#ifndef __WIN32__
+#ifndef PLUGINLOADER
 
 inline NPObject* readHandleObj(Stack &stack, HMGR_EXISTS exists = HMGR_CAN_EXIST){
 	NPObject *obj = (NPObject*)__readHandle(HMGR_TYPE_NPObject, stack, NULL, NULL, exists);
@@ -652,7 +652,7 @@ inline NPIdentifier readHandleIdentifier(Stack &stack, HMGR_EXISTS exists = HMGR
 
 	switch(type){
 		case IDENT_TYPE_Integer:
-		#ifdef __WIN32__
+		#ifdef PLUGINLOADER
 			identifier = NPN_GetIntIdentifier(readInt32(stack));
 		#else
 			identifier = sBrowserFuncs->getintidentifier(readInt32(stack));
@@ -662,7 +662,7 @@ inline NPIdentifier readHandleIdentifier(Stack &stack, HMGR_EXISTS exists = HMGR
 		case IDENT_TYPE_String:
 			{
 				std::shared_ptr<char> utf8name = readStringAsMemory(stack);
-			#ifdef __WIN32__
+			#ifdef PLUGINLOADER
 				identifier = NPN_GetStringIdentifier(utf8name.get());
 			#else
 				identifier = sBrowserFuncs->getstringidentifier(utf8name.get());
@@ -679,7 +679,7 @@ inline NPIdentifier readHandleIdentifier(Stack &stack, HMGR_EXISTS exists = HMGR
 #endif
 }
 
-#ifdef __WIN32__
+#ifdef PLUGINLOADER
 #define readHandleIdentifierCreate(stack) readHandleIdentifier(stack, HMGR_CAN_EXIST)
 #endif
 
@@ -695,7 +695,7 @@ inline void* readHandleNotify(Stack &stack, HMGR_EXISTS exists = HMGR_CAN_EXIST)
 	return __readHandle(HMGR_TYPE_NotifyData, stack, NULL, NULL, exists);
 }
 
-#ifdef __WIN32__
+#ifdef PLUGINLOADER
 
 inline NPObject* readHandleObjIncRef(Stack &stack, HMGR_EXISTS exists = HMGR_CAN_EXIST){
 	NPObject *obj = (NPObject *)__readHandle(HMGR_TYPE_NPObject, stack, NULL, NULL, exists);
@@ -740,7 +740,7 @@ inline void freeVariantArrayDecRef(std::vector<NPVariant> args){
 
 #endif
 
-#ifndef __WIN32__
+#ifndef PLUGINLOADER
 
 inline void writeVariantRelease(NPVariant &variant){
 	writeVariantConst(variant);
@@ -789,7 +789,7 @@ inline void writeNPString(NPString *string){
 
 inline void readNPString(Stack &stack, NPString &string){
 	size_t stringLength;
-	#ifdef __WIN32__
+	#ifdef PLUGINLOADER
 		string.UTF8Characters = readStringMalloc(stack, stringLength);
 	#else
 		string.UTF8Characters = readStringBrowserAlloc(stack, stringLength);
@@ -799,7 +799,7 @@ inline void readNPString(Stack &stack, NPString &string){
 
 inline void freeNPString(NPString &string){
 	if (string.UTF8Characters){
-		#ifdef __WIN32__
+		#ifdef PLUGINLOADER
 			free((char *)string.UTF8Characters);
 		#else
 			sBrowserFuncs->memfree((char *)string.UTF8Characters);
@@ -854,7 +854,7 @@ inline NPBool readNPBool(Stack &stack){
 }
 */
 
-#ifndef __WIN32__
+#ifndef PLUGINLOADER
 
 inline bool pluginInitOkay(){
 	uint32_t function = INIT_OKAY;
@@ -889,7 +889,7 @@ inline bool checkIsFile(const std::string path){
 	return (stat(path.c_str(), &fileInfo) == 0 && S_ISREG(fileInfo.st_mode));
 }
 
-#elif __WIN32__
+#elif PLUGINLOADER
 
 inline bool checkIsFile(const std::string path){
 	DWORD attrib = GetFileAttributesA(path.c_str());
