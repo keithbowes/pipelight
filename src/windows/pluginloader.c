@@ -763,7 +763,7 @@ void dispatcher(int functionid, Stack &stack){
 
 						/* Call async callbacks (if any) */
 						AsyncCallback *asyncCall, *nextAsyncCall;
-						for (asyncCall = (AsyncCallback *)InterlockedExchangePointer(&ndata->asyncCalls, NULL); asyncCall; asyncCall = nextAsyncCall){
+						for (asyncCall = (AsyncCallback *)InterlockedExchangePointer((void **)&ndata->asyncCalls, NULL); asyncCall; asyncCall = nextAsyncCall){
 							nextAsyncCall = asyncCall->next;
 							asyncCall->func(asyncCall->userData);
 							asyncCallCount++;
@@ -1285,7 +1285,7 @@ void dispatcher(int functionid, Stack &stack){
 
 					/* Free memory for async calls */
 					AsyncCallback *asyncCall, *nextAsyncCall;
-					for (asyncCall = (AsyncCallback *)InterlockedExchangePointer(&ndata->asyncCalls, NULL); asyncCall; asyncCall = nextAsyncCall){
+					for (asyncCall = (AsyncCallback *)InterlockedExchangePointer((void **)&ndata->asyncCalls, NULL); asyncCall; asyncCall = nextAsyncCall){
 						nextAsyncCall = asyncCall->next;
 						free(asyncCall);
 					}

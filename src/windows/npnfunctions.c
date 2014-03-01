@@ -1091,7 +1091,7 @@ void NP_LOADDS NPN_PluginThreadAsyncCall(NPP instance, void (*func)(void *), voi
 		do{
 			nextAsyncCall	= ndata->asyncCalls;
 			asyncCall->next	= nextAsyncCall;
-		}while (InterlockedCompareExchangePointer(&ndata->asyncCalls, asyncCall, nextAsyncCall) != nextAsyncCall);
+		}while (InterlockedCompareExchangePointer((void **)&ndata->asyncCalls, (void *)asyncCall, (void *)nextAsyncCall) != nextAsyncCall);
 
 		/* notify main thread that we've added something */
 		InterlockedIncrement(&pendingAsyncCalls);
