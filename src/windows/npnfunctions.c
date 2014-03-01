@@ -1080,7 +1080,8 @@ void NP_LOADDS NPN_PluginThreadAsyncCall(NPP instance, void (*func)(void *), voi
 
 	NetscapeData* ndata = (NetscapeData *)instance->ndata;
 	if (ndata){
-		AsyncCallback *asyncCall = (AsyncCallback *)malloc(sizeof(AsyncCallback));
+		AsyncCallback *asyncCall, *nextAsyncCall;
+		asyncCall = (AsyncCallback *)malloc(sizeof(AsyncCallback));
 		DBG_ASSERT(asyncCall, "unable to schedule async call, out of memory.");
 
 		asyncCall->func 	= func;
@@ -1088,8 +1089,9 @@ void NP_LOADDS NPN_PluginThreadAsyncCall(NPP instance, void (*func)(void *), voi
 
 		/* append at the end of the list */
 		do{
-			asyncCall->next = ndata->asyncCalls;
-		}while (InterlockedCompareExchangePointer(&ndata->asyncCalls, asyncCall, asyncCall->next) != asyncCall->next);
+			nextAsyncCall	= ndata->asyncCalls;
+			asyncCall->next	= nextAsyncCall;
+		}while (InterlockedCompareExchangePointer(&ndata->asyncCalls, asyncCall, nextAsyncCall) != nextAsyncCall);
 
 		/* notify main thread that we've added something */
 		InterlockedIncrement(&pendingAsyncCalls);
