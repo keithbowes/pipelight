@@ -5,7 +5,7 @@ OBJECTS 	:= common.o basicplugin.o configloader.o diagnostic.o npclass.o nppfunc
 COMMONHDR	:= ../common/common.h ../npapi-headers/npapi.h ../npapi-headers/npfunctions.h ../npapi-headers/npruntime.h ../npapi-headers/nptypes.h
 
 libpipelight.so: $(OBJECTS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -z defs -shared $(OBJECTS) $(LDFLAGS) -o libpipelight.so
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -shared $(OBJECTS) $(LDFLAGS) -o libpipelight.so
 
 common.o: ../common/common.c $(COMMONHDR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c ../common/common.c -o common.o
