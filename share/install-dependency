@@ -56,8 +56,12 @@ atexit()
 mktemp_with_ext()
 {
 	file=$(mktemp --suffix=".$1" 2>/dev/null)
-	if [ "$?" -ne 0 ]; then file=$(mktemp); fi
-	echo "$file"
+	if [ "$?" -eq 0 ]; then echo "$file"; return 0; fi
+	file=$(mktemp 2>/dev/null) # old version of mktemp
+	if [ "$?" -eq 0 ]; then echo "$file"; return 0; fi
+	file=$(mktemp -t pipelight 2>/dev/null) # MacOS version of mktemp
+	if [ "$?" -eq 0 ]; then echo "$file"; return 0; fi
+	return 1
 }
 
 # > Checks if a dependency is already installed
