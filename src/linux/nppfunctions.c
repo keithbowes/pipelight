@@ -349,7 +349,9 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	pdata->pipelightError 	= (!initOkay || invalidMimeType);
 	pdata->containerType    = 0;
 	pdata->container      	= NULL;
+#ifndef __APPLE__
 	pdata->plugin			= 0;
+#endif
 	instance->pdata 		= pdata;
 
 	if (pdata->pipelightError){

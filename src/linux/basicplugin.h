@@ -129,7 +129,9 @@ struct PluginData{
 	bool			pipelightError;
 	int				containerType;
 	void* 			container;
+#ifndef __APPLE__
 	Window 			plugin;
+#endif
 };
 
 extern std::string convertWinePath(std::string path, bool direction = false);
