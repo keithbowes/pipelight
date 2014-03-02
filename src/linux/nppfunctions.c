@@ -733,6 +733,7 @@ int16_t NPP_HandleEvent(NPP instance, void* event){
 
 	int16_t res = kNPEventNotHandled;
 
+#ifndef __APPLE__
 	if (config.linuxWindowlessMode && event){
 		XEvent *xevent   = (XEvent *)event;
 		/* Display *display = xevent->xany.display; */
@@ -780,6 +781,7 @@ int16_t NPP_HandleEvent(NPP instance, void* event){
 
 	}else
 		NOTIMPLEMENTED("ignoring unexpected callback.");
+#endif
 
 	DBG_TRACE(" -> result=%d", res);
 	return res;
