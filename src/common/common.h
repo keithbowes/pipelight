@@ -17,10 +17,10 @@
 #include "../npapi-headers/npruntime.h"
 #include "../npapi-headers/nptypes.h"
 
-#ifdef __WINE__
+#if defined(__WINE__)
 	#include <sys/stat.h>						/* for stat */
 
-#elif PLUGINLOADER
+#elif defined(PLUGINLOADER)
 	#include <windows.h>						/* for GetFileAttributes */
 
 #else
@@ -882,14 +882,14 @@ extern NPClass myClass;
 
 /* misc */
 
-#ifdef __WINE__
+#if defined(__WINE__)
 
 inline bool checkIsFile(const std::string path){
 	struct stat fileInfo;
 	return (stat(path.c_str(), &fileInfo) == 0 && S_ISREG(fileInfo.st_mode));
 }
 
-#elif PLUGINLOADER
+#elif defined(__WIN32__)
 
 inline bool checkIsFile(const std::string path){
 	DWORD attrib = GetFileAttributesA(path.c_str());
@@ -898,14 +898,18 @@ inline bool checkIsFile(const std::string path){
 
 #else
 
-inline bool checkIfExists(const std::string path){
-	struct stat fileInfo;
-	return (stat(path.c_str(), &fileInfo) == 0);
-}
-
 inline bool checkIsFile(const std::string path){
 	struct stat fileInfo;
 	return (stat(path.c_str(), &fileInfo) == 0 && S_ISREG(fileInfo.st_mode));
+}
+
+#endif
+
+#ifndef PLUGINLOADER
+
+inline bool checkIfExists(const std::string path){
+	struct stat fileInfo;
+	return (stat(path.c_str(), &fileInfo) == 0);
 }
 
 inline std::string getEnvironmentString(const std::string variable){
