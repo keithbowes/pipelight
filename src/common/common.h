@@ -16,6 +16,7 @@
 	#define XP_UNIX 1
 	#define MOZ_X11 1
 #elif defined(__APPLE__)
+	#define XP_UNIX 1
 	#define XP_MACOSX 1
 #elif defined(__WIN32__)
 	#define XP_WIN 1
