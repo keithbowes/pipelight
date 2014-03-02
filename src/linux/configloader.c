@@ -501,7 +501,7 @@ bool loadConfig(PluginConfig &config){
 
 	#ifdef __APPLE__
 		if (config.embed){
-			DBG_WARN("embedding is not yet supported for MacOS, it will be disabled.")
+			DBG_WARN("embedding is not yet supported for MacOS, it will be disabled.");
 			config.embed = false;
 		}
 	#endif
