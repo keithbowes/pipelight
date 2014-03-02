@@ -50,19 +50,19 @@ install: all
 	install -m 0755 share/hw-accel-default "$(DESTDIR)$(prefix)/share/pipelight/hw-accel-default"
 
 	for script in $(notdir $(PLUGIN_SCRIPTS)); do \
-		sed    's|@@WINE_PATH@@|$(winepath)|g' share/scripts/$${script} > pipelight-script.tmp; \
+		sed         's|@@WINE_PATH@@|$(winepath)|g' share/scripts/$${script} > pipelight-script.tmp; \
 		install -m 0755 pipelight-script.tmp "$(DESTDIR)$(prefix)/share/pipelight/scripts/$${script%.*}" || exit 1; \
 		rm pipelight-script.tmp; \
 	done
 
 	for config in $(notdir $(PLUGIN_CONFIGS)); do \
-		sed    's|@@PLUGINLOADER_PATH@@|$(prefix)/share/pipelight/$(pluginloader)|g' share/configs/$${config} > pipelight-config.tmp; \
-		sed -i 's|@@DEPENDENCY_INSTALLER@@|$(prefix)/share/pipelight/install-dependency|g' pipelight-config.tmp; \
-		sed -i 's|@@SANDBOX_PATH@@|$(prefix)/share/pipelight/sandbox|g' pipelight-config.tmp; \
-		sed -i 's|@@GRAPHIC_DRIVER_CHECK@@|$(hwacceldefault)|g' pipelight-config.tmp; \
-		sed -i 's|@@WINE_PATH@@|$(winepath)|g' pipelight-config.tmp; \
-		sed -i 's|@@GCC_RUNTIME_DLLS@@|$(gccruntimedlls)|g' pipelight-config.tmp; \
-		sed -i 's|@@QUIET_INSTALLATION@@|$(quietinstallation)|g' pipelight-config.tmp; \
+		sed         's|@@PLUGINLOADER_PATH@@|$(prefix)/share/pipelight/$(pluginloader)|g' share/configs/$${config} > pipelight-config.tmp; \
+		sed -i'' -e 's|@@DEPENDENCY_INSTALLER@@|$(prefix)/share/pipelight/install-dependency|g' pipelight-config.tmp; \
+		sed -i'' -e 's|@@SANDBOX_PATH@@|$(prefix)/share/pipelight/sandbox|g' pipelight-config.tmp; \
+		sed -i'' -e 's|@@GRAPHIC_DRIVER_CHECK@@|$(hwacceldefault)|g' pipelight-config.tmp; \
+		sed -i'' -e 's|@@WINE_PATH@@|$(winepath)|g' pipelight-config.tmp; \
+		sed -i'' -e 's|@@GCC_RUNTIME_DLLS@@|$(gccruntimedlls)|g' pipelight-config.tmp; \
+		sed -i'' -e 's|@@QUIET_INSTALLATION@@|$(quietinstallation)|g' pipelight-config.tmp; \
 		install -m 0644 pipelight-config.tmp "$(DESTDIR)$(prefix)/share/pipelight/configs/$${config%.*}" || exit 1; \
 		rm pipelight-config.tmp; \
 	done
@@ -75,18 +75,18 @@ install: all
 
 	install -m 0644 src/linux/libpipelight.so "$(DESTDIR)$(prefix)/lib/pipelight/libpipelight.so"
 
-	sed    's|@@VERSION@@|$(version)|g' bin/pipelight-plugin > pipelight-plugin.tmp
-	sed -i 's|@@LIBRARY_PATH@@|$(prefix)/lib/pipelight/|g' pipelight-plugin.tmp
-	sed -i 's|@@CONFIG_PATH@@|$(prefix)/share/pipelight/configs|g' pipelight-plugin.tmp
-	sed -i 's|@@LICENSE_PATH@@|$(prefix)/share/pipelight/licenses|g' pipelight-plugin.tmp
-	sed -i 's|@@DEPENDENCY_INSTALLER@@|$(prefix)/share/pipelight/install-dependency|g' pipelight-plugin.tmp
-	sed -i 's|@@MOZ_PLUGIN_PATH@@|$(mozpluginpath)|g' pipelight-plugin.tmp
-	sed -i 's|@@PIPELIGHT_PUBKEY@@|$(prefix)/share/pipelight/signature.gpg|g' pipelight-plugin.tmp	
+	sed         's|@@VERSION@@|$(version)|g' bin/pipelight-plugin > pipelight-plugin.tmp
+	sed -i'' -e 's|@@LIBRARY_PATH@@|$(prefix)/lib/pipelight/|g' pipelight-plugin.tmp
+	sed -i'' -e 's|@@CONFIG_PATH@@|$(prefix)/share/pipelight/configs|g' pipelight-plugin.tmp
+	sed -i'' -e 's|@@LICENSE_PATH@@|$(prefix)/share/pipelight/licenses|g' pipelight-plugin.tmp
+	sed -i'' -e 's|@@DEPENDENCY_INSTALLER@@|$(prefix)/share/pipelight/install-dependency|g' pipelight-plugin.tmp
+	sed -i'' -e 's|@@MOZ_PLUGIN_PATH@@|$(mozpluginpath)|g' pipelight-plugin.tmp
+	sed -i'' -e 's|@@PIPELIGHT_PUBKEY@@|$(prefix)/share/pipelight/signature.gpg|g' pipelight-plugin.tmp
 	install -m 0755 pipelight-plugin.tmp "$(DESTDIR)$(prefix)/bin/pipelight-plugin"
 	rm pipelight-plugin.tmp
 
-	sed    's|@@VERSION@@|$(version)|g' pipelight-plugin.1.in > pipelight-manpage.tmp
-	sed -i 's|@@PREFIX@@|$(prefix)|g' pipelight-manpage.tmp
+	sed         's|@@VERSION@@|$(version)|g' pipelight-plugin.1.in > pipelight-manpage.tmp
+	sed -i'' -e 's|@@PREFIX@@|$(prefix)|g' pipelight-manpage.tmp
 	install -m 0644 pipelight-manpage.tmp "$(DESTDIR)$(prefix)/share/man/man1/pipelight-plugin.1"
 	rm pipelight-manpage.tmp
 
