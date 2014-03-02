@@ -601,7 +601,7 @@ void dispatcher(int functionid, Stack &stack){
 				handleManager_removeByPtr(HMGR_TYPE_NPObject, obj);
 			}
 			break;
-
+	#if 0
 		case GET_WINDOW_RECT:
 			{
 				Window win 				= (Window)readInt32(stack);
@@ -629,6 +629,7 @@ void dispatcher(int functionid, Stack &stack){
 				returnCommand();
 			}
 			break;
+	#endif
 	#ifndef __APPLE__
 		case CHANGE_EMBEDDED_MODE:
 			{
