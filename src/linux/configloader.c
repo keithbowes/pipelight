@@ -499,6 +499,13 @@ bool loadConfig(PluginConfig &config){
 		DBG_INFO("embed set via commandline to %s", config.embed ? "true" : "false");
 	}
 
+	#ifdef __APPLE__
+		if (config.embed){
+			DBG_WARN("embedding is not yet supported for MacOS, it will be disabled.")
+			config.embed = false;
+		}
+	#endif
+
 	/* environment variable to overwrite windowlessmode */
 	environmentVariable = getEnvironmentInteger("PIPELIGHT_WINDOWLESSMODE", -1);
 	if (environmentVariable >= 0){
