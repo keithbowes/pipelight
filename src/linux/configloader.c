@@ -515,6 +515,13 @@ bool loadConfig(PluginConfig &config){
 		DBG_INFO("linuxWindowlessMode set via commandline to %s", 	config.linuxWindowlessMode ? "true" : "false");
 	}
 
+	#ifdef __APPLE__
+		if (config.linuxWindowlessMode){
+			DBG_WARN("linuxWindowlessMode is not yet supported for MacOS, it will be disabled.");
+			config.linuxWindowlessMode = false;
+		}
+	#endif
+
 	/* check if hw acceleration should be used (only for Silverlight) */
 	if (config.silverlightGraphicDriverCheck != ""){
 		environmentVariable = getEnvironmentInteger("PIPELIGHT_GPUACCELERATION", -1);
