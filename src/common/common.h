@@ -12,6 +12,18 @@
 	#include <io.h>
 #endif
 
+#if defined(__linux__)
+	#define XP_UNIX 1
+	#define MOZ_X11 1
+#elif defined(__APPLE__)
+	#define XP_UNIX 1
+	#define XP_MACOSX 1
+#elif defined(__WIN32__)
+	#define XP_WIN 1
+#else
+	#error "Could not detect your operating system!"
+#endif
+
 #include "../npapi-headers/npapi.h"
 #include "../npapi-headers/npfunctions.h"
 #include "../npapi-headers/npruntime.h"

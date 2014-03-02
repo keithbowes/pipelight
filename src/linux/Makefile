@@ -1,11 +1,11 @@
 CXX 		:= g++
-CXXFLAGS 	:= -Wall -DXP_UNIX=1 -DMOZ_X11=1 -fPIC -std=gnu++0x $(CXXFLAGS)
+CXXFLAGS 	:= -Wall -fPIC -std=gnu++0x $(CXXFLAGS)
 LDFLAGS 	:= -lX11 -lpthread -ldl $(LDFLAGS)
 OBJECTS 	:= common.o basicplugin.o configloader.o diagnostic.o npclass.o nppfunctions.o
 COMMONHDR	:= ../common/common.h ../npapi-headers/npapi.h ../npapi-headers/npfunctions.h ../npapi-headers/npruntime.h ../npapi-headers/nptypes.h
 
 libpipelight.so: $(OBJECTS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -z defs -shared $(OBJECTS) $(LDFLAGS) -o libpipelight.so
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -shared $(OBJECTS) $(LDFLAGS) -o libpipelight.so
 
 common.o: ../common/common.c $(COMMONHDR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c ../common/common.c -o common.o

@@ -1,5 +1,5 @@
 CXX			:= $(win32cxx)
-CXXFLAGS	:= -Wall -DXP_WIN=1 -std=gnu++0x -D_WIN32_WINNT=0x0502 -DPLUGINLOADER $(win32flags) $(CXXFLAGS)
+CXXFLAGS	:= -Wall -std=gnu++0x -D_WIN32_WINNT=0x0502 -DPLUGINLOADER $(win32flags) $(CXXFLAGS)
 LDFLAGS 	:= -lversion -lgdi32 -lole32 #$(LDFLAGS)
 OBJECTS 	:= common.o apihook.o npclass.o npnfunctions.o pluginloader.o
 COMMONHDR	:= ../common/common.h ../npapi-headers/npapi.h ../npapi-headers/npfunctions.h ../npapi-headers/npruntime.h ../npapi-headers/nptypes.h

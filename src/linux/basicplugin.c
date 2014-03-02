@@ -42,8 +42,11 @@
 #include <unistd.h>								// for POSIX api
 #include <iostream>								// for std::ios_base
 #include <string>								// for std::string
+
+#ifndef __APPLE__
 #include <X11/Xlib.h>							// for XSendEvent, ...
 #include <X11/Xmd.h>							// for CARD32
+#endif
 
 #include "../common/common.h"
 #include "basicplugin.h"
@@ -522,6 +525,7 @@ bool startWineProcess(){
 	return true;
 }
 
+#ifndef __APPLE__
 /* sendXembedMessage */
 void sendXembedMessage(Display* display, Window win, long message, long detail, long data1, long data2){
 	XEvent ev;
@@ -553,6 +557,7 @@ void setXembedWindowInfo(Display* display, Window win, int flags){
 	XChangeProperty(display, win, xembedInfo, xembedInfo, 32, PropModeReplace, (unsigned char *)list, 2);
 	XSync(display, False);
 }
+#endif
 
 /* dispatcher */
 void dispatcher(int functionid, Stack &stack){
@@ -596,7 +601,7 @@ void dispatcher(int functionid, Stack &stack){
 				handleManager_removeByPtr(HMGR_TYPE_NPObject, obj);
 			}
 			break;
-
+	#if 0
 		case GET_WINDOW_RECT:
 			{
 				Window win 				= (Window)readInt32(stack);
@@ -624,7 +629,8 @@ void dispatcher(int functionid, Stack &stack){
 				returnCommand();
 			}
 			break;
-
+	#endif
+	#ifndef __APPLE__
 		case CHANGE_EMBEDDED_MODE:
 			{
 				NPP instance 			= readHandleInstance(stack);
@@ -666,7 +672,7 @@ void dispatcher(int functionid, Stack &stack){
 				returnCommand();
 			}
 			break;
-
+	#endif
 		case FUNCTION_NPN_CREATE_OBJECT:
 			{
 				NPP instance 			= readHandleInstance(stack);

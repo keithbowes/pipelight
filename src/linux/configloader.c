@@ -499,6 +499,13 @@ bool loadConfig(PluginConfig &config){
 		DBG_INFO("embed set via commandline to %s", config.embed ? "true" : "false");
 	}
 
+	#ifdef __APPLE__
+		if (config.embed){
+			DBG_WARN("embedding is not yet supported for MacOS, it will be disabled.");
+			config.embed = false;
+		}
+	#endif
+
 	/* environment variable to overwrite windowlessmode */
 	environmentVariable = getEnvironmentInteger("PIPELIGHT_WINDOWLESSMODE", -1);
 	if (environmentVariable >= 0){
@@ -507,6 +514,13 @@ bool loadConfig(PluginConfig &config){
 		DBG_INFO("windowlessMode set via commandline to %s", 		config.windowlessMode ? "true" : "false");
 		DBG_INFO("linuxWindowlessMode set via commandline to %s", 	config.linuxWindowlessMode ? "true" : "false");
 	}
+
+	#ifdef __APPLE__
+		if (config.linuxWindowlessMode){
+			DBG_WARN("linuxWindowlessMode is not yet supported for MacOS, it will be disabled.");
+			config.linuxWindowlessMode = false;
+		}
+	#endif
 
 	/* check if hw acceleration should be used (only for Silverlight) */
 	if (config.silverlightGraphicDriverCheck != ""){
