@@ -907,7 +907,7 @@ NPIdentifier handleManager_lookupIdentifier(IDENT_TYPE type, void *value){
 		std::map<int32_t, NPIdentifier> &intToNPIdentifier = __intToNPIdentifier();
 		std::map<int32_t, NPIdentifier>::const_iterator it;
 
-		it = intToNPIdentifier.find((int32_t)value);
+		it = intToNPIdentifier.find((int32_t)(long)value);
 		if (it != intToNPIdentifier.end())
 			return it->second;
 	}

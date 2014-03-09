@@ -600,7 +600,7 @@ NPIdentifier NP_LOADDS NPN_GetIntIdentifier(int32_t intid){
 	identifier = readHandleIdentifierCreate(stack);
 
 #else
-	identifier = handleManager_lookupIdentifier(IDENT_TYPE_Integer, (void *)intid);
+	identifier = handleManager_lookupIdentifier(IDENT_TYPE_Integer, (void *)(long)intid);
 
 	if (!identifier){
 		NPIdentifierDescription *ident = (NPIdentifierDescription *)malloc(sizeof(NPIdentifierDescription));

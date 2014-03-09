@@ -51,18 +51,18 @@ void* patchDLLExport(PVOID ModuleBase, const char* functionName, void* newFuncti
 		http://alter.org.ua/docs/nt_kernel/procaddr/#RtlImageDirectoryEntryToData
 	*/
 
-	PIMAGE_DOS_HEADER dos              =    (PIMAGE_DOS_HEADER) ModuleBase;
-	PIMAGE_NT_HEADERS nt               =    (PIMAGE_NT_HEADERS)((ULONG) ModuleBase + dos->e_lfanew);
+	PIMAGE_DOS_HEADER dos              = (PIMAGE_DOS_HEADER) ModuleBase;
+	PIMAGE_NT_HEADERS nt               = (PIMAGE_NT_HEADERS)((char *)ModuleBase + dos->e_lfanew);
 
-	PIMAGE_DATA_DIRECTORY expdir       =   (PIMAGE_DATA_DIRECTORY)(nt->OptionalHeader.DataDirectory + IMAGE_DIRECTORY_ENTRY_EXPORT);
-	ULONG                 addr         =   expdir->VirtualAddress;
-	PIMAGE_EXPORT_DIRECTORY exports    =   (PIMAGE_EXPORT_DIRECTORY)((ULONG) ModuleBase + addr);
+	PIMAGE_DATA_DIRECTORY expdir       = (PIMAGE_DATA_DIRECTORY)(nt->OptionalHeader.DataDirectory + IMAGE_DIRECTORY_ENTRY_EXPORT);
+	ULONG                 addr         = expdir->VirtualAddress;
+	PIMAGE_EXPORT_DIRECTORY exports    = (PIMAGE_EXPORT_DIRECTORY)((char *)ModuleBase + addr);
 
-	PULONG functions =  (PULONG)((ULONG) ModuleBase + exports->AddressOfFunctions);
-	PSHORT ordinals  =  (PSHORT)((ULONG) ModuleBase + exports->AddressOfNameOrdinals);
-	PULONG names     =  (PULONG)((ULONG) ModuleBase + exports->AddressOfNames);
-	ULONG  max_name  =  exports->NumberOfNames;
-	ULONG  max_func  =  exports->NumberOfFunctions;
+	PULONG functions = (PULONG)((char *)ModuleBase + exports->AddressOfFunctions);
+	PSHORT ordinals  = (PSHORT)((char *)ModuleBase + exports->AddressOfNameOrdinals);
+	PULONG names     = (PULONG)((char *)ModuleBase + exports->AddressOfNames);
+	ULONG  max_name  = exports->NumberOfNames;
+	ULONG  max_func  = exports->NumberOfFunctions;
 
 	ULONG i;
 	DWORD oldProtect;
@@ -79,8 +79,8 @@ void* patchDLLExport(PVOID ModuleBase, const char* functionName, void* newFuncti
 
 			DBG_INFO("replaced API function %s.", functionName);
 
-			void *oldFunctionPtr = (PVOID)((PCHAR) ModuleBase + functions[ord]);
-			functions[ord] = (ULONG)newFunctionPtr - (ULONG)ModuleBase;
+			void *oldFunctionPtr = (PVOID)((char *)ModuleBase + functions[ord]);
+			functions[ord] = (char *)newFunctionPtr - (char *)ModuleBase;
 
 			VirtualProtect(&functions[ord], sizeof(ULONG), oldProtect, &oldProtect);
 			return oldFunctionPtr;
