@@ -15,13 +15,13 @@ win32flags=-static-libgcc -static-libstdc++ -static
 quietinstallation=true
 nogpuaccel=false
 
+-include config.make
+
 ifeq ($(win32cxx),wineg++)
 	pluginloader=pluginloader.exe.so
 else
 	pluginloader=pluginloader.exe
 endif
-
--include config.make
 
 ifeq ($(nogpuaccel),true)
 	hwacceldefault=/bin/false
