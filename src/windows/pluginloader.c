@@ -1387,9 +1387,11 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				RECT browser;
 				NPP instance 		= readHandleInstance(stack);
+				int gotWindow 		= readInt32(stack);
+
 				readRECT(stack, browser);
-				DBG_TRACE("FUNCTION_NPP_SET_WINDOW( instance=%p, left=%ld, top=%ld, right=%ld, bottom=%ld )",
-					instance, browser.left, browser.top, browser.right, browser.bottom);
+				DBG_TRACE("FUNCTION_NPP_SET_WINDOW( instance=%p, left=%ld, top=%ld, right=%ld, bottom=%ld, gotWindow=%d )",
+					instance, browser.left, browser.top, browser.right, browser.bottom, gotWindow);
 
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
 				if (ndata){
@@ -1409,7 +1411,7 @@ void dispatcher(int functionid, Stack &stack){
 						RECT rect;
 
 						/* Get style flags */
-						if (ndata->embeddedMode){
+						if (ndata->embeddedMode && gotWindow){
 							style 		= WS_POPUP;
 							extStyle 	= WS_EX_TOOLWINDOW;
 							posX		= 0;
@@ -1435,7 +1437,7 @@ void dispatcher(int functionid, Stack &stack){
 							if (ndata->hWnd){
 								hwndToInstance.insert( std::pair<HWND, NPP>(ndata->hWnd, instance) );
 
-								if (ndata->embeddedMode)
+								if (ndata->embeddedMode && gotWindow)
 									makeWindowEmbedded(instance, ndata->hWnd);
 
 								ShowWindow(ndata->hWnd, SW_SHOW);

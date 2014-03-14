@@ -602,6 +602,7 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window){
 	}
 
 	writeRectXYWH(window->x, window->y, window->width, window->height);
+	writeInt32((window->type == NPWindowTypeWindow && window->window) ? 1 : 0);
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_SET_WINDOW);
 	readResultVoid();
