@@ -131,7 +131,15 @@ download()
 	while true; do
 		if [ "$trycount" -le 0 ]; then
 			rm "$tmpfile"
-			echo "[$PRG] ERROR: Downloading failed multiple times - please check your internet connection." >&2
+			echo "[$PRG] ERROR: Downloading of $DEP failed multiple times. Please check:" >&2
+			echo "[$PRG]" >&2
+			echo "[$PRG]        * that your internet connection is working properly" >&2
+			echo "[$PRG]" >&2
+			echo "[$PRG]        * and that the plugin database is up-to-date. To update it just run:" >&2
+			echo "[$PRG]            sudo pipelight-plugin --update" >&2
+			echo "[$PRG]" >&2
+			echo "[$PRG]        If this doesn't help then most-likely the download URLs or checksums" >&2
+			echo "[$PRG]        have changed. We recommend to open a bug-report in this case." >&2
 			return 1
 		fi
 
