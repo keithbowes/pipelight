@@ -738,8 +738,11 @@ trap "EXITSTATUS=\$?; flock -u \"$LOCKFD\"; atexit; exit \"\$EXITSTATUS\"" 0
 if [ ! -f "$WINEPREFIX/system.reg" ]; then
 
 	# Directory exists, but without system.reg - wine will assume wrong platform, so create dummy system.reg
-	if [ -d "$WINEPREFIX" ] && [ ! -f "$WINEPREFIX/system.reg" ]; then
-		echo -en "WINE REGISTRY Version 2\n\n#arch=win32\n" > "$WINEPREFIX/system.reg"
+	if [ -d "$WINEPREFIX" ] && [ ! -f "$WINEPREFIX/system.reg" ] && [ ! -z "$WINEARCH" ]; then
+		if [ "$WINEARCH" == "win32" ] || [ "$WINEARCH" == "win64" ]; then
+			echo -en "WINE REGISTRY Version 2\n\n#arch=$WINEARCH\n" > "$WINEPREFIX/system.reg"
+			echo "[$PRG] Forced creation of a $WINEARCH wine prefix."
+		fi
 	fi
 
 	DISPLAY="" "$WINE" wineboot.exe 2>&1 | progressbar "Please wait..." "Creating wine prefix"
