@@ -631,7 +631,7 @@ int main(int argc, char *argv[]){
 
 /* makeWindowEmbedded */
 bool makeWindowEmbedded(NPP instance, HWND hWnd, bool embed = true){
-	XID windowIDX11 = (XID)GetPropA(hWnd, "__wine_x11_whole_window");
+	XID windowIDX11 = (XID)(uintptr_t)GetPropA(hWnd, "__wine_x11_whole_window");
 
 	if (!windowIDX11){
 		DBG_ERROR("Unable to find X11 window ID, embedding not possible");

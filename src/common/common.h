@@ -7,6 +7,7 @@
 #include <stdio.h>								/* for fprintf */
 #include <string.h>								/* for strlen */
 #include <stdlib.h>								/* for getenv, exit, ... */
+#include <stdint.h>								// for (u)intptr_t
 
 #if defined(PLUGINLOADER) && !defined(__WINE__)
 	#include <io.h>
