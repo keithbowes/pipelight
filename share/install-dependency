@@ -768,9 +768,9 @@ while [ $# -gt 0 ] ; do
 			SHA="dd45a55419026c592f8b6fc848dceface7e1ce98720bf13848a2e8ae366b29e8"
 			;;
 		wine-silverlight5.1-installer) # http://www.microsoft.com/getsilverlight/locale/en-us/html/Microsoft%20Silverlight%20Release%20History.htm
-			INS=(install_silverlight "5.1.20913.0")
-			URL="http://silverlight.dlservice.microsoft.com/download/6/B/8/6B885B0B-73D4-4BCE-BFFF-154B4A402D22/20913.00/Silverlight.exe"
-			SHA="6254f18b680a2ab4d007e5a8a344539ee819bd33d1d054e1302fcd964d63f732"
+			INS=(install_silverlight "5.1.30214.0")
+			URL="http://silverlight.dlservice.microsoft.com/download/B/A/9/BA94BEC9-5DBC-4B50-BC2B-046A42399067/30214.00/Silverlight.exe"
+			SHA="55806d7bacf61799eaee18b0e8a6eda7bf62e384174f506ee75bfa3e898b233c"
 			;;
 		wine-flash-installer) # http://www.adobe.com/de/software/flash/about/
 			INS=(install_flash "12_0_0_77")
