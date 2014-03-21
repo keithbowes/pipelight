@@ -245,6 +245,11 @@ install_silverlight()
 	rm -f "$user_desktop_file"
 	xdg-desktop-menu uninstall "$user_desktop_file" 2>/dev/null
 
+	# Workaround for users that are upgrading install-dependency before Pipelight release 0.2.6
+	if [ "$VER" == "5.1.30214.0" ] && [ ! -d "$programfiles/Silverlight/5.1.20913.0" ]; then
+		ln -s "$programfiles/Silverlight/$VER" "$programfiles/Silverlight/5.1.20913.0"
+	fi
+
 	# Successful
 	return 0
 }
