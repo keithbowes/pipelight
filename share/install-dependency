@@ -349,10 +349,25 @@ install_flash()
 	fi
 
 	local installdir="$WINEPREFIX/drive_c/windows/system32/Macromed/Flash"
-	if [ ! -f "$installdir/NPSWF32_$VER.dll" ]; then
+
+	local result=1
+	case "$WINEARCH" in
+		win32)
+			[ -f "$installdir/NPSWF32_$VER.dll" ]; result=$?
+			;;
+		win64)
+			[ -f "$installdir/NPSWF64_$VER.dll" ]; result=$?
+			;;
+		*)
+			[ -f "$installdir/NPSWF32_$VER.dll" ] || [ -f "$installdir/NPSWF64_$VER.dll" ]; result=$?
+			;;
+	esac
+
+	if [ "$result" -ne 0 ]; then
 		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
 		return 1
 	fi
+
 
 	local flashconfig="$installdir/mms.cfg"
 	if ! grep -q "^OverrideGPUValidation=" "$flashconfig" 2>/dev/null; then
