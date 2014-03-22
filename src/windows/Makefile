@@ -11,7 +11,7 @@ ifeq ($(wincxx),prebuilt)
 all: pluginloader$(suffix).exe
 
 ifeq ($(wildcard pluginloader$(suffix).exe),)
-commit=$(shell git rev-parse HEAD)
+commit=$(shell git rev-parse HEAD || echo "prebuilt")
 
 ../../pluginloader-$(commit).tar.gz:
 	wget -O "../../pluginloader-$(commit).tar.gz"     "http://repos.fds-team.de/pluginloader/$(commit)/pluginloader.tar.gz"
