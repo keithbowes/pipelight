@@ -1578,7 +1578,7 @@ void dispatcher(int functionid, Stack &stack){
 				int32_t offset 		= readInt32(stack);
 				size_t length;
 				std::shared_ptr<char> data = readMemory(stack, length);
-				DBG_TRACE("FUNCTION_NPP_WRITE( instance=%p, stream=%p, offset=%d, length=%d, data=%p )", instance, stream, offset, length, data.get());
+				DBG_TRACE("FUNCTION_NPP_WRITE( instance=%p, stream=%p, offset=%d, length=%Id, data=%p )", instance, stream, offset, length, data.get());
 
 				int32_t result = pluginFuncs.write(instance, stream, offset, length, data.get());
 				writeInt32(result);

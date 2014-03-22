@@ -23,7 +23,7 @@ winePath            = @@WINE_PATH@@
 #
 # Path to the wine prefix containing Shockwave
 #
-winePrefix          = $HOME/.wine-pipelight/
+winePrefix          = $HOME/.wine-pipelight
 
 #
 # The wine architecture for the wine prefix containing Shockwave
