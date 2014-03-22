@@ -1,0 +1,186 @@
+#
+# Enables a diagnostic mode which might be helpful to find an
+# error in the configuration or installation.
+# To get the error messages go to: http://fds-team.de/pipelight
+#
+# Information for advanced users: The diagnostic page embeds the plugin
+# of type "application/x-pipelight-error" to trigger the output of some
+# debug information. The plugin cannot be triggered if everything is
+# working, so this only affects users with a broken installation.
+# The debug output will include paths on the local filesystem and the
+# linux distribution used. If you don't want to leak this information
+# accidentially in case of a broken installation please either uninstall
+# Pipelight or disable the diagnosticMode. [default: false]
+#
+diagnosticMode      = true
+
+#
+# Path to the wine directory or the wine executable. When you
+# specify a directory it should contain /bin/wine.
+#
+winePath            = @@WINE_PATH@@
+
+#
+# Path to the wine prefix containing Flash
+#
+winePrefix          = $HOME/.wine-pipelight64
+
+#
+# The wine architecture for the wine prefix containing Flash
+#
+wineArch            = win64
+
+#
+# DLLs to overwrite in Wine
+# (prevents Wine from asking for Gecko, Mono or winegstreamer)
+#
+wineDLLOverrides    = mscoree,mshtml,winegstreamer,winemenubuilder.exe=
+
+#
+# Path to the plugin loader executable
+# (Should be set correctly by the make script)
+#
+pluginLoaderPath    = @@PLUGINLOADER64_PATH@@
+
+#
+# Path to the runtime DLLs (libgcc_s_sjlj-1.dll, libspp-0.dll,
+# libstdc++-6.dll). Only necessary when these DLLs are not in the same
+# directory as the pluginloader executable.
+#
+gccRuntimeDlls      = @@GCC_RUNTIME_DLLS@@
+
+#
+# Path and name to the Flash library
+# You should prefer using regKey and consider this option only if you have
+# multiple versions of the Flash plugin installed inside the Wineprefix.
+#
+# dllPath           = C:\windows\system32\Macromed\Flash\
+# dllName           = NPSWF64_11_8_800_168.dll
+
+#
+# Name of the registry key at HKCU\Software\MozillaPlugins\ or
+# HKLM\Software\MozillaPlugins\ where to search for the plugin path.
+#
+# You should use this option instead of dllPath/dllName in most cases
+# since you do not need to alter dllPath on a Flash update.
+#
+regKey              = @adobe.com/FlashPlayer
+
+#
+# fakeVersion allows to fake the version string of Flash
+# We don't know any reason why it would be necessary for flash
+#
+# fakeVersion       = 11.8.800.168
+
+#
+# overwriteArg allows to overwrite/add initialization arguments
+# passed by websites to Flash applications. You can
+# use this option as often as you want to overwrite multiple
+# parameters. For a list of useful values for Flash take a look at
+# http://helpx.adobe.com/flash/kb/flash-object-embed-tag-attributes.html#main_Optional_attributes
+#
+# Examples:
+# overwriteArg      = quality=best
+# overwriteArg      = wmode=direct
+# overwriteArg      = wmode=opaque
+#
+
+#
+# windowlessmode refers to a term of the Netscape Plugin API and
+# defines a different mode of drawing and handling events.
+# Flash will automatically switch to windowless mode if it is not
+# disabled by the website. We set the default value to false to mime
+# the behavior of a normal browser.
+# [default: false]
+#
+windowlessMode      = false
+windowlessOverwriteArg = wmode=opaque
+
+#
+# Some browsers that don't support XEmbed only work with "real"
+# windowlessmode. The following option can be used to force this
+# mode. [default: false]
+#
+linuxWindowlessMode = false
+
+#
+# embed defines whether the Flash plugin should be shown
+# inside the browser (true) or an external window (false).
+# [default: true]
+#
+embed               = true
+
+#
+# Path to the dependency installer script provided by the compholio
+# package. (optional)
+#
+dependencyInstaller = @@DEPENDENCY_INSTALLER@@
+
+#
+# Dependencies which should be installed for this plugin via the
+# dependencyInstaller, can be used multiple times. (optional)
+#
+# Useful values for Flash are:
+#   wine-flash-installer
+#
+dependency          = wine-flash-installer
+
+#
+# Doesn't show any dialogs which require manual confirmation during
+# the installation process, like EULA or DRM dialogs.
+# [default: true]
+#
+quietInstallation   = @@QUIET_INSTALLATION@@
+
+#
+# In order to support browsers without NPAPI timer support
+# (like Midori) we've implemented a fallback to
+# NPN_PluginThreadAsyncCall. In the default configuration
+# a timer based approach is preferred over async calls and the
+# plugin decides by itself which method to use depending on the
+# browser capabilities. Setting the following option to true
+# forces the plugin to use async calls. This might be mainly
+# useful for testing the difference between both event handling
+# approaches. [default: false]
+#
+# eventAsyncCall    = true
+
+#
+# The opera browser claims to provide timer functions, but they
+# don't seem to work properly. When the opera detection is
+# enabled Pipelight will switch to eventAsyncCall automatically
+# based on the user agent string. [default: true]
+#
+operaDetection      = true
+
+#
+# Minimal JavaScript user agent switcher. If your page doesn't check
+# the user agent before loading a Flash instance, you can use
+# this trick to overwrite the useragent or execute any other Java-
+# Script you want. You can use this command multiple times.
+# Uncomment the following 4 lines for FF15 spoofing.
+#
+# executejavascript = var __originalNavigator = navigator;
+# executejavascript = navigator = new Object();
+# executejavascript = navigator.__proto__ = __originalNavigator;
+# executejavascript = navigator.__defineGetter__('userAgent', function () { return 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:15.0) Gecko/20120427 Firefox/15.0a1'; });
+
+#------------------------- EXPERIMENTAL -------------------------
+# Watch out: The following section contains highly experimental
+# stuff! These functions are likely not working properly yet and
+# might be removed at any time.
+
+#
+# In order to make it possible to let a window stay opened in fullscreen, even
+# if the user clicks somewhere else it is necessary to install a window class
+# hook. With some plugins this could lead to other problems! [default: false]
+experimental-windowClassHook = true
+
+#
+# A sandbox is a method to isolate an untrusted program from the rest of
+# the system to prevent damage in case of a virus, program errors or
+# similar issues. We've been developing the ability to use a (self-created)
+# sandbox, but this feature still has to be considered experimental.
+# The feature will only be used when the sandbox path exists.
+#
+sandboxPath         = @@SANDBOX_PATH@@
