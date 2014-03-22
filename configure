@@ -7,7 +7,10 @@ winepath="/opt/wine-compholio/bin/wine"
 mozpluginpath="/usr/lib/mozilla/plugins"
 gccruntimedlls=""
 win32cxx=""
-win32flags=""
+win32flags="-m32"
+win64="false"
+win64cxx=""
+win64flags="-m64"
 quietinstallation="true"
 nogpuaccel="false"
 
@@ -16,9 +19,14 @@ usage ()
 	echo ""
 	echo "Usage: ./configure [--prefix=PREFIX] [--wine-path=PATH]"
 	echo "                   [--moz-plugin-path=PATH] [--gcc-runtime-dlls=PATH]"
+	echo "                   [--show-installation-dialogs] [--no-gpu-accel]"
+	echo " 32-bit options:"
 	echo "                   [--win32-prebuilt] [--win32-cxx=COMPILER]"
 	echo "                   [--win32-static] [--win32-flags=FLAGS]"
-	echo "                   [--show-installation-dialogs] [--no-gpu-accel]"
+	echo " 64 bit options:"
+	echo "                   [--with-win64]"
+	echo "                   [--win64-prebuilt] [--win64-cxx=COMPILER]"
+	echo "                   [--win64-static] [--win64-flags=FLAGS]"
 	echo ""
 }
 
@@ -26,28 +34,28 @@ while [[ $# > 0 ]] ; do
 	CMD="$1"; shift
 	case "$CMD" in
 		--prefix=*)
-			prefix=${CMD#*=}
+			prefix="${CMD#*=}"
 			;;
 		--prefix)
 			prefix="$1"; shift
 			;;
 
 		--wine-path=*)
-			winepath=${CMD#*=}
+			winepath="${CMD#*=}"
 			;;
 		--wine-path)
 			winepath="$1"; shift
 			;;
 
 		--moz-plugin-path=*)
-			mozpluginpath=${CMD#*=}
+			mozpluginpath="${CMD#*=}"
 			;;
 		--moz-plugin-path)
 			mozpluginpath="$1"; shift
 			;;
 
 		--gcc-runtime-dlls=*)
-			gccruntimedlls=${CMD#*=}
+			gccruntimedlls="${CMD#*=}"
 			;;
 		--gcc-runtime-dlls)
 			gccruntimedlls="$1"; shift
@@ -65,17 +73,42 @@ while [[ $# > 0 ]] ; do
 			;;
 
 		--win32-cxx=*)
-			win32cxx=${CMD#*=}
+			win32cxx="${CMD#*=}"
 			;;
 		--win32-cxx)
 			win32cxx="$1"; shift
 			;;
 
 		--win32-flags=*)
-			win32flags="$win32flags "${CMD#*=}
+			win32flags="$win32flags ${CMD#*=}"
 			;;
 		--win32-flags)
 			win32flags="$win32flags $1"; shift
+			;;
+
+		--with-win64)
+			win64="true"
+			;;
+
+		--win64-static)
+			win64flags="$win64flags -static-libgcc -static-libstdc++ -static"
+			;;
+		--win64-prebuilt)
+			win64cxx="prebuilt"
+			;;
+
+		--win64-cxx=*)
+			win64cxx="${CMD#*=}"
+			;;
+		--win64-cxx)
+			win64cxx="$1"; shift
+			;;
+
+		--win64-flags=*)
+			win64flags="$win64flags ${CMD#*=}"
+			;;
+		--win64-flags)
+			win64flags="$win64flags $1"; shift
 			;;
 
 		--no-gpu-accel)
@@ -107,7 +140,18 @@ if [ -z "$win32cxx" ]; then
 		win32flags="$win32flags -DMINGW32_FALLBACK -static-libgcc -static-libstdc++ -static"
 
 	else
-		echo "ERROR: No mingw32-g++ compiler found. Please use --win32cxx to specify one."
+		echo "ERROR: No mingw32-g++ compiler found. Please use --win32-cxx to specify one."
+		exit 1
+	fi
+fi
+
+if [ "$win64" == "true" ] && [ -z "$win64cxx" ]; then
+	if command -v x86_64-w64-mingw32-g++ >/dev/null 2>&1; then
+		win64cxx="x86_64-w64-mingw32-g++"
+		win64flags="$win64flags -static-libgcc -static-libstdc++ -static"
+
+	else
+		echo "ERROR: No mingw64-g++ compiler found. Please use --win64-cxx to specify one."
 		exit 1
 	fi
 fi
@@ -139,6 +183,9 @@ echo " gccruntimedlls    = '$gccruntimedlls'"
 echo " quietinstallation = '$quietinstallation'"
 echo " win32cxx          = '$win32cxx'"
 echo " win32flags        = '$win32flags'"
+echo " win64             = '$win64'"
+echo " win64cxx          = '$win64cxx'"
+echo " win64flags        = '$win64flags'"
 echo " nogpuaccel        = '$nogpuaccel'"
 echo ""
 echo "IMPORTANT: Please ensure you have XATTR support enabled for both wine and"
@@ -151,6 +198,9 @@ echo "winepath=$winepath"					>> config.make
 echo "mozpluginpath=$mozpluginpath"			>> config.make
 echo "gccruntimedlls=$gccruntimedlls"		>> config.make
 echo "quietinstallation=$quietinstallation" >> config.make
+echo "win64=$win64"							>> config.make
+echo "win64cxx=$win64cxx"					>> config.make
+echo "win64flags=$win64flags" 				>> config.make
 echo "win32cxx=$win32cxx"					>> config.make
 echo "win32flags=$win32flags" 				>> config.make
 echo "nogpuaccel=$nogpuaccel"				>> config.make
