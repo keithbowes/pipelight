@@ -51,6 +51,8 @@ void* patchDLLExport(PVOID ModuleBase, const char* functionName, void* newFuncti
 		http://alter.org.ua/docs/nt_kernel/procaddr/#RtlImageDirectoryEntryToData
 	*/
 
+	/* This method does no longer work on 64 bit */
+	#ifndef _WIN64
 	PIMAGE_DOS_HEADER dos              = (PIMAGE_DOS_HEADER) ModuleBase;
 	PIMAGE_NT_HEADERS nt               = (PIMAGE_NT_HEADERS)((char *)ModuleBase + dos->e_lfanew);
 
@@ -86,6 +88,7 @@ void* patchDLLExport(PVOID ModuleBase, const char* functionName, void* newFuncti
 			return oldFunctionPtr;
 		}
 	}
+	#endif
 
 	return NULL;
 };
