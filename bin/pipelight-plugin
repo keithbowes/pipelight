@@ -9,17 +9,17 @@ LICENSE_PATH="@@LICENSE_PATH@@"
 DEPENDENCY_INSTALLER_PATH="@@DEPENDENCY_INSTALLER@@"
 DEPENDENCY_INSTALLER_URL="https://bitbucket.org/mmueller2012/pipelight/raw/master/share/install-dependency.sig"
 PIPELIGHT_PUBKEY="@@PIPELIGHT_PUBKEY@@"
+PLUGINLOADER64_EXISTS="@@PLUGINLOADER64_EXISTS@@"
 ACCEPTALL=0
-
-# Get processor architecture
-ARCH=$(uname -m)
 
 # Supported plugins
 STANDARD_PLUGINS=("silverlight5.1" "silverlight5.0" "silverlight4" "flash" "unity3d" "widevine")
-if [ "$ARCH" == "x86_64" ] || [ "$ARCH" == "amd64" ]; then
+ADDITIONAL_PLUGINS=("shockwave" "foxitpdf" "grandstream" "adobereader" "hikvision" "npactivex" "roblox")
+
+if [[ "$PLUGINLOADER64_EXISTS" =~ ^@@.*@@$ ]] || [ "$PLUGINLOADER64_EXISTS" == "true" ]; then
 	STANDARD_PLUGINS=("${STANDARD_PLUGINS[@]}" "x64-flash")
 fi
-ADDITIONAL_PLUGINS=("shockwave" "foxitpdf" "grandstream" "adobereader" "hikvision" "npactivex" "roblox")
+
 ALL_PLUGINS=("${STANDARD_PLUGINS[@]}" "${ADDITIONAL_PLUGINS[@]}")
 
 # Aliases

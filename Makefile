@@ -97,6 +97,7 @@ install: all
 	sed -i'' -e 's|@@DEPENDENCY_INSTALLER@@|$(prefix)/share/pipelight/install-dependency|g' pipelight-plugin.tmp
 	sed -i'' -e 's|@@MOZ_PLUGIN_PATH@@|$(mozpluginpath)|g' pipelight-plugin.tmp
 	sed -i'' -e 's|@@PIPELIGHT_PUBKEY@@|$(prefix)/share/pipelight/signature.gpg|g' pipelight-plugin.tmp
+	sed -i'' -e 's|@@PLUGINLOADER64_EXISTS@@|$(win64)|g' pipelight-plugin.tmp
 	install -m 0755 pipelight-plugin.tmp "$(DESTDIR)$(prefix)/bin/pipelight-plugin"
 	rm pipelight-plugin.tmp
 
