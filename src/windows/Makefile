@@ -1,15 +1,16 @@
-CXX			:= $(win32cxx)
-CXXFLAGS	:= -Wall -std=gnu++0x -D_WIN32_WINNT=0x0502 -DPLUGINLOADER $(win32flags) $(CXXFLAGS)
+suffix 		:=
+CXX			:= $(wincxx)
+CXXFLAGS	:= -Wall -std=gnu++0x -D_WIN32_WINNT=0x0502 -DPLUGINLOADER $(winflags) $(CXXFLAGS)
 LDFLAGS 	:= -lversion -lgdi32 -lole32 #$(LDFLAGS)
-OBJECTS 	:= common.o apihook.o npclass.o npnfunctions.o pluginloader.o
+OBJECTS 	:= common$(suffix).o apihook$(suffix).o npclass$(suffix).o npnfunctions$(suffix).o pluginloader$(suffix).o
 COMMONHDR	:= ../common/common.h ../npapi-headers/npapi.h ../npapi-headers/npfunctions.h ../npapi-headers/npruntime.h ../npapi-headers/nptypes.h
 
-ifeq ($(win32cxx),prebuilt)
+ifeq ($(wincxx),prebuilt)
 
-pluginloader.exe:
+pluginloader$(suffix).exe:
 
 .PHONY: all
-all: pluginloader.exe
+all: pluginloader$(suffix).exe
 
 .PHONY: clean
 clean:
@@ -17,29 +18,36 @@ clean:
 
 else
 
-pluginloader.exe: $(OBJECTS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS) -o pluginloader.exe
+pluginloader$(suffix).exe: $(OBJECTS)
+	rm -f "pluginloader$(suffix).exe.so"
 
-common.o: ../common/common.c $(COMMONHDR)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c ../common/common.c -o common.o
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS) -o pluginloader$(suffix).exe
 
-apihook.o: apihook.c apihook.h pluginloader.h $(COMMONHDR)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -DPIPELIGHT_VERSION='"$(version)"' -c apihook.c -o apihook.o
+	if [ -f "pluginloader$(suffix).exe.so" ]; then \
+		rm -f "pluginloader$(suffix).exe"; \
+		mv "pluginloader$(suffix).exe.so" "pluginloader$(suffix).exe"; \
+	fi
 
-npclass.o: npclass.c $(COMMONHDR)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c npclass.c -o npclass.o
+common$(suffix).o: ../common/common.c $(COMMONHDR)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c ../common/common.c -o common$(suffix).o
 
-npnfunctions.o: npnfunctions.c pluginloader.h $(COMMONHDR)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c npnfunctions.c -o npnfunctions.o
+apihook$(suffix).o: apihook.c apihook.h pluginloader.h $(COMMONHDR)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -DPIPELIGHT_VERSION='"$(version)"' -c apihook.c -o apihook$(suffix).o
 
-pluginloader.o: pluginloader.c pluginloader.h apihook.h
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c pluginloader.c -o pluginloader.o
+npclass$(suffix).o: npclass.c $(COMMONHDR)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c npclass.c -o npclass$(suffix).o
+
+npnfunctions$(suffix).o: npnfunctions.c pluginloader.h $(COMMONHDR)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c npnfunctions.c -o npnfunctions$(suffix).o
+
+pluginloader$(suffix).o: pluginloader.c pluginloader.h apihook.h
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c pluginloader.c -o pluginloader$(suffix).o
 
 .PHONY: all
-all: pluginloader.exe
+all: pluginloader$(suffix).exe
 
 .PHONY: clean
 clean:
-	rm -f pluginloader.exe pluginloader.exe.so *.o
+	rm -f *.exe *.exe.so *.o
 
 endif

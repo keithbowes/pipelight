@@ -1,6 +1,3 @@
-SUBDIRS= src/linux src/windows
-.PHONY:	all $(SUBDIRS) clean install uninstall
-
 PLUGIN_CONFIGS=$(wildcard share/configs/*)
 PLUGIN_SCRIPTS=$(wildcard share/scripts/*)
 PLUGIN_LICENSES=$(wildcard share/licenses/*)
@@ -11,17 +8,14 @@ winepath=/opt/wine-compholio/bin/wine
 mozpluginpath=/usr/lib/mozilla/plugins
 gccruntimedlls=
 win32cxx=i686-w64-mingw32-g++
-win32flags=-static-libgcc -static-libstdc++ -static
+win32flags=-m32 -static-libgcc -static-libstdc++ -static
+win64=false
+win64cxx=
+win64flags=-m64 -static-libgcc -static-libstdc++ -static
 quietinstallation=true
 nogpuaccel=false
 
 -include config.make
-
-ifeq ($(win32cxx),wineg++)
-	pluginloader=pluginloader.exe.so
-else
-	pluginloader=pluginloader.exe
-endif
 
 ifeq ($(nogpuaccel),true)
 	hwacceldefault=/bin/false
@@ -29,12 +23,29 @@ else
 	hwacceldefault=$(prefix)/share/pipelight/hw-accel-default
 endif
 
+PLUGINLOADERS:= pluginloader32
+ifeq ($(win64),true)
+	PLUGINLOADERS:= $(PLUGINLOADERS) pluginloader64
+endif
+
 export
-all: $(SUBDIRS)
 
- $(SUBDIRS):
-	$(MAKE) -C $@
+.PHONY: all
+all: linux $(PLUGINLOADERS)
 
+.PHONY: linux
+linux:
+	$(MAKE) -C src/linux
+
+.PHONY: pluginloader32
+pluginloader32:
+	$(MAKE) -C src/windows wincxx="$(win32cxx)" winflags="$(win32flags)" suffix=""
+
+.PHONY: pluginloader64
+pluginloader64:
+	$(MAKE) -C src/windows wincxx="$(win64cxx)" winflags="$(win64flags)" suffix="64"
+
+.PHONY: install
 install: all
 	mkdir -p "$(DESTDIR)$(prefix)/share/pipelight"
 	mkdir -p "$(DESTDIR)$(prefix)/share/pipelight/configs"
@@ -45,7 +56,10 @@ install: all
 	mkdir -p "$(DESTDIR)$(prefix)/share/man/man1"
 
 	install -m 0644 share/signature.gpg "$(DESTDIR)$(prefix)/share/pipelight/signature.gpg"
-	install -m 0755 "src/windows/$(pluginloader)" "$(DESTDIR)$(prefix)/share/pipelight/$(pluginloader)"
+	install -m 0755 "src/windows/pluginloader.exe" "$(DESTDIR)$(prefix)/share/pipelight/pluginloader.exe"
+	if [ "$(win64)" = "true" ]; then \
+		install -m 0755 "src/windows/pluginloader64.exe" "$(DESTDIR)$(prefix)/share/pipelight/pluginloader64.exe"; \
+	fi
 	install -m 0755 share/install-dependency "$(DESTDIR)$(prefix)/share/pipelight/install-dependency"
 	install -m 0755 share/hw-accel-default "$(DESTDIR)$(prefix)/share/pipelight/hw-accel-default"
 
@@ -56,7 +70,8 @@ install: all
 	done
 
 	for config in $(notdir $(PLUGIN_CONFIGS)); do \
-		sed         's|@@PLUGINLOADER_PATH@@|$(prefix)/share/pipelight/$(pluginloader)|g' share/configs/$${config} > pipelight-config.tmp; \
+		sed         's|@@PLUGINLOADER_PATH@@|$(prefix)/share/pipelight/pluginloader.exe|g' share/configs/$${config} > pipelight-config.tmp; \
+		sed -i'' -e 's|@@PLUGINLOADER64_PATH@@|$(prefix)/share/pipelight/pluginloader64.exe|g' pipelight-config.tmp; \
 		sed -i'' -e 's|@@DEPENDENCY_INSTALLER@@|$(prefix)/share/pipelight/install-dependency|g' pipelight-config.tmp; \
 		sed -i'' -e 's|@@SANDBOX_PATH@@|$(prefix)/share/pipelight/sandbox|g' pipelight-config.tmp; \
 		sed -i'' -e 's|@@GRAPHIC_DRIVER_CHECK@@|$(hwacceldefault)|g' pipelight-config.tmp; \
@@ -90,9 +105,11 @@ install: all
 	install -m 0644 pipelight-manpage.tmp "$(DESTDIR)$(prefix)/share/man/man1/pipelight-plugin.1"
 	rm pipelight-manpage.tmp
 
+.PHONY: uninstall
 uninstall:
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/signature.gpg"
-	rm -f "$(DESTDIR)$(prefix)/share/pipelight/$(pluginloader)"
+	rm -f "$(DESTDIR)$(prefix)/share/pipelight/pluginloader.exe"
+	rm -f "$(DESTDIR)$(prefix)/share/pipelight/pluginloader64.exe"
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/install-dependency"
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/hw-accel-default"
 	rm -f  $(DESTDIR)$(prefix)/share/pipelight/scripts/configure-*
@@ -108,7 +125,8 @@ uninstall:
 	rmdir --ignore-fail-on-non-empty "$(DESTDIR)$(prefix)/share/pipelight"
 	rmdir --ignore-fail-on-non-empty "$(DESTDIR)$(prefix)/lib/pipelight"
 
+.PHONY: clean
 clean:
-	for dir in $(SUBDIRS); do \
+	for dir in src/linux src/windows; do \
 		$(MAKE) -C $$dir $@; \
 	done
