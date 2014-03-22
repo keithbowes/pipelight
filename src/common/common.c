@@ -2,13 +2,13 @@
 #include <stdlib.h>								// for malloc, ...
 #include <cstring>								// for memcpy, ...
 #include <map>									// for std::map
+#include <unistd.h>								// for dup
 
 #include "common.h"
 
 #ifndef PLUGINLOADER
 	#include <sys/time.h>						// for select etc.
 	#include <sys/types.h>
-	#include <unistd.h>
 #endif
 
 FILE *commPipeOut	= NULL;
