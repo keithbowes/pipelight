@@ -663,6 +663,28 @@ install_roblox()
 	return 0
 }
 
+# > Install Vizeed RGR
+# arguments: None
+# $DOWNLOADFILE
+install_vizzedrgr()
+{
+	# Launch the installer
+	if [ "$QUIETINSTALLATION" -eq 0 ]; then
+		"$WINE" msiexec.exe /i "$DOWNLOADFILE" 2>&1
+	else
+		"$WINE" msiexec.exe /quiet /i "$DOWNLOADFILE" 2>&1 | progressbar "Please wait, installing ..." "Running $DEP"
+	fi
+
+	local installdir="$WINEPREFIX/drive_c/Program Files/Vizzed/Vizzed Retro Game Room"
+	if [ ! -f "$installdir/NpVizzedRgr.dll" ]; then
+		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
+		return 1
+	fi
+
+	# Successful
+	return 0
+}
+
 # Use shasum instead of sha256sum on MacOS
 if ! command -v sha256sum >/dev/null 2>&1 && command -v shasum >/dev/null 2>&1; then
 	sha256sum()
@@ -873,6 +895,11 @@ while [ $# -gt 0 ] ; do
 			INS=(install_roblox "9dddd6d1e4534c53")
 			URL="http://setup.roblox.com/version-9dddd6d1e4534c53-Roblox.exe"
 			SHA="daffe28895800409649df95c75b1d44e5360e61e4b222546b429e247a56ab51d"
+			;;
+		wine-vizzedrgr-installer)
+			INS=(install_vizzedrgr)
+			URL="http://www.vizzed.co/VizzedRgrPlugin-v2.0.msi"
+			SHA="ddc99b1a6902e30f355533620637a2d1b7d1ff3b1bd76a65cb1fbd78b2b396cb"
 			;;
 		*)
 			echo "[$PRG] ERROR: No installer script found for $DEP." >&2
