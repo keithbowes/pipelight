@@ -249,15 +249,8 @@ install_silverlight()
 		ln -s "$VER" "$shortsymlink"
 	fi
 
-	# Wait for Wine to finish building the .desktop files
-	wait_wineserver 10
-
 	# Remove the Silverlight menu shortcut
-	local user_link_file="$WINEPREFIX/drive_c/users/$USER/Start Menu/Programs/Microsoft Silverlight/Microsoft Silverlight.lnk"
-	local user_desktop_file="$HOME/.local/share/applications/wine/Programs/Microsoft Silverlight/Microsoft Silverlight.desktop"
-	rm -f "$user_link_file"
-	rm -f "$user_desktop_file"
-	xdg-desktop-menu uninstall "$user_desktop_file" 2>/dev/null
+	rm -f "$WINEPREFIX/drive_c/users/$USER/Start Menu/Programs/Microsoft Silverlight/Microsoft Silverlight.lnk"
 
 	# Workaround for users that are upgrading install-dependency before Pipelight release 0.2.6
 	if [ "$VER" == "5.1.30214.0" ]; then
