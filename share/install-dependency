@@ -210,10 +210,12 @@ register_mozilla_plugin()
 # > Installer for Silverlight
 # arguments:
 # $1	- version
+# $2	- short version
 # $DOWNLOADFILE
 install_silverlight()
 {
 	local VER="$1"
+	local SHORTVER="$2"
 
 	# Remove the registry keys for Silverlight since other versions can prevent this one from installing
 	"$WINE" msiexec /uninstall {89F4137D-6C26-4A84-BDB8-2E5A4BB71E00};
@@ -234,6 +236,18 @@ install_silverlight()
 	# Move the installation to a version-specific folder that nothing will touch
 	mkdir -p "$programfiles/Silverlight"
 	mv "$programfiles/Microsoft Silverlight/$VER" "$programfiles/Silverlight/$VER"
+
+	# Create a short symlink if SHORTVER is provided.
+	if [ ! -z "$SHORTVER" ]; then
+		local shortsymlink="$programfiles/Silverlight/$SHORTVER"
+		if [ -L "$shortsymlink" ]; then
+			rm "$shortsymlink"
+		elif [ -e "$shortsymlink" ]; then
+			echo "[$PRG] ERROR: Unable to overwrite $shortsymlink, please delete this file manually." >&2
+			return 1
+		fi
+		ln -s "$VER" "$shortsymlink"
+	fi
 
 	# Wait for Wine to finish building the .desktop files
 	wait_wineserver 10
@@ -776,7 +790,7 @@ while [ $# -gt 0 ] ; do
 			SHA="dd45a55419026c592f8b6fc848dceface7e1ce98720bf13848a2e8ae366b29e8"
 			;;
 		wine-silverlight5.1-installer) # http://www.microsoft.com/getsilverlight/locale/en-us/html/Microsoft%20Silverlight%20Release%20History.htm
-			INS=(install_silverlight "5.1.30214.0")
+			INS=(install_silverlight "5.1.30214.0" "latest")
 			URL="http://silverlight.dlservice.microsoft.com/download/B/A/9/BA94BEC9-5DBC-4B50-BC2B-046A42399067/30214.00/Silverlight.exe"
 			SHA="55806d7bacf61799eaee18b0e8a6eda7bf62e384174f506ee75bfa3e898b233c"
 			;;

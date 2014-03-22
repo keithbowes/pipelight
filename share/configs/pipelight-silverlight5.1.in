@@ -54,7 +54,7 @@ gccRuntimeDlls      = @@GCC_RUNTIME_DLLS@@
 # You should prefer using regKey to make it easier to switch between
 # different versions.
 #
-dllPath             = c:\Program Files\Silverlight\5.1.30214.0\
+dllPath             = c:\Program Files\Silverlight\latest\
 dllName             = npctrl.dll
 
 #
