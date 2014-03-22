@@ -9,6 +9,9 @@ ifneq ($(UNAME_S),Darwin)
 	LDFLAGS += -lX11
 endif
 
+.PHONY: all
+all: libpipelight.so
+
 libpipelight.so: $(OBJECTS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -shared $(OBJECTS) $(LDFLAGS) -o libpipelight.so
 
@@ -29,9 +32,6 @@ npclass.o: npclass.c $(COMMONHDR)
 
 nppfunctions.o: nppfunctions.c basicplugin.h configloader.h diagnostic.h $(COMMONHDR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c nppfunctions.c -o nppfunctions.o
-
-.PHONY: all
-all: libpipelight.so
 
 .PHONY: clean
 clean:
