@@ -62,10 +62,11 @@
 #if defined(MINGW32_FALLBACK) || defined(__WINE__)
 	typedef int (* __cdecl _controlfp_sPtr)(unsigned int *currentControl, unsigned int newControl, unsigned int mask);
 	_controlfp_sPtr _controlfp_s = NULL;
-	#if defined(_WIN64) || defined(_AMD64)
-		#error "The defined _CW_DEFAULT value is 32 bit only. You need to replace it and remove this check."
-	#endif
+#if defined(_WIN64) || defined(_AMD64)
+	#define _CW_DEFAULT 0x8001f
+#else
 	#define _CW_DEFAULT 0x9001F
+#endif
 	#define MCW_PC 0x00030000
 #endif
 
@@ -478,8 +479,8 @@ std::string readPathFromRegistry(HKEY hKey, std::string regKey){
 int main(int argc, char *argv[]){
 
 	/* some sanity checks ... */
-#ifndef _WIN64
-	DBG_ASSERT(offsetof(NPVariant, value.objectValue) == 8, "pluginloader executable was not compiled with -malign-double and will not work!");
+#if !defined(_WIN64) && !defined(_AMD64)
+	DBG_ASSERT(offsetof(NPVariant, value.objectValue) == 8, "pluginloader executable was compiled without -malign-double and will not work!");
 #endif
 
 	/* get the main thread ID */

@@ -52,7 +52,7 @@ void* patchDLLExport(PVOID ModuleBase, const char* functionName, void* newFuncti
 	*/
 
 	/* This method does no longer work on 64 bit */
-	#ifndef _WIN64
+#if !defined(_WIN64) && !defined(_AMD64)
 	PIMAGE_DOS_HEADER dos              = (PIMAGE_DOS_HEADER) ModuleBase;
 	PIMAGE_NT_HEADERS nt               = (PIMAGE_NT_HEADERS)((char *)ModuleBase + dos->e_lfanew);
 
@@ -88,7 +88,7 @@ void* patchDLLExport(PVOID ModuleBase, const char* functionName, void* newFuncti
 			return oldFunctionPtr;
 		}
 	}
-	#endif
+#endif
 
 	return NULL;
 };
