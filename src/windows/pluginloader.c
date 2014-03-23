@@ -57,7 +57,9 @@
 	RegGetValueAPtr RegGetValueA = NULL;
 	#define RRF_RT_ANY   0x0000FFFF
 	#define RRF_RT_REG_SZ 0x00000002
+#endif
 
+#if defined(MINGW32_FALLBACK) || defined(__WINE__)
 	typedef int (* __cdecl _controlfp_sPtr)(unsigned int *currentControl, unsigned int newControl, unsigned int mask);
 	_controlfp_sPtr _controlfp_s = NULL;
 	#if defined(_WIN64) || defined(_AMD64)
@@ -479,25 +481,21 @@ int main(int argc, char *argv[]){
 	mainThreadID = GetCurrentThreadId();
 
 	/* load all the required external libraries */
-#ifdef MINGW32_FALLBACK
 	DBG_ASSERT((module_msvcrt	= LoadLibraryA("msvcrt.dll")),			"failed to load msvcrt.dll.");
 	DBG_ASSERT((module_advapi32	= LoadLibraryA("advapi32.dll")),		"failed to load advapi32.dll.");
-#endif
 	DBG_ASSERT((module_user32	= LoadLibraryA("user32.dll")),			"failed to load user32.dll.");
 	DBG_ASSERT((module_kernel32	= GetModuleHandleA("kernel32.dll")),	"failed to get address of kernel32.dll.");
 	DBG_ASSERT((module_ntdll	= GetModuleHandleA("ntdll.dll")),		"failed to get address of ntdll.dll.");
 
 #ifdef MINGW32_FALLBACK
-	DBG_ASSERT((_controlfp_s = (_controlfp_sPtr)GetProcAddress(module_msvcrt, "_controlfp_s")),		"failed to get pointer to _controlfp_s.");
 	DBG_ASSERT((RegGetValueA = (RegGetValueAPtr)GetProcAddress(module_advapi32, "RegGetValueA")),	"failed to get pointer to RegGetValueA.");
 #endif
+#if defined(MINGW32_FALLBACK) || defined(__WINE__)
+	DBG_ASSERT((_controlfp_s = (_controlfp_sPtr)GetProcAddress(module_msvcrt, "_controlfp_s")),		"failed to get pointer to _controlfp_s.");
+#endif
 
-	#if !defined(__WINE__)
-		unsigned int control_word;
-		_controlfp_s(&control_word, _CW_DEFAULT, MCW_PC);
-	#else
-		#warning "Setting the floating point precission is not yet supported for your compiler! You may get weird issues with Silverlight."
-	#endif
+	unsigned int control_word;
+	_controlfp_s(&control_word, _CW_DEFAULT, MCW_PC);
 
 	setbuf(stderr, NULL); /* Disable stderr buffering */
 
