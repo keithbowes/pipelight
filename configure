@@ -196,16 +196,16 @@ echo "           your file system (required to watch DRM protected content)!"
 echo ""
 
 echo "version=$version"						>  config.make
-echo "prefix=$prefix" 						>> config.make
+echo "prefix=$prefix"						>> config.make
 echo "winepath=$winepath"					>> config.make
 echo "mozpluginpath=$mozpluginpath"			>> config.make
 echo "gccruntimedlls=$gccruntimedlls"		>> config.make
 echo "quietinstallation=$quietinstallation" >> config.make
 echo "win64=$win64"							>> config.make
 echo "win64cxx=$win64cxx"					>> config.make
-echo "win64flags=$win64flags" 				>> config.make
+echo "win64flags=$win64flags"				>> config.make
 echo "win32cxx=$win32cxx"					>> config.make
-echo "win32flags=$win32flags" 				>> config.make
+echo "win32flags=$win32flags"				>> config.make
 echo "nogpuaccel=$nogpuaccel"				>> config.make
 
 exit 0

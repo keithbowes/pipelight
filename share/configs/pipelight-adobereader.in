@@ -107,10 +107,10 @@ dependencyInstaller = @@DEPENDENCY_INSTALLER@@
 #
 # Useful values for Adobe Reader are:
 #   wine-mspatcha-installer
-#	wine-adobereader-installer
+#   wine-adobereader-installer
 #
 dependency          = wine-mspatcha-installer
-dependency 			= wine-adobereader-installer
+dependency          = wine-adobereader-installer
 
 #
 # Doesn't show any dialogs which require manual confirmation during
