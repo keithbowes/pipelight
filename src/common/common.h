@@ -800,29 +800,6 @@ inline void writeNPString(NPString *string){
 	writeString((char*)string->UTF8Characters, string->UTF8Length);
 }
 
-inline void readNPString(Stack &stack, NPString &string){
-	size_t stringLength;
-	#ifdef PLUGINLOADER
-		string.UTF8Characters = readStringMalloc(stack, stringLength);
-	#else
-		string.UTF8Characters = readStringBrowserAlloc(stack, stringLength);
-	#endif
-	string.UTF8Length = stringLength;
-}
-
-inline void freeNPString(NPString &string){
-	if (string.UTF8Characters){
-		#ifdef PLUGINLOADER
-			free((char *)string.UTF8Characters);
-		#else
-			sBrowserFuncs->memfree((char *)string.UTF8Characters);
-		#endif
-	}
-
-	string.UTF8Characters 	= NULL;
-	string.UTF8Length		= 0;
-}
-
 inline void writeStringArray(char* str[], int count){
 	for (int i = count - 1; i >= 0; i--)
 		writeString(str[i]);

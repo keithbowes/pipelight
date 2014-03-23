@@ -298,6 +298,7 @@ bool loadConfig(PluginConfig &config){
 	config.eventAsyncCall		= false;
 	config.operaDetection 		= true;
 	config.executeJavascript 	= "";
+	config.replaceJavascript.clear();
 
 	config.silverlightGraphicDriverCheck 		= "";
 
@@ -450,6 +451,12 @@ bool loadConfig(PluginConfig &config){
 		}else if (key == "executejavascript"){
 			config.executeJavascript += value + "\n";
 
+		}else if (key == "replacejavascript"){
+			std::string argKey, argValue;
+			if (!splitConfigValue(value, argKey, argValue))
+				continue;
+			config.replaceJavascript[argKey] = argValue;
+
 		}else if (key == "silverlightgraphicdrivercheck" || key == "graphicdrivercheck"){
 			if (key == "graphicdrivercheck")
 				DBG_WARN("the configuration parameter graphicDriverCheck is deprecated.");
@@ -499,12 +506,12 @@ bool loadConfig(PluginConfig &config){
 		DBG_INFO("embed set via commandline to %s", config.embed ? "true" : "false");
 	}
 
-	#ifdef __APPLE__
-		if (config.embed){
-			DBG_WARN("embedding is not yet supported for MacOS, it will be disabled.");
-			config.embed = false;
-		}
-	#endif
+#ifdef __APPLE__
+	if (config.embed){
+		DBG_WARN("embedding is not yet supported for MacOS, it will be disabled.");
+		config.embed = false;
+	}
+#endif
 
 	/* environment variable to overwrite windowlessmode */
 	environmentVariable = getEnvironmentInteger("PIPELIGHT_WINDOWLESSMODE", -1);
@@ -515,12 +522,12 @@ bool loadConfig(PluginConfig &config){
 		DBG_INFO("linuxWindowlessMode set via commandline to %s", 	config.linuxWindowlessMode ? "true" : "false");
 	}
 
-	#ifdef __APPLE__
-		if (config.linuxWindowlessMode){
-			DBG_WARN("linuxWindowlessMode is not yet supported for MacOS, it will be disabled.");
-			config.linuxWindowlessMode = false;
-		}
-	#endif
+#ifdef __APPLE__
+	if (config.linuxWindowlessMode){
+		DBG_WARN("linuxWindowlessMode is not yet supported for MacOS, it will be disabled.");
+		config.linuxWindowlessMode = false;
+	}
+#endif
 
 	/* check if hw acceleration should be used (only for Silverlight) */
 	if (config.silverlightGraphicDriverCheck != ""){

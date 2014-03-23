@@ -92,6 +92,7 @@ struct PluginConfig{
 	bool 			eventAsyncCall;
 	bool			operaDetection;
 	std::string 	executeJavascript;
+	std::map<std::string, std::string> replaceJavascript;
 
 	std::string		silverlightGraphicDriverCheck;
 

@@ -823,26 +823,60 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_EVALUATE:
 			{
-				NPString script;
-
 				NPP instance 					= readHandleInstance(stack);
 				NPObject* obj 					= readHandleObj(stack);
-				readNPString(stack, script);
+				size_t len;
+				std::shared_ptr<char> buffer	= readStringAsMemory(stack, len);
 				NPVariant resultVariant;
 				resultVariant.type 				= NPVariantType_Void;
 				resultVariant.value.objectValue = NULL;
-				DBG_TRACE("FUNCTION_NPN_EVALUATE( instance=%p, obj=%p, script='%s' )", instance, obj, script.UTF8Characters);
+				DBG_TRACE("FUNCTION_NPN_EVALUATE( instance=%p, obj=%p, buffer='%s' )", instance, obj, buffer.get());
 
-				bool result = sBrowserFuncs->evaluate(instance, obj, &script, &resultVariant);
+				bool result;
+
+				if (config.replaceJavascript.empty()){
+					NPString script;
+					script.UTF8Characters = buffer.get();
+					script.UTF8Length     = len;
+					result = sBrowserFuncs->evaluate(instance, obj, &script, &resultVariant);
+					
+				}else{
+					std::string scriptStr = std::string(buffer.get(), len);
+					size_t startPos = 0;
+
+					for(;;){
+						std::map<std::string, std::string>::iterator firstMatch;
+						size_t firstPos = std::string::npos;
+
+						for (std::map<std::string, std::string>::iterator it = config.replaceJavascript.begin(); it != config.replaceJavascript.end(); it++){
+							size_t pos = scriptStr.find(it->first, startPos);
+							if (pos != std::string::npos && (firstPos == std::string::npos || pos < firstPos)){
+								firstMatch = it;
+								firstPos = pos;
+							}
+						}
+
+						if (firstPos == std::string::npos)
+							break;
+
+						scriptStr.replace(firstPos, firstMatch->first.size(), firstMatch->second);
+						startPos = firstPos + firstMatch->second.size();
+					}
+
+					DBG_TRACE("replaced script='%s'", scriptStr.c_str());
+
+					NPString script;
+					script.UTF8Characters = scriptStr.c_str();
+					script.UTF8Length     = scriptStr.size();
+					result = sBrowserFuncs->evaluate(instance, obj, &script, &resultVariant);
+				}
+
 				if (result)
 					writeVariantRelease(resultVariant);
 				writeInt32( result );
 
 				DBG_TRACE("FUNCTION_NPN_EVALUATE -> ( result=%d, ... )", result);
 				returnCommand();
-
-				/* ASYNC */
-				freeNPString(script);
 			}
 			break;
 
