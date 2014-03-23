@@ -219,7 +219,7 @@ const char*  NP_LOADDS NPN_UserAgent(NPP instance){
 		shockwaveInstanceBug = instance;
 	}
 
-	std::string result = "Mozilla/5.0 (Windows NT 5.1; rv:18.0) Gecko/20100101 Firefox/18.0";
+	std::string result = "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:15.0) Gecko/20120427 Firefox/15.0a1";
 	pokeString(strUserAgent, result, sizeof(strUserAgent));
 
 	DBG_TRACE(" -> str='%s'", strUserAgent);
