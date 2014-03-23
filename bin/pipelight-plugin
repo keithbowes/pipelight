@@ -36,7 +36,7 @@ usage()
 	echo ""
 	echo "Options:"
 	echo "  --accept                    accept all licenses"
-	echo ""	
+	echo ""
 	echo "User commands:"
 	echo "  --enable  PLUGIN            enable plugin"
 	echo "  --disable PLUGIN            disable plugin"

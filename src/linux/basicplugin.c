@@ -839,7 +839,7 @@ void dispatcher(int functionid, Stack &stack){
 					script.UTF8Characters = buffer.get();
 					script.UTF8Length     = len;
 					result = sBrowserFuncs->evaluate(instance, obj, &script, &resultVariant);
-					
+
 				}else{
 					std::string scriptStr = std::string(buffer.get(), len);
 					size_t startPos = 0;
