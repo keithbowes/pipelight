@@ -1157,7 +1157,7 @@ NPError NP_LOADDS NPN_PopUpContextMenu(NPP instance, NPMenu* menu){
 }
 
 /* NPN_ConvertPoint */
-NPBool NP_LOADDS NPN_ConvertPoint(NPP instance, double sourceX, double sourceY, NPCoordinateSpace sourceSpace, double *destX, double *destY, NPCoordinateSpace destSpace){
+NPBool NP_LOADDS NPN_ConvertPoint(NPP instance, DOUBLE sourceX, DOUBLE sourceY, NPCoordinateSpace sourceSpace, DOUBLE *destX, DOUBLE *destY, NPCoordinateSpace destSpace){
 	DBG_TRACE("( instance=%p, sourceX=%f, sourceY=%f, sourceSpace=%d, destX=%p, destY=%p, destSpace=%d )", \
 			instance, sourceX, sourceY, sourceSpace, destX, destY, destSpace);
 	NOTIMPLEMENTED();

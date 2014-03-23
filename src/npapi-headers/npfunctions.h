@@ -123,7 +123,7 @@ typedef NPError      (* NP_LOADDS NPN_GetAuthenticationInfoPtr)(NPP npp, const c
 typedef uint32_t     (* NP_LOADDS NPN_ScheduleTimerPtr)(NPP instance, uint32_t interval, NPBool repeat, void (*timerFunc)(NPP npp, uint32_t timerID));
 typedef void         (* NP_LOADDS NPN_UnscheduleTimerPtr)(NPP instance, uint32_t timerID);
 typedef NPError      (* NP_LOADDS NPN_PopUpContextMenuPtr)(NPP instance, NPMenu* menu);
-typedef NPBool       (* NP_LOADDS NPN_ConvertPointPtr)(NPP instance, double sourceX, double sourceY, NPCoordinateSpace sourceSpace, double *destX, double *destY, NPCoordinateSpace destSpace);
+typedef NPBool       (* NP_LOADDS NPN_ConvertPointPtr)(NPP instance, DOUBLE sourceX, DOUBLE sourceY, NPCoordinateSpace sourceSpace, DOUBLE *destX, DOUBLE *destY, NPCoordinateSpace destSpace);
 typedef NPBool       (* NP_LOADDS NPN_HandleEventPtr)(NPP instance, void *event, NPBool handled);
 typedef NPBool       (* NP_LOADDS NPN_UnfocusInstancePtr)(NPP instance, NPFocusDirection direction);
 typedef void         (* NP_LOADDS NPN_URLRedirectResponsePtr)(NPP instance, void* notifyData, NPBool allow);

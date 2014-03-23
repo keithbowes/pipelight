@@ -480,7 +480,7 @@ int main(int argc, char *argv[]){
 
 	/* some sanity checks ... */
 #if !defined(_WIN64) && !defined(_AMD64)
-	DBG_ASSERT(offsetof(NPVariant, value.objectValue) == 8, "pluginloader executable was compiled without -malign-double and will not work!");
+	DBG_ASSERT(offsetof(NPVariant, value.objectValue) == 8, "pluginloader executable is corrupted, wrong alignment of doubles in NPVariant!");
 #endif
 
 	/* get the main thread ID */

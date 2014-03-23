@@ -102,7 +102,7 @@ typedef struct _NPVariant {
     union {
         bool boolValue;
         int32_t intValue;
-        double doubleValue;
+        DOUBLE doubleValue;
         NPString stringValue;
         NPObject *objectValue;
     } value;

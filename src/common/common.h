@@ -25,10 +25,10 @@
 	#error "Could not detect your operating system!"
 #endif
 
+#include "../npapi-headers/nptypes.h"
 #include "../npapi-headers/npapi.h"
 #include "../npapi-headers/npfunctions.h"
 #include "../npapi-headers/npruntime.h"
-#include "../npapi-headers/nptypes.h"
 
 #if defined(__WINE__)
 	#include <sys/stat.h>						/* for stat */

@@ -40,6 +40,17 @@
 #define nptypes_h_
 
 /*
+ * Use DOUBLE instead of double to work around different align of doubles.
+ * On Windows doubles are always 64-bit aligned, on Linux they are only 32-bit
+ * aligned. Wineg++ doesn't handle the alignment correctly when using 'double'.
+ */
+#if defined(__WINE__)
+  typedef double __attribute__((aligned(8))) DOUBLE;
+#else
+  typedef double DOUBLE;
+#endif
+
+/*
  * Header file for ensuring that C99 types ([u]int32_t, [u]int64_t and bool) and
  * true/false macros are available.
  */
