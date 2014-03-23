@@ -138,10 +138,10 @@ operaDetection      = true
 # Script you want. You can use this command multiple times.
 # Uncomment the following 4 lines for FF15 spoofing.
 #
-# executejavascript = var __originalNavigator = navigator;
-# executejavascript = navigator = new Object();
-# executejavascript = navigator.__proto__ = __originalNavigator;
-# executejavascript = navigator.__defineGetter__('userAgent', function () { return 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:15.0) Gecko/20120427 Firefox/15.0a1'; });
+# executeJavascript = var __originalNavigator = navigator;
+# executeJavascript = navigator = new Object();
+# executeJavascript = navigator.__proto__ = __originalNavigator;
+# executeJavascript = navigator.__defineGetter__('userAgent', function () { return 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:15.0) Gecko/20120427 Firefox/15.0a1'; });
 
 #------------------------- EXPERIMENTAL -------------------------
 # Watch out: The following section contains highly experimental
