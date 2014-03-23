@@ -192,23 +192,23 @@ struct NetscapeData{
 	bool		windowlessMode;
 	bool		embeddedMode;
 
-	NPObject*   	cache_pluginElementNPObject;
-	NPIdentifier 	cache_clientWidthIdentifier;
+	NPObject*		cache_pluginElementNPObject;
+	NPIdentifier	cache_clientWidthIdentifier;
 
-	RECT 		browser;
-	NPWindow 	window;
+	RECT		browser;
+	NPWindow	window;
 
 	/* regular mode */
-	HWND 		hWnd;
+	HWND		hWnd;
 
 	/* linux windowless mode */
-	HDC 		hDC;
+	HDC			hDC;
 	XID			lastDrawableDC;
-	int 		invalidate;
-	NPRect 		invalidateRect;
+	int			invalidate;
+	NPRect		invalidateRect;
 	unsigned char keystate[256];
 
-	/* asny calls */
+	/* async calls */
 	AsyncCallback *asyncCalls;
 
 };

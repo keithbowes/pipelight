@@ -36,7 +36,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include <string.h> 							// for memcpy
+#include <string.h>								// for memcpy
 
 #include "../common/common.h"
 
@@ -80,8 +80,8 @@ bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args,
 	if (resultBool){
 		readVariant(stack, *result); /* refcount already incremented by invoke() */
 	}else{
-		result->type 				= NPVariantType_Void;
-		result->value.objectValue 	= NULL;
+		result->type				= NPVariantType_Void;
+		result->value.objectValue	= NULL;
 	}
 
 	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
@@ -104,8 +104,8 @@ bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t ar
 	if (resultBool){
 		readVariant(stack, *result); /* refcount already incremented by invoke() */
 	}else{
-		result->type 				= NPVariantType_Void;
-		result->value.objectValue 	= NULL;
+		result->type				= NPVariantType_Void;
+		result->value.objectValue	= NULL;
 	}
 
 	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
@@ -139,8 +139,8 @@ bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result
 	if (resultBool){
 		readVariant(stack, *result);
 	}else{
-		result->type 				= NPVariantType_Void;
-		result->value.objectValue 	= NULL;
+		result->type				= NPVariantType_Void;
+		result->value.objectValue	= NULL;
 	}
 
 	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
@@ -190,8 +190,8 @@ bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *coun
 			*count = 0;
 
 		}else{
-			std::vector<NPIdentifier> identifiers 	= readIdentifierArray(stack, identifierCount);
-			NPIdentifier* identifierTable 			= (NPIdentifier*)sBrowserFuncs->memalloc(identifierCount * sizeof(NPIdentifier));
+			std::vector<NPIdentifier> identifiers	= readIdentifierArray(stack, identifierCount);
+			NPIdentifier* identifierTable			= (NPIdentifier*)sBrowserFuncs->memalloc(identifierCount * sizeof(NPIdentifier));
 
 			if (identifierTable){
 				memcpy(identifierTable, identifiers.data(), sizeof(NPIdentifier) * identifierCount);

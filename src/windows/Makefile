@@ -1,8 +1,8 @@
-suffix 		:=
+suffix		:=
 CXX			:= $(wincxx)
 CXXFLAGS	:= -Wall -std=gnu++0x -D_WIN32_WINNT=0x0502 -DPLUGINLOADER $(winflags) $(CXXFLAGS)
-LDFLAGS 	:= -lversion -lgdi32 -lole32 #$(LDFLAGS)
-OBJECTS 	:= common$(suffix).o apihook$(suffix).o npclass$(suffix).o npnfunctions$(suffix).o pluginloader$(suffix).o
+LDFLAGS		:= -lversion -lgdi32 -lole32 #$(LDFLAGS)
+OBJECTS		:= common$(suffix).o apihook$(suffix).o npclass$(suffix).o npnfunctions$(suffix).o pluginloader$(suffix).o
 COMMONHDR	:= ../common/common.h ../npapi-headers/npapi.h ../npapi-headers/npfunctions.h ../npapi-headers/npruntime.h ../npapi-headers/nptypes.h
 
 ifeq ($(wincxx),prebuilt)

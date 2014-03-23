@@ -136,7 +136,7 @@ NPError NP_LOADDS NPN_NewStream(NPP instance, NPMIMEType type, const char* windo
 	readCommands(stack);
 	NPError result = readInt32(stack);
 	if (result == NPERR_NO_ERROR)
-		*stream 	= readHandleStream(stack);
+		*stream		= readHandleStream(stack);
 
 	DBG_TRACE(" -> ( result=%d, ... )", result);
 	return NPERR_NO_ERROR;
@@ -344,7 +344,7 @@ NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 			readCommands(stack);
 			result = readInt32(stack);
 			if (result == NPERR_NO_ERROR)
-				*((NPObject**)value) 	= readHandleObjIncRef(stack);
+				*((NPObject**)value)	= readHandleObjIncRef(stack);
 
 			break;
 
@@ -355,7 +355,7 @@ NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 			readCommands(stack);
 			result = readInt32(stack);
 			if (result == NPERR_NO_ERROR)
-				*((NPBool*)value) 	= (NPBool)readInt32(stack);
+				*((NPBool*)value)	= (NPBool)readInt32(stack);
 
 			break;
 
@@ -366,7 +366,7 @@ NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 			readCommands(stack);
 			result = readInt32(stack);
 			if (result == NPERR_NO_ERROR)
-				*((char**)value) 	= readStringMalloc(stack);
+				*((char**)value)	= readStringMalloc(stack);
 
 			break;
 
@@ -414,8 +414,8 @@ NPError NP_LOADDS NPN_SetValue(NPP instance, NPPVariable variable, void *value){
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
 				if (ndata){
 					/* Update windowless mode */
-					ndata->windowlessMode 	= ( value == NULL );
-					result 					= NPERR_NO_ERROR;
+					ndata->windowlessMode	= ( value == NULL );
+					result					= NPERR_NO_ERROR;
 
 					DBG_INFO("plugin instance switched windowless mode to %s.", (ndata->windowlessMode ? "on" : "off"));
 
@@ -425,11 +425,11 @@ NPError NP_LOADDS NPN_SetValue(NPP instance, NPPVariable variable, void *value){
 							ReleaseDC(ndata->hWnd, (HDC)ndata->window.window);
 
 						if (ndata->windowlessMode){
-							ndata->window.window 		= GetDC(ndata->hWnd);
-							ndata->window.type 			= NPWindowTypeDrawable;
+							ndata->window.window		= GetDC(ndata->hWnd);
+							ndata->window.type			= NPWindowTypeDrawable;
 						}else{
-							ndata->window.window 		= ndata->hWnd;
-							ndata->window.type 			= NPWindowTypeWindow;
+							ndata->window.window		= ndata->hWnd;
+							ndata->window.type			= NPWindowTypeWindow;
 						}
 
 						pluginFuncs.setwindow(instance, &ndata->window);
@@ -459,10 +459,10 @@ void NP_LOADDS NPN_InvalidateRect(NPP instance, NPRect *rect){
 		if (ndata->hWnd){
 			if (ndata->windowlessMode && rect){
 				RECT r;
-				r.left 		= rect->left;
-				r.top 		= rect->top;
-				r.right 	= rect->right;
-				r.bottom 	= rect->bottom;
+				r.left		= rect->left;
+				r.top		= rect->top;
+				r.right		= rect->right;
+				r.bottom	= rect->bottom;
 				InvalidateRect(ndata->hWnd, &r, false);
 
 			}else
@@ -560,8 +560,8 @@ NPIdentifier NP_LOADDS NPN_GetStringIdentifier(const NPUTF8* name){
 		NPIdentifierDescription *ident = (NPIdentifierDescription *)malloc(sizeof(NPIdentifierDescription));
 		DBG_ASSERT(ident != NULL, "could not create identifier.");
 
-		ident->type 		= IDENT_TYPE_String;
-		ident->value.name 	= strdup(name);
+		ident->type			= IDENT_TYPE_String;
+		ident->value.name	= strdup(name);
 
 		identifier = (NPIdentifier)ident;
 		handleManager_updateIdentifier(identifier);
@@ -606,8 +606,8 @@ NPIdentifier NP_LOADDS NPN_GetIntIdentifier(int32_t intid){
 		NPIdentifierDescription *ident = (NPIdentifierDescription *)malloc(sizeof(NPIdentifierDescription));
 		DBG_ASSERT(ident != NULL, "could not create identifier.");
 
-		ident->type 		= IDENT_TYPE_Integer;
-		ident->value.intid 	= intid;
+		ident->type			= IDENT_TYPE_Integer;
+		ident->value.intid	= intid;
 
 		identifier = (NPIdentifier)ident;
 		handleManager_updateIdentifier(identifier);
@@ -781,8 +781,8 @@ bool NP_LOADDS NPN_Invoke(NPP instance, NPObject* obj, NPIdentifier methodName, 
 	if (resultBool)
 		readVariantIncRef(stack, *result);
 	else{
-		result->type 				= NPVariantType_Void;
-		result->value.objectValue 	= NULL;
+		result->type				= NPVariantType_Void;
+		result->value.objectValue	= NULL;
 	}
 
 	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
@@ -808,8 +808,8 @@ bool NP_LOADDS NPN_InvokeDefault(NPP instance, NPObject* obj, const NPVariant *a
 	if (resultBool)
 		readVariantIncRef(stack, *result);
 	else{
-		result->type 				= NPVariantType_Void;
-		result->value.objectValue 	= NULL;
+		result->type				= NPVariantType_Void;
+		result->value.objectValue	= NULL;
 	}
 
 	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
@@ -834,8 +834,8 @@ bool NP_LOADDS NPN_Evaluate(NPP instance, NPObject *obj, NPString *script, NPVar
 	if (resultBool)
 		readVariantIncRef(stack, *result);
 	else{
-		result->type 				= NPVariantType_Void;
-		result->value.objectValue 	= NULL;
+		result->type				= NPVariantType_Void;
+		result->value.objectValue	= NULL;
 	}
 
 	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
@@ -855,8 +855,8 @@ bool NP_LOADDS NPN_GetProperty(NPP instance, NPObject *obj, NPIdentifier propert
 		if (obj == ndata->cache_pluginElementNPObject && propertyName == ndata->cache_clientWidthIdentifier){
 			RECT rect;
 			if (GetClientRect(ndata->hWnd, &rect)){
-				result->type 			= NPVariantType_Int32;
-				result->value.intValue 	= rect.right - rect.left;
+				result->type			= NPVariantType_Int32;
+				result->value.intValue	= rect.right - rect.left;
 				DBG_TRACE(" -> ( result=1, ... ) (faked)");
 				return true;
 			}
@@ -874,8 +874,8 @@ bool NP_LOADDS NPN_GetProperty(NPP instance, NPObject *obj, NPIdentifier propert
 	if (resultBool)
 		readVariantIncRef(stack, *result);
 	else{
-		result->type 				= NPVariantType_Void;
-		result->value.objectValue 	= NULL;
+		result->type				= NPVariantType_Void;
+		result->value.objectValue	= NULL;
 	}
 
 	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
@@ -971,8 +971,8 @@ void NP_LOADDS NPN_ReleaseVariantValue(NPVariant *variant){
 			break;
 	}
 
-	variant->type 				= NPVariantType_Void;
-	variant->value.objectValue 	= NULL;
+	variant->type				= NPVariantType_Void;
+	variant->value.objectValue	= NULL;
 
 	DBG_TRACE(" -> void");
 }
@@ -1054,16 +1054,16 @@ bool NP_LOADDS NPN_Enumerate(NPP instance, NPObject *obj, NPIdentifier **identif
 		uint32_t identifierCount = readInt32(stack);
 		if (identifierCount == 0){
 			*identifier = NULL;
-			*count 		= 0;
+			*count		= 0;
 
 		}else{
-			std::vector<NPIdentifier> identifiers 	= readIdentifierArray(stack, identifierCount);
-			NPIdentifier* identifierTable 			= (NPIdentifier*)malloc(identifierCount * sizeof(NPIdentifier));
+			std::vector<NPIdentifier> identifiers	= readIdentifierArray(stack, identifierCount);
+			NPIdentifier* identifierTable			= (NPIdentifier*)malloc(identifierCount * sizeof(NPIdentifier));
 
 			if (identifierTable){
 				memcpy(identifierTable, identifiers.data(), sizeof(NPIdentifier) * identifierCount);
 				*identifier = identifierTable;
-				*count 		= identifierCount;
+				*count		= identifierCount;
 
 			}else
 				result = false;
@@ -1084,7 +1084,7 @@ void NP_LOADDS NPN_PluginThreadAsyncCall(NPP instance, void (*func)(void *), voi
 		asyncCall = (AsyncCallback *)malloc(sizeof(AsyncCallback));
 		DBG_ASSERT(asyncCall, "unable to schedule async call, out of memory.");
 
-		asyncCall->func 	= func;
+		asyncCall->func		= func;
 		asyncCall->userData	= userData;
 
 		/* append at the end of the list */

@@ -103,21 +103,21 @@ enum MenuAction{
 };
 
 struct MenuEntry{
-	UINT 		identifier;
-	MenuAction 	action;
+	UINT		identifier;
+	MenuAction	action;
 
 	MenuEntry(UINT identifier, MenuAction action){
 		this->identifier = identifier;
-		this->action 	 = action;
+		this->action	 = action;
 	}
 };
 
 #define MENUID_OFFSET 0x50495045 /* 'PIPE' */
 
 std::vector<MenuEntry> menuAddEntries(HMENU hMenu, HWND hwnd){
-	std::vector<MenuEntry> 	entries;
+	std::vector<MenuEntry>	entries;
 	MENUITEMINFOA			entryInfo;
-	std::string 			temp;
+	std::string				temp;
 
 	int count = GetMenuItemCount(hMenu);
 	if(count == -1)
@@ -125,7 +125,7 @@ std::vector<MenuEntry> menuAddEntries(HMENU hMenu, HWND hwnd){
 
 	memset(&entryInfo, 0, sizeof(entryInfo));
 	entryInfo.cbSize	= sizeof(entryInfo);
-	entryInfo.wID 		= MENUID_OFFSET;
+	entryInfo.wID		= MENUID_OFFSET;
 
 	/* ------- Separator ------- */
 	entryInfo.fMask		= MIIM_FTYPE | MIIM_ID;
@@ -137,7 +137,7 @@ std::vector<MenuEntry> menuAddEntries(HMENU hMenu, HWND hwnd){
 	/* ------- About Pipelight ------- */
 	entryInfo.fMask			= MIIM_FTYPE | MIIM_STRING | MIIM_ID;
 	entryInfo.fType			= MFT_STRING;
-	entryInfo.dwTypeData 	= (char*)"Pipelight\t" PIPELIGHT_VERSION;
+	entryInfo.dwTypeData	= (char*)"Pipelight\t" PIPELIGHT_VERSION;
 	InsertMenuItemA(hMenu, count, true, &entryInfo);
 	entries.emplace_back(entryInfo.wID, MENU_ACTION_ABOUT_PIPELIGHT);
 	count++; entryInfo.wID++;
@@ -148,7 +148,7 @@ std::vector<MenuEntry> menuAddEntries(HMENU hMenu, HWND hwnd){
 	entryInfo.fMask			= MIIM_FTYPE | MIIM_STRING | MIIM_ID | MIIM_STATE;
 	entryInfo.fType			= MFT_STRING;
 	entryInfo.fState		= MFS_DISABLED;
-	entryInfo.dwTypeData 	= (char*)temp.c_str();
+	entryInfo.dwTypeData	= (char*)temp.c_str();
 	InsertMenuItemA(hMenu, count, true, &entryInfo);
 	entries.emplace_back(entryInfo.wID, MENU_ACTION_NONE);
 	count++; entryInfo.wID++;
@@ -159,7 +159,7 @@ std::vector<MenuEntry> menuAddEntries(HMENU hMenu, HWND hwnd){
 	entryInfo.fMask			= MIIM_FTYPE | MIIM_STRING | MIIM_ID | MIIM_STATE;
 	entryInfo.fType			= MFT_STRING;
 	entryInfo.fState		= MFS_DISABLED;
-	entryInfo.dwTypeData 	= (char*)temp.c_str();
+	entryInfo.dwTypeData	= (char*)temp.c_str();
 	InsertMenuItemA(hMenu, count, true, &entryInfo);
 	entries.emplace_back(entryInfo.wID, MENU_ACTION_NONE);
 	count++; entryInfo.wID++;
@@ -175,7 +175,7 @@ std::vector<MenuEntry> menuAddEntries(HMENU hMenu, HWND hwnd){
 	entryInfo.fMask			= MIIM_FTYPE | MIIM_STRING | MIIM_ID | MIIM_STATE;
 	entryInfo.fType			= MFT_STRING;
 	entryInfo.fState        = isEmbeddedMode ? MFS_CHECKED : 0;
-	entryInfo.dwTypeData 	= (char*)"Embed into browser";
+	entryInfo.dwTypeData	= (char*)"Embed into browser";
 	InsertMenuItemA(hMenu, count, true, &entryInfo);
 	entries.emplace_back(entryInfo.wID, MENU_ACTION_TOGGLE_EMBED);
 	count++; entryInfo.wID++;
@@ -185,7 +185,7 @@ std::vector<MenuEntry> menuAddEntries(HMENU hMenu, HWND hwnd){
 		entryInfo.fMask			= MIIM_FTYPE | MIIM_STRING | MIIM_ID | MIIM_STATE;
 		entryInfo.fType			= MFT_STRING;
 		entryInfo.fState        = stayInFullscreen ? MFS_CHECKED : 0;
-		entryInfo.dwTypeData 	= (char*)"Stay in fullscreen";
+		entryInfo.dwTypeData	= (char*)"Stay in fullscreen";
 		InsertMenuItemA(hMenu, count, true, &entryInfo);
 		entries.emplace_back(entryInfo.wID, MENU_ACTION_TOGGLE_STAY_IN_FULLSCREEN);
 		count++; entryInfo.wID++;
@@ -233,7 +233,7 @@ bool menuHandler(NPP instance, UINT identifier, const std::vector<MenuEntry> &en
 typedef BOOL (* WINAPI TrackPopupMenuExPtr)(HMENU hMenu, UINT fuFlags, int x, int y, HWND hWnd, LPTPMPARAMS lptpm);
 typedef BOOL (* WINAPI TrackPopupMenuPtr)(HMENU hMenu, UINT uFlags, int x, int y, int nReserved, HWND hWnd, const RECT *prcRect);
 TrackPopupMenuExPtr originalTrackPopupMenuEx    = NULL;
-TrackPopupMenuPtr 	originalTrackPopupMenu  	= NULL;
+TrackPopupMenuPtr	originalTrackPopupMenu		= NULL;
 
 /*
 	One disadvantage of our current implementation of the hook is that the
@@ -319,7 +319,7 @@ bool installPopupHook(){
 		originalTrackPopupMenuEx    = (TrackPopupMenuExPtr)	patchDLLExport(module_user32, "TrackPopupMenuEx", (void*)&myTrackPopupMenuEx);
 
 	if (!originalTrackPopupMenu)
-		originalTrackPopupMenu   	= (TrackPopupMenuPtr)	patchDLLExport(module_user32, "TrackPopupMenu", (void*)&myTrackPopupMenu);
+		originalTrackPopupMenu		= (TrackPopupMenuPtr)	patchDLLExport(module_user32, "TrackPopupMenu", (void*)&myTrackPopupMenu);
 
 	return (originalTrackPopupMenuEx && originalTrackPopupMenu);
 }

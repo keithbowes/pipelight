@@ -58,23 +58,23 @@
 
 */
 
-char strMimeType[2048] 				= {0};
+char strMimeType[2048]				= {0};
 char strPluginVersion[100]			= {0};
-char strPluginName[256] 			= {0};
+char strPluginName[256]				= {0};
 char strPluginDescription[1024]		= {0};
 
-uint32_t  	eventTimerID 			= 0;
-NPP 		eventTimerInstance 		= NULL;
-pthread_t 	eventThread				= 0;
+uint32_t	eventTimerID			= 0;
+NPP			eventTimerInstance		= NULL;
+pthread_t	eventThread				= 0;
 
 sem_t		eventThreadSemRequestAsyncCall;
 sem_t		eventThreadSemScheduledAsyncCall;
 
-pid_t 		winePid 				= -1;
-bool 		initOkay 				= false;
+pid_t		winePid					= -1;
+bool		initOkay				= false;
 
 // Browser functions
-NPNetscapeFuncs* sBrowserFuncs 		= NULL;
+NPNetscapeFuncs* sBrowserFuncs		= NULL;
 
 // Global plugin configuration
 PluginConfig config INIT_EARLY;
@@ -121,14 +121,14 @@ void attach(){
 		return;
 	}
 
- 	/* tell the windows side that a sandbox is active */
+	/* tell the windows side that a sandbox is active */
 	if (config.sandboxPath != ""){
 		writeInt32( (config.sandboxPath != "") );
 		callFunction( CHANGE_SANDBOX_STATE );
 		readResultVoid();
 	}
 
- 	/* initialisation successful */
+	/* initialisation successful */
 	initOkay = true;
 }
 
@@ -159,13 +159,13 @@ std::string convertWinePath(std::string path, bool direction){
 		dup2(tempPipeIn[1], 1);
 
 		/* Setup environment variables */
-		setenv("WINEPREFIX", 			config.winePrefix.c_str(), 			true);
+		setenv("WINEPREFIX",			config.winePrefix.c_str(),			true);
 
 		if (config.wineArch != "")
-			setenv("WINEARCH", 			config.wineArch.c_str(), 			true);
+			setenv("WINEARCH",			config.wineArch.c_str(),			true);
 
 		if (config.wineDLLOverrides != "")
-			setenv("WINEDLLOVERRIDES", 	config.wineDLLOverrides.c_str(), 	true);
+			setenv("WINEDLLOVERRIDES",	config.wineDLLOverrides.c_str(),	true);
 
 		/* Generate argv array */
 		std::vector<const char*> argv;
@@ -310,17 +310,17 @@ bool checkPluginInstallation(){
 		close(0);
 
 		/* Setup environment variables */
-		setenv("WINEPREFIX", 			config.winePrefix.c_str(), 			true);
-		setenv("WINE", 					config.winePath.c_str(), 			true);
+		setenv("WINEPREFIX",			config.winePrefix.c_str(),			true);
+		setenv("WINE",					config.winePath.c_str(),			true);
 
 		if (config.wineArch != "")
-			setenv("WINEARCH", 			config.wineArch.c_str(), 			true);
+			setenv("WINEARCH",			config.wineArch.c_str(),			true);
 
 		if (config.wineDLLOverrides != "")
-			setenv("WINEDLLOVERRIDES", 	config.wineDLLOverrides.c_str(), 	true);
+			setenv("WINEDLLOVERRIDES",	config.wineDLLOverrides.c_str(),	true);
 
 		if (config.quietInstallation)
-			setenv("QUIETINSTALLATION",	"1", 								true);
+			setenv("QUIETINSTALLATION",	"1",								true);
 
 		/* Generate argv array */
 		std::vector<const char*> argv;
@@ -438,13 +438,13 @@ bool startWineProcess(){
 		dup2(tempPipeIn[1],   1);
 
 		/* Setup environment variables */
-		setenv("WINEPREFIX", 			config.winePrefix.c_str(), 			true);
+		setenv("WINEPREFIX",			config.winePrefix.c_str(),			true);
 
 		if (config.wineArch != "")
-			setenv("WINEARCH", 			config.wineArch.c_str(), 			true);
+			setenv("WINEARCH",			config.wineArch.c_str(),			true);
 
 		if (config.wineDLLOverrides != "")
-			setenv("WINEDLLOVERRIDES", 	config.wineDLLOverrides.c_str(), 	true);
+			setenv("WINEDLLOVERRIDES",	config.wineDLLOverrides.c_str(),	true);
 
 		if (config.gccRuntimeDLLs != ""){
 			std::string runtime = getEnvironmentString("Path");
@@ -531,16 +531,16 @@ void sendXembedMessage(Display* display, Window win, long message, long detail, 
 	XEvent ev;
 	memset(&ev, 0, sizeof(ev));
 
-	ev.xclient.type 		= ClientMessage;
-	ev.xclient.window 		= win;
+	ev.xclient.type			= ClientMessage;
+	ev.xclient.window		= win;
 	ev.xclient.message_type = XInternAtom(display, "_XEMBED", False);
-	ev.xclient.format 		= 32;
+	ev.xclient.format		= 32;
 
-	ev.xclient.data.l[0] 	= CurrentTime;
-	ev.xclient.data.l[1] 	= message;
-	ev.xclient.data.l[2] 	= detail;
-	ev.xclient.data.l[3] 	= data1;
-	ev.xclient.data.l[4] 	= data2;
+	ev.xclient.data.l[0]	= CurrentTime;
+	ev.xclient.data.l[1]	= message;
+	ev.xclient.data.l[2]	= detail;
+	ev.xclient.data.l[3]	= data1;
+	ev.xclient.data.l[4]	= data2;
 
 	XSendEvent(display, win, False, NoEventMask, &ev);
 	XSync(display, False);
@@ -584,7 +584,7 @@ void dispatcher(int functionid, Stack &stack){
 
 		case LIN_HANDLE_MANAGER_FREE_OBJECT:
 			{
-				NPObject* obj 		= readHandleObj(stack);
+				NPObject* obj		= readHandleObj(stack);
 				DBG_TRACE("LIN_HANDLE_MANAGER_FREE_OBJECT( obj=%p )", obj);
 				DBG_TRACE("LIN_HANDLE_MANAGER_FREE_OBJECT -> void");
 				returnCommand();
@@ -596,7 +596,7 @@ void dispatcher(int functionid, Stack &stack){
 
 		case LIN_HANDLE_MANAGER_FREE_OBJECT_ASYNC:
 			{
-				NPObject* obj 		= readHandleObj(stack);
+				NPObject* obj		= readHandleObj(stack);
 				DBG_TRACE("LIN_HANDLE_MANAGER_FREE_OBJECT_ASYNC( obj=%p ) -> void", obj);
 				handleManager_removeByPtr(HMGR_TYPE_NPObject, obj);
 			}
@@ -604,17 +604,17 @@ void dispatcher(int functionid, Stack &stack){
 	#if 0
 		case GET_WINDOW_RECT:
 			{
-				Window win 				= (Window)readInt32(stack);
-				bool result         	= false;
+				Window win				= (Window)readInt32(stack);
+				bool result				= false;
 				XWindowAttributes winattr;
 				Window dummy;
 				DBG_TRACE("GET_WINDOW_RECT( win=%lu )", win);
 
-				Display *display 		= XOpenDisplay(NULL);
+				Display *display		= XOpenDisplay(NULL);
 
 				if (display){
-					result 				= XGetWindowAttributes(display, win, &winattr);
-					if (result) result 	= XTranslateCoordinates(display, win, RootWindow(display, 0), winattr.x, winattr.y, &winattr.x, &winattr.y, &dummy);
+					result				= XGetWindowAttributes(display, win, &winattr);
+					if (result) result	= XTranslateCoordinates(display, win, RootWindow(display, 0), winattr.x, winattr.y, &winattr.x, &winattr.y, &dummy);
 
 					XCloseDisplay(display);
 
@@ -633,9 +633,9 @@ void dispatcher(int functionid, Stack &stack){
 	#ifndef __APPLE__
 		case CHANGE_EMBEDDED_MODE:
 			{
-				NPP instance 			= readHandleInstance(stack);
-				Window win 				= (Window)readInt32(stack);
-				bool embed 				= (bool)readInt32(stack);
+				NPP instance			= readHandleInstance(stack);
+				Window win				= (Window)readInt32(stack);
+				bool embed				= (bool)readInt32(stack);
 				DBG_TRACE("CHANGE_EMBEDDED_MODE( instance=%p, win=%lu, embed=%d )", instance, win, embed);
 
 				PluginData *pdata = (PluginData*)instance->pdata;
@@ -675,7 +675,7 @@ void dispatcher(int functionid, Stack &stack){
 	#endif
 		case FUNCTION_NPN_CREATE_OBJECT:
 			{
-				NPP instance 			= readHandleInstance(stack);
+				NPP instance			= readHandleInstance(stack);
 				DBG_TRACE("FUNCTION_NPN_CREATE_OBJECT( instance=%p )", instance);
 
 				NPObject* obj = sBrowserFuncs->createobject(instance, &myClass);
@@ -689,8 +689,8 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_GETVALUE_BOOL:
 			{
-				NPP instance 			= readHandleInstance(stack);
-				NPNVariable variable 	= (NPNVariable)readInt32(stack);
+				NPP instance			= readHandleInstance(stack);
+				NPNVariable variable	= (NPNVariable)readInt32(stack);
 				DBG_TRACE("FUNCTION_NPN_GETVALUE_BOOL( instance=%p, variable=%d )", instance, variable);
 
 				NPBool resultBool = 0;
@@ -714,8 +714,8 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_GETVALUE_OBJECT:
 			{
-				NPP instance 			= readHandleInstance(stack);
-				NPNVariable variable 	= (NPNVariable)readInt32(stack);
+				NPP instance			= readHandleInstance(stack);
+				NPNVariable variable	= (NPNVariable)readInt32(stack);
 				DBG_TRACE("FUNCTION_NPN_GETVALUE_OBJECT( instance=%p, variable=%d )", instance, variable);
 
 				NPObject* obj = NULL;
@@ -738,8 +738,8 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_GETVALUE_STRING:
 			{
-				NPP instance 			= readHandleInstance(stack);
-				NPNVariable variable 	= (NPNVariable)readInt32(stack);
+				NPP instance			= readHandleInstance(stack);
+				NPNVariable variable	= (NPNVariable)readInt32(stack);
 				DBG_TRACE("FUNCTION_NPN_GETVALUE_STRING( instance=%p, variable=%d )", instance, variable);
 
 				char* str = NULL;
@@ -765,8 +765,8 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_RELEASEOBJECT:
 			{
-				NPObject* obj 				= readHandleObj(stack);
-				uint32_t minReferenceCount 	= readInt32(stack);
+				NPObject* obj				= readHandleObj(stack);
+				uint32_t minReferenceCount	= readInt32(stack);
 				DBG_TRACE("FUNCTION_NPN_RELEASEOBJECT( obj=%p, minReferenceCount=%d )", obj, minReferenceCount);
 
 				DBG_ASSERT( (minReferenceCount & REFCOUNT_MASK) <= obj->referenceCount, "object referenceCount smaller than expected?");
@@ -782,8 +782,8 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_RELEASEOBJECT_ASYNC:
 			{
-				NPObject* obj 				= readHandleObj(stack);
-				uint32_t minReferenceCount 	= readInt32(stack);
+				NPObject* obj				= readHandleObj(stack);
+				uint32_t minReferenceCount	= readInt32(stack);
 				DBG_TRACE("FUNCTION_NPN_RELEASEOBJECT_ASYNC( obj=%p, minReferenceCount=%d ) -> void", obj, minReferenceCount);
 
 				DBG_ASSERT( (minReferenceCount & REFCOUNT_MASK) <= obj->referenceCount, "object referenceCount smaller than expected?");
@@ -796,8 +796,8 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_RETAINOBJECT:
 			{
-				NPObject* obj 				= readHandleObj(stack);
-				uint32_t minReferenceCount 	= readInt32(stack);
+				NPObject* obj				= readHandleObj(stack);
+				uint32_t minReferenceCount	= readInt32(stack);
 				DBG_TRACE("FUNCTION_NPN_RETAINOBJECT( obj=%p, minReferenceCount=%d )", obj, minReferenceCount);
 
 				sBrowserFuncs->retainobject(obj);
@@ -811,8 +811,8 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_RETAINOBJECT_ASYNC:
 			{
-				NPObject* obj 				= readHandleObj(stack);
-				uint32_t minReferenceCount 	= readInt32(stack);
+				NPObject* obj				= readHandleObj(stack);
+				uint32_t minReferenceCount	= readInt32(stack);
 				DBG_TRACE("FUNCTION_NPN_RETAINOBJECT_ASYNC( obj=%p, minReferenceCount=%d ) -> void", obj, minReferenceCount);
 
 				sBrowserFuncs->retainobject(obj);
@@ -823,12 +823,12 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_EVALUATE:
 			{
-				NPP instance 					= readHandleInstance(stack);
-				NPObject* obj 					= readHandleObj(stack);
+				NPP instance					= readHandleInstance(stack);
+				NPObject* obj					= readHandleObj(stack);
 				size_t len;
 				std::shared_ptr<char> buffer	= readStringAsMemory(stack, len);
 				NPVariant resultVariant;
-				resultVariant.type 				= NPVariantType_Void;
+				resultVariant.type				= NPVariantType_Void;
 				resultVariant.value.objectValue = NULL;
 				DBG_TRACE("FUNCTION_NPN_EVALUATE( instance=%p, obj=%p, buffer='%s' )", instance, obj, buffer.get());
 
@@ -882,13 +882,13 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_INVOKE:
 			{
-				NPP instance 					= readHandleInstance(stack);
-				NPObject* obj 					= readHandleObj(stack);
+				NPP instance					= readHandleInstance(stack);
+				NPObject* obj					= readHandleObj(stack);
 				NPIdentifier identifier			= readHandleIdentifier(stack);
 				int32_t argCount				= readInt32(stack);
-				std::vector<NPVariant> args 	= readVariantArray(stack, argCount);
+				std::vector<NPVariant> args		= readVariantArray(stack, argCount);
 				NPVariant resultVariant;
-				resultVariant.type 				= NPVariantType_Void;
+				resultVariant.type				= NPVariantType_Void;
 				resultVariant.value.objectValue = NULL;
 				DBG_TRACE("FUNCTION_NPN_INVOKE( instance=%p, obj=%p, identifier=%p, argCount=%d, ... )", instance, obj, identifier, argCount);
 
@@ -905,12 +905,12 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_INVOKE_DEFAULT:
 			{
-				NPP instance 					= readHandleInstance(stack);
-				NPObject* obj 					= readHandleObj(stack);
+				NPP instance					= readHandleInstance(stack);
+				NPObject* obj					= readHandleObj(stack);
 				int32_t argCount				= readInt32(stack);
-				std::vector<NPVariant> args 	= readVariantArray(stack, argCount);
+				std::vector<NPVariant> args		= readVariantArray(stack, argCount);
 				NPVariant resultVariant;
-				resultVariant.type 				= NPVariantType_Void;
+				resultVariant.type				= NPVariantType_Void;
 				resultVariant.value.objectValue = NULL;
 				DBG_TRACE("FUNCTION_NPN_INVOKE_DEFAULT( instance=%p, obj=%p, argCount=%d, ... )", instance, obj, argCount);
 
@@ -927,8 +927,8 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_HAS_PROPERTY:
 			{
-				NPP instance 				= readHandleInstance(stack);
-				NPObject* obj 				= readHandleObj(stack);
+				NPP instance				= readHandleInstance(stack);
+				NPObject* obj				= readHandleObj(stack);
 				NPIdentifier identifier		= readHandleIdentifier(stack);
 				DBG_TRACE("FUNCTION_NPN_HAS_PROPERTY( instance=%p, obj=%p, identifier=%p )", instance, obj, identifier);
 
@@ -942,8 +942,8 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_HAS_METHOD:
 			{
-				NPP instance 				= readHandleInstance(stack);
-				NPObject* obj 				= readHandleObj(stack);
+				NPP instance				= readHandleInstance(stack);
+				NPObject* obj				= readHandleObj(stack);
 				NPIdentifier identifier		= readHandleIdentifier(stack);
 				DBG_TRACE("FUNCTION_NPN_HAS_METHOD( instance=%p, obj=%p, identifier=%p )", instance, obj, identifier);
 
@@ -957,12 +957,12 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_GET_PROPERTY:
 			{
-				NPP instance 				= readHandleInstance(stack);
-				NPObject*  obj 				= readHandleObj(stack);
+				NPP instance				= readHandleInstance(stack);
+				NPObject*  obj				= readHandleObj(stack);
 				NPIdentifier propertyName	= readHandleIdentifier(stack);
 				NPVariant resultVariant;
-				resultVariant.type 					= NPVariantType_Void;
-				resultVariant.value.objectValue 	= NULL;
+				resultVariant.type					= NPVariantType_Void;
+				resultVariant.value.objectValue		= NULL;
 				DBG_TRACE("FUNCTION_NPN_GET_PROPERTY( instance=%p, obj=%p, propertyName=%p )", instance, obj, propertyName);
 
 				bool result = sBrowserFuncs->getproperty(instance, obj, propertyName, &resultVariant);
@@ -977,8 +977,8 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_SET_PROPERTY:
 			{
-				NPP instance 					= readHandleInstance(stack);
-				NPObject* obj 					= readHandleObj(stack);
+				NPP instance					= readHandleInstance(stack);
+				NPObject* obj					= readHandleObj(stack);
 				NPIdentifier propertyName		= readHandleIdentifier(stack);
 				NPVariant value;
 				readVariant(stack, value);
@@ -995,8 +995,8 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_REMOVE_PROPERTY:
 			{
-				NPP instance 					= readHandleInstance(stack);
-				NPObject* obj 					= readHandleObj(stack);
+				NPP instance					= readHandleInstance(stack);
+				NPObject* obj					= readHandleObj(stack);
 				NPIdentifier propertyName		= readHandleIdentifier(stack);
 				DBG_TRACE("FUNCTION_NPN_REMOVE_PROPERTY( instance=%p, obj=%p, propertyName=%p )", instance, obj, propertyName);
 
@@ -1010,10 +1010,10 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_ENUMERATE:
 			{
-				NPP instance 					= readHandleInstance(stack);
-				NPObject *obj 					= readHandleObj(stack);
+				NPP instance					= readHandleInstance(stack);
+				NPObject *obj					= readHandleObj(stack);
 				NPIdentifier*   identifierTable = NULL;
-				uint32_t 		identifierCount = 0;
+				uint32_t		identifierCount = 0;
 				DBG_TRACE("FUNCTION_NPN_ENUMERATE( instance=%p, obj=%p )", instance, obj);
 
 				bool result = sBrowserFuncs->enumerate(instance, obj, &identifierTable, &identifierCount);
@@ -1033,8 +1033,8 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_SET_EXCEPTION:
 			{
-				NPObject* obj 					= readHandleObj(stack);
-				std::shared_ptr<char> message 	= readStringAsMemory(stack);
+				NPObject* obj					= readHandleObj(stack);
+				std::shared_ptr<char> message	= readStringAsMemory(stack);
 				DBG_TRACE("FUNCTION_NPN_SET_EXCEPTION( obj=%p, message='%s' )", obj, message.get());
 
 				sBrowserFuncs->setexception(obj, message.get());
@@ -1046,8 +1046,8 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_SET_EXCEPTION_ASYNC:
 			{
-				NPObject* obj 					= readHandleObj(stack);
-				std::shared_ptr<char> message 	= readStringAsMemory(stack);
+				NPObject* obj					= readHandleObj(stack);
+				std::shared_ptr<char> message	= readStringAsMemory(stack);
 				DBG_TRACE("FUNCTION_NPN_SET_EXCEPTION_ASYNC( obj=%p, message='%s' ) -> void", obj, message.get());
 				sBrowserFuncs->setexception(obj, message.get());
 			}
@@ -1055,10 +1055,10 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_GET_URL_NOTIFY:
 			{
-				NPP instance 					= readHandleInstance(stack);
-				std::shared_ptr<char> url 		= readStringAsMemory(stack);
-				std::shared_ptr<char> target 	= readStringAsMemory(stack);
-				NotifyDataRefCount* notifyData 	= (NotifyDataRefCount*)readHandleNotify(stack);
+				NPP instance					= readHandleInstance(stack);
+				std::shared_ptr<char> url		= readStringAsMemory(stack);
+				std::shared_ptr<char> target	= readStringAsMemory(stack);
+				NotifyDataRefCount* notifyData	= (NotifyDataRefCount*)readHandleNotify(stack);
 				DBG_TRACE("FUNCTION_NPN_GET_URL_NOTIFY( instance=%p, url='%s', target='%s', notifyData=%p )", instance, url.get(), target.get(), notifyData);
 
 				/* increase refcounter */
@@ -1075,13 +1075,13 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_POST_URL_NOTIFY:
 			{
-				NPP instance 					= readHandleInstance(stack);
-				std::shared_ptr<char> url 		= readStringAsMemory(stack);
-				std::shared_ptr<char> target 	= readStringAsMemory(stack);
+				NPP instance					= readHandleInstance(stack);
+				std::shared_ptr<char> url		= readStringAsMemory(stack);
+				std::shared_ptr<char> target	= readStringAsMemory(stack);
 				size_t len;
 				std::shared_ptr<char> buffer	= readMemory(stack, len);
-				bool file 						= (bool)readInt32(stack);
-				NotifyDataRefCount* notifyData 	= (NotifyDataRefCount*)readHandleNotify(stack);
+				bool file						= (bool)readInt32(stack);
+				NotifyDataRefCount* notifyData	= (NotifyDataRefCount*)readHandleNotify(stack);
 				DBG_TRACE("FUNCTION_NPN_POST_URL_NOTIFY( instance=%p, url='%s', target='%s', buffer=%p, len=%zd, file=%d, notifyData=%p )", instance, url.get(), target.get(), buffer.get(), len, file, notifyData);
 
 				/* increase refcounter */
@@ -1098,9 +1098,9 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_GET_URL:
 			{
-				NPP instance 					= readHandleInstance(stack);
-				std::shared_ptr<char> url 		= readStringAsMemory(stack);
-				std::shared_ptr<char> target 	= readStringAsMemory(stack);
+				NPP instance					= readHandleInstance(stack);
+				std::shared_ptr<char> url		= readStringAsMemory(stack);
+				std::shared_ptr<char> target	= readStringAsMemory(stack);
 				DBG_TRACE("FUNCTION_NPN_GET_URL( instance=%p, url='%s', target='%s' )", instance, url.get(), target.get());
 
 				NPError result = sBrowserFuncs->geturl(instance, url.get(), target.get());
@@ -1113,12 +1113,12 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_POST_URL:
 			{
-				NPP instance 					= readHandleInstance(stack);
-				std::shared_ptr<char> url 		= readStringAsMemory(stack);
-				std::shared_ptr<char> target 	= readStringAsMemory(stack);
+				NPP instance					= readHandleInstance(stack);
+				std::shared_ptr<char> url		= readStringAsMemory(stack);
+				std::shared_ptr<char> target	= readStringAsMemory(stack);
 				size_t len;
 				std::shared_ptr<char> buffer	= readMemory(stack, len);
-				bool file 						= (bool)readInt32(stack);
+				bool file						= (bool)readInt32(stack);
 				DBG_TRACE("FUNCTION_NPN_POST_URL( instance=%p, url='%s', target='%s', buffer=%p, len=%zd, file=%d )", instance, url.get(), target.get(), buffer.get(), len, file );
 
 				NPError result = sBrowserFuncs->posturl(instance, url.get(), target.get(), len, buffer.get(), file);
@@ -1131,9 +1131,9 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_REQUEST_READ:
 			{
-				NPStream *stream 				= readHandleStream(stack);
+				NPStream *stream				= readHandleStream(stack);
 				uint32_t rangeCount				= readInt32(stack);
-				NPByteRange *byteRange 			= NULL;
+				NPByteRange *byteRange			= NULL;
 				DBG_TRACE("FUNCTION_NPN_REQUEST_READ( stream=%p, rangeCount=%d, ... )", stream, rangeCount );
 
 				if (rangeCount){
@@ -1162,8 +1162,8 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPN_WRITE:
 			{
 				size_t len;
-				NPP instance 					= readHandleInstance(stack);
-				NPStream *stream 				= readHandleStream(stack);
+				NPP instance					= readHandleInstance(stack);
+				NPStream *stream				= readHandleStream(stack);
 				std::shared_ptr<char> buffer	= readMemory(stack, len);
 				DBG_TRACE("FUNCTION_NPN_WRITE( instance=%p, stream=%p, buffer=%p, len=%zd )", instance, stream, buffer.get(), len );
 
@@ -1177,9 +1177,9 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_NEW_STREAM:
 			{
-				NPP instance 					= readHandleInstance(stack);
-				std::shared_ptr<char> type 		= readStringAsMemory(stack);
-				std::shared_ptr<char> target 	= readStringAsMemory(stack);
+				NPP instance					= readHandleInstance(stack);
+				std::shared_ptr<char> type		= readStringAsMemory(stack);
+				std::shared_ptr<char> target	= readStringAsMemory(stack);
 				DBG_TRACE("FUNCTION_NPN_NEW_STREAM( instance=%p, type='%s', target='%s' )", instance, type.get(), target.get() );
 
 				NPStream* stream = NULL;
@@ -1195,9 +1195,9 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_DESTROY_STREAM:
 			{
-				NPP instance 		= readHandleInstance(stack);
-				NPStream *stream 	= readHandleStream(stack, HMGR_SHOULD_EXIST);
-				NPReason reason 	= (NPReason) readInt32(stack);
+				NPP instance		= readHandleInstance(stack);
+				NPStream *stream	= readHandleStream(stack, HMGR_SHOULD_EXIST);
+				NPReason reason		= (NPReason) readInt32(stack);
 				DBG_TRACE("FUNCTION_NPN_DESTROY_STREAM( instance=%p, stream=%p, reason=%d )", instance, stream, reason );
 
 				NPError result = sBrowserFuncs->destroystream(instance, stream, reason);
@@ -1210,7 +1210,7 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_STATUS:
 			{
-				NPP instance 					= readHandleInstance(stack);
+				NPP instance					= readHandleInstance(stack);
 				std::shared_ptr<char> message	= readStringAsMemory(stack);
 				DBG_TRACE("FUNCTION_NPN_STATUS( instance=%p, message='%s' )", instance, message.get() );
 
@@ -1223,7 +1223,7 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_STATUS_ASYNC:
 			{
-				NPP instance 					= readHandleInstance(stack);
+				NPP instance					= readHandleInstance(stack);
 				std::shared_ptr<char> message	= readStringAsMemory(stack);
 				DBG_TRACE("FUNCTION_NPN_STATUS_ASYNC( instance=%p, message='%s' ) -> void", instance, message.get() );
 				sBrowserFuncs->status(instance, message.get());
@@ -1232,7 +1232,7 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_USERAGENT:
 			{
-				NPP instance 					= readHandleInstance(stack);
+				NPP instance					= readHandleInstance(stack);
 				DBG_TRACE("FUNCTION_NPN_USERAGENT( instance=%p )", instance );
 
 				const char *uagent = sBrowserFuncs->uagent(instance);
@@ -1247,7 +1247,7 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_IDENTIFIER_IS_STRING:
 			{
-				NPIdentifier identifier 		= readHandleIdentifier(stack);
+				NPIdentifier identifier			= readHandleIdentifier(stack);
 				DBG_TRACE("FUNCTION_NPN_IDENTIFIER_IS_STRING( identifier=%p )", identifier );
 
 				bool result = sBrowserFuncs->identifierisstring(identifier);
@@ -1276,7 +1276,7 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_INT_FROM_IDENTIFIER:
 			{
-				NPIdentifier identifier 		= readHandleIdentifier(stack);
+				NPIdentifier identifier			= readHandleIdentifier(stack);
 				DBG_TRACE("FUNCTION_NPN_INT_FROM_IDENTIFIER( identifier=%p )", identifier );
 
 				int32_t result = sBrowserFuncs->intfromidentifier(identifier);
@@ -1289,7 +1289,7 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_GET_STRINGIDENTIFIER:
 			{
-				std::shared_ptr<char> utf8name 	= readStringAsMemory(stack);
+				std::shared_ptr<char> utf8name	= readStringAsMemory(stack);
 				DBG_TRACE("FUNCTION_NPN_GET_STRINGIDENTIFIER( utf8name='%s' )", utf8name.get() );
 
 				NPIdentifier identifier = sBrowserFuncs->getstringidentifier((NPUTF8 *)utf8name.get());
@@ -1302,7 +1302,7 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_GET_INTIDENTIFIER:
 			{
-				int32_t intid 					= readInt32(stack);
+				int32_t intid					= readInt32(stack);
 				DBG_TRACE("FUNCTION_NPN_GET_INTIDENTIFIER( intid='%d' )", intid );
 
 				NPIdentifier identifier = sBrowserFuncs->getintidentifier(intid);
@@ -1317,8 +1317,8 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE:
 			{
-				NPP instance 					= readHandleInstance(stack);
-				bool enabled 					= (bool)readInt32(stack);
+				NPP instance					= readHandleInstance(stack);
+				bool enabled					= (bool)readInt32(stack);
 				DBG_TRACE("FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE( instance=%p, enabled=%d )", instance, enabled );
 				DBG_TRACE("FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE -> void");
 				returnCommand();
@@ -1330,8 +1330,8 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE_ASYNC:
 			{
-				NPP instance 					= readHandleInstance(stack);
-				bool enabled 					= (bool)readInt32(stack);
+				NPP instance					= readHandleInstance(stack);
+				bool enabled					= (bool)readInt32(stack);
 				DBG_TRACE("FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE_ASYNC( instance=%p, enabled=%d ) -> void", instance, enabled );
 				sBrowserFuncs->pushpopupsenabledstate(instance, enabled);
 			}
@@ -1339,7 +1339,7 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_POP_POPUPS_ENABLED_STATE:
 			{
-				NPP instance 					= readHandleInstance(stack);
+				NPP instance					= readHandleInstance(stack);
 				DBG_TRACE("FUNCTION_NPN_POP_POPUPS_ENABLED_STATE( instance=%p )", instance );
 				DBG_TRACE("FUNCTION_NPN_POP_POPUPS_ENABLED_STATE -> void");
 				returnCommand();
@@ -1351,7 +1351,7 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPN_POP_POPUPS_ENABLED_STATE_ASYNC:
 			{
-				NPP instance 					= readHandleInstance(stack);
+				NPP instance					= readHandleInstance(stack);
 				DBG_TRACE("FUNCTION_NPN_POP_POPUPS_ENABLED_STATE_ASYNC( instance=%p ) -> void", instance );
 				sBrowserFuncs->poppopupsenabledstate(instance);
 			}

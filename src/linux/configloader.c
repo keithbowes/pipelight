@@ -80,8 +80,8 @@ static std::string getWineUser(){
 
 /* getConfigNameFromLibrary */
 static void getConfigNameFromLibrary(std::string &configName, std::string &configEnv, std::string &pluginName){
-	Dl_info 	libinfo;
-	size_t 		pos;
+	Dl_info		libinfo;
+	size_t		pos;
 
 	/* get full path for this library, if not fallback to old behaviour (shouldn't occur) */
 	if (!dladdr((void*)getConfigNameFromLibrary, &libinfo) || !libinfo.dli_fname){
@@ -134,8 +134,8 @@ static bool splitConfigValue(std::string line, std::string &key, std::string &va
 	if ((pos = line.find_first_of(splitChar)) == std::string::npos)
 		return false;
 
-	key 	= trim(line.substr(0, pos));
-	value 	= trim(line.substr(pos + 1, std::string::npos));
+	key		= trim(line.substr(0, pos));
+	value	= trim(line.substr(pos + 1, std::string::npos));
 	return (key != "");
 }
 
@@ -147,7 +147,7 @@ static std::string readUntil(const char* &str, char abort = 0){
 	const char *start = str;
 	char c;
 
-	while (	(c = *str) && 						/* more characters? */
+	while (	(c = *str) &&						/* more characters? */
 			(c != abort) &&						/* not the abort character? */
 			(abort || c_alphanumchar(c)) )		/* if no abort character given, then it should be alphanumeric */
 		str++;
@@ -157,7 +157,7 @@ static std::string readUntil(const char* &str, char abort = 0){
 
 /* replaceVariables */
 static std::string replaceVariables(const std::map<std::string, std::string> &variables, const char* str){
-	std::string output 	= "";
+	std::string output	= "";
 	std::string varname = "";
 	std::map<std::string, std::string>::const_iterator it;
 
@@ -200,7 +200,7 @@ static std::string replaceVariables(const std::map<std::string, std::string> &va
 
 /* openConfig, tries to open the config and returns true on success */
 static  bool openConfig(std::ifstream &configFile, std::string &configPath, std::string &pluginName){
-	std::string configName, configEnv, homeDir 	= getHomeDirectory();
+	std::string configName, configEnv, homeDir	= getHomeDirectory();
 	getConfigNameFromLibrary(configName, configEnv, pluginName);
 
 	/* use environment variable */
@@ -265,47 +265,47 @@ bool loadConfig(PluginConfig &config){
 
 	/* initialize config variables with default values */
 	config.configPath			= "";
-	config.pluginName 			= "";
-	config.diagnosticMode 		= false;
+	config.pluginName			= "";
+	config.diagnosticMode		= false;
 
 	config.sandboxPath			= "";
 
-	config.winePath 			= "wine";
-	config.wineArch 			= "win32";
-	config.winePrefix 			= "";
+	config.winePath				= "wine";
+	config.wineArch				= "win32";
+	config.winePrefix			= "";
 	config.wineDLLOverrides		= "mscoree,mshtml,winegstreamer,winemenubuilder.exe="; /* prevent installation of Geck & Mono by default */
 
-	config.dllPath 				= "";
-	config.dllName 				= "";
-	config.regKey 				= "";
-	config.pluginLoaderPath 	= "";
+	config.dllPath				= "";
+	config.dllName				= "";
+	config.regKey				= "";
+	config.pluginLoaderPath		= "";
 	config.gccRuntimeDLLs		= "";
 
-	config.embed 				= true;
-	config.windowlessMode 		= false;
-	config.linuxWindowlessMode 	= false;
+	config.embed				= true;
+	config.windowlessMode		= false;
+	config.linuxWindowlessMode	= false;
 
 	config.fakeVersion			= "";
 	config.fakeMIMEtypes.clear();
 	config.overwriteArgs.clear();
 	config.windowlessOverwriteArgs.clear();
 
-	config.dependencyInstaller 	= "";
+	config.dependencyInstaller	= "";
 	config.dependencies.clear();
 	config.optionalDependencies.clear();
-	config.quietInstallation 	= true;
+	config.quietInstallation	= true;
 
 	config.eventAsyncCall		= false;
-	config.operaDetection 		= true;
-	config.executeJavascript 	= "";
+	config.operaDetection		= true;
+	config.executeJavascript	= "";
 	config.replaceJavascript.clear();
 
-	config.silverlightGraphicDriverCheck 		= "";
+	config.silverlightGraphicDriverCheck		= "";
 
-	config.experimental_unityHacks 				= false;
-	config.experimental_forceSetWindow 			= false;
-	config.experimental_windowClassHook 		= false;
-	config.experimental_strictDrawOrdering 		= false;
+	config.experimental_unityHacks				= false;
+	config.experimental_forceSetWindow			= false;
+	config.experimental_windowClassHook			= false;
+	config.experimental_strictDrawOrdering		= false;
 
 	/* open configuration file */
 	std::ifstream configFile;
@@ -492,7 +492,7 @@ bool loadConfig(PluginConfig &config){
 	setMultiPluginName(config.pluginName);
 
 	/* ensure that all necessary keys are provided */
-	if 	(	config.winePath == "" || ((config.dllPath == "" || config.dllName == "") &&
+	if	(	config.winePath == "" || ((config.dllPath == "" || config.dllName == "") &&
 			config.regKey == "") || config.pluginLoaderPath == "" || config.winePrefix == "" ){
 		DBG_ERROR("Your configuration file doesn't contain all necessary keys - aborting.");
 		DBG_ERROR("please take a look at the original configuration file for more details.");
@@ -516,10 +516,10 @@ bool loadConfig(PluginConfig &config){
 	/* environment variable to overwrite windowlessmode */
 	environmentVariable = getEnvironmentInteger("PIPELIGHT_WINDOWLESSMODE", -1);
 	if (environmentVariable >= 0){
-		config.windowlessMode 		= (environmentVariable >= 1);
-		config.linuxWindowlessMode 	= (environmentVariable >= 2);
-		DBG_INFO("windowlessMode set via commandline to %s", 		config.windowlessMode ? "true" : "false");
-		DBG_INFO("linuxWindowlessMode set via commandline to %s", 	config.linuxWindowlessMode ? "true" : "false");
+		config.windowlessMode		= (environmentVariable >= 1);
+		config.linuxWindowlessMode	= (environmentVariable >= 2);
+		DBG_INFO("windowlessMode set via commandline to %s",		config.windowlessMode ? "true" : "false");
+		DBG_INFO("linuxWindowlessMode set via commandline to %s",	config.linuxWindowlessMode ? "true" : "false");
 	}
 
 #ifdef __APPLE__
@@ -533,8 +533,8 @@ bool loadConfig(PluginConfig &config){
 	if (config.silverlightGraphicDriverCheck != ""){
 		environmentVariable = getEnvironmentInteger("PIPELIGHT_GPUACCELERATION", -1);
 		if (environmentVariable >= 0){
-			config.overwriteArgs["enableGPUAcceleration"] 	= (environmentVariable >= 1) ? "true" : "false";
-			config.experimental_strictDrawOrdering 			= (environmentVariable >= 2);
+			config.overwriteArgs["enableGPUAcceleration"]	= (environmentVariable >= 1) ? "true" : "false";
+			config.experimental_strictDrawOrdering			= (environmentVariable >= 2);
 			DBG_INFO("enableGPUAcceleration set via commandline to %s", (environmentVariable >= 1) ? "true" : "false");
 
 		}else if (config.overwriteArgs.find("enableGPUAcceleration") == config.overwriteArgs.end()){

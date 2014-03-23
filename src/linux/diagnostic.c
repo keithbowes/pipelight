@@ -44,17 +44,17 @@
 
 /* debugSection */
 bool debugSection(NPP instance, std::string name){
-	NPObject 		*windowObj;
-	NPIdentifier 	functionName;
+	NPObject		*windowObj;
+	NPIdentifier	functionName;
 
 	NPVariant		arg;
 	arg.type = NPVariantType_String;
-	arg.value.stringValue.UTF8Characters 	= name.c_str();
+	arg.value.stringValue.UTF8Characters	= name.c_str();
 	arg.value.stringValue.UTF8Length		= name.size();
 
 	NPVariant resultVariant;
-	resultVariant.type 					= NPVariantType_Null;
-	resultVariant.value.objectValue 	= NULL;
+	resultVariant.type					= NPVariantType_Null;
+	resultVariant.value.objectValue		= NULL;
 
 	bool resultBool = false;
 
@@ -74,17 +74,17 @@ bool debugSection(NPP instance, std::string name){
 
 /* debugSimpleMessage */
 bool debugSimpleMessage(NPP instance, std::string message){
-	NPObject 		*windowObj;
-	NPIdentifier 	functionName;
+	NPObject		*windowObj;
+	NPIdentifier	functionName;
 
 	NPVariant		arg;
 	arg.type = NPVariantType_String;
-	arg.value.stringValue.UTF8Characters 	= message.c_str();
+	arg.value.stringValue.UTF8Characters	= message.c_str();
 	arg.value.stringValue.UTF8Length		= message.size();
 
 	NPVariant resultVariant;
-	resultVariant.type 					= NPVariantType_Null;
-	resultVariant.value.objectValue 	= NULL;
+	resultVariant.type					= NPVariantType_Null;
+	resultVariant.value.objectValue		= NULL;
 
 	bool resultBool = false;
 
@@ -104,30 +104,30 @@ bool debugSimpleMessage(NPP instance, std::string message){
 
 /* debugStatusMessage */
 bool debugStatusMessage(NPP instance, std::string name, std::string result, std::string additionalMessage = ""){
-	NPObject 		*windowObj;
-	NPIdentifier 	functionName;
+	NPObject		*windowObj;
+	NPIdentifier	functionName;
 
 	NPVariant		args[3];
 	args[0].type = NPVariantType_String;
-	args[0].value.stringValue.UTF8Characters 	= name.c_str();
+	args[0].value.stringValue.UTF8Characters	= name.c_str();
 	args[0].value.stringValue.UTF8Length		= name.size();
 
 	args[1].type = NPVariantType_String;
-	args[1].value.stringValue.UTF8Characters 	= result.c_str();
+	args[1].value.stringValue.UTF8Characters	= result.c_str();
 	args[1].value.stringValue.UTF8Length		= result.size();
 
 	if (additionalMessage != ""){
 		args[2].type = NPVariantType_String;
-		args[2].value.stringValue.UTF8Characters 	= additionalMessage.c_str();
+		args[2].value.stringValue.UTF8Characters	= additionalMessage.c_str();
 		args[2].value.stringValue.UTF8Length		= additionalMessage.size();
 	}else{
-		args[2].type 				= NPVariantType_Null;
-		args[2].value.objectValue 	= NULL;
+		args[2].type				= NPVariantType_Null;
+		args[2].value.objectValue	= NULL;
 	}
 
 	NPVariant resultVariant;
-	resultVariant.type 					= NPVariantType_Null;
-	resultVariant.value.objectValue 	= NULL;
+	resultVariant.type					= NPVariantType_Null;
+	resultVariant.value.objectValue		= NULL;
 
 	bool resultBool = false;
 
@@ -218,10 +218,10 @@ void runDiagnostic(NPP instance){
 	}
 
 	/* Check dllPath / dllName / regKey */
-	std::string unixPath 	= "";
-	bool dllPathSet 		= (config.dllPath != "" && config.dllName != "");
+	std::string unixPath	= "";
+	bool dllPathSet			= (config.dllPath != "" && config.dllName != "");
 	if (dllPathSet) unixPath= convertWinePath(config.dllPath + "\\" + config.dllName);
-	bool dllPathFound 		= (unixPath != "" && checkIfExists(unixPath));
+	bool dllPathFound		= (unixPath != "" && checkIfExists(unixPath));
 
 	if (config.regKey == ""){
 		debugStatusMessage(instance, "Checking if dllPath/dllname is set and exists", \
