@@ -139,6 +139,10 @@ if [ -z "$win32cxx" ]; then
 		win32cxx="i586-mingw32msvc-c++"
 		win32flags="$win32flags -DMINGW32_FALLBACK -static-libgcc -static-libstdc++ -static"
 
+	elif command -v wineg++ > /dev/null 2>&1; then
+		win32cxx="wineg++"
+		win32flags="$win32flags -malign-double"
+
 	else
 		echo "ERROR: No mingw32-g++ compiler found. Please use --win32-cxx to specify one."
 		exit 1

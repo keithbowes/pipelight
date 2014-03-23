@@ -477,6 +477,11 @@ std::string readPathFromRegistry(HKEY hKey, std::string regKey){
 /* main */
 int main(int argc, char *argv[]){
 
+	/* some sanity checks ... */
+#ifndef _WIN64
+	DBG_ASSERT(offsetof(NPVariant, value.objectValue) == 8, "pluginloader executable was not compiled with -malign-double and will not work!");
+#endif
+
 	/* get the main thread ID */
 	mainThreadID = GetCurrentThreadId();
 
