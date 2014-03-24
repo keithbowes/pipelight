@@ -1,6 +1,6 @@
-PLUGIN_CONFIGS=$(wildcard share/configs/*)
-PLUGIN_SCRIPTS=$(wildcard share/scripts/*)
-PLUGIN_LICENSES=$(wildcard share/licenses/*)
+PLUGIN_CONFIGS=$(wildcard share/configs/*.in)
+PLUGIN_SCRIPTS=$(wildcard share/scripts/*.in)
+PLUGIN_LICENSES=$(wildcard share/licenses/*.in)
 
 version=unknown
 prefix=/usr/local
