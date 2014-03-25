@@ -2,6 +2,7 @@ pipelight-multi (0.2.6) UNRELEASED; urgency=low
 
   * Update Silverlight to 5.1.30214.0
   * Add pipelight commandline switch --list-enabled-all
+  * Add ViewRight for Caiway plugin
 
  -- Michael Mueller <michael@fds-team.de>  Sat, 22 Feb 2014 22:52:12 +0100
 
