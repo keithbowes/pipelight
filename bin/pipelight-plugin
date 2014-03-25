@@ -36,7 +36,7 @@ usage()
 	echo ""
 	echo "Options:"
 	echo "  --accept                    accept all licenses"
-	echo ""	
+	echo ""
 	echo "User commands:"
 	echo "  --enable  PLUGIN            enable plugin"
 	echo "  --disable PLUGIN            disable plugin"
@@ -187,7 +187,7 @@ show_license_dialog()
 			fi
 			while IFS= read line; do
 				if [ "$line" == "---" ]; then break; fi
-				echo "$line" | sed 	-e 's|^\(\[\*\].*\)$|'$color1'\1'$color0'|g' \
+				echo "$line" | sed	-e 's|^\(\[\*\].*\)$|'$color1'\1'$color0'|g' \
 									-e 's|\(http://[^ \t]*\)|'$color3'\1'$color0'|g' \
 									-e 's|\(/usr/[^ \t]*\)|'$color3'\1'$color0'|g'
 			done < "$LICENSE_PATH/license-$dep.txt"
@@ -214,7 +214,7 @@ show_license_dialog()
 			fi
 			while IFS= read line; do
 				if [ "$line" == "---" ]; then break; fi
-				echo "$line" | sed 	-e 's|^\(\[\*\].*\)$|'$color2'\1 [OPTIONAL]'$color0'|g' \
+				echo "$line" | sed	-e 's|^\(\[\*\].*\)$|'$color2'\1 [OPTIONAL]'$color0'|g' \
 									-e 's|\(http://[^ \t]*\)|'$color3'\1'$color0'|g' \
 									-e 's|\(/usr/[^ \t]*\)|'$color3'\1'$color0'|g'
 			done < "$LICENSE_PATH/license-$dep.txt"

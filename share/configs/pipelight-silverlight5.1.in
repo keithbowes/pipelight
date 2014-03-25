@@ -171,16 +171,16 @@ quietInstallation   = @@QUIET_INSTALLATION@@
 operaDetection      = true
 
 #
-# Minimal JavaScript user agent switcher. If your page doesn't check
-# the user agent before loading a Silverlight instance, you can use
-# this trick to overwrite the useragent or execute any other Java-
-# Script you want. You can use this command multiple times.
-# Uncomment the following 4 lines for FF15 spoofing.
+# The following script fakes the user agent which is visible to
+# Silverlight (not for the rest of your website). This is achieved
+# by creating an object __pipelight_navigator, and then replacing
+# window.navigator with this new object whenever Silverlight
+# requests the navigator details.
 #
-# executejavascript = var __originalNavigator = navigator;
-# executejavascript = navigator = new Object();
-# executejavascript = navigator.__proto__ = __originalNavigator;
-# executejavascript = navigator.__defineGetter__('userAgent', function () { return 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:15.0) Gecko/20120427 Firefox/15.0a1'; });
+executeJavascript = __pipelight_navigator = new Object();
+executeJavascript = __pipelight_navigator.__proto__ = navigator;
+executeJavascript = __pipelight_navigator.__defineGetter__('userAgent', function () { return 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:15.0) Gecko/20120427 Firefox/15.0a1'; });
+replaceJavascript = window.navigator = __pipelight_navigator
 
 #
 # We are currently implementing hardware acceleration support, which

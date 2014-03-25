@@ -153,7 +153,7 @@ NPError NP_LOADDS NPN_GetAuthenticationInfo(NPP npp, const char *protocol, const
 uint32_t NP_LOADDS NPN_ScheduleTimer(NPP instance, uint32_t interval, NPBool repeat, void (*timerFunc)(NPP npp, uint32_t timerID));
 void NP_LOADDS NPN_UnscheduleTimer(NPP instance, uint32_t timerID);
 NPError NP_LOADDS NPN_PopUpContextMenu(NPP instance, NPMenu* menu);
-NPBool NP_LOADDS NPN_ConvertPoint(NPP instance, double sourceX, double sourceY, NPCoordinateSpace sourceSpace, double *destX, double *destY, NPCoordinateSpace destSpace);
+NPBool NP_LOADDS NPN_ConvertPoint(NPP instance, DOUBLE sourceX, DOUBLE sourceY, NPCoordinateSpace sourceSpace, DOUBLE *destX, DOUBLE *destY, NPCoordinateSpace destSpace);
 NPBool NP_LOADDS NPN_HandleEvent(NPP instance, void *event, NPBool handled);
 NPBool NP_LOADDS NPN_UnfocusInstance(NPP instance, NPFocusDirection direction);
 void NP_LOADDS NPN_URLRedirectResponse(NPP instance, void* notifyData, NPBool allow);
@@ -192,23 +192,23 @@ struct NetscapeData{
 	bool		windowlessMode;
 	bool		embeddedMode;
 
-	NPObject*   	cache_pluginElementNPObject;
-	NPIdentifier 	cache_clientWidthIdentifier;
+	NPObject*		cache_pluginElementNPObject;
+	NPIdentifier	cache_clientWidthIdentifier;
 
-	RECT 		browser;
-	NPWindow 	window;
+	RECT		browser;
+	NPWindow	window;
 
 	/* regular mode */
-	HWND 		hWnd;
+	HWND		hWnd;
 
 	/* linux windowless mode */
-	HDC 		hDC;
+	HDC			hDC;
 	XID			lastDrawableDC;
-	int 		invalidate;
-	NPRect 		invalidateRect;
+	int			invalidate;
+	NPRect		invalidateRect;
 	unsigned char keystate[256];
 
-	/* asny calls */
+	/* async calls */
 	AsyncCallback *asyncCalls;
 
 };

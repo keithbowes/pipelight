@@ -60,45 +60,46 @@ struct MimeInfo{
 struct PluginConfig{
 	std::string		configPath;
 	std::string		pluginName;
-	bool 			diagnosticMode;
+	bool			diagnosticMode;
 
-	std::string 	sandboxPath;
+	std::string		sandboxPath;
 
-	std::string 	winePath;
+	std::string		winePath;
 	std::string		wineArch;
-	std::string 	winePrefix;
+	std::string		winePrefix;
 	std::string		wineDLLOverrides;
 
-	std::string 	dllPath;
-	std::string 	dllName;
-	std::string 	regKey;
-	std::string 	pluginLoaderPath;
-	std::string 	gccRuntimeDLLs;
+	std::string		dllPath;
+	std::string		dllName;
+	std::string		regKey;
+	std::string		pluginLoaderPath;
+	std::string		gccRuntimeDLLs;
 
 	bool			embed;
-	bool 			windowlessMode;
+	bool			windowlessMode;
 	bool			linuxWindowlessMode;
 
-	std::string 			fakeVersion;
-	std::vector<MimeInfo> 	fakeMIMEtypes;
+	std::string				fakeVersion;
+	std::vector<MimeInfo>	fakeMIMEtypes;
 	std::map<std::string, std::string, stringInsensitiveCompare> overwriteArgs;
 	std::map<std::string, std::string, stringInsensitiveCompare> windowlessOverwriteArgs;
 
 	std::string		dependencyInstaller;
 	std::vector<std::string> dependencies;
 	std::vector<std::string> optionalDependencies;
-	bool 			quietInstallation;
+	bool			quietInstallation;
 
-	bool 			eventAsyncCall;
+	bool			eventAsyncCall;
 	bool			operaDetection;
-	std::string 	executeJavascript;
+	std::string		executeJavascript;
+	std::map<std::string, std::string> replaceJavascript;
 
 	std::string		silverlightGraphicDriverCheck;
 
-	bool 			experimental_unityHacks;
-	bool 			experimental_forceSetWindow;
-	bool 			experimental_windowClassHook;
-	bool 			experimental_strictDrawOrdering;
+	bool			experimental_unityHacks;
+	bool			experimental_forceSetWindow;
+	bool			experimental_windowClassHook;
+	bool			experimental_strictDrawOrdering;
 };
 
 extern bool loadConfig(PluginConfig &config);

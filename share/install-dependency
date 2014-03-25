@@ -7,7 +7,6 @@ usage()
 	echo ""
 	echo "Environment variables:"
 	echo "  WINE                  path to the wine executable"
-	echo "  WINESERVER            path to the wineserver"
 	echo "  WINEPREFIX            usually \$HOME/.wine-pipelight"
 	echo "  WINEARCH              usually win32"
 	echo "  QUIETINSTALLATION=1   don't show the original installation dialogs"
@@ -163,18 +162,6 @@ download()
 	atexit_add_rm "$tmpfile"
 	DOWNLOADFILE="$tmpfile"
 	return 0
-}
-
-# > Waits until the wineserver terminates with a specific timeout
-# arguments:
-# $1	- timeout
-wait_wineserver()
-{
-	local TIMEOUT="$1"
-	while "$WINESERVER" --kill=0 && [ "$TIMEOUT" -gt 0 ]; do
-		sleep 1
-		(( TIMEOUT-- ))
-	done
 }
 
 # > Sets a registry key
@@ -776,14 +763,6 @@ fi
 if [ -z "$WINE" ] || [ -z "$WINEPREFIX" ]; then
 	echo "[$PRG] ERROR: Missing necessary environment variables WINE and WINEPREFIX." >&2
 	exit 1
-fi
-
-if [ -z "$WINESERVER" ]; then
-	export WINESERVER="${WINE%/*}/wineserver"
-	if [ ! -f "${WINESERVER}" ]; then
-		echo "[$PRG] ERROR: Unable to find wineserver. Check if the environment variable WINE is set correctly (or set WINESERVER)." >&2
-		exit 1
-	fi
 fi
 
 if [ ! -w "$WINEPREFIX" ] && [ ! -w "$(dirname "$WINEPREFIX")" ]; then

@@ -1,13 +1,16 @@
-CXX 		:= g++
-CXXFLAGS 	:= -Wall -fPIC -std=gnu++0x $(CXXFLAGS)
-LDFLAGS 	:= -lpthread -ldl $(LDFLAGS)
-OBJECTS 	:= common.o basicplugin.o configloader.o diagnostic.o npclass.o nppfunctions.o
+CXX			:= g++
+CXXFLAGS	:= -Wall -fPIC -std=gnu++0x $(CXXFLAGS)
+LDFLAGS		:= -lpthread -ldl $(LDFLAGS)
+OBJECTS		:= common.o basicplugin.o configloader.o diagnostic.o npclass.o nppfunctions.o
 COMMONHDR	:= ../common/common.h ../npapi-headers/npapi.h ../npapi-headers/npfunctions.h ../npapi-headers/npruntime.h ../npapi-headers/nptypes.h
 
-UNAME_S 	:= $(shell uname -s)
+UNAME_S		:= $(shell uname -s)
 ifneq ($(UNAME_S),Darwin)
 	LDFLAGS += -lX11
 endif
+
+.PHONY: all
+all: libpipelight.so
 
 libpipelight.so: $(OBJECTS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -shared $(OBJECTS) $(LDFLAGS) -o libpipelight.so
@@ -29,9 +32,6 @@ npclass.o: npclass.c $(COMMONHDR)
 
 nppfunctions.o: nppfunctions.c basicplugin.h configloader.h diagnostic.h $(COMMONHDR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c nppfunctions.c -o nppfunctions.o
-
-.PHONY: all
-all: libpipelight.so
 
 .PHONY: clean
 clean:

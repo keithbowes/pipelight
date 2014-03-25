@@ -1,6 +1,6 @@
-PLUGIN_CONFIGS=$(wildcard share/configs/*)
-PLUGIN_SCRIPTS=$(wildcard share/scripts/*)
-PLUGIN_LICENSES=$(wildcard share/licenses/*)
+PLUGIN_CONFIGS=$(wildcard share/configs/*.in)
+PLUGIN_SCRIPTS=$(wildcard share/scripts/*.in)
+PLUGIN_LICENSES=$(wildcard share/licenses/*.in)
 
 version=unknown
 prefix=/usr/local
@@ -55,7 +55,7 @@ install: all
 	mkdir -p "$(DESTDIR)$(prefix)/bin"
 	mkdir -p "$(DESTDIR)$(prefix)/share/man/man1"
 
-	install -m 0644 share/signature.gpg "$(DESTDIR)$(prefix)/share/pipelight/signature.gpg"
+	install -m 0644 share/sig-install-dependency.gpg "$(DESTDIR)$(prefix)/share/pipelight/sig-install-dependency.gpg"
 	install -m 0755 "src/windows/pluginloader.exe" "$(DESTDIR)$(prefix)/share/pipelight/pluginloader.exe"
 	if [ "$(win64)" = "true" ]; then \
 		install -m 0755 "src/windows/pluginloader64.exe" "$(DESTDIR)$(prefix)/share/pipelight/pluginloader64.exe"; \
@@ -96,7 +96,7 @@ install: all
 	sed -i'' -e 's|@@LICENSE_PATH@@|$(prefix)/share/pipelight/licenses|g' pipelight-plugin.tmp
 	sed -i'' -e 's|@@DEPENDENCY_INSTALLER@@|$(prefix)/share/pipelight/install-dependency|g' pipelight-plugin.tmp
 	sed -i'' -e 's|@@MOZ_PLUGIN_PATH@@|$(mozpluginpath)|g' pipelight-plugin.tmp
-	sed -i'' -e 's|@@PIPELIGHT_PUBKEY@@|$(prefix)/share/pipelight/signature.gpg|g' pipelight-plugin.tmp
+	sed -i'' -e 's|@@PIPELIGHT_PUBKEY@@|$(prefix)/share/pipelight/sig-install-dependency.gpg|g' pipelight-plugin.tmp
 	sed -i'' -e 's|@@PLUGINLOADER64_EXISTS@@|$(win64)|g' pipelight-plugin.tmp
 	install -m 0755 pipelight-plugin.tmp "$(DESTDIR)$(prefix)/bin/pipelight-plugin"
 	rm pipelight-plugin.tmp
@@ -108,7 +108,7 @@ install: all
 
 .PHONY: uninstall
 uninstall:
-	rm -f "$(DESTDIR)$(prefix)/share/pipelight/signature.gpg"
+	rm -f "$(DESTDIR)$(prefix)/share/pipelight/sig-install-dependency.gpg"
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/pluginloader.exe"
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/pluginloader64.exe"
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/install-dependency"

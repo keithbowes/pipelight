@@ -25,10 +25,10 @@
 	#error "Could not detect your operating system!"
 #endif
 
+#include "../npapi-headers/nptypes.h"
 #include "../npapi-headers/npapi.h"
 #include "../npapi-headers/npfunctions.h"
 #include "../npapi-headers/npruntime.h"
-#include "../npapi-headers/nptypes.h"
 
 #if defined(__WINE__)
 	#include <sys/stat.h>						/* for stat */
@@ -45,9 +45,9 @@
 /* init */
 #ifndef PLUGINLOADER
 
-#define INIT_EARLY 	__attribute__((init_priority(101)))
+#define INIT_EARLY	__attribute__((init_priority(101)))
 #define CONSTRUCTOR __attribute__((constructor(102)))
-#define DESTRUCTOR 	__attribute__((destructor))
+#define DESTRUCTOR	__attribute__((destructor))
 
 #endif
 
@@ -176,20 +176,20 @@ struct NotifyDataRefCount{
 #endif
 
 enum HMGR_TYPE{
-	HMGR_TYPE_NPObject 		= 0,
+	HMGR_TYPE_NPObject		= 0,
 #ifdef PIPELIGHT_NOCACHE
 	HMGR_TYPE_NPIdentifier,
 #endif
-	HMGR_TYPE_NPPInstance 	= 2,
+	HMGR_TYPE_NPPInstance	= 2,
 	HMGR_TYPE_NPStream,
 	HMGR_TYPE_NotifyData,
 	HMGR_NUMTYPES
 };
 
 enum HMGR_EXISTS{
-	HMGR_SHOULD_NOT_EXIST 	= -1,
+	HMGR_SHOULD_NOT_EXIST	= -1,
 	HMGR_CAN_EXIST			= 0,
-	HMGR_SHOULD_EXIST 		= 1
+	HMGR_SHOULD_EXIST		= 1
 };
 
 struct ParameterInfo{
@@ -529,19 +529,19 @@ inline void writeRECT2(const RECT2 &rect){
 
 inline void writeNPRect(const NPRect &rect){
 	RECT tmp;
-	tmp.left 	= rect.left;
-	tmp.top 	= rect.top;
-	tmp.right 	= rect.right;
-	tmp.bottom 	= rect.bottom;
+	tmp.left	= rect.left;
+	tmp.top		= rect.top;
+	tmp.right	= rect.right;
+	tmp.bottom	= rect.bottom;
 	writeRECT(tmp);
 }
 
 inline void writeRectXYWH(int32_t x, int32_t y, uint32_t width, uint32_t height){
 	RECT tmp;
-	tmp.left 	= x;
-	tmp.top 	= y;
-	tmp.right 	= x + width;
-	tmp.bottom 	= y + height;
+	tmp.left	= x;
+	tmp.top		= y;
+	tmp.right	= x + width;
+	tmp.bottom	= y + height;
 	writeRECT(tmp);
 }
 
@@ -798,29 +798,6 @@ inline void writeVariantArrayConst(const NPVariant *variant, size_t count){
 inline void writeNPString(NPString *string){
 	DBG_ASSERT(string, "invalid string pointer.");
 	writeString((char*)string->UTF8Characters, string->UTF8Length);
-}
-
-inline void readNPString(Stack &stack, NPString &string){
-	size_t stringLength;
-	#ifdef PLUGINLOADER
-		string.UTF8Characters = readStringMalloc(stack, stringLength);
-	#else
-		string.UTF8Characters = readStringBrowserAlloc(stack, stringLength);
-	#endif
-	string.UTF8Length = stringLength;
-}
-
-inline void freeNPString(NPString &string){
-	if (string.UTF8Characters){
-		#ifdef PLUGINLOADER
-			free((char *)string.UTF8Characters);
-		#else
-			sBrowserFuncs->memfree((char *)string.UTF8Characters);
-		#endif
-	}
-
-	string.UTF8Characters 	= NULL;
-	string.UTF8Length		= 0;
 }
 
 inline void writeStringArray(char* str[], int count){

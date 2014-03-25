@@ -139,20 +139,20 @@ NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs *bFuncs, NPPluginFuncs* pFuncs)
 	memset(&pFuncs->newp, 0, pFuncs->size - offsetof(NPPluginFuncs, newp));
 
 	/* return the plugin function table */
-	pFuncs->version 		= (NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR;
-	pFuncs->newp 			= NPP_New;
-	pFuncs->destroy 		= NPP_Destroy;
-	pFuncs->setwindow 		= NPP_SetWindow;
-	pFuncs->newstream 		= NPP_NewStream;
-	pFuncs->destroystream 	= NPP_DestroyStream;
-	pFuncs->asfile 			= NPP_StreamAsFile;
-	pFuncs->writeready 		= NPP_WriteReady;
-	pFuncs->write 			= NPP_Write;
-	pFuncs->print 			= NPP_Print;
-	pFuncs->event 			= NPP_HandleEvent;
-	pFuncs->urlnotify 		= NPP_URLNotify;
-	pFuncs->getvalue 		= NPP_GetValue;
-	pFuncs->setvalue 		= NPP_SetValue;
+	pFuncs->version			= (NP_VERSION_MAJOR << 8) + NP_VERSION_MINOR;
+	pFuncs->newp			= NPP_New;
+	pFuncs->destroy			= NPP_Destroy;
+	pFuncs->setwindow		= NPP_SetWindow;
+	pFuncs->newstream		= NPP_NewStream;
+	pFuncs->destroystream	= NPP_DestroyStream;
+	pFuncs->asfile			= NPP_StreamAsFile;
+	pFuncs->writeready		= NPP_WriteReady;
+	pFuncs->write			= NPP_Write;
+	pFuncs->print			= NPP_Print;
+	pFuncs->event			= NPP_HandleEvent;
+	pFuncs->urlnotify		= NPP_URLNotify;
+	pFuncs->getvalue		= NPP_GetValue;
+	pFuncs->setvalue		= NPP_SetValue;
 
 	DBG_TRACE(" -> result=0");
 	return NPERR_NO_ERROR;
@@ -216,8 +216,8 @@ NP_EXPORT(NPError) NP_GetValue(void *future, NPPVariable variable, void *value){
 
 			pokeString(strPluginName, resultStr, sizeof(strPluginName));
 
-			*((char**)value) 	= strPluginName;
-			result 				= NPERR_NO_ERROR;
+			*((char**)value)	= strPluginName;
+			result				= NPERR_NO_ERROR;
 			break;
 
 		case NPPVpluginDescriptionString:
@@ -232,8 +232,8 @@ NP_EXPORT(NPError) NP_GetValue(void *future, NPPVariable variable, void *value){
 
 			pokeString(strPluginDescription, resultStr, sizeof(strPluginDescription));
 
-			*((char**)value) 	= strPluginDescription;
-			result 				= NPERR_NO_ERROR;
+			*((char**)value)	= strPluginDescription;
+			result				= NPERR_NO_ERROR;
 			break;
 
 		default:
@@ -343,16 +343,16 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 		return NPERR_OUT_OF_MEMORY_ERROR;
 	}
 
-	bool invalidMimeType  	= (mimeType == "application/x-pipelight-error" || mimeType == "application/x-pipelight-error-" + config.pluginName);
+	bool invalidMimeType	= (mimeType == "application/x-pipelight-error" || mimeType == "application/x-pipelight-error-" + config.pluginName);
 
 	/* setup plugin data structure */
-	pdata->pipelightError 	= (!initOkay || invalidMimeType);
+	pdata->pipelightError	= (!initOkay || invalidMimeType);
 	pdata->containerType    = 0;
-	pdata->container      	= NULL;
+	pdata->container		= NULL;
 #ifndef __APPLE__
 	pdata->plugin			= 0;
 #endif
-	instance->pdata 		= pdata;
+	instance->pdata			= pdata;
 
 	if (pdata->pipelightError){
 
@@ -384,13 +384,13 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 
 	/* Execute Javascript if defined */
 	if (config.executeJavascript != ""){
-		NPObject 		*windowObj;
+		NPObject		*windowObj;
 		NPString		script;
-		script.UTF8Characters 	= config.executeJavascript.c_str();
+		script.UTF8Characters	= config.executeJavascript.c_str();
 		script.UTF8Length		= config.executeJavascript.size();
 
 		NPVariant resultVariant;
-		resultVariant.type 				= NPVariantType_Void;
+		resultVariant.type				= NPVariantType_Void;
 		resultVariant.value.objectValue = NULL;
 
 		if (sBrowserFuncs->getvalue(instance, NPNVWindowNPObject, &windowObj) == NPERR_NO_ERROR){
@@ -419,8 +419,8 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	}else{
 		/* TODO: For Chrome this should be ~0, for Firefox a value of 5-10 is better. */
 		if (eventTimerInstance == NULL){
-			eventTimerInstance 	= instance;
-			eventTimerID 		= sBrowserFuncs->scheduletimer(instance, 5, true, timerFunc);
+			eventTimerInstance	= instance;
+			eventTimerID		= sBrowserFuncs->scheduletimer(instance, 5, true, timerFunc);
 		}else
 			DBG_INFO("already one timer running.");
 	}
@@ -515,8 +515,8 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save){
 
 		}else{
 			sBrowserFuncs->unscheduletimer(instance, eventTimerID);
-			eventTimerInstance 	= NULL;
-			eventTimerID 		= 0;
+			eventTimerInstance	= NULL;
+			eventTimerID		= 0;
 			DBG_INFO("unscheduled event timer.");
 		}
 	}
@@ -577,8 +577,8 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save){
 		}else{
 			/* In this event handling model we explicitly schedule a new timer */
 			if (nextInstance){
-				eventTimerID 		= sBrowserFuncs->scheduletimer(nextInstance, 5, true, timerFunc);
-				eventTimerInstance 	= nextInstance;
+				eventTimerID		= sBrowserFuncs->scheduletimer(nextInstance, 5, true, timerFunc);
+				eventTimerInstance	= nextInstance;
 				DBG_INFO("started timer for instance %p.", nextInstance);
 			}
 
@@ -597,8 +597,8 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window){
 
 	/* save the embed container */
 	if (pdata){
-		pdata->containerType 	= window->type;
-		pdata->container 		= window->window;
+		pdata->containerType	= window->type;
+		pdata->container		= window->window;
 	}
 
 	writeRectXYWH(window->x, window->y, window->width, window->height);
@@ -628,7 +628,7 @@ NPError NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool se
 
 	Stack stack;
 	readCommands(stack);
-	NPError result 	= readInt32(stack);
+	NPError result	= readInt32(stack);
 
 	if (result == NPERR_NO_ERROR)
 		*stype = (uint16_t)readInt32(stack);
@@ -834,14 +834,14 @@ NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value){
 	switch (variable){
 
 		case NPPVpluginNeedsXEmbed:
-			result 						= NPERR_NO_ERROR;
-			*((PRBool *)value) 			= config.linuxWindowlessMode ? PR_FALSE : PR_TRUE;
+			result						= NPERR_NO_ERROR;
+			*((PRBool *)value)			= config.linuxWindowlessMode ? PR_FALSE : PR_TRUE;
 			break;
 
 		/* Requested by Midori, but unknown if Silverlight supports this variable */
 		case NPPVpluginWantsAllNetworkStreams:
-			result 						= NPERR_NO_ERROR;
-			*((PRBool *)value) 			= PR_FALSE;
+			result						= NPERR_NO_ERROR;
+			*((PRBool *)value)			= PR_FALSE;
 			break;
 
 		/* Boolean return value */

@@ -57,13 +57,16 @@
 	RegGetValueAPtr RegGetValueA = NULL;
 	#define RRF_RT_ANY   0x0000FFFF
 	#define RRF_RT_REG_SZ 0x00000002
+#endif
 
+#if defined(MINGW32_FALLBACK) || defined(__WINE__)
 	typedef int (* __cdecl _controlfp_sPtr)(unsigned int *currentControl, unsigned int newControl, unsigned int mask);
 	_controlfp_sPtr _controlfp_s = NULL;
-	#if defined(_WIN64) || defined(_AMD64)
-		#error "The defined _CW_DEFAULT value is 32 bit only. You need to replace it and remove this check."
-	#endif
+#if defined(_WIN64) || defined(_AMD64)
+	#define _CW_DEFAULT 0x8001f
+#else
 	#define _CW_DEFAULT 0x9001F
+#endif
 	#define MCW_PC 0x00030000
 #endif
 
@@ -79,13 +82,13 @@ bool isEmbeddedMode		= false;
 bool isWindowlessMode	= false;
 bool isLinuxWindowlessMode = false;
 
-bool stayInFullscreen 	= false;
-bool isSandboxed 		= false;
-bool forceSetWindow 	= false;
+bool stayInFullscreen	= false;
+bool isSandboxed		= false;
+bool forceSetWindow		= false;
 
 /* hooks */
-bool unityHacks 		= false;
-bool windowClassHook 	= false;
+bool unityHacks			= false;
+bool windowClassHook	= false;
 
 /* user agent and plugin data */
 char strUserAgent[1024] = {0};
@@ -191,8 +194,8 @@ static inline WPARAM wParamFromX11State(uint32_t state){
 
 /* drawDebugRect */
 void drawDebugRect(HDC hDC, RECT *rect){
-	HGDIOBJ restoreObject 		= SelectObject(hDC, GetStockObject(DC_PEN));
-	COLORREF restoreDCPenColor 	= SetDCPenColor(hDC, RGB(255, 0, 0));
+	HGDIOBJ restoreObject		= SelectObject(hDC, GetStockObject(DC_PEN));
+	COLORREF restoreDCPenColor	= SetDCPenColor(hDC, RGB(255, 0, 0));
 
 	MoveToEx(hDC, rect->left, rect->top, NULL);
 	LineTo(hDC, rect->right - 1, rect->top);
@@ -211,7 +214,7 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 	if (hWnd){
 		std::map<HWND, NPP>::iterator it = hwndToInstance.find(hWnd);
 		if (it != hwndToInstance.end()){
-			NPP instance 		= it->second;
+			NPP instance		= it->second;
 			NetscapeData* ndata = (NetscapeData*)instance->ndata;
 
 			/* In windowless mode handle paint and all other keyboard/mouse events */
@@ -227,9 +230,9 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 							ndata->window.window = hDC;
 
 							NPEvent event;
-							event.event 	= WM_PAINT;
-							event.wParam 	= (uintptr_t)hDC;
-							event.lParam 	= (uintptr_t)&paint.rcPaint;
+							event.event		= WM_PAINT;
+							event.wParam	= (uintptr_t)hDC;
+							event.lParam	= (uintptr_t)&paint.rcPaint;
 							pluginFuncs.event(instance, &event);
 
 							#ifdef PIPELIGHT_DBGRECT
@@ -252,7 +255,7 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 
 					HDC previousDC = NULL;
 
-					if 	( ndata->window.type == NPWindowTypeDrawable &&
+					if	( ndata->window.type == NPWindowTypeDrawable &&
 							((Msg >= WM_KEYFIRST && Msg <= WM_KEYLAST) || (Msg >= WM_MOUSEFIRST && Msg <= WM_MOUSELAST )) ){
 						previousDC = (HDC)ndata->window.window;
 						ndata->window.window = NULL;
@@ -263,9 +266,9 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 						SetFocus(hWnd);
 
 					NPEvent event;
-					event.event 	= Msg;
-					event.wParam 	= wParam;
-					event.lParam 	= lParam;
+					event.event		= Msg;
+					event.wParam	= wParam;
+					event.lParam	= lParam;
 					int16_t result = pluginFuncs.event(instance, &event);
 
 					if (previousDC)
@@ -306,8 +309,8 @@ void freeSharedPtrMemory(void *memory){
 std::vector<std::string> splitMimeType(std::string input){
 	std::vector<std::string> result;
 
-	int start 			= 0;
-	unsigned int i 		= 0;
+	int start			= 0;
+	unsigned int i		= 0;
 
 	while (i < input.length()){
 		while (i < input.length() && input[i] != '|')
@@ -325,7 +328,7 @@ std::vector<std::string> splitMimeType(std::string input){
 
 /* createLinuxCompatibleMimeType */
 std::string createLinuxCompatibleMimeType(){
-	std::vector<std::string> mimeTypes 		= splitMimeType(np_MimeType);
+	std::vector<std::string> mimeTypes		= splitMimeType(np_MimeType);
 	std::vector<std::string> fileExtensions = splitMimeType(np_FileExtents);
 	std::vector<std::string> extDescription = splitMimeType(np_FileOpenName);
 
@@ -419,8 +422,8 @@ bool initDLL(std::string dllPath, std::string dllName){
 		np_Language = std::string(info, size);
 	}
 
-	NP_GetEntryPointsFunc 	NP_GetEntryPoints 	= (NP_GetEntryPointsFunc) 	GetProcAddress(dll, "NP_GetEntryPoints");
-	NP_InitializeFunc 		NP_Initialize 		= (NP_InitializeFunc) 		GetProcAddress(dll, "NP_Initialize");
+	NP_GetEntryPointsFunc	NP_GetEntryPoints	= (NP_GetEntryPointsFunc)	GetProcAddress(dll, "NP_GetEntryPoints");
+	NP_InitializeFunc		NP_Initialize		= (NP_InitializeFunc)		GetProcAddress(dll, "NP_Initialize");
 
 	if (NP_GetEntryPoints && NP_Initialize){
 		if (NP_GetEntryPoints(&pluginFuncs) == NPERR_NO_ERROR){
@@ -475,29 +478,30 @@ std::string readPathFromRegistry(HKEY hKey, std::string regKey){
 /* main */
 int main(int argc, char *argv[]){
 
+	/* some sanity checks ... */
+#if !defined(_WIN64) && !defined(_AMD64)
+	DBG_ASSERT(offsetof(NPVariant, value.objectValue) == 8, "pluginloader executable is corrupted, wrong alignment of doubles in NPVariant!");
+#endif
+
 	/* get the main thread ID */
 	mainThreadID = GetCurrentThreadId();
 
 	/* load all the required external libraries */
-#ifdef MINGW32_FALLBACK
 	DBG_ASSERT((module_msvcrt	= LoadLibraryA("msvcrt.dll")),			"failed to load msvcrt.dll.");
 	DBG_ASSERT((module_advapi32	= LoadLibraryA("advapi32.dll")),		"failed to load advapi32.dll.");
-#endif
 	DBG_ASSERT((module_user32	= LoadLibraryA("user32.dll")),			"failed to load user32.dll.");
 	DBG_ASSERT((module_kernel32	= GetModuleHandleA("kernel32.dll")),	"failed to get address of kernel32.dll.");
 	DBG_ASSERT((module_ntdll	= GetModuleHandleA("ntdll.dll")),		"failed to get address of ntdll.dll.");
 
 #ifdef MINGW32_FALLBACK
-	DBG_ASSERT((_controlfp_s = (_controlfp_sPtr)GetProcAddress(module_msvcrt, "_controlfp_s")),		"failed to get pointer to _controlfp_s.");
 	DBG_ASSERT((RegGetValueA = (RegGetValueAPtr)GetProcAddress(module_advapi32, "RegGetValueA")),	"failed to get pointer to RegGetValueA.");
 #endif
+#if defined(MINGW32_FALLBACK) || defined(__WINE__)
+	DBG_ASSERT((_controlfp_s = (_controlfp_sPtr)GetProcAddress(module_msvcrt, "_controlfp_s")),		"failed to get pointer to _controlfp_s.");
+#endif
 
-	#if !defined(__WINE__)
-		unsigned int control_word;
-		_controlfp_s(&control_word, _CW_DEFAULT, MCW_PC);
-	#else
-		#warning "Setting the floating point precission is not yet supported for your compiler! You may get weird issues with Silverlight."
-	#endif
+	unsigned int control_word;
+	_controlfp_s(&control_word, _CW_DEFAULT, MCW_PC);
 
 	setbuf(stderr, NULL); /* Disable stderr buffering */
 
@@ -610,8 +614,8 @@ int main(int argc, char *argv[]){
 	}
 
 	/* Install hooks */
-	if (unityHacks) 		installUnityHooks();
-	if (windowClassHook) 	installWindowClassHook();
+	if (unityHacks)			installUnityHooks();
+	if (windowClassHook)	installWindowClassHook();
 
 	installPopupHook();
 
@@ -711,7 +715,7 @@ void dispatcher(int functionid, Stack &stack){
 
 		case WIN_HANDLE_MANAGER_FREE_OBJECT:
 			{
-				NPObject 	*obj = readHandleObjIncRef(stack, HMGR_SHOULD_EXIST);
+				NPObject	*obj = readHandleObjIncRef(stack, HMGR_SHOULD_EXIST);
 				DBG_TRACE("WIN_HANDLE_MANAGER_FREE_OBJECT( obj=%p )", obj);
 
 				objectKill(obj);
@@ -723,7 +727,7 @@ void dispatcher(int functionid, Stack &stack){
 
 		case CHANGE_SANDBOX_STATE:
 			{
-				bool state 			= (bool)readInt32(stack);
+				bool state			= (bool)readInt32(stack);
 				DBG_TRACE("CHANGE_SANDBOX_STATE( state=%d )", state);
 
 				isSandboxed = state;
@@ -756,7 +760,7 @@ void dispatcher(int functionid, Stack &stack){
 					LONG asyncCallCount = 0;
 
 					for (std::set<NPP>::iterator it = instanceList.begin(); it != instanceList.end(); it++){
-						NPP instance 		= *it;
+						NPP instance		= *it;
 						NetscapeData* ndata = (NetscapeData*)instance->ndata;
 
 						/* Call async callbacks (if any) */
@@ -797,7 +801,7 @@ void dispatcher(int functionid, Stack &stack){
 
 					if (pendingInvalidateLinuxWindowless){
 						for (std::set<NPP>::iterator it = instanceList.begin(); it != instanceList.end(); it++){
-							NPP instance 		= *it;
+							NPP instance		= *it;
 							NetscapeData* ndata = (NetscapeData*)instance->ndata;
 							if (!ndata || !ndata->invalidate) continue;
 
@@ -824,8 +828,8 @@ void dispatcher(int functionid, Stack &stack){
 		case WINDOWLESS_EVENT_PAINT:
 			{
 				RECT rect;
-				NPP instance 				= readHandleInstance(stack);
-				XID drawable 				= readInt32(stack);
+				NPP instance				= readHandleInstance(stack);
+				XID drawable				= readInt32(stack);
 				readRECT(stack, rect);
 				DBG_TRACE("WINDOWLESS_EVENT_PAINT( instance=%p, drawable=%lu, left=%ld, top=%ld, right=%ld, bottom=%ld )",
 					instance, drawable, rect.left, rect.top, rect.right, rect.bottom);
@@ -837,10 +841,10 @@ void dispatcher(int functionid, Stack &stack){
 						/* update drawable if necessary */
 						if (drawable != ndata->lastDrawableDC){
 							x11drv_escape_set_drawable escape_set_drawable;
-							escape_set_drawable.code 		= X11DRV_SET_DRAWABLE;
-							escape_set_drawable.hwnd 		= 0;
-							escape_set_drawable.drawable 	= drawable;
-							escape_set_drawable.mode 		= 1; /* IncludeInferiors */
+							escape_set_drawable.code		= X11DRV_SET_DRAWABLE;
+							escape_set_drawable.hwnd		= 0;
+							escape_set_drawable.drawable	= drawable;
+							escape_set_drawable.mode		= 1; /* IncludeInferiors */
 							memcpy(&escape_set_drawable.dc_rect, &ndata->browser, sizeof(ndata->browser));
 							escape_set_drawable.fbconfig_id	= 0;
 
@@ -854,9 +858,9 @@ void dispatcher(int functionid, Stack &stack){
 						RECT_AddOffset(rect, -ndata->browser.left, -ndata->browser.top);
 
 						NPEvent event;
-						event.event 	= WM_PAINT;
-						event.wParam 	= (uintptr_t)ndata->hDC;
-						event.lParam 	= (uintptr_t)&rect;
+						event.event		= WM_PAINT;
+						event.wParam	= (uintptr_t)ndata->hDC;
+						event.lParam	= (uintptr_t)&rect;
 						pluginFuncs.event(instance, &event);
 
 						#ifdef PIPELIGHT_DBGRECT
@@ -879,8 +883,8 @@ void dispatcher(int functionid, Stack &stack){
 		case WINDOWLESS_EVENT_MOUSEMOVE:
 			{
 				POINT pt;
-				NPP instance 				= readHandleInstance(stack);
-				uint32_t state 				= readInt32(stack);
+				NPP instance				= readHandleInstance(stack);
+				uint32_t state				= readInt32(stack);
 				readPOINT(stack, pt);
 				DBG_TRACE("WINDOWLESS_EVENT_MOUSEMOVE( instance=%p, state=%08x, x=%ld, y=%ld )",
 					instance, state, pt.x, pt.y);
@@ -891,9 +895,9 @@ void dispatcher(int functionid, Stack &stack){
 					ndata->window.window = NULL;
 
 					NPEvent event;
-					event.event 	= WM_MOUSEMOVE;
-					event.wParam 	= wParamFromX11State(state);
-					event.lParam 	= MAKEDWORD(pt.x, pt.y);
+					event.event		= WM_MOUSEMOVE;
+					event.wParam	= wParamFromX11State(state);
+					event.lParam	= MAKEDWORD(pt.x, pt.y);
 					pluginFuncs.event(instance, &event);
 
 					ndata->window.window = previousDC;
@@ -907,10 +911,10 @@ void dispatcher(int functionid, Stack &stack){
 		case WINDOWLESS_EVENT_MOUSEBUTTON:
 			{
 				POINT pt;
-				NPP instance 				= readHandleInstance(stack);
+				NPP instance				= readHandleInstance(stack);
 				bool pressed				= (bool)readInt32(stack);
-				uint32_t state 				= readInt32(stack);
-				uint32_t button 			= readInt32(stack);
+				uint32_t state				= readInt32(stack);
+				uint32_t button				= readInt32(stack);
 				readPOINT(stack, pt);
 				DBG_TRACE("WINDOWLESS_EVENT_MOUSEBUTTON( instance=%p, pressed=%d, state=%08x, button=%08x, x=%ld, y=%ld )",
 					instance, pressed, state, button, pt.x, pt.y );
@@ -955,9 +959,9 @@ void dispatcher(int functionid, Stack &stack){
 
 		case WINDOWLESS_EVENT_KEYBOARD:
 			{
-				NPP instance 				= readHandleInstance(stack);
+				NPP instance				= readHandleInstance(stack);
 				bool pressed				= (bool)readInt32(stack);
-				uint32_t state 				= readInt32(stack);
+				uint32_t state				= readInt32(stack);
 				uint32_t keycode			= readInt32(stack);
 				DBG_TRACE("WINDOWLESS_EVENT_KEYBOARD( instance=%p, pressed=%d, state=%08x, keycode=%08x )",
 					instance, pressed, state, keycode );
@@ -1019,12 +1023,12 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NP_INVOKE:
 			{
-				NPObject 	*obj 			= readHandleObjIncRef(stack);
-				NPIdentifier name 			= readHandleIdentifier(stack);
-				uint32_t argCount 			= readInt32(stack);
+				NPObject	*obj			= readHandleObjIncRef(stack);
+				NPIdentifier name			= readHandleIdentifier(stack);
+				uint32_t argCount			= readInt32(stack);
 				std::vector<NPVariant> args = readVariantArrayIncRef(stack, argCount);
 				NPVariant resultVariant;
-				resultVariant.type 				= NPVariantType_Void;
+				resultVariant.type				= NPVariantType_Void;
 				resultVariant.value.objectValue = NULL;
 				DBG_TRACE("FUNCTION_NP_INVOKE( obj=%p, name=%p, argCount=%d, args=%p )", obj, name, argCount, args.data());
 
@@ -1042,11 +1046,11 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NP_INVOKE_DEFAULT:
 			{
-				NPObject 	*obj 			= readHandleObjIncRef(stack);
-				uint32_t argCount 			= readInt32(stack);
+				NPObject	*obj			= readHandleObjIncRef(stack);
+				uint32_t argCount			= readInt32(stack);
 				std::vector<NPVariant> args = readVariantArrayIncRef(stack, argCount);
 				NPVariant resultVariant;
-				resultVariant.type 				= NPVariantType_Void;
+				resultVariant.type				= NPVariantType_Void;
 				resultVariant.value.objectValue = NULL;
 				DBG_TRACE("FUNCTION_NP_INVOKE_DEFAULT( obj=%p, argCount=%d, args=%p )", obj, argCount, args.data());
 
@@ -1064,8 +1068,8 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NP_HAS_PROPERTY:
 			{
-				NPObject *obj 		= readHandleObjIncRef(stack);
-				NPIdentifier name 	= readHandleIdentifier(stack);
+				NPObject *obj		= readHandleObjIncRef(stack);
+				NPIdentifier name	= readHandleIdentifier(stack);
 				DBG_TRACE("FUNCTION_NP_HAS_PROPERTY( obj=%p, name=%p )", obj, name);
 
 				bool result = obj->_class->hasProperty(obj, name);
@@ -1079,8 +1083,8 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NP_HAS_METHOD:
 			{
-				NPObject *obj 		= readHandleObjIncRef(stack);
-				NPIdentifier name 	= readHandleIdentifier(stack);
+				NPObject *obj		= readHandleObjIncRef(stack);
+				NPIdentifier name	= readHandleIdentifier(stack);
 				DBG_TRACE("FUNCTION_NP_HAS_METHOD( obj=%p, name=%p )", obj, name);
 
 				bool result = obj->_class->hasMethod(obj, name);
@@ -1094,10 +1098,10 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NP_GET_PROPERTY:
 			{
-				NPObject *obj 		= readHandleObjIncRef(stack);
-				NPIdentifier name 	= readHandleIdentifier(stack);
+				NPObject *obj		= readHandleObjIncRef(stack);
+				NPIdentifier name	= readHandleIdentifier(stack);
 				NPVariant resultVariant;
-				resultVariant.type 				= NPVariantType_Void;
+				resultVariant.type				= NPVariantType_Void;
 				resultVariant.value.objectValue = NULL;
 				DBG_TRACE("FUNCTION_NP_GET_PROPERTY( obj=%p, name=%p )", obj, name);
 
@@ -1114,9 +1118,9 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NP_SET_PROPERTY:
 			{
-				NPObject 		*obj 		= readHandleObjIncRef(stack);
-				NPIdentifier 	name 		= readHandleIdentifier(stack);
-				NPVariant 		variant;
+				NPObject		*obj		= readHandleObjIncRef(stack);
+				NPIdentifier	name		= readHandleIdentifier(stack);
+				NPVariant		variant;
 				readVariantIncRef(stack, variant);
 				DBG_TRACE("FUNCTION_NP_SET_PROPERTY( obj=%p, name=%p, variant=%p )", obj, name, &variant);
 
@@ -1132,8 +1136,8 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NP_REMOVE_PROPERTY:
 			{
-				NPObject 		*obj 		= readHandleObjIncRef(stack);
-				NPIdentifier 	name 		= readHandleIdentifier(stack);
+				NPObject		*obj		= readHandleObjIncRef(stack);
+				NPIdentifier	name		= readHandleIdentifier(stack);
 				DBG_TRACE("FUNCTION_NP_REMOVE_PROPERTY( obj=%p, name=%p )", obj, name);
 
 				bool result = obj->_class->removeProperty(obj, name);
@@ -1147,9 +1151,9 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NP_ENUMERATE:
 			{
-				NPObject 		*obj 		= readHandleObjIncRef(stack);
+				NPObject		*obj		= readHandleObjIncRef(stack);
 				NPIdentifier*   identifierTable  = NULL;
-				uint32_t 		identifierCount  = 0;
+				uint32_t		identifierCount  = 0;
 				DBG_TRACE("FUNCTION_NP_ENUMERATE( obj=%p )", obj);
 
 				bool result = obj->_class->enumerate && obj->_class->enumerate(obj, &identifierTable, &identifierCount);
@@ -1188,22 +1192,22 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				std::shared_ptr<char> mimeType		= readStringAsMemory(stack);
 				NPP instance						= readHandleInstance(stack);
-				uint16_t mode 						= readInt32(stack);
-				int16_t argc 						= readInt32(stack);
-				std::vector<char*> argn 			= readStringArray(stack, argc);
-				std::vector<char*> argv 			= readStringArray(stack, argc);
+				uint16_t mode						= readInt32(stack);
+				int16_t argc						= readInt32(stack);
+				std::vector<char*> argn				= readStringArray(stack, argc);
+				std::vector<char*> argv				= readStringArray(stack, argc);
 
 				size_t saved_length;
-				char* saved_data 					= readMemoryMalloc(stack, saved_length);
+				char* saved_data					= readMemoryMalloc(stack, saved_length);
 
 				NPSavedData saved;
 				NPSavedData* savedPtr = NULL;
 
 				/* NOTE: The plugin is responsible for freeing the saved memory when not required anymore! */
 				if (saved_data){
-					saved.buf 	= saved_data;
-					saved.len 	= saved_length;
-					savedPtr 	= &saved;
+					saved.buf	= saved_data;
+					saved.len	= saved_length;
+					savedPtr	= &saved;
 				}
 
 				DBG_TRACE("FUNCTION_NPP_NEW( mimeType='%s', instance=%p, mode=%d, argc=%d, argn=%p, argv=%p, saved=%p )", \
@@ -1219,12 +1223,12 @@ void dispatcher(int functionid, Stack &stack){
 					instance->ndata = ndata;
 
 					memset(ndata, 0, sizeof(*ndata));
-					ndata->windowlessMode 				= isWindowlessMode;
-					ndata->embeddedMode 				= isEmbeddedMode;
-					ndata->cache_pluginElementNPObject 	= NULL;
+					ndata->windowlessMode				= isWindowlessMode;
+					ndata->embeddedMode					= isEmbeddedMode;
+					ndata->cache_pluginElementNPObject	= NULL;
 					ndata->cache_clientWidthIdentifier  = NULL;
-					ndata->hWnd 						= NULL;
-					ndata->hDC 							= NULL;
+					ndata->hWnd							= NULL;
+					ndata->hDC							= NULL;
 					ndata->asyncCalls					= NULL;
 
 					if (NPN_GetValue(instance, NPNVPluginElementNPObject, &ndata->cache_pluginElementNPObject) != NPERR_NO_ERROR)
@@ -1247,14 +1251,14 @@ void dispatcher(int functionid, Stack &stack){
 				if (forceSetWindow && result == NPERR_NO_ERROR && ndata){
 					ndata->window.window			= 0;
 					ndata->window.type				= (NPWindowType)0;
-					ndata->window.x 				= 0;
-					ndata->window.y 				= 0;
-					ndata->window.width 			= 0;
-					ndata->window.height 			= 0;
-					ndata->window.clipRect.top 		= 0;
-					ndata->window.clipRect.left 	= 0;
-					ndata->window.clipRect.right 	= 0;
-					ndata->window.clipRect.bottom 	= 0;
+					ndata->window.x					= 0;
+					ndata->window.y					= 0;
+					ndata->window.width				= 0;
+					ndata->window.height			= 0;
+					ndata->window.clipRect.top		= 0;
+					ndata->window.clipRect.left		= 0;
+					ndata->window.clipRect.right	= 0;
+					ndata->window.clipRect.bottom	= 0;
 					pluginFuncs.setwindow(instance, &ndata->window);
 				}
 
@@ -1272,11 +1276,11 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPP_DESTROY:
 			{
-				NPSavedData* saved 	= NULL;
-				NPP instance 		= readHandleInstance(stack);
+				NPSavedData* saved	= NULL;
+				NPP instance		= readHandleInstance(stack);
 				DBG_TRACE("FUNCTION_NPP_DESTROY( instance=%p )", instance);
 
-				NPError result 		= pluginFuncs.destroy(instance, &saved);
+				NPError result		= pluginFuncs.destroy(instance, &saved);
 
 				/* Destroy the pointers */
 				NetscapeData* ndata = (NetscapeData*)instance->ndata;
@@ -1337,8 +1341,8 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPP_GETVALUE_BOOL:
 			{
-				NPP instance 			= readHandleInstance(stack);
-				NPPVariable variable 	= (NPPVariable)readInt32(stack);
+				NPP instance			= readHandleInstance(stack);
+				NPPVariable variable	= (NPPVariable)readInt32(stack);
 				DBG_TRACE("FUNCTION_NPP_GETVALUE_BOOL( instance=%p, variable=%d )", instance, variable);
 
 				PRBool boolValue;
@@ -1361,8 +1365,8 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPP_GETVALUE_OBJECT:
 			{
-				NPP instance 			= readHandleInstance(stack);
-				NPPVariable variable 	= (NPPVariable)readInt32(stack);
+				NPP instance			= readHandleInstance(stack);
+				NPPVariable variable	= (NPPVariable)readInt32(stack);
 				DBG_TRACE("FUNCTION_NPP_GETVALUE_OBJECT( instance=%p, variable=%d )", instance, variable);
 
 				NPObject *objectValue;
@@ -1386,8 +1390,8 @@ void dispatcher(int functionid, Stack &stack){
 		case FUNCTION_NPP_SET_WINDOW:
 			{
 				RECT browser;
-				NPP instance 		= readHandleInstance(stack);
-				int gotWindow 		= readInt32(stack);
+				NPP instance		= readHandleInstance(stack);
+				int gotWindow		= readInt32(stack);
 
 				readRECT(stack, browser);
 				DBG_TRACE("FUNCTION_NPP_SET_WINDOW( instance=%p, left=%ld, top=%ld, right=%ld, bottom=%ld, gotWindow=%d )",
@@ -1412,21 +1416,21 @@ void dispatcher(int functionid, Stack &stack){
 
 						/* Get style flags */
 						if (ndata->embeddedMode && gotWindow){
-							style 		= WS_POPUP;
-							extStyle 	= WS_EX_TOOLWINDOW;
+							style		= WS_POPUP;
+							extStyle	= WS_EX_TOOLWINDOW;
 							posX		= 0;
 							posY		= 0;
 						}else{
-							style 		= WS_TILEDWINDOW;
-							extStyle 	= 0;
-							posX 		= CW_USEDEFAULT;
-							posY 		= CW_USEDEFAULT;
+							style		= WS_TILEDWINDOW;
+							extStyle	= 0;
+							posX		= CW_USEDEFAULT;
+							posY		= CW_USEDEFAULT;
 						}
 
 						/* Calculate size including borders */
-						rect.left 	= 0;
+						rect.left	= 0;
 						rect.top	= 0;
-						rect.right 	= browser_width;
+						rect.right	= browser_width;
 						rect.bottom = browser_height;
 						AdjustWindowRectEx(&rect, style, false, extStyle);
 
@@ -1445,11 +1449,11 @@ void dispatcher(int functionid, Stack &stack){
 
 								/* Only do this once to prevent leaking DCs */
 								if (ndata->windowlessMode){
-									ndata->window.window 		= GetDC(ndata->hWnd);
-									ndata->window.type 			= NPWindowTypeDrawable;
+									ndata->window.window		= GetDC(ndata->hWnd);
+									ndata->window.type			= NPWindowTypeDrawable;
 								}else{
-									ndata->window.window 		= ndata->hWnd;
-									ndata->window.type 			= NPWindowTypeWindow;
+									ndata->window.window		= ndata->hWnd;
+									ndata->window.type			= NPWindowTypeWindow;
 								}
 
 							}else
@@ -1474,14 +1478,14 @@ void dispatcher(int functionid, Stack &stack){
 
 					/* send data to plugin */
 					if (ndata->hWnd || ndata->hDC){
-						ndata->window.x 				= 0;
-						ndata->window.y 				= 0;
-						ndata->window.width 			= browser_width;
-						ndata->window.height 			= browser_height;
-						ndata->window.clipRect.top 		= 0;
-						ndata->window.clipRect.left 	= 0;
-						ndata->window.clipRect.right 	= browser_width;
-						ndata->window.clipRect.bottom 	= browser_height;
+						ndata->window.x					= 0;
+						ndata->window.y					= 0;
+						ndata->window.width				= browser_width;
+						ndata->window.height			= browser_height;
+						ndata->window.clipRect.top		= 0;
+						ndata->window.clipRect.left		= 0;
+						ndata->window.clipRect.right	= browser_width;
+						ndata->window.clipRect.bottom	= browser_height;
 						pluginFuncs.setwindow(instance, &ndata->window);
 					}
 
@@ -1496,10 +1500,10 @@ void dispatcher(int functionid, Stack &stack){
 					/* update drawable if necessary */
 					if (ndata->hDC && ndata->lastDrawableDC){
 						x11drv_escape_set_drawable escape_set_drawable;
-						escape_set_drawable.code 		= X11DRV_SET_DRAWABLE;
-						escape_set_drawable.hwnd 		= 0;
-						escape_set_drawable.drawable 	= ndata->lastDrawableDC;
-						escape_set_drawable.mode 		= 1; /* IncludeInferiors */
+						escape_set_drawable.code		= X11DRV_SET_DRAWABLE;
+						escape_set_drawable.hwnd		= 0;
+						escape_set_drawable.drawable	= ndata->lastDrawableDC;
+						escape_set_drawable.mode		= 1; /* IncludeInferiors */
 						memcpy(&escape_set_drawable.dc_rect, &browser, sizeof(browser));
 						escape_set_drawable.fbconfig_id	= 0;
 
@@ -1513,9 +1517,9 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPP_NEW_STREAM:
 			{
-				NPP instance 					= readHandleInstance(stack);
-				std::shared_ptr<char> type 		= readStringAsMemory(stack);
-				NPStream *stream 				= readHandleStream(stack, HMGR_SHOULD_NOT_EXIST);
+				NPP instance					= readHandleInstance(stack);
+				std::shared_ptr<char> type		= readStringAsMemory(stack);
+				NPStream *stream				= readHandleStream(stack, HMGR_SHOULD_NOT_EXIST);
 				NPBool seekable					= (NPBool) readInt32(stack);
 				DBG_TRACE("FUNCTION_NPP_NEW_STREAM( instance=%p, type='%s', stream=%p, seekable=%d )", instance, type.get(), stream, seekable);
 
@@ -1534,9 +1538,9 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPP_DESTROY_STREAM:
 			{
-				NPP instance 		= readHandleInstance(stack);
-				NPStream* stream 	= readHandleStream(stack, HMGR_SHOULD_EXIST);
-				NPReason reason 	= (NPReason)readInt32(stack);
+				NPP instance		= readHandleInstance(stack);
+				NPStream* stream	= readHandleStream(stack, HMGR_SHOULD_EXIST);
+				NPReason reason		= (NPReason)readInt32(stack);
 				DBG_TRACE("FUNCTION_NPP_DESTROY_STREAM( instance=%p, stream=%p, reason=%d )", instance, stream, reason);
 
 				NPError result = pluginFuncs.destroystream(instance, stream, reason);
@@ -1548,8 +1552,8 @@ void dispatcher(int functionid, Stack &stack){
 				/* ASYNC */
 				if (stream){
 					handleManager_removeByPtr(HMGR_TYPE_NPStream, stream);
-					if (stream->url) 		free((char*)stream->url);
-					if (stream->headers) 	free((char*)stream->headers);
+					if (stream->url)		free((char*)stream->url);
+					if (stream->headers)	free((char*)stream->headers);
 					free(stream);
 				}
 
@@ -1558,8 +1562,8 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPP_WRITE_READY:
 			{
-				NPP instance 		= readHandleInstance(stack);
-				NPStream* stream 	= readHandleStream(stack, HMGR_SHOULD_EXIST);
+				NPP instance		= readHandleInstance(stack);
+				NPStream* stream	= readHandleStream(stack, HMGR_SHOULD_EXIST);
 
 				DBG_TRACE("FUNCTION_NPP_WRITE_READY( instance=%p, stream=%p )", instance, stream);
 
@@ -1573,9 +1577,9 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPP_WRITE:
 			{
-				NPP instance 		= readHandleInstance(stack);
-				NPStream* stream 	= readHandleStream(stack, HMGR_SHOULD_EXIST);
-				int32_t offset 		= readInt32(stack);
+				NPP instance		= readHandleInstance(stack);
+				NPStream* stream	= readHandleStream(stack, HMGR_SHOULD_EXIST);
+				int32_t offset		= readInt32(stack);
 				size_t length;
 				std::shared_ptr<char> data = readMemory(stack, length);
 				DBG_TRACE("FUNCTION_NPP_WRITE( instance=%p, stream=%p, offset=%d, length=%Id, data=%p )", instance, stream, offset, length, data.get());
@@ -1590,10 +1594,10 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPP_URL_NOTIFY:
 			{
-				NPP instance 				= readHandleInstance(stack);
-				std::shared_ptr<char> url 	= readStringAsMemory(stack);
-				NPReason reason 			= (NPReason) readInt32(stack);
-				void *notifyData 			= readHandleNotify(stack, HMGR_SHOULD_EXIST);
+				NPP instance				= readHandleInstance(stack);
+				std::shared_ptr<char> url	= readStringAsMemory(stack);
+				NPReason reason				= (NPReason) readInt32(stack);
+				void *notifyData			= readHandleNotify(stack, HMGR_SHOULD_EXIST);
 				DBG_TRACE("FUNCTION_NPP_URL_NOTIFY( instance=%p, url='%s', reason=%d, notifyData=%p )", instance, url.get(), reason, notifyData);
 
 				pluginFuncs.urlnotify(instance, url.get(), reason, notifyData);
@@ -1605,12 +1609,12 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPP_STREAM_AS_FILE:
 			{
-				NPP instance 				= readHandleInstance(stack);
-				NPStream* stream 			= readHandleStream(stack, HMGR_SHOULD_EXIST);
+				NPP instance				= readHandleInstance(stack);
+				NPStream* stream			= readHandleStream(stack, HMGR_SHOULD_EXIST);
 				std::string fname_lin       = readString(stack);
 				DBG_TRACE("FUNCTION_NPP_STREAM_AS_FILE( instance=%p, stream=%p, fname='%s' )", instance, stream, fname_lin.c_str());
 
-				std::string fname 			= convertToWindowsPath(fname_lin);
+				std::string fname			= convertToWindowsPath(fname_lin);
 				if (fname != "" && checkIsFile(fname)){
 					DBG_TRACE("windows filename: '%s'.", fname.c_str());
 

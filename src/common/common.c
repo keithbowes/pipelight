@@ -17,7 +17,7 @@ FILE *commPipeIn	= NULL;
 char strMultiPluginName[64] = "unknown";
 
 #ifdef PLUGINLOADER
-	DWORD mainThreadID 		= 0;
+	DWORD mainThreadID		= 0;
 #endif
 
 /* global mappings */
@@ -66,7 +66,7 @@ ParameterInfo::~ParameterInfo(){
 	Initializes the communication pipes
 */
 bool initCommPipes(int out, int in){
-	if (commPipeOut) 	fclose(commPipeOut);
+	if (commPipeOut)	fclose(commPipeOut);
 	if (commPipeIn)		fclose(commPipeIn);
 
 	#if defined(__WINE__) || !defined(PLUGINLOADER)
@@ -78,11 +78,11 @@ bool initCommPipes(int out, int in){
 	#endif
 
 	if (!commPipeOut || !commPipeIn){
-		if (commPipeOut) 	fclose(commPipeOut);
+		if (commPipeOut)	fclose(commPipeOut);
 		if (commPipeIn)		fclose(commPipeIn);
 
 		commPipeOut = NULL;
-		commPipeIn 	= NULL;
+		commPipeIn	= NULL;
 		return false;
 	}
 
@@ -156,8 +156,8 @@ inline bool receiveCommand(char *data, size_t length, int abortTimeout){
 		for (; length; data += pos, length -= pos){
 			FD_ZERO(&rfds);
 			FD_SET(fileno(commPipeIn), &rfds);
-			tv.tv_sec 	=  abortTimeout / 1000;
-			tv.tv_usec 	= (abortTimeout % 1000) * 1000;
+			tv.tv_sec	=  abortTimeout / 1000;
+			tv.tv_usec	= (abortTimeout % 1000) * 1000;
 			if (select(fileno(commPipeIn) + 1, &rfds, NULL, NULL, &tv) <= 0){
 				DBG_ERROR("unable to receive data within the specified timeout.");
 				return false;
@@ -255,11 +255,11 @@ bool __writeString(const char* data, size_t length){
 	Read commands from a pipe
 */
 bool readCommands(Stack &stack, bool allowReturn, int abortTimeout){
-	uint32_t 	blockInfo;
-	uint8_t 	blockCommand;
+	uint32_t	blockInfo;
+	uint8_t		blockCommand;
 	uint32_t	blockLength;
 	char		*blockData;
-	uint32_t 	function;
+	uint32_t	function;
 
 	#ifdef PLUGINLOADER
 		DBG_ASSERT(abortTimeout == 0, "readCommand called with abortTimeout, but not allowed on Windows.");
@@ -274,7 +274,7 @@ bool readCommands(Stack &stack, bool allowReturn, int abortTimeout){
 		if (!receiveCommand((char*)&blockInfo, sizeof(blockInfo), abortTimeout))
 			return false;
 
-		blockCommand 	= (blockInfo >> 24) & 0xFF;
+		blockCommand	= (blockInfo >> 24) & 0xFF;
 		blockLength		= blockInfo & 0xFFFFFF;
 		blockData		= NULL;
 
@@ -390,8 +390,8 @@ std::shared_ptr<char> readStringAsMemory(Stack &stack, size_t &resultLength){
 	DBG_ASSERT(rit != stack.rend(), "no return value found.");
 	DBG_ASSERT(rit->command == BLOCKCMD_PUSH_STRING, "wrong return value, expected string.");
 
-	result 			= rit->data;
-	resultLength 	= 0;
+	result			= rit->data;
+	resultLength	= 0;
 
 	if (result && rit->length > 0){
 		DBG_ASSERT(result.get()[rit->length-1] == 0, "string not nullterminated!");
@@ -416,9 +416,9 @@ char* readStringMalloc(Stack &stack, size_t &resultLength){
 	DBG_ASSERT(rit != stack.rend(), "no return value found.");
 	DBG_ASSERT(rit->command == BLOCKCMD_PUSH_STRING, "wrong return value, expected string.");
 
-	data 			= rit->data.get();
-	result 			= NULL;
-	resultLength 	= 0;
+	data			= rit->data.get();
+	result			= NULL;
+	resultLength	= 0;
 
 	if (data && rit->length > 0){
 		DBG_ASSERT(data[rit->length-1] == 0, "string not nullterminated!");
@@ -449,9 +449,9 @@ char* readStringBrowserAlloc(Stack &stack, size_t &resultLength){
 	DBG_ASSERT(rit != stack.rend(), "no return value found.");
 	DBG_ASSERT(rit->command == BLOCKCMD_PUSH_STRING, "wrong return value, expected string.");
 
-	data 			= rit->data.get();
-	result 			= NULL;
-	resultLength 	= 0;
+	data			= rit->data.get();
+	result			= NULL;
+	resultLength	= 0;
 
 	if (data && rit->length > 0){
 		DBG_ASSERT(data[rit->length-1] == 0, "string not nullterminated!");
@@ -482,8 +482,8 @@ std::shared_ptr<char> readMemory(Stack &stack, size_t &resultLength){
 	DBG_ASSERT(rit != stack.rend(), "no return value found.");
 	DBG_ASSERT(rit->command == BLOCKCMD_PUSH_MEMORY, "wrong return value, expected memory.");
 
-	result 			= rit->data;
-	resultLength 	= 0;
+	result			= rit->data;
+	resultLength	= 0;
 
 	if (result && rit->length > 0)
 		resultLength = rit->length;
@@ -507,9 +507,9 @@ char* readMemoryMalloc(Stack &stack, size_t &resultLength){
 	DBG_ASSERT(rit != stack.rend(), "no return value found.");
 	DBG_ASSERT(rit->command == BLOCKCMD_PUSH_MEMORY, "wrong return value, expected memory.");
 
-	data 			= rit->data.get();
-	result 			= NULL;
-	resultLength 	= 0;
+	data			= rit->data.get();
+	result			= NULL;
+	resultLength	= 0;
 
 	if (data && rit->length > 0){
 		result = (char*)malloc(rit->length);
@@ -538,9 +538,9 @@ char* readMemoryBrowserAlloc(Stack &stack, size_t &resultLength){
 	DBG_ASSERT(rit != stack.rend(), "no return value found.");
 	DBG_ASSERT(rit->command == BLOCKCMD_PUSH_MEMORY, "wrong return value, expected memory.");
 
-	data 			= rit->data.get();
-	result 			= NULL;
-	resultLength 	= 0;
+	data			= rit->data.get();
+	result			= NULL;
+	resultLength	= 0;
 
 	if (data && rit->length > 0){
 		result = (char*)sBrowserFuncs->memalloc(rit->length);
@@ -599,9 +599,9 @@ void readRECT2(Stack &stack, RECT2 &rect){
 	DBG_ASSERT(rit->command == BLOCKCMD_PUSH_RECT && data && rit->length == sizeof(RECT), \
 		"wrong return value, expected RECT.");
 
-	rect.x 		= data->left;
-	rect.y 		= data->top;
-	rect.width 	= data->right - data->left;
+	rect.x		= data->left;
+	rect.y		= data->top;
+	rect.width	= data->right - data->left;
 	rect.height = data->bottom - data->top;
 
 	stack.pop_back();
@@ -617,8 +617,8 @@ void readNPRect(Stack &stack, NPRect &rect){
 	DBG_ASSERT(rit->command == BLOCKCMD_PUSH_RECT && data && rit->length == sizeof(RECT), \
 		"wrong return value, expected RECT.");
 
-	rect.top 	= data->top;
-	rect.left 	= data->left;
+	rect.top	= data->top;
+	rect.left	= data->left;
 	rect.bottom = data->bottom;
 	rect.right  = data->right;
 
@@ -628,7 +628,7 @@ void readNPRect(Stack &stack, NPRect &rect){
 #ifdef PLUGINLOADER
 
 NPObject* createNPObject(HMGR_HANDLE id, NPP instance, NPClass *cls){
-	bool customObject  	= (cls != NULL);
+	bool customObject	= (cls != NULL);
 	NPObject* obj;
 
 	/* use proxy class if nothing specified */
@@ -682,13 +682,13 @@ NPStream* createNPStream(HMGR_HANDLE id){
 	readCommands(stack);
 
 	/* initialize memory */
-	stream->pdata 			= NULL;
-	stream->ndata 			= NULL;
+	stream->pdata			= NULL;
+	stream->ndata			= NULL;
 	stream->url				= readStringMalloc(stack);
-	stream->end 			= readInt32(stack);
-	stream->lastmodified 	= readInt32(stack);
+	stream->end				= readInt32(stack);
+	stream->lastmodified	= readInt32(stack);
 	stream->notifyData		= readHandleNotify(stack);
-	stream->headers 		= readStringMalloc(stack);
+	stream->headers			= readStringMalloc(stack);
 
 	return stream;
 }
@@ -774,7 +774,7 @@ void* handleManager_idToPtr(HMGR_TYPE type, HMGR_HANDLE id, void *arg0, void *ar
 
 	std::map<void*, HMGR_HANDLE> &ptrToId = __ptrToId(type);
 
-	idToPtr[id] 	= ptr;
+	idToPtr[id]		= ptr;
 	ptrToId[ptr]	= id;
 	return ptr;
 }
@@ -811,7 +811,7 @@ HMGR_HANDLE handleManager_ptrToId(HMGR_TYPE type, void* ptr, HMGR_EXISTS exists)
 
 	std::map<HMGR_HANDLE, void*> &idToPtr = __idToPtr(type);
 
-	idToPtr[id] 	= ptr;
+	idToPtr[id]		= ptr;
 	ptrToId[ptr]	= id;
 	return id;
 }
@@ -986,8 +986,8 @@ void freeVariantDecRef(NPVariant &variant, bool deleteFromRemoteHandleManager){
 
 	}
 
-	variant.type 				= NPVariantType_Void;
-	variant.value.objectValue 	= NULL;
+	variant.type				= NPVariantType_Void;
+	variant.value.objectValue	= NULL;
 }
 
 /* writeVariantReleaseDecRef */
@@ -1013,7 +1013,7 @@ void readVariantIncRef(Stack &stack, NPVariant &variant){
 
 	switch(variant.type){
 		case NPVariantType_Null:
-			variant.value.objectValue 	= NULL;
+			variant.value.objectValue	= NULL;
 			break;
 
 		case NPVariantType_Void:
@@ -1103,8 +1103,8 @@ void freeVariant(NPVariant &variant){
 
 	/* (dont free objects here) */
 
-	variant.type 				= NPVariantType_Void;
-	variant.value.objectValue 	= NULL;
+	variant.type				= NPVariantType_Void;
+	variant.value.objectValue	= NULL;
 }
 
 #endif
