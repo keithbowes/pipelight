@@ -136,6 +136,35 @@ void detach(){
 	/* TODO: Deinitialize pointers etc. */
 }
 
+/* checkPermissions */
+void checkPermissions(){
+	bool result = true;
+	uid_t uid  = getuid();
+	uid_t euid = geteuid();
+	gid_t gid  = getgid();
+	gid_t egid = getegid();
+
+	if (euid == 0 || egid == 0){
+		DBG_WARN("-------------------------------------------------------");
+		DBG_WARN("WARNING! YOU ARE RUNNING THIS PIPELIGHT PLUGIN AS ROOT!");
+		DBG_WARN("THIS IS USUALLY NOT A GOOD IDEA! YOU HAVE BEEN WARNED!");
+		DBG_WARN("-------------------------------------------------------");
+	}
+
+	if (uid != euid){
+		if (setuid(uid) != 0 || geteuid() != uid)
+			result = false;
+	}
+
+	if (gid != egid){
+		if (setgid(gid) != 0 || getegid() != gid)
+			result = false;
+	}
+
+	if (!result)
+		DBG_ERROR("failed to set permissions to uid=%d, gid=%d.", uid, gid);
+}
+
 /* convertWinePath */
 std::string convertWinePath(std::string path, bool direction){
 	if (!checkIfExists(config.winePrefix)){
@@ -157,6 +186,8 @@ std::string convertWinePath(std::string path, bool direction){
 		close(0);
 		close(tempPipeIn[0]);
 		dup2(tempPipeIn[1], 1);
+
+		checkPermissions();
 
 		/* Setup environment variables */
 		setenv("WINEPREFIX",			config.winePrefix.c_str(),			true);
@@ -235,6 +266,8 @@ std::string getWineVersion(){
 		close(tempPipeIn[0]);
 		dup2(tempPipeIn[1], 1);
 
+		checkPermissions();
+
 		/* Generate argv array */
 		std::vector<const char*> argv;
 
@@ -308,6 +341,8 @@ bool checkPluginInstallation(){
 	if (pidInstall == 0){
 
 		close(0);
+
+		checkPermissions();
 
 		/* Setup environment variables */
 		setenv("WINEPREFIX",			config.winePrefix.c_str(),			true);
@@ -385,6 +420,8 @@ bool checkSilverlightGraphicDriver(){
 
 		close(0);
 
+		checkPermissions();
+
 		/* The graphic driver check doesn't need any environment variables or sandbox at all. */
 		execlp(config.silverlightGraphicDriverCheck.c_str(), config.silverlightGraphicDriverCheck.c_str(), NULL);
 		DBG_ABORT("error in execlp command - probably silverlightGraphicDriverCheck not found or missing execute permission.");
@@ -436,6 +473,8 @@ bool startWineProcess(){
 		/* Assign to stdin/stdout */
 		dup2(tempPipeOut[0],  0);
 		dup2(tempPipeIn[1],   1);
+
+		checkPermissions();
 
 		/* Setup environment variables */
 		setenv("WINEPREFIX",			config.winePrefix.c_str(),			true);
