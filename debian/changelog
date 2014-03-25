@@ -1,6 +1,8 @@
 pipelight-multi (0.2.6) UNRELEASED; urgency=low
 
   * Update Silverlight to 5.1.30214.0
+  * Add pipelight commandline switch --list-enabled-all
+  * Add ViewRight for Caiway plugin
   * Update Flash to 12.0.0.77
   * Update Shockwave Player to 12.1.0.150
   * Update Roblox plugin
