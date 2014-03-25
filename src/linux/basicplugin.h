@@ -59,7 +59,7 @@ extern pthread_t	eventThread;
 extern sem_t		eventThreadSemRequestAsyncCall;
 extern sem_t		eventThreadSemScheduledAsyncCall;
 
-extern pid_t		winePid;
+extern pid_t		pidPluginloader;
 extern bool			initOkay;
 
 extern PluginConfig config;

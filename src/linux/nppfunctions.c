@@ -528,8 +528,8 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save){
 	if (!readCommands(stack, true, 5000)){ /* wait maximum 5sec for result */
 		int status;
 		DBG_ERROR("plugin did not deinitialize properly, killing it!");
-		if (winePid > 0 && !waitpid(winePid, &status, WNOHANG))
-			kill(winePid, SIGTERM);
+		if (pidPluginloader > 0 && !waitpid(pidPluginloader, &status, WNOHANG))
+			kill(pidPluginloader, SIGTERM);
 		DBG_ABORT("terminating.");
 	}
 

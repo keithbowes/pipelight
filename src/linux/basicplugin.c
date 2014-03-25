@@ -70,7 +70,7 @@ pthread_t	eventThread				= 0;
 sem_t		eventThreadSemRequestAsyncCall;
 sem_t		eventThreadSemScheduledAsyncCall;
 
-pid_t		winePid					= -1;
+pid_t		pidPluginloader			= -1;
 bool		initOkay				= false;
 
 // Browser functions
@@ -463,8 +463,8 @@ bool startWineProcess(){
 		return false;
 	}
 
-	winePid = fork();
-	if (winePid == 0){
+	pidPluginloader = fork();
+	if (pidPluginloader == 0){
 		/* The child process will be replaced with wine */
 
 		close(tempPipeIn[0]);
@@ -547,7 +547,7 @@ bool startWineProcess(){
 		execvp(argv[0], (char**)argv.data());
 		DBG_ABORT("error in execvp command - probably wine/sandbox not found or missing execute permission.");
 
-	}else if (winePid != -1){
+	}else if (pidPluginloader != -1){
 		/* The parent process will return normally and use the pipes to communicate with the child process */
 
 		close(tempPipeOut[0]);
