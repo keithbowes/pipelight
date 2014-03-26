@@ -178,8 +178,8 @@ operaDetection      = true
 # requests the navigator details.
 #
 executeJavascript = var __pipelight_navigator = new Object();
-executeJavascript = __pipelight_navigator.__proto__ = navigator;
-executeJavascript = __pipelight_navigator.__defineGetter__('userAgent', function () { return 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:15.0) Gecko/20120427 Firefox/15.0a1'; });
+executeJavascript = for (var __i in window.navigator) { __pipelight_navigator[__i] =  window.navigator[__i]; }
+executeJavascript = __pipelight_navigator.userAgent = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:15.0) Gecko/20120427 Firefox/15.0a1';
 replaceJavascript = window.navigator = __pipelight_navigator
 
 #
