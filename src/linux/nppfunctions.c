@@ -524,6 +524,9 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save){
 	writeHandleInstance(instance);
 	callFunction(FUNCTION_NPP_DESTROY);
 
+	/* Handle events one last time */
+	timerFunc(NULL, 0);
+
 	Stack stack;
 	if (!readCommands(stack, true, 5000)){ /* wait maximum 5sec for result */
 		int status;
