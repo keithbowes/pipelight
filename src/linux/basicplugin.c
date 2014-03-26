@@ -640,36 +640,9 @@ void dispatcher(int functionid, Stack &stack){
 				handleManager_removeByPtr(HMGR_TYPE_NPObject, obj);
 			}
 			break;
-	#if 0
-		case GET_WINDOW_RECT:
-			{
-				Window win				= (Window)readInt32(stack);
-				bool result				= false;
-				XWindowAttributes winattr;
-				Window dummy;
-				DBG_TRACE("GET_WINDOW_RECT( win=%lu )", win);
 
-				Display *display		= XOpenDisplay(NULL);
-
-				if (display){
-					result				= XGetWindowAttributes(display, win, &winattr);
-					if (result) result	= XTranslateCoordinates(display, win, RootWindow(display, 0), winattr.x, winattr.y, &winattr.x, &winattr.y, &dummy);
-
-					XCloseDisplay(display);
-
-				}else
-					DBG_ERROR("could not open display!");
-
-				if (result)
-					writeRectXYWH(winattr.x, winattr.y, winattr.width, winattr.height);
-				writeInt32(result);
-
-				DBG_TRACE("GET_WINDOW_RECT -> ( result=%d, ... )", result);
-				returnCommand();
-			}
-			break;
-	#endif
 	#ifndef __APPLE__
+
 		case CHANGE_EMBEDDED_MODE:
 			{
 				NPP instance			= readHandleInstance(stack);
@@ -711,7 +684,9 @@ void dispatcher(int functionid, Stack &stack){
 				returnCommand();
 			}
 			break;
+
 	#endif
+
 		case FUNCTION_NPN_CREATE_OBJECT:
 			{
 				NPP instance			= readHandleInstance(stack);

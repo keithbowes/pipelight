@@ -205,7 +205,7 @@ struct ParameterInfo{
 typedef std::vector<ParameterInfo> Stack;
 
 /* increase this whenever you do changes in the protocol stack */
-#define PIPELIGHT_PROTOCOL_VERSION 0x1000000E
+#define PIPELIGHT_PROTOCOL_VERSION 0x1000000F
 
 enum{
 	/* ------- Special ------- */
@@ -219,7 +219,6 @@ enum{
 	LIN_HANDLE_MANAGER_FREE_OBJECT_ASYNC,
 
 	/* Additional commands on the linux side */
-	GET_WINDOW_RECT,
 	CHANGE_EMBEDDED_MODE,
 
 	/* Handlemanager on the windows side */
@@ -857,8 +856,10 @@ inline bool pluginInitOkay(){
 		return false;
 
 	/* ensure that we're using the correct protocol version */
-	if (readInt32(stack) != PIPELIGHT_PROTOCOL_VERSION)
+	if (readInt32(stack) != PIPELIGHT_PROTOCOL_VERSION){
+		DBG_ERROR("incompatible version of pluginloader.exe");
 		return false;
+	}
 
 	return true;
 }
