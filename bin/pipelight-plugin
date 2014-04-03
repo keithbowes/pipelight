@@ -332,7 +332,6 @@ is_enabled_plugin()
 {
 	local DIRECTORY="$1"
 	local PLUGIN="$2"
-	if ! get_directories; then return 1; fi
 
 	PLUGIN=$(resolve_plugin_alias "$PLUGIN")
 	[ $? -eq 0 ] || return 1;
@@ -368,8 +367,10 @@ disable_all_plugin()
 # > List enabled plugins
 list_enabled_plugins()
 {
+	if ! get_directories; then return 1; fi
+
 	for entry in "${ALL_PLUGINS[@]}"; do
-		if is_enabled_plugin "$INSTALLDIR" "$entry"; then	echo "$entry"; fi
+		if is_enabled_plugin "$INSTALLDIR" "$entry"; then echo "$entry"; fi
 	done
 
 	return 0
@@ -378,13 +379,15 @@ list_enabled_plugins()
 # > List all enabled plugins
 list_all_enabled_plugins()
 {
+	if ! get_directories; then return 1; fi
+
 	for entry in "${ALL_PLUGINS[@]}"; do
-		if is_enabled_plugin "$INSTALLDIR" "$entry"; then	echo "$entry"; fi
+		if is_enabled_plugin "$INSTALLDIR" "$entry"; then echo "$entry"; fi
 	done
 
 	if [ "$INSTALLDIR" != "$PLUGIN_PATH" ]; then
 		for entry in "${ALL_PLUGINS[@]}"; do
-			if is_enabled_plugin "$PLUGIN_PATH" "$entry"; then	echo "$entry"; fi
+			if is_enabled_plugin "$PLUGIN_PATH" "$entry"; then echo "$entry"; fi
 		done
 	fi
 
