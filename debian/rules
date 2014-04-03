@@ -3,7 +3,11 @@
 		dh $@
 
 override_dh_auto_configure:
+ifeq ($(DEB_BUILD_ARCH), amd64)
+	dh_auto_configure -- --win32-static --gcc-runtime-dlls=""  --with-win64
+else
 	dh_auto_configure -- --win32-static --gcc-runtime-dlls=""
+endif
 
 override_dh_auto_install:
 		$(MAKE) DESTDIR=$$(pwd)/debian/pipelight-multi install
