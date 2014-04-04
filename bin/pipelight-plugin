@@ -18,6 +18,7 @@ ADDITIONAL_PLUGINS=("shockwave" "foxitpdf" "grandstream" "adobereader" "hikvisio
 
 if [[ "$PLUGINLOADER64_EXISTS" =~ ^@@.*@@$ ]] || [ "$PLUGINLOADER64_EXISTS" == "true" ]; then
 	STANDARD_PLUGINS=("${STANDARD_PLUGINS[@]}" "x64-flash")
+	ADDITIONAL_PLUGINS=("${ADDITIONAL_PLUGINS[@]}" "x64-unity3d")
 fi
 
 ALL_PLUGINS=("${STANDARD_PLUGINS[@]}" "${ADDITIONAL_PLUGINS[@]}")

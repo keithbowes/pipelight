@@ -427,7 +427,7 @@ install_shockwave()
 	return "$res"
 }
 
-# > Install Unity3D
+# > Install Unity3D 32 bit
 # arguments: None
 # $DOWNLOADFILE
 install_unity3d()
@@ -441,6 +441,28 @@ install_unity3d()
 
 	local installdir="$WINEPREFIX/drive_c/Program Files/Unity/WebPlayer/loader"
 	if [ ! -f "$installdir/npUnity3D32.dll" ]; then
+		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
+		return 1
+	fi
+
+	# Successful
+	return 0
+}
+
+# > Install Unity3D 64 bit
+# arguments: None
+# $DOWNLOADFILE
+install_x64_unity3d()
+{
+	# Launch the installer
+	if [ "$QUIETINSTALLATION" -eq 0 ]; then
+		"$WINE" "$DOWNLOADFILE" /AllUsers 2>&1
+	else
+		"$WINE" "$DOWNLOADFILE" /S /AllUsers 2>&1 | progressbar "Please wait, installing ..." "Running $DEP"
+	fi
+
+	local installdir="$WINEPREFIX/drive_c/Program Files/Unity/WebPlayer/loader-x64"
+	if [ ! -f "$installdir/npUnity3D64.dll" ]; then
 		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
 		return 1
 	fi
@@ -846,6 +868,11 @@ while [ $# -gt 0 ] ; do
 			INS=(install_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayer.exe"
 			SHA="1fa856053541f29831dd2f851a1c330549ce7ac8dd96b432084681f111a381f6"
+			;;
+		wine-x64-unity3d-installer)
+			INS=(install_x64_unity3d)
+			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayerFull64.exe"
+			SHA="6da32614328dea7e5eff5b1d4c169b49a7dbaa2e346276a72504fb263240909e"
 			;;
 		wine-adobereader-installer) # http://get.adobe.com/de/reader/otherversions/
 			INS=(install_adobereader)
