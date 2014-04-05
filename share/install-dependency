@@ -921,16 +921,16 @@ while [ $# -gt 0 ] ; do
 			EXT="zip"
 			;;
 		wine-roblox-installer)
-			INS=(install_roblox "9dddd6d1e4534c53")
-			URL="http://setup.roblox.com/version-9dddd6d1e4534c53-Roblox.exe"
-			SHA="daffe28895800409649df95c75b1d44e5360e61e4b222546b429e247a56ab51d"
+			INS=(install_roblox "53c562c888894ea7")
+			URL="http://setup.roblox.com/version-53c562c888894ea7-Roblox.exe"
+			SHA="6fe9fd1c19bc43988d687e272fd4165e40ced056d28e55eca9aaff3868eb9726"
 			;;
 		wine-vizzedrgr-installer)
 			INS=(install_vizzedrgr)
 			URL="http://www.vizzed.co/VizzedRgrPlugin-v2.0.msi"
 			SHA="ddc99b1a6902e30f355533620637a2d1b7d1ff3b1bd76a65cb1fbd78b2b396cb"
 			;;
-		wine-viewright-caiway-installer)
+		wine-viewright-caiway-installer) #https://www.caiway.nl/site/nl/applicatie/multiscreentvplugins
 			INS=(install_viewright_caiway)
 			URL="https://www.caiway.nl/downloads/ViewRightWebInstaller-3.5.0.0_CaiW.msi"
 			SHA="9436dea83e42204d0a9bc4d128c2f2693dd9c5f9636d5fa57441ef5886f3ab43"
