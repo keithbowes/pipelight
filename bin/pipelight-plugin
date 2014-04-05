@@ -17,8 +17,7 @@ STANDARD_PLUGINS=("silverlight5.1" "silverlight5.0" "silverlight4" "flash" "unit
 ADDITIONAL_PLUGINS=("shockwave" "foxitpdf" "grandstream" "adobereader" "hikvision" "npactivex" "roblox" "vizzedrgr" "viewright-caiway")
 
 if [[ "$PLUGINLOADER64_EXISTS" =~ ^@@.*@@$ ]] || [ "$PLUGINLOADER64_EXISTS" == "true" ]; then
-	STANDARD_PLUGINS=("${STANDARD_PLUGINS[@]}" "x64-flash")
-	ADDITIONAL_PLUGINS=("${ADDITIONAL_PLUGINS[@]}" "x64-unity3d")
+	ADDITIONAL_PLUGINS=("${ADDITIONAL_PLUGINS[@]}" "x64-unity3d" "x64-flash")
 fi
 
 ALL_PLUGINS=("${STANDARD_PLUGINS[@]}" "${ADDITIONAL_PLUGINS[@]}")
