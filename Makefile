@@ -14,6 +14,7 @@ win64cxx=
 win64flags=-m64 -static-libgcc -static-libstdc++ -static
 quietinstallation=true
 nogpuaccel=false
+debug=false
 
 -include config.make
 
@@ -26,6 +27,10 @@ endif
 PLUGINLOADERS:= pluginloader32
 ifeq ($(win64),true)
 	PLUGINLOADERS:= $(PLUGINLOADERS) pluginloader64
+endif
+
+ifeq ($(debug),true)
+	CXXFLAGS := $(CXXFLAGS) -DPIPELIGHT_DEBUG
 endif
 
 export

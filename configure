@@ -13,11 +13,12 @@ win64cxx=""
 win64flags="-m64"
 quietinstallation="true"
 nogpuaccel="false"
+debug="false"
 
 usage ()
 {
 	echo ""
-	echo "Usage: ./configure [--prefix=PREFIX] [--wine-path=PATH]"
+	echo "Usage: ./configure [--prefix=PREFIX] [--wine-path=PATH] [--debug]"
 	echo "                   [--moz-plugin-path=PATH] [--gcc-runtime-dlls=PATH]"
 	echo "                   [--show-installation-dialogs] [--no-gpu-accel]"
 	echo " 32-bit options:"
@@ -63,6 +64,10 @@ while [[ $# > 0 ]] ; do
 
 		--show-installation-dialogs)
 			quietinstallation="false"
+			;;
+
+		--debug)
+			debug="true"
 			;;
 
 		--win32-static)
@@ -190,6 +195,7 @@ echo " win64             = '$win64'"
 echo " win64cxx          = '$win64cxx'"
 echo " win64flags        = '$win64flags'"
 echo " nogpuaccel        = '$nogpuaccel'"
+echo " debug             = '$debug'"
 echo ""
 echo "IMPORTANT: Please ensure you have XATTR support enabled for both wine and"
 echo "           your file system (required to watch DRM protected content)!"
@@ -207,5 +213,6 @@ echo "win64flags=$win64flags"				>> config.make
 echo "win32cxx=$win32cxx"					>> config.make
 echo "win32flags=$win32flags"				>> config.make
 echo "nogpuaccel=$nogpuaccel"				>> config.make
+echo "debug=$debug"							>> config.make
 
 exit 0
