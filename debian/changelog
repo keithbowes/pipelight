@@ -1,7 +1,14 @@
+pipelight-multi (0.2.7) UNRELEASED; urgency=low
+
+  * Fixed pluginloader.exe crash when closing browser window and using
+    multiple instances of the same plugin.
+
+ -- Michael Mueller <michael@fds-team.de>  Sun, 06 Apr 2014 20:02:02 +0200
+
+
 pipelight-multi (0.2.6) RELEASED; urgency=low
 
   * Update Silverlight to 5.1.30214.0
-  * Add pipelight commandline switch --list-enabled-all
   * Add ViewRight for Caiway plugin
   * Update Flash to 12.0.0.77
   * Update Shockwave Player to 12.1.0.150
