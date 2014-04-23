@@ -1378,6 +1378,11 @@ void dispatcher(int functionid, Stack &stack){
 					DBG_WARN("FUNCTION_NPP_GETVALUE_OBJECT - variable %d not allowed", variable);
 					result = NPERR_GENERIC_ERROR;
 				}
+				if (result == NPERR_NO_ERROR && !objectValue)
+				{
+					DBG_ERROR("plugin returned NULL pointer instead of object");
+					result = NPERR_GENERIC_ERROR;
+				}
 				if (result == NPERR_NO_ERROR)
 					writeHandleObjDecRef(objectValue);
 				writeInt32(result);
