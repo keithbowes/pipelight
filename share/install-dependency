@@ -575,7 +575,7 @@ install_adobereader()
 	(
 		echo "REGEDIT4"
 		echo ""
-		echo "[HKEY_CURRENT_USER\Software\Adobe\Acrobat Reader\11.0\Privileged]"
+		echo "[HKEY_CURRENT_USER\\Software\\Adobe\\Acrobat Reader\\11.0\\Privileged]"
 		echo "\"bProtectedMode\"=dword:00000000"
 	) > "$tmpfile"
 
