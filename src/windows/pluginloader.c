@@ -99,6 +99,7 @@ LONG pendingAsyncCalls = 0;
 
 std::string np_MimeType;
 std::string np_FileExtents;
+std::string np_FileVersion;
 std::string np_FileOpenName;
 std::string np_ProductName;
 std::string np_FileDescription;
@@ -389,30 +390,42 @@ bool initDLL(std::string dllPath, std::string dllName){
 		return false;
 	}
 
+	VS_FIXEDFILEINFO *verInfo;
+	UINT verInfoLen;
+	char formatedVerStr[30];
 	char *info = NULL;
 	UINT size = 0;
 
-	if (VerQueryValueA(data.get(), "\\StringFileInfo\\040904E4\\MIMEType", (void**)&info, &size)){
+	if (VerQueryValueA(data.get(), "\\", (void**)&verInfo, &verInfoLen) && verInfo && verInfoLen >= sizeof(VS_FIXEDFILEINFO)){
+		snprintf(formatedVerStr, sizeof(formatedVerStr), "%u.%u.%u.%u",
+			HIWORD(verInfo->dwFileVersionMS),
+			LOWORD(verInfo->dwFileVersionMS),
+			HIWORD(verInfo->dwFileVersionLS),
+			LOWORD(verInfo->dwFileVersionLS));
+		np_FileVersion = std::string(formatedVerStr);
+	}
+
+	if (VerQueryValueA(data.get(), "\\StringFileInfo\\040904E4\\MIMEType", (void**)&info, &size) && info){
 		while( size > 0 && info[size-1] == 0) size--;
 		np_MimeType = std::string(info, size);
 	}
 
-	if (VerQueryValueA(data.get(), "\\StringFileInfo\\040904E4\\FileExtents", (void**)&info, &size)){
+	if (VerQueryValueA(data.get(), "\\StringFileInfo\\040904E4\\FileExtents", (void**)&info, &size) && info){
 		while( size > 0 && info[size-1] == 0) size--;
 		np_FileExtents = std::string(info, size);
 	}
 
-	if (VerQueryValueA(data.get(), "\\StringFileInfo\\040904E4\\FileOpenName", (void**)&info, &size)){
+	if (VerQueryValueA(data.get(), "\\StringFileInfo\\040904E4\\FileOpenName", (void**)&info, &size) && info){
 		while( size > 0 && info[size-1] == 0) size--;
 		np_FileOpenName = std::string(info, size);
 	}
 
-	if (VerQueryValueA(data.get(), "\\StringFileInfo\\040904E4\\ProductName", (void**)&info, &size)){
+	if (VerQueryValueA(data.get(), "\\StringFileInfo\\040904E4\\ProductName", (void**)&info, &size) && info){
 		while( size > 0 && info[size-1] == 0) size--;
 		np_ProductName = std::string(info, size);
 	}
 
-	if (VerQueryValueA(data.get(), "\\StringFileInfo\\040904E4\\FileDescription", (void**)&info, &size)){
+	if (VerQueryValueA(data.get(), "\\StringFileInfo\\040904E4\\FileDescription", (void**)&info, &size) && info){
 		while( size > 0 && info[size-1] == 0) size--;
 		np_FileDescription = std::string(info, size);
 	}
@@ -979,9 +992,9 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				DBG_TRACE("FUNCTION_GET_VERSION()");
 
-				writeString(np_FileDescription);
+				writeString(np_FileVersion);
 
-				DBG_TRACE("FUNCTION_GET_VERSION -> str='%s'", np_FileDescription.c_str());
+				DBG_TRACE("FUNCTION_GET_VERSION -> str='%s'", np_FileVersion.c_str());
 				returnCommand();
 			}
 			break;
