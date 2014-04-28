@@ -163,8 +163,13 @@ NP_EXPORT(/*const*/ char*) NP_GetPluginVersion(){
 	DBG_TRACE("()");
 
 	if (initOkay){
-		callFunction(FUNCTION_GET_VERSION);
-		std::string result = readResultString();
+		std::string result;
+		if (config.fakeVersion != "")
+			result = config.fakeVersion;
+		else{
+			callFunction(FUNCTION_GET_VERSION);
+			result = readResultString();
+		}
 		pokeString(strPluginVersion, result, sizeof(strPluginVersion));
 	}else
 		pokeString(strPluginVersion, "0.0", sizeof(strPluginVersion));
