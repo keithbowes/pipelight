@@ -173,11 +173,19 @@ if [[ "$changelog" =~ \((.*)\)\ (UNRELEASED)? ]]; then
 	fi
 fi
 
+# Use realpath instead of readlink if possible (*BSD and recent linux versions)
+if ! command -v realpath >/dev/null 2>&1; then
+	realpath()
+	{
+		readlink -m "$1"
+	}
+fi
+
 # Normalize the paths
-prefix=$(readlink -m "$prefix")
-winepath=$(readlink -m "$winepath")
-mozpluginpath=$(readlink -m "$mozpluginpath")
-gccruntimedlls=$(readlink -m "$gccruntimedlls")
+prefix=$(realpath "$prefix")
+winepath=$(realpath "$winepath")
+mozpluginpath=$(realpath "$mozpluginpath")
+gccruntimedlls=$(realpath "$gccruntimedlls")
 
 echo "Configuration Summary"
 echo "---------------------"
