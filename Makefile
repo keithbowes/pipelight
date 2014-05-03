@@ -60,6 +60,7 @@ install: all
 	mkdir -p "$(DESTDIR)$(prefix)/lib/pipelight"
 	mkdir -p "$(DESTDIR)$(prefix)/bin"
 	mkdir -p "$(DESTDIR)$(prefix)/share/man/man1"
+	mkdir -p "$(DESTDIR)$(mozpluginpath)"
 
 	install -m 0644 share/sig-install-dependency.gpg "$(DESTDIR)$(prefix)/share/pipelight/sig-install-dependency.gpg"
 	install -m 0755 "src/windows/pluginloader.exe" "$(DESTDIR)$(prefix)/share/pipelight/pluginloader.exe"
@@ -131,6 +132,7 @@ uninstall:
 	rmdir --ignore-fail-on-non-empty "$(DESTDIR)$(prefix)/share/pipelight/scripts"
 	rmdir --ignore-fail-on-non-empty "$(DESTDIR)$(prefix)/share/pipelight"
 	rmdir --ignore-fail-on-non-empty "$(DESTDIR)$(prefix)/lib/pipelight"
+	rmdir --ignore-fail-on-non-empty "$(DESTDIR)$(mozpluginpath)"
 
 .PHONY: clean
 clean:
