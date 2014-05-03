@@ -1,4 +1,4 @@
-CXX			:= g++
+CXX		?= g++
 CXXFLAGS	:= -Wall -fPIC -std=gnu++0x $(CXXFLAGS)
 LDFLAGS		:= -lpthread -ldl $(LDFLAGS)
 OBJECTS		:= common.o basicplugin.o configloader.o diagnostic.o npclass.o nppfunctions.o

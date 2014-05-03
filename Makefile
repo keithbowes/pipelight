@@ -7,6 +7,7 @@ prefix=/usr/local
 winepath=/opt/wine-compholio/bin/wine
 mozpluginpath=/usr/lib/mozilla/plugins
 gccruntimedlls=
+cxx=g++
 win32cxx=i686-w64-mingw32-g++
 win32flags=-m32 -static-libgcc -static-libstdc++ -static
 win64=false
@@ -40,7 +41,7 @@ all: linux $(PLUGINLOADERS)
 
 .PHONY: linux
 linux:
-	$(MAKE) -C src/linux
+	$(MAKE) -C src/linux CXX="$(cxx)"
 
 .PHONY: pluginloader32
 pluginloader32:

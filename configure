@@ -6,6 +6,7 @@ prefix="/usr/local"
 winepath="/opt/wine-compholio/bin/wine"
 mozpluginpath="/usr/lib/mozilla/plugins"
 gccruntimedlls=""
+cxx=""
 win32cxx=""
 win32flags="-m32"
 win64="false"
@@ -21,6 +22,7 @@ usage ()
 	echo "Usage: ./configure [--prefix=PREFIX] [--wine-path=PATH] [--debug]"
 	echo "                   [--moz-plugin-path=PATH] [--gcc-runtime-dlls=PATH]"
 	echo "                   [--show-installation-dialogs] [--no-gpu-accel]"
+	echo "                   [--cxx]"
 	echo " 32-bit options:"
 	echo "                   [--win32-prebuilt] [--win32-cxx=COMPILER]"
 	echo "                   [--win32-static] [--win32-flags=FLAGS]"
@@ -65,6 +67,13 @@ while [[ $# > 0 ]] ; do
 		--show-installation-dialogs)
 			quietinstallation="false"
 			;;
+
+                --cxx=*)
+                        cxx="${CMD#*=}"
+                        ;;
+                --cxx)
+                        cxx="$1"; shift
+                        ;;
 
 		--debug)
 			debug="true"
@@ -131,6 +140,17 @@ while [[ $# > 0 ]] ; do
 done
 
 # Try to autodetect compiler
+if [ -z "$cxx" ]; then
+        if command -v g++ >/dev/null 2>&1; then
+                cxx="g++"
+        elif command -v clang++ > /dev/null 2>&1; then
+                cxx="clang++"
+        else
+                echo "ERROR: No cxx compiler found. Please use --cxx to specify one."
+                exit 1
+        fi
+fi
+
 if [ -z "$win32cxx" ]; then
 	if command -v i686-w64-mingw32-g++ >/dev/null 2>&1; then
 		win32cxx="i686-w64-mingw32-g++"
@@ -197,6 +217,7 @@ echo " winepath          = '$winepath'"
 echo " mozpluginpath     = '$mozpluginpath'"
 echo " gccruntimedlls    = '$gccruntimedlls'"
 echo " quietinstallation = '$quietinstallation'"
+echo " cxx               = '$cxx'"
 echo " win32cxx          = '$win32cxx'"
 echo " win32flags        = '$win32flags'"
 echo " win64             = '$win64'"
@@ -215,6 +236,7 @@ echo "winepath=$winepath"					>> config.make
 echo "mozpluginpath=$mozpluginpath"			>> config.make
 echo "gccruntimedlls=$gccruntimedlls"		>> config.make
 echo "quietinstallation=$quietinstallation" >> config.make
+echo "cxx=$cxx"					>> config.make
 echo "win64=$win64"							>> config.make
 echo "win64cxx=$win64cxx"					>> config.make
 echo "win64flags=$win64flags"				>> config.make
