@@ -1,12 +1,21 @@
 CXX		?= g++
-CXXFLAGS	:= -Wall -fPIC -std=gnu++0x $(CXXFLAGS)
-LDFLAGS		:= -lpthread -ldl $(LDFLAGS)
+
+ifeq ($(UNAME_S), FreeBSD)
+	CXXFLAGS += -I/usr/local/include
+	LDFLAGS  += -L/usr/local/lib
+endif
+
+CXXFLAGS	+= -Wall -fPIC -std=gnu++0x
+LDFLAGS		+= -lpthread
 OBJECTS		:= common.o basicplugin.o configloader.o diagnostic.o npclass.o nppfunctions.o
 COMMONHDR	:= ../common/common.h ../npapi-headers/npapi.h ../npapi-headers/npfunctions.h ../npapi-headers/npruntime.h ../npapi-headers/nptypes.h
 
 UNAME_S		:= $(shell uname -s)
 ifneq ($(UNAME_S),Darwin)
 	LDFLAGS += -lX11
+endif
+ifneq ($(UNAME_S), FreeBSD)
+	LDFLAGS += -ldl
 endif
 
 .PHONY: all

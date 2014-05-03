@@ -15,7 +15,7 @@
 
 #if defined(__WIN32__)
 	#define XP_WIN 1
-#elif defined(__linux__)
+#elif defined(__linux__) || defined (__FreeBSD__)
 	#define XP_UNIX 1
 	#define MOZ_X11 1
 #elif defined(__APPLE__)

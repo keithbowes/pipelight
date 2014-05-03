@@ -42,6 +42,7 @@
 #include <unistd.h>								// for POSIX api
 #include <iostream>								// for std::ios_base
 #include <string>								// for std::string
+#include <errno.h>
 
 #ifndef __APPLE__
 #include <X11/Xlib.h>							// for XSendEvent, ...

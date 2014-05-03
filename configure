@@ -156,6 +156,10 @@ if [ -z "$win32cxx" ]; then
 		win32cxx="i686-w64-mingw32-g++"
 		win32flags="$win32flags -static-libgcc -static-libstdc++ -static"
 
+        elif command -v mingw32-g++ > /dev/null 2>&1; then
+                win32cxx="mingw32-g++"
+                win32flags="$win32flags -DMINGW32_FALLBACK -static-libgcc -static-libstdc++ -static"
+
 	elif command -v i686-pc-mingw32-g++ > /dev/null 2>&1; then
 		win32cxx="i686-pc-mingw32-g++"
 		win32flags="$win32flags -DMINGW32_FALLBACK -static-libgcc -static-libstdc++ -static"

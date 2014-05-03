@@ -44,6 +44,7 @@
 #include <algorithm>							// for std::transform
 #include <stdio.h>								// for _fdopen
 #include <float.h>								// _controlfp_s
+#include <stddef.h>								// offsetof
 
 #include "../common/common.h"
 #include "pluginloader.h"
