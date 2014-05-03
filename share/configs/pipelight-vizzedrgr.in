@@ -109,7 +109,7 @@ dependencyInstaller = @@DEPENDENCY_INSTALLER@@
 # dependencyInstaller, can be used multiple times. (optional)
 #
 # Useful values for Vizzed RGR are:
-#   wine-Vizzed RGR-installer
+#   wine-vizzedrgr-installer
 #
 dependency          = wine-vizzedrgr-installer
 

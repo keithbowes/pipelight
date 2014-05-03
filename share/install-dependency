@@ -19,11 +19,17 @@ usage()
 	echo "	wine-flash-debug-installer"
 	echo "	wine-widevine-installer"
 	echo "	wine-unity3d-installer"
+	echo "	wine-x64-unity3d-installer"
 	echo "	wine-adobereader-installer"
 	echo "	wine-foxitpdf-installer"
 	echo "	wine-shockwave-installer"
 	echo "	wine-grandstream-installer"
-	echo "  wine-npactivex-installer"
+	echo "	wine-hikvision-installer"
+	echo "	wine-npactivex-installer"
+	echo "	wine-roblox-installer"
+	echo "	wine-vizzedrgr-installer"
+	echo "	wine-viewright-caiway-installer"
+	echo "	wine-triangleplayer-installer"
 	echo ""
 	echo "Library dependencies:"
 	echo "	wine-mpg2splt-installer"
@@ -668,6 +674,7 @@ install_roblox()
 		echo "[$PRG] ERROR: Unable to register Roblox Launcher class." >&2
 		return 1
 	fi
+
 	# Successful
 	return 0
 }
@@ -716,6 +723,23 @@ install_viewright_caiway()
 	return 0
 }
 
+# > Install TrianglePlayer
+# arguments: None
+# $DOWNLOADFILE
+install_triangleplayer()
+{
+	# Launch the installer
+	"$WINE" "$DOWNLOADFILE" 2>&1 | progressbar "Please wait, installing ..." "Running $DEP"
+
+	local installdir="$WINEPREFIX/drive_c/users/$USER/Application Data/TrianglePlayer"
+	if [ ! -f "$installdir/NPTrianglePlayer.dll" ]; then
+		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
+		return 1
+	fi
+
+	# Successful
+	return 0
+}
 
 # Use shasum instead of sha256sum on MacOS / *BSD
 if ! command -v sha256sum >/dev/null 2>&1 && command -v shasum >/dev/null 2>&1; then
@@ -942,6 +966,11 @@ while [ $# -gt 0 ] ; do
 			INS=(install_viewright_caiway)
 			URL="https://www.caiway.nl/downloads/ViewRightWebInstaller-3.5.0.0_CaiW.msi"
 			SHA="9436dea83e42204d0a9bc4d128c2f2693dd9c5f9636d5fa57441ef5886f3ab43"
+			;;
+		wine-triangleplayer-installer)
+			INS=(install_triangleplayer)
+			URL="http://107.6.61.221/TLT_GBE/TrianglePlayer_setup_GBE.exe"
+			SHA="30d871eb39002a52d405e3f40d2fb2047eb2e1f9b3597b27571633f442a5dea3"
 			;;
 		*)
 			echo "[$PRG] ERROR: No installer script found for $DEP." >&2

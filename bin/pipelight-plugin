@@ -14,7 +14,7 @@ ACCEPTALL=0
 
 # Supported plugins
 STANDARD_PLUGINS=("silverlight5.1" "silverlight5.0" "silverlight4" "flash" "unity3d" "widevine")
-ADDITIONAL_PLUGINS=("shockwave" "foxitpdf" "grandstream" "adobereader" "hikvision" "npactivex" "roblox" "vizzedrgr" "viewright-caiway")
+ADDITIONAL_PLUGINS=("shockwave" "foxitpdf" "grandstream" "adobereader" "hikvision" "npactivex" "roblox" "vizzedrgr" "viewright-caiway" "triangleplayer")
 
 if [[ "$PLUGINLOADER64_EXISTS" =~ ^@@.*@@$ ]] || [ "$PLUGINLOADER64_EXISTS" == "true" ]; then
 	ADDITIONAL_PLUGINS=("${ADDITIONAL_PLUGINS[@]}" "x64-unity3d" "x64-flash")
