@@ -26,6 +26,14 @@ ALL_PLUGINS=("${STANDARD_PLUGINS[@]}" "${ADDITIONAL_PLUGINS[@]}")
 declare -A PLUGINALIAS
 PLUGINALIAS[silverlight]="silverlight5.1"
 
+# Use realpath instead of readlink if possible (*BSD and recent linux versions)
+if ! command -v realpath >/dev/null 2>&1; then
+	realpath()
+	{
+		readlink -m "$1"
+	}
+fi
+
 usage()
 {
 	echo ""
@@ -97,8 +105,8 @@ get_directories()
 		PLUGIN_PATH="/usr/lib/mozilla/plugins"
 	fi
 
-	LIBRARY_PATH=$(readlink -m "$LIBRARY_PATH")
-	PLUGIN_PATH=$(readlink -m "$PLUGIN_PATH")
+	LIBRARY_PATH=$(realpath "$LIBRARY_PATH")
+	PLUGIN_PATH=$(realpath "$PLUGIN_PATH")
 
 	# Global installation
 	if [ $(/usr/bin/id -u) -eq 0 ]; then
@@ -106,7 +114,7 @@ get_directories()
 
 	# Use environment variable (only if it doesn't point to the global directory)
 	elif [ ! -z "$MOZ_PLUGIN_PATH" ] && [ "$MOZ_PLUGIN_PATH" != "$PLUGIN_PATH" ] && [ -d "$MOZ_PLUGIN_PATH" ]; then
-		INSTALLDIR=$(readlink -m "$MOZ_PLUGIN_PATH")
+		INSTALLDIR=$(realpath "$MOZ_PLUGIN_PATH")
 
 	# Local installation
 	else

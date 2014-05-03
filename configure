@@ -199,17 +199,26 @@ fi
 
 # Use realpath instead of readlink if possible (*BSD and recent linux versions)
 if ! command -v realpath >/dev/null 2>&1; then
-	realpath()
+	resolvepath()
 	{
 		readlink -m "$1"
+	}
+else
+	resolvepath()
+	{
+		if [ ! -e "$1" ]; then
+			echo "$1"
+		else
+			realpath "$1"
+		fi
 	}
 fi
 
 # Normalize the paths
-prefix=$(realpath "$prefix")
-winepath=$(realpath "$winepath")
-mozpluginpath=$(realpath "$mozpluginpath")
-gccruntimedlls=$(realpath "$gccruntimedlls")
+prefix=$(resolvepath "$prefix")
+winepath=$(resolvepath "$winepath")
+mozpluginpath=$(resolvepath "$mozpluginpath")
+gccruntimedlls=$(resolvepath "$gccruntimedlls")
 
 echo "Configuration Summary"
 echo "---------------------"
