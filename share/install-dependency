@@ -729,7 +729,7 @@ fi
 if ! command -v md5sum >/dev/null 2>&1 && command -v md5 >/dev/null 2>&1; then
 	md5sum()
 	{
-		md5 "$1"
+		md5
 	}
 fi
 
