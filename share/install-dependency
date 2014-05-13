@@ -881,12 +881,12 @@ while [ $# -gt 0 ] ; do
 			SHA="55806d7bacf61799eaee18b0e8a6eda7bf62e384174f506ee75bfa3e898b233c"
 			;;
 		wine-flash-installer) # http://www.adobe.com/de/software/flash/about/
-			INS=(install_flash "13_0_0_206")
-			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/13.0.0.206/install_flash_player.exe"
-			SHA="10358e44b7b2ea294f315b067fb0adffc38f3b0b87a1612dfb00a9e826b2d11c"
+			INS=(install_flash "13_0_0_214")
+			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/13.0.0.214/install_flash_player.exe"
+			SHA="844e9b4dd80fe347eb8d58a3029a0793e3e3313beaaffd66c098dfdda31ae06b"
 			;;
 		wine-flash-debug-installer)
-			INS=(install_flash "13_0_0_206")
+			INS=(install_flash "13_0_0_214")
 			URL="http://download.macromedia.com/pub/flashplayer/updaters/13/flashplayer_13_plugin_debug.exe"
 			SHA="80e80b99cedda0fc92da1aca1da5a1d92ddc041986a7421fe2feae44f5cf675f"
 			;;
@@ -908,8 +908,8 @@ while [ $# -gt 0 ] ; do
 			;;
 		wine-adobereader-installer) # http://get.adobe.com/de/reader/otherversions/
 			INS=(install_adobereader)
-			URL="http://ardownload.adobe.com/pub/adobe/reader/win/11.x/11.0.06/en_US/AdbeRdr11006_en_US.exe"
-			SHA="7eb5dd2905d5cce9912019efa89e939a187cd099583d0216e517c71bd38dc6a8"
+			URL="http://ardownload.adobe.com/pub/adobe/reader/win/11.x/11.0.07/en_US/AdbeRdr11007_en_US.exe"
+			SHA="062e6a02e29cea96064364c3c66c227b1d6041e7b272e5f7b29145e6f4f44173"
 			;;
 		wine-foxitpdf-installer) # http://www.foxitsoftware.com/Secure_PDF_Reader/version_history.php
 			INS=(install_foxitpdf)
