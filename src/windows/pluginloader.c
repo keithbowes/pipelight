@@ -86,6 +86,11 @@ OpenGLSupportEntry OpenGLSupportTable[] = {
 	{"NVIDIA Corporation", 					OPENGL_FULL},
 	{"nouveau", 							OPENGL_FULL},
 	{"Tungsten Graphics, Inc", 				OPENGL_FULL},
+	{"Advanced Micro Devices, Inc.", 		OPENGL_STRICT},
+	{"ATI Technologies Inc.", 				OPENGL_STRICT},
+	{" AMD ", 								OPENGL_STRICT},
+	{" ATI ", 								OPENGL_STRICT},
+	{" R600 ", 								OPENGL_STRICT},
 };
 
 OPENGL_SUPPORT openGLSupport = OPENGL_NOT_TESTED;
@@ -569,7 +574,7 @@ bool checkOpenGL(){
 		goto error;
 
 	for (i = 0; i < sizeof(OpenGLSupportTable) / sizeof(OpenGLSupportTable[0]); i++){
-		if (strcmp(OpenGLSupportTable[i].vendor, vendor) == 0){
+		if (strstr(vendor, OpenGLSupportTable[i].vendor)){
 			openGLSupport = OpenGLSupportTable[i].support;
 			break;
 		}
