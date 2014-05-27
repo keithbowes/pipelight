@@ -394,67 +394,6 @@ bool checkPluginInstallation(){
 	return true;
 }
 
-/* checkSilverlightGraphicDriver */
-bool checkSilverlightGraphicDriver(){
-
-	if (config.silverlightGraphicDriverCheck == ""){
-		DBG_ERROR("no GPU driver check script defined - treating test as failure.");
-		return false;
-	}
-
-	/* Shortcuts */
-	if (config.silverlightGraphicDriverCheck == "/bin/true"){
-		DBG_INFO("GPU driver check - Manually set to /bin/true.");
-		return true;
-	}else if (config.silverlightGraphicDriverCheck == "/bin/false"){
-		DBG_INFO("GPU driver check - Manually set to /bin/false.");
-		return false;
-	}
-
-	if (!checkIfExists(config.silverlightGraphicDriverCheck)){
-		DBG_ERROR("GPU driver check script not found - treating test as failure.");
-		return false;
-	}
-
-	pid_t pidCheck = fork();
-	if (pidCheck == 0){
-
-		close(0);
-
-		checkPermissions();
-
-		/* The graphic driver check doesn't need any environment variables or sandbox at all. */
-		execlp(config.silverlightGraphicDriverCheck.c_str(), config.silverlightGraphicDriverCheck.c_str(), NULL);
-		DBG_ABORT("error in execlp command - probably silverlightGraphicDriverCheck not found or missing execute permission.");
-
-	}else if (pidCheck != -1){
-
-		int status;
-		if (waitpid(pidCheck, &status, 0) == -1 || !WIFEXITED(status)){
-			DBG_ERROR("GPU driver check did not run correctly (error occured).");
-			return false;
-
-		}else if (WEXITSTATUS(status) == 0){
-			DBG_INFO("GPU driver check - Your driver is supported, hardware acceleration enabled.");
-			return true;
-
-		}else if (WEXITSTATUS(status) == 1){
-			DBG_ERROR("GPU driver check - Your driver is not in the whitelist, hardware acceleration disabled.");
-			return false;
-
-		}else{
-			DBG_ERROR("GPU driver check did not run correctly (exitcode = %d).", WEXITSTATUS(status));
-			return false;
-		}
-
-	}else{
-		DBG_ERROR("unable to fork() - probably out of memory?");
-		return false;
-	}
-
-	return false;
-}
-
 /* startWineProcess */
 bool startWineProcess(){
 	int tempPipeOut[2], tempPipeIn[2];
@@ -492,9 +431,6 @@ bool startWineProcess(){
 			setenv("Path", runtime.c_str(), true);
 		}
 
-		if (config.experimental_strictDrawOrdering)
-			setenv("WINE_STRICT_DRAW_ORDERING", "1", true);
-
 		/* Generate argv array */
 		std::vector<const char*> argv;
 
@@ -528,19 +464,25 @@ bool startWineProcess(){
 			argv.push_back( "--windowless" );
 
 		if (config.linuxWindowlessMode)
-			argv.push_back( "--linuxwindowless" );
+			argv.push_back( "--linuxWindowless" );
 
 		if (config.embed)
 			argv.push_back( "--embed" );
 
 		if (config.experimental_unityHacks)
-			argv.push_back( "--unityhacks" );
+			argv.push_back( "--unityHacks" );
 
 		if (config.experimental_forceSetWindow)
-			argv.push_back( "--forcesetwindow" );
+			argv.push_back( "--forceSetWindow" );
 
 		if (config.experimental_windowClassHook)
-			argv.push_back( "--windowclasshook" );
+			argv.push_back( "--windowClassHook" );
+
+		if (config.silverlightGraphicDriverCheck)
+			argv.push_back( "--testOpenGL" );
+
+		if (config.experimental_strictDrawOrdering)
+			argv.push_back( "--strictDrawing" );
 
 		argv.push_back(NULL);
 

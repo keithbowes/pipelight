@@ -196,7 +196,7 @@ operaDetection      = true
 # to overwrite the check results. If you really want to skip this test
 # you can use: silverlightGraphicDriverCheck = /bin/true
 #
-silverlightGraphicDriverCheck  = @@GRAPHIC_DRIVER_CHECK@@
+silverlightGraphicDriverCheck  = true
 
 #------------------------- EXPERIMENTAL -------------------------
 # Watch out: The following section contains highly experimental

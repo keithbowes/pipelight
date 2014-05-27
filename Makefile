@@ -81,7 +81,6 @@ install: all
 		sed -i'' -e 's|@@PLUGINLOADER64_PATH@@|$(prefix)/share/pipelight/pluginloader64.exe|g' pipelight-config.tmp; \
 		sed -i'' -e 's|@@DEPENDENCY_INSTALLER@@|$(prefix)/share/pipelight/install-dependency|g' pipelight-config.tmp; \
 		sed -i'' -e 's|@@SANDBOX_PATH@@|$(prefix)/share/pipelight/sandbox|g' pipelight-config.tmp; \
-		sed -i'' -e 's|@@GRAPHIC_DRIVER_CHECK@@|$(hwacceldefault)|g' pipelight-config.tmp; \
 		sed -i'' -e 's|@@WINE_PATH@@|$(winepath)|g' pipelight-config.tmp; \
 		sed -i'' -e 's|@@GCC_RUNTIME_DLLS@@|$(gccruntimedlls)|g' pipelight-config.tmp; \
 		sed -i'' -e 's|@@QUIET_INSTALLATION@@|$(quietinstallation)|g' pipelight-config.tmp; \

@@ -460,7 +460,9 @@ bool loadConfig(PluginConfig &config){
 		}else if (key == "silverlightgraphicdrivercheck" || key == "graphicdrivercheck"){
 			if (key == "graphicdrivercheck")
 				DBG_WARN("the configuration parameter graphicDriverCheck is deprecated.");
-			config.silverlightGraphicDriverCheck = value;
+			config.silverlightGraphicDriverCheck = (value == "true" || value == "yes" ||
+				(value.find_first_of("true") != std::string::npos) ||
+				(value.find_first_of("hw-accel-default") != std::string::npos) );
 
 		}else if (key == "experimental-unityhacks"){
 			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
@@ -530,19 +532,18 @@ bool loadConfig(PluginConfig &config){
 #endif
 
 	/* check if hw acceleration should be used (only for Silverlight) */
-	if (config.silverlightGraphicDriverCheck != ""){
+	if (config.silverlightGraphicDriverCheck){
 		environmentVariable = getEnvironmentInteger("PIPELIGHT_GPUACCELERATION", -1);
 		if (environmentVariable >= 0){
 			config.overwriteArgs["enableGPUAcceleration"]	= (environmentVariable >= 1) ? "true" : "false";
 			config.experimental_strictDrawOrdering			= (environmentVariable >= 2);
+			config.silverlightGraphicDriverCheck			= false;
 			DBG_INFO("enableGPUAcceleration set via commandline to %s", (environmentVariable >= 1) ? "true" : "false");
 
-		}else if (config.overwriteArgs.find("enableGPUAcceleration") == config.overwriteArgs.end()){
-			if (!checkSilverlightGraphicDriver())
-				config.overwriteArgs["enableGPUAcceleration"] = "false";
-
-		}else
+		}else if (config.overwriteArgs.find("enableGPUAcceleration") != config.overwriteArgs.end()){
+			config.silverlightGraphicDriverCheck			= false;
 			DBG_INFO("enableGPUAcceleration set manually - skipping compatibility check.");
+		}
 	}
 
 	/* check for optional dependencies */

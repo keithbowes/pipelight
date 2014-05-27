@@ -94,7 +94,7 @@ struct PluginConfig{
 	std::string		executeJavascript;
 	std::map<std::string, std::string> replaceJavascript;
 
-	std::string		silverlightGraphicDriverCheck;
+	bool			silverlightGraphicDriverCheck;
 
 	bool			experimental_unityHacks;
 	bool			experimental_forceSetWindow;

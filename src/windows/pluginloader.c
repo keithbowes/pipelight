@@ -52,6 +52,7 @@
 
 #include <windows.h>
 #include <objbase.h>							// for CoInitializeEx
+#include <GL/gl.h>
 
 #ifdef MINGW32_FALLBACK
 	typedef LONG (* WINAPI RegGetValueAPtr)(HKEY hkey, LPCSTR lpSubKey, LPCSTR lpValue, DWORD dwFlags, LPDWORD pdwType, PVOID pvData, LPDWORD pcbData);
@@ -71,7 +72,30 @@
 	#define MCW_PC 0x00030000
 #endif
 
+typedef void (* wined3d_strictdrawing_setPtr)(int value);
+
+enum OPENGL_SUPPORT {
+	OPENGL_NOT_TESTED,
+	OPENGL_NOT_SUPPORTED,
+	OPENGL_FULL,
+	OPENGL_STRICT
+};
+
+struct OpenGLSupportEntry {
+	const char *vendor;
+	OPENGL_SUPPORT support;
+};
+
 /* BEGIN GLOBAL VARIABLES */
+
+OpenGLSupportEntry OpenGLSupportTable[] = {
+	{"Intel Open Source Technology Center", OPENGL_FULL},
+	{"NVIDIA Corporation", 					OPENGL_FULL},
+	{"nouveau", 							OPENGL_FULL},
+	{"Tungsten Graphics, Inc", 				OPENGL_FULL},
+};
+
+OPENGL_SUPPORT openGLSupport = OPENGL_NOT_TESTED;
 
 char clsName[] = "VirtualBrowser";
 
@@ -489,6 +513,102 @@ std::string readPathFromRegistry(HKEY hKey, std::string regKey){
 	return result;
 }
 
+bool checkOpenGL(){
+	HWND hWnd = 0;
+	HDC hDC = 0;
+	HGLRC context = NULL;
+	bool result = false;
+	int pixelformat;
+	const char* renderer = NULL;
+	const char* vendor = NULL;
+	unsigned int i;
+
+	PIXELFORMATDESCRIPTOR pfd = {
+		sizeof(PIXELFORMATDESCRIPTOR),
+		1,
+		PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL,
+		PFD_TYPE_RGBA,
+		32,
+		0, 0, 0, 0, 0, 0,
+		0,
+		0,
+		0,
+		0, 0, 0, 0,
+		0,
+		0,
+		0,
+		PFD_MAIN_PLANE,
+		0,
+		0, 0, 0
+	};
+
+	openGLSupport = OPENGL_NOT_SUPPORTED;
+
+	hWnd = CreateWindowExA(0, clsName, "OpenGL Test", WS_TILEDWINDOW, 0, 0, 100, 100, 0, 0, 0, 0);
+	if (!hWnd)
+		return false;
+
+	hDC = GetDC(hWnd);
+	if (!hDC)
+		goto error;
+
+	pixelformat = ChoosePixelFormat(hDC, &pfd);
+	if (!pixelformat)
+		goto error;
+
+	if (!SetPixelFormat(hDC, pixelformat, &pfd))
+		goto error;
+
+	context = wglCreateContext(hDC);
+	if (!context)
+		goto error;
+
+	if (!wglMakeCurrent(hDC, context))
+		goto error;
+
+	vendor		= (const char *)glGetString(GL_VENDOR);
+	renderer	= (const char *)glGetString(GL_RENDERER);
+
+	DBG_INFO("OpenGL Vendor: %s", vendor);
+	DBG_INFO("OpenGL Renderer: %s", renderer);
+
+	if (!vendor)
+		goto error;
+
+	for (i = 0; i < sizeof(OpenGLSupportTable) / sizeof(OpenGLSupportTable[0]); i++){
+		if (strcmp(OpenGLSupportTable[i].vendor, vendor) == 0){
+			openGLSupport = OpenGLSupportTable[i].support;
+			break;
+		}
+	}
+
+	result = true;
+
+error:
+	if (context) wglDeleteContext(context);
+	if (hDC) ReleaseDC(hWnd, hDC);
+	if (hWnd) DestroyWindow(hWnd);
+	return result;
+}
+
+bool setStrictDrawing(int value){
+	static HMODULE module_wined3d = NULL;
+	static wined3d_strictdrawing_setPtr wined3d_strictdrawing_set = NULL;
+
+	if (!wined3d_strictdrawing_set){
+		if (!module_wined3d){
+			if (!(module_wined3d = LoadLibraryA("wined3d.dll")))
+				return false;
+		}
+
+		if (!(wined3d_strictdrawing_set = (wined3d_strictdrawing_setPtr)GetProcAddress(module_wined3d, "wined3d_strictdrawing_set")))
+			return false;
+	}
+
+	wined3d_strictdrawing_set(value);
+	return true;
+}
+
 /* main */
 int main(int argc, char *argv[]){
 
@@ -522,6 +642,9 @@ int main(int argc, char *argv[]){
 	std::string dllPath;
 	std::string dllName;
 	std::string regKey;
+
+	bool checkOpenGLVendor = false;
+	bool strictDrawing = false;
 
 	for (int i = 1; i < argc; i++){
 		std::string arg = std::string(argv[i]);
@@ -562,6 +685,13 @@ int main(int argc, char *argv[]){
 
 		else if (arg == "--windowclasshook")
 			windowClassHook = true;
+
+		/* opengl */
+		else if (arg == "--testopengl")
+			checkOpenGLVendor = true;
+
+		else if (arg == "--strictdrawing")
+			strictDrawing = true;
 	}
 
 	/* required arguments available? */
@@ -600,6 +730,8 @@ int main(int argc, char *argv[]){
 	DBG_INFO("force SetWindow       is %s.", (forceSetWindow ? "on" : "off"));
 	DBG_INFO("unity hacks           is %s.", (unityHacks ? "on" : "off"));
 	DBG_INFO("window class hook     is %s.", (windowClassHook ? "on" : "off"));
+	DBG_INFO("check opengl          is %s.", (checkOpenGLVendor ? "on" : "off"));
+	DBG_INFO("strict drawing        is %s.", (strictDrawing ? "on" : "off"));
 
 	DBG_ASSERT(initCommIO(), "unable to initialize communication channel.");
 
@@ -632,6 +764,32 @@ int main(int argc, char *argv[]){
 	if (windowClassHook)	installWindowClassHook();
 
 	installPopupHook();
+
+	if (checkOpenGLVendor){
+		if (checkOpenGL()){
+			switch (openGLSupport){
+				case OPENGL_FULL:
+					DBG_INFO("Your GPU is in the whitelist, hardware acceleration should work.");
+					break;
+
+				case OPENGL_STRICT:
+					DBG_INFO("Your GPU is in the restricted whitelist, using limited hardware acceleration.");
+					break;
+
+				default: /* OPENGL_NOT_SUPPORTED */
+					DBG_INFO("Your GPU is not in the whitelist, disabling OpenGL.");
+					break;
+
+			}
+		}else
+			DBG_ERROR("there is something wrong with your OpenGL drivers.");
+	}
+
+	if (strictDrawing || openGLSupport == OPENGL_STRICT){
+		if(!setStrictDrawing(true))
+			DBG_WARN("failed to set strict drawing order!");
+		openGLSupport = OPENGL_STRICT;
+	}
 
 	/* Load the DLL */
 	if (!initDLL(dllPath, dllName)){
@@ -1254,6 +1412,13 @@ void dispatcher(int functionid, Stack &stack){
 				}else{
 					instance->ndata = NULL;
 					DBG_ERROR("unable to allocate memory for private data.");
+				}
+
+				if (openGLSupport == OPENGL_NOT_SUPPORTED)
+				{
+					argn.push_back(strdup("enableGPUAcceleration"));
+					argv.push_back(strdup("false"));
+					argc++;
 				}
 
 				/* append to the instance list */
