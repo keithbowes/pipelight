@@ -19,12 +19,6 @@ debug=false
 
 -include config.make
 
-ifeq ($(nogpuaccel),true)
-	hwacceldefault=/bin/false
-else
-	hwacceldefault=$(prefix)/share/pipelight/hw-accel-default
-endif
-
 PLUGINLOADERS:= pluginloader32
 ifeq ($(win64),true)
 	PLUGINLOADERS:= $(PLUGINLOADERS) pluginloader64
@@ -68,7 +62,6 @@ install: all
 		install -m 0755 "src/windows/pluginloader64.exe" "$(DESTDIR)$(prefix)/share/pipelight/pluginloader64.exe"; \
 	fi
 	install -m 0755 share/install-dependency "$(DESTDIR)$(prefix)/share/pipelight/install-dependency"
-	install -m 0755 share/hw-accel-default "$(DESTDIR)$(prefix)/share/pipelight/hw-accel-default"
 
 	for script in $(notdir $(PLUGIN_SCRIPTS)); do \
 		sed         's|@@WINE_PATH@@|$(winepath)|g' share/scripts/$${script} > pipelight-script.tmp; \
@@ -118,7 +111,6 @@ uninstall:
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/pluginloader.exe"
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/pluginloader64.exe"
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/install-dependency"
-	rm -f "$(DESTDIR)$(prefix)/share/pipelight/hw-accel-default"
 	rm -f  $(DESTDIR)$(prefix)/share/pipelight/scripts/configure-*
 	rm -f  $(DESTDIR)$(prefix)/share/pipelight/configs/pipelight-*
 	rm -f  $(DESTDIR)$(prefix)/share/pipelight/licenses/license-*
