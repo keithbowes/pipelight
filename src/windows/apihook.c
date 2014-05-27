@@ -99,6 +99,7 @@ enum MenuAction{
 	MENU_ACTION_NONE,
 	MENU_ACTION_ABOUT_PIPELIGHT,
 	MENU_ACTION_TOGGLE_EMBED,
+	MENU_ACTION_TOGGLE_STRICT,
 	MENU_ACTION_TOGGLE_STAY_IN_FULLSCREEN
 };
 
@@ -180,6 +181,15 @@ std::vector<MenuEntry> menuAddEntries(HMENU hMenu, HWND hwnd){
 	entries.emplace_back(entryInfo.wID, MENU_ACTION_TOGGLE_EMBED);
 	count++; entryInfo.wID++;
 
+	/* ------- Limited HW Acceleration ------- */
+	entryInfo.fMask			= MIIM_FTYPE | MIIM_STRING | MIIM_ID | MIIM_STATE;
+	entryInfo.fType			= MFT_STRING;
+	entryInfo.fState        = (openGLSupport == OPENGL_STRICT) ? MFS_CHECKED : 0;
+	entryInfo.dwTypeData	= (char*)"Limited HW Acceleration";
+	InsertMenuItemA(hMenu, count, true, &entryInfo);
+	entries.emplace_back(entryInfo.wID, MENU_ACTION_TOGGLE_STRICT);
+	count++; entryInfo.wID++;
+
 	/* ------- Stay in fullscreen ------- */
 	if (windowClassHook){
 		entryInfo.fMask			= MIIM_FTYPE | MIIM_STRING | MIIM_ID | MIIM_STATE;
@@ -214,6 +224,12 @@ bool menuHandler(NPP instance, UINT identifier, const std::vector<MenuEntry> &en
 				NPN_PushPopupsEnabledState(instance, PR_TRUE);
 				NPN_GetURL(instance, "https://launchpad.net/pipelight", "_blank");
 				NPN_PopPopupsEnabledState(instance);
+				break;
+
+			case MENU_ACTION_TOGGLE_STRICT:
+				openGLSupport = (openGLSupport == OPENGL_STRICT) ? OPENGL_FULL : OPENGL_STRICT;
+				if(!setStrictDrawing((openGLSupport == OPENGL_STRICT)))
+					DBG_WARN("failed to change strict draw odering.");
 				break;
 
 			case MENU_ACTION_TOGGLE_STAY_IN_FULLSCREEN:

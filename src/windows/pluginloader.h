@@ -213,7 +213,16 @@ struct NetscapeData{
 
 };
 
+enum OPENGL_SUPPORT {
+	OPENGL_NOT_TESTED,
+	OPENGL_NOT_SUPPORTED,
+	OPENGL_FULL,
+	OPENGL_STRICT
+};
+extern OPENGL_SUPPORT openGLSupport;
+
 extern void changeEmbeddedMode(bool newEmbed);
 extern std::string getWineVersion();
+extern bool setStrictDrawing(int value);
 
 #endif // PluginLoader_h_

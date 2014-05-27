@@ -74,13 +74,6 @@
 
 typedef void (* wined3d_strictdrawing_setPtr)(int value);
 
-enum OPENGL_SUPPORT {
-	OPENGL_NOT_TESTED,
-	OPENGL_NOT_SUPPORTED,
-	OPENGL_FULL,
-	OPENGL_STRICT
-};
-
 struct OpenGLSupportEntry {
 	const char *vendor;
 	OPENGL_SUPPORT support;
