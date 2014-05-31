@@ -300,7 +300,7 @@ bool loadConfig(PluginConfig &config){
 	config.executeJavascript	= "";
 	config.replaceJavascript.clear();
 
-	config.silverlightGraphicDriverCheck		= "";
+	config.silverlightGraphicDriverCheck		= false;
 
 	config.experimental_unityHacks				= false;
 	config.experimental_forceSetWindow			= false;
