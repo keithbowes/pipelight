@@ -411,13 +411,13 @@ check_system()
 	local retval=0
 
 	echo ">> 32 bit <<"
-	WINEARCH=win32 WINEPREFIX=~/.wine-pipelight "${WINE_PATH}" "${WINE_CHECK}.exe"
+	WINEDLLOVERRIDES="mscoree,mshtml,winegstreamer,winemenubuilder.exe=" WINEARCH=win32 WINEPREFIX=~/.wine-pipelight "${WINE_PATH}" "${WINE_CHECK}.exe"
 	if [ "$?" -ne "0" ]; then
 		retval=1
 	fi
 	echo ""
 	echo "Checking libraries..."
-	WINEARCH=win32 WINEPREFIX=~/.wine-pipelight "${WINE_PATH}" --check-libs
+	WINEDLLOVERRIDES="mscoree,mshtml,winegstreamer,winemenubuilder.exe=" WINEARCH=win32 WINEPREFIX=~/.wine-pipelight "${WINE_PATH}" --check-libs
 	if [ "$?" -eq "0" ]; then
 		echo "Libraries: PASSED"
 	else
