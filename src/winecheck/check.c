@@ -153,8 +153,10 @@ bool checkOpenGL()
 	int pixelformat;
 	const char* renderer = NULL;
 	const char* vendor = NULL;
+	const char* extensions = NULL;
 	unsigned int i;
 	bool badOpenGL = false;
+	bool directRendering = false;
 
 	PIXELFORMATDESCRIPTOR pfd =
 	{
@@ -200,9 +202,15 @@ bool checkOpenGL()
 
 	vendor		= (const char *)glGetString(GL_VENDOR);
 	renderer	= (const char *)glGetString(GL_RENDERER);
+	extensions	= (const char *)glGetString(GL_EXTENSIONS);
+
+	if (extensions && strstr(extensions, "WINE_EXT_direct_rendering"))
+		directRendering = true;
 
 	printf("OpenGL Vendor: %s\n", vendor);
 	printf("OpenGL Renderer: %s\n", renderer);
+	printf("OpenGL Direct Rendering: %s\n",
+	directRendering ? "True" : "False (or old/wrong wine version)");
 
 	if (!vendor || !renderer)
 		goto error;
@@ -227,7 +235,7 @@ bool checkOpenGL()
 		}
 	}
 
-	if (!badOpenGL)
+	if (!badOpenGL && directRendering)
 		result = true;
 
 error:
