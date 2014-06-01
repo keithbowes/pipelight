@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 VERSION="@@VERSION@@"
+PIPELIGHT_SHARE_PATH="@@PIPELIGHT_SHARE_PATH@@"
 
 # Global configuration
 LIBRARY_PATH="@@LIBRARY_PATH@@"
 PLUGIN_PATH="@@MOZ_PLUGIN_PATH@@"
-CONFIG_PATH="@@CONFIG_PATH@@"
-LICENSE_PATH="@@LICENSE_PATH@@"
 DEPENDENCY_INSTALLER_PATH="@@DEPENDENCY_INSTALLER@@"
 DEPENDENCY_INSTALLER_URL="https://bitbucket.org/mmueller2012/pipelight/raw/master/share/install-dependency.sig"
 PIPELIGHT_PUBKEY="@@PIPELIGHT_PUBKEY@@"
@@ -161,8 +160,10 @@ is_supported_plugin()
 show_license_dialog()
 {
 	local PLUGIN="$1"
+	local configpath="$PIPELIGHT_SHARE_PATH/configs"
+	local licensepath="$PIPELIGHT_SHARE_PATH/licenses"
 
-	if [ ! -f "$CONFIG_PATH/pipelight-$PLUGIN" ]; then
+	if [ ! -f "$configpath/pipelight-$PLUGIN" ]; then
 		echo "ERROR: Config file for plugin $PLUGIN not found, unable to check license" >&2
 		return 1
 	fi
@@ -173,8 +174,8 @@ show_license_dialog()
 	local color3=$(echo -en "\e[1m")
 
 	local licenses=0
-	for dep in $(sed -n 's|^[ \t]*dependency[ \t]*=[ \t]*wine-\(.*\)-installer[ \t]*$|\1|p' "$CONFIG_PATH/pipelight-$PLUGIN"); do
-		if [ -f "$LICENSE_PATH/license-$dep.txt" ]; then
+	for dep in $(sed -n 's|^[ \t]*dependency[ \t]*=[ \t]*wine-\(.*\)-installer[ \t]*$|\1|p' "$configpath/pipelight-$PLUGIN"); do
+		if [ -f "$licensepath/license-$dep.txt" ]; then
 			if [ "$licenses" -eq 0 ]; then
 				echo ""
 				echo "The following modules require a license confirmation before they can be enabled:"
@@ -185,7 +186,7 @@ show_license_dialog()
 				echo "$line" | sed	-e 's|^\(\[\*\].*\)$|'$color1'\1'$color0'|g' \
 									-e 's|\(http://[^ \t]*\)|'$color3'\1'$color0'|g' \
 									-e 's|\(/usr/[^ \t]*\)|'$color3'\1'$color0'|g'
-			done < "$LICENSE_PATH/license-$dep.txt"
+			done < "$licensepath/license-$dep.txt"
 			echo ""
 			(( licenses++ ))
 		fi
@@ -200,8 +201,8 @@ show_license_dialog()
 	fi
 
 	local licenses=0
-	for dep in $(sed -n 's|^[ \t]*optional-dependency[ \t]*=[ \t]*wine-\(.*\)-installer[ \t]*$|\1|p' "$CONFIG_PATH/pipelight-$PLUGIN"); do
-		if [ -f "$LICENSE_PATH/license-$dep.txt" ]; then
+	for dep in $(sed -n 's|^[ \t]*optional-dependency[ \t]*=[ \t]*wine-\(.*\)-installer[ \t]*$|\1|p' "$configpath/pipelight-$PLUGIN"); do
+		if [ -f "$licensepath/license-$dep.txt" ]; then
 			if [ "$licenses" -eq 0 ]; then
 				echo ""
 				echo "The following modules are marked as optional dependencies:"
@@ -212,7 +213,7 @@ show_license_dialog()
 				echo "$line" | sed	-e 's|^\(\[\*\].*\)$|'$color2'\1 [OPTIONAL]'$color0'|g' \
 									-e 's|\(http://[^ \t]*\)|'$color3'\1'$color0'|g' \
 									-e 's|\(/usr/[^ \t]*\)|'$color3'\1'$color0'|g'
-			done < "$LICENSE_PATH/license-$dep.txt"
+			done < "$licensepath/license-$dep.txt"
 			echo ""
 			echo "	To agree to this license run (for each user who wants to use this module):"
 			echo "	"$color3"touch \$HOME/.config/wine-$dep-installer.accept-license"$color0
