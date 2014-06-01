@@ -2,7 +2,7 @@
 	This wininet.dll library is a debug version provided for the Microsoft
 	Internet Explorer. By continuing the installation you agree that you've
 	read and accepted the license terms.
-	You can find them in @@LICENSE_PATH@@/license-wininet.txt
+	You can find them in @@PIPELIGHT_SHARE_PATH@@/licenses/license-wininet.txt
 
 	To find out more click here:
 	http://www.microsoft.com/en-us/download/details.aspx?id=11434

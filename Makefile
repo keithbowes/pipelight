@@ -84,7 +84,7 @@ install: all
 	done
 
 	for license in $(notdir $(PLUGIN_LICENSES)); do \
-		sed    's|@@LICENSE_PATH@@|$(prefix)/share/pipelight/licenses|g' share/licenses/$${license} > pipelight-license.tmp; \
+		sed    's|@@PIPELIGHT_SHARE_PATH@@|$(prefix)/share/pipelight|g' share/licenses/$${license} > pipelight-license.tmp; \
 		install -m 0644 pipelight-license.tmp "$(DESTDIR)$(prefix)/share/pipelight/licenses/$${license%.*}" || exit 1; \
 		rm pipelight-license.tmp; \
 	done
