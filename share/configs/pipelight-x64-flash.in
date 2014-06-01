@@ -18,7 +18,7 @@ diagnosticMode      = true
 # Path to the wine directory or the wine executable. When you
 # specify a directory it should contain /bin/wine.
 #
-winePath            = $share/wine
+winePath            = $share/wine64
 
 #
 # Path to the wine prefix containing Flash

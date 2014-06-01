@@ -2,28 +2,11 @@ PLUGIN_CONFIGS=$(wildcard share/configs/*.in)
 PLUGIN_SCRIPTS=$(wildcard share/scripts/*.in)
 PLUGIN_LICENSES=$(wildcard share/licenses/*.in)
 
-version=unknown
-prefix=/usr/local
-winepath=/opt/wine-compholio/bin/wine
-mozpluginpath=/usr/lib/mozilla/plugins
-gccruntimedlls=
-cxx=g++
-win32cxx=i686-w64-mingw32-g++
-win32flags=-m32 -static-libgcc -static-libstdc++ -static
-win64=false
-win64cxx=
-win64flags=-m64 -static-libgcc -static-libstdc++ -static
-quietinstallation=true
-nogpuaccel=false
-debug=false
+include config.make
 
--include config.make
-
-WINECHECKS:= winecheck32
-PLUGINLOADERS:= pluginloader32
+PROGRAMS := pluginloader32 winecheck32
 ifeq ($(win64),true)
-	PLUGINLOADERS:= $(PLUGINLOADERS) pluginloader64
-	WINECHECKS:= $(WINECHECKS) winecheck64
+	PROGRAMS:= $(PROGRAMS) pluginloader64 winecheck64
 endif
 
 ifeq ($(debug),true)
@@ -33,7 +16,7 @@ endif
 export
 
 .PHONY: all
-all: linux $(PLUGINLOADERS) $(WINECHECKS)
+all: linux $(PROGRAMS)
 
 .PHONY: linux
 linux:
@@ -72,14 +55,20 @@ install: all
 	if [ "$(win64)" = "true" ]; then \
 		install -m 0755 "src/windows/pluginloader64.exe" "$(DESTDIR)$(prefix)/share/pipelight/pluginloader64.exe"; \
 	fi
+
 	install -m 0755 "src/winecheck/winecheck.exe" "$(DESTDIR)$(prefix)/share/pipelight/winecheck.exe"
 	if [ "$(win64)" = "true" ]; then \
 		install -m 0755 "src/winecheck/winecheck64.exe" "$(DESTDIR)$(prefix)/share/pipelight/winecheck64.exe"; \
 	fi
-	install -m 0755 share/install-dependency "$(DESTDIR)$(prefix)/share/pipelight/install-dependency"
 
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/wine"
 	ln -s "$(winepath)" "$(DESTDIR)$(prefix)/share/pipelight/wine"
+	if [ "$(win64)" = "true" ]; then \
+		rm -f "$(DESTDIR)$(prefix)/share/pipelight/wine64"; \
+		ln -s "$(wine64path)" "$(DESTDIR)$(prefix)/share/pipelight/wine64"; \
+	fi
+
+	install -m 0755 share/install-dependency "$(DESTDIR)$(prefix)/share/pipelight/install-dependency"
 
 	for script in $(notdir $(PLUGIN_SCRIPTS)); do \
 		sed         's|@@PIPELIGHT_SHARE_PATH@@|$(prefix)/share/pipelight|g' share/scripts/$${script} > pipelight-script.tmp; \
@@ -107,10 +96,6 @@ install: all
 	sed -i'' -e 's|@@LIBRARY_PATH@@|$(prefix)/lib/pipelight/|g' pipelight-plugin.tmp
 	sed -i'' -e 's|@@DEPENDENCY_INSTALLER@@|$(prefix)/share/pipelight/install-dependency|g' pipelight-plugin.tmp
 	sed -i'' -e 's|@@MOZ_PLUGIN_PATH@@|$(mozpluginpath)|g' pipelight-plugin.tmp
-	sed -i'' -e 's|@@PIPELIGHT_PUBKEY@@|$(prefix)/share/pipelight/sig-install-dependency.gpg|g' pipelight-plugin.tmp
-	sed -i'' -e 's|@@PLUGINLOADER64_EXISTS@@|$(win64)|g' pipelight-plugin.tmp
-	sed -i'' -e 's|@@WINE_PATH@@|$(winepath)|g' pipelight-plugin.tmp
-	sed -i'' -e 's|@@WINE_CHECK@@|$(prefix)/share/pipelight/winecheck|g' pipelight-plugin.tmp
 	install -m 0755 pipelight-plugin.tmp "$(DESTDIR)$(prefix)/bin/pipelight-plugin"
 	rm pipelight-plugin.tmp
 
@@ -128,6 +113,7 @@ uninstall:
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/winecheck64.exe"
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/install-dependency"
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/wine"
+	rm -f "$(DESTDIR)$(prefix)/share/pipelight/wine64"
 	rm -f  $(DESTDIR)$(prefix)/share/pipelight/scripts/configure-*
 	rm -f  $(DESTDIR)$(prefix)/share/pipelight/configs/pipelight-*
 	rm -f  $(DESTDIR)$(prefix)/share/pipelight/licenses/license-*

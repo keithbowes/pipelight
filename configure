@@ -3,15 +3,19 @@
 # Default configuration
 version="unknown"
 prefix="/usr/local"
-winepath="/opt/wine-compholio/bin/wine"
 mozpluginpath="/usr/lib/mozilla/plugins"
 gccruntimedlls=""
 cxx=""
+
 win32cxx=""
 win32flags="-m32"
+winepath="/opt/wine-compholio/bin/wine"
+
 win64="false"
 win64cxx=""
 win64flags="-m64"
+wine64path=""
+
 quietinstallation="true"
 nogpuaccel="false"
 debug="false"
@@ -19,17 +23,19 @@ debug="false"
 usage ()
 {
 	echo ""
-	echo "Usage: ./configure [--prefix=PREFIX] [--wine-path=PATH] [--debug]"
+	echo "Usage: ./configure [--prefix=PREFIX] [--debug]"
 	echo "                   [--moz-plugin-path=PATH] [--gcc-runtime-dlls=PATH]"
 	echo "                   [--show-installation-dialogs] [--no-gpu-accel]"
 	echo "                   [--cxx]"
 	echo " 32-bit options:"
 	echo "                   [--win32-prebuilt] [--win32-cxx=COMPILER]"
 	echo "                   [--win32-static] [--win32-flags=FLAGS]"
+	echo "                   [--wine-path=PATH]"
 	echo " 64 bit options:"
 	echo "                   [--with-win64]"
 	echo "                   [--win64-prebuilt] [--win64-cxx=COMPILER]"
 	echo "                   [--win64-static] [--win64-flags=FLAGS]"
+	echo "                   [--wine64-path=PATH]"
 	echo ""
 }
 
@@ -188,6 +194,10 @@ if [ "$win64" == "true" ] && [ -z "$win64cxx" ]; then
 	fi
 fi
 
+if [ "$win64" == "true" ] && [ -z "$wine64path" ]; then
+	wine64path="$winepath/../wine64"
+fi
+
 # Get the version number
 changelog=$(head -n1 debian/changelog)
 if [[ "$changelog" =~ \((.*)\)\ (UNRELEASED)? ]]; then
@@ -197,65 +207,54 @@ if [[ "$changelog" =~ \((.*)\)\ (UNRELEASED)? ]]; then
 	fi
 fi
 
-# Use realpath instead of readlink if possible (*BSD and recent linux versions)
-if ! command -v realpath >/dev/null 2>&1; then
-	resolvepath()
-	{
-		readlink -m "$1"
-	}
-else
-	resolvepath()
-	{
-		if [ ! -e "$1" ]; then
-			echo "$1"
-		else
-			realpath "$1"
-		fi
-	}
-fi
+resolvepath()
+{
+	readlink -m "$1"
+}
 
 # Normalize the paths
 prefix=$(resolvepath "$prefix")
 winepath=$(resolvepath "$winepath")
+wine64path=$(resolvepath "$wine64path")
 mozpluginpath=$(resolvepath "$mozpluginpath")
 gccruntimedlls=$(resolvepath "$gccruntimedlls")
+
+(
+	echo "# General"
+	echo "version=$version"
+	echo "prefix=$prefix"
+	echo "mozpluginpath=$mozpluginpath"
+	echo "gccruntimedlls=$gccruntimedlls"
+	echo ""
+	echo "# Linux"
+	echo "cxx=$cxx"
+	echo ""
+	echo "# Win32"
+	echo "win32cxx=$win32cxx"
+	echo "win32flags=$win32flags"
+	echo "winepath=$winepath"
+	echo ""
+	echo "# Win64"
+	echo "win64=$win64"
+	echo "win64cxx=$win64cxx"
+	echo "win64flags=$win64flags"
+	echo "wine64path=$wine64path"
+	echo ""
+	echo "# Other settings"
+	echo "quietinstallation=$quietinstallation"
+	echo "nogpuaccel=$nogpuaccel"
+	echo "debug=$debug"
+) > config.make
 
 echo "Configuration Summary"
 echo "---------------------"
 echo ""
-echo "Pipelight has been configured with"
-echo " version           = '$version'"
-echo " prefix            = '$prefix'"
-echo " winepath          = '$winepath'"
-echo " mozpluginpath     = '$mozpluginpath'"
-echo " gccruntimedlls    = '$gccruntimedlls'"
-echo " quietinstallation = '$quietinstallation'"
-echo " cxx               = '$cxx'"
-echo " win32cxx          = '$win32cxx'"
-echo " win32flags        = '$win32flags'"
-echo " win64             = '$win64'"
-echo " win64cxx          = '$win64cxx'"
-echo " win64flags        = '$win64flags'"
-echo " nogpuaccel        = '$nogpuaccel'"
-echo " debug             = '$debug'"
+echo "Pipelight has been configured with:"
+echo ""
+cat config.make
 echo ""
 echo "IMPORTANT: Please ensure you have XATTR support enabled for both wine and"
 echo "           your file system (required to watch DRM protected content)!"
 echo ""
-
-echo "version=$version"						>  config.make
-echo "prefix=$prefix"						>> config.make
-echo "winepath=$winepath"					>> config.make
-echo "mozpluginpath=$mozpluginpath"			>> config.make
-echo "gccruntimedlls=$gccruntimedlls"		>> config.make
-echo "quietinstallation=$quietinstallation" >> config.make
-echo "cxx=$cxx"					>> config.make
-echo "win64=$win64"							>> config.make
-echo "win64cxx=$win64cxx"					>> config.make
-echo "win64flags=$win64flags"				>> config.make
-echo "win32cxx=$win32cxx"					>> config.make
-echo "win32flags=$win32flags"				>> config.make
-echo "nogpuaccel=$nogpuaccel"				>> config.make
-echo "debug=$debug"							>> config.make
 
 exit 0

@@ -7,17 +7,14 @@ LIBRARY_PATH="@@LIBRARY_PATH@@"
 PLUGIN_PATH="@@MOZ_PLUGIN_PATH@@"
 DEPENDENCY_INSTALLER_PATH="@@DEPENDENCY_INSTALLER@@"
 DEPENDENCY_INSTALLER_URL="https://bitbucket.org/mmueller2012/pipelight/raw/master/share/install-dependency.sig"
-PIPELIGHT_PUBKEY="@@PIPELIGHT_PUBKEY@@"
-PLUGINLOADER64_EXISTS="@@PLUGINLOADER64_EXISTS@@"
-WINE_PATH="@@WINE_PATH@@"
-WINE_CHECK="@@WINE_CHECK@@"
 ACCEPTALL=0
 
-# Supported plugins
+# Supported plugins (i686)
 STANDARD_PLUGINS=("silverlight5.1" "silverlight5.0" "silverlight4" "flash" "unity3d" "widevine")
 ADDITIONAL_PLUGINS=("shockwave" "foxitpdf" "grandstream" "adobereader" "hikvision" "npactivex" "roblox" "vizzedrgr" "viewright-caiway" "triangleplayer")
 
-if [ "$PLUGINLOADER64_EXISTS" == "true" ]; then
+# Supported plugins (amd64)
+if [ -f "$PIPELIGHT_SHARE_PATH/pluginloader64.exe" ] && [ -x "$PIPELIGHT_SHARE_PATH/wine64" ]; then
 	ADDITIONAL_PLUGINS=("${ADDITIONAL_PLUGINS[@]}" "x64-unity3d" "x64-flash")
 fi
 
@@ -395,14 +392,29 @@ check_system()
 {
 	local retval=0
 
+	# Don't run this as root
+	if [ $(/usr/bin/id -u) -eq 0 ]; then
+		echo "ERROR: You should not run this as root!" >&2
+		return 1
+	fi
+
+	if [ ! -x "$PIPELIGHT_SHARE_PATH/wine" ]; then
+		echo "ERROR: wine executable not found!" >&2
+		return 1
+	fi
+
+	export WINEDLLOVERRIDES="mscoree,mshtml,winegstreamer,winemenubuilder.exe="
+	export WINEPREFIX="$HOME/.wine-pipelight"
+	export WINEARCH="win32"
+
 	echo ">> 32 bit <<"
-	WINEDLLOVERRIDES="mscoree,mshtml,winegstreamer,winemenubuilder.exe=" WINEARCH=win32 WINEPREFIX=~/.wine-pipelight "${WINE_PATH}" "${WINE_CHECK}.exe"
+	"$PIPELIGHT_SHARE_PATH/wine" "$PIPELIGHT_SHARE_PATH/winecheck.exe"
 	if [ "$?" -ne "0" ]; then
 		retval=1
 	fi
 	echo ""
 	echo "Checking libraries..."
-	WINEDLLOVERRIDES="mscoree,mshtml,winegstreamer,winemenubuilder.exe=" WINEARCH=win32 WINEPREFIX=~/.wine-pipelight "${WINE_PATH}" --check-libs
+	"$PIPELIGHT_SHARE_PATH/wine" --check-libs
 	if [ "$?" -eq "0" ]; then
 		echo "Libraries: PASSED"
 	else
@@ -410,19 +422,23 @@ check_system()
 		retval=1
 	fi
 
-	if [ ! -x "${WINE_PATH}64" ] || [ ! -x "${WINE_CHECK}64.exe" ]; then
+	if [ ! -f "$PIPELIGHT_SHARE_PATH/winecheck64.exe" ] || [ ! -x "$PIPELIGHT_SHARE_PATH/wine64" ]; then
 		return $retval
 	fi
 
+	export WINEDLLOVERRIDES="mscoree,mshtml,winegstreamer,winemenubuilder.exe="
+	export WINEPREFIX="$HOME/.wine-pipelight64"
+	export WINEARCH="win64"
+
 	echo ""
 	echo ">> 64 bit <<"
-	WINEARCH=win64 WINEPREFIX=~/.wine-pipelight64 "${WINE_PATH}64" "${WINE_CHECK}64.exe"
+	"$PIPELIGHT_SHARE_PATH/wine64" "$PIPELIGHT_SHARE_PATH/winecheck64.exe"
 	if [ "$?" -ne "0" ]; then
 		retval=1
 	fi
 	echo ""
 	echo "Checking libraries..."
-	WINEARCH=win64 WINEPREFIX=~/.wine-pipelight64 "${WINE_PATH}64" --check-libs
+	"$PIPELIGHT_SHARE_PATH/wine64" --check-libs
 	if [ "$?" -eq "0" ]; then
 		echo "Libraries: PASSED"
 	else
@@ -568,7 +584,7 @@ update_dependency_installer()
 	fi
 
 	# Ensure the signature is valid, extract the content
-	if ! gpg --batch --no-default-keyring --keyring "$PIPELIGHT_PUBKEY" --decrypt "$tmpfile" > "$decfile"; then
+	if ! gpg --batch --no-default-keyring --keyring "$PIPELIGHT_SHARE_PATH/sig-install-dependency.gpg" --decrypt "$tmpfile" > "$decfile"; then
 		rm "$tmpfile"
 		rm "$decfile"
 		echo ""

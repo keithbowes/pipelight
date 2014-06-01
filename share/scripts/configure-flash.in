@@ -17,9 +17,12 @@ fi
 if [ -z "$WINEARCH" ]; then
 	export WINEARCH="win32"
 fi
+if [ -z "$WINEDLLOVERRIDES" ]; then
+	export WINEDLLOVERRIDES="mscoree,mshtml,winegstreamer,winemenubuilder.exe="
+fi
 
 if [ ! -x "$WINE" ]; then
-	echo "ERROR: Wine executable not found!" >&2
+	echo "ERROR: wine executable not found!" >&2
 	exit 1
 fi
 
