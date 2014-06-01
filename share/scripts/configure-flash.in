@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+PIPELIGHT_SHARE_PATH="@@PIPELIGHT_SHARE_PATH@@"
 
 # Don't run this as root
 if [ $(/usr/bin/id -u) -eq 0 ]; then
@@ -8,16 +9,18 @@ fi
 
 # Check for environment variables
 if [ -z "$WINE" ]; then
-	WINE="@@WINE_PATH@@"
-	if [[ "$WINE" =~ ^@@.*@@$ ]]; then
-		WINE="/opt/wine-compholio/bin/wine"
-	fi
+	export WINE="$PIPELIGHT_SHARE_PATH/wine"
 fi
 if [ -z "$WINEPREFIX" ]; then
 	export WINEPREFIX="$HOME/.wine-pipelight"
 fi
 if [ -z "$WINEARCH" ]; then
 	export WINEARCH="win32"
+fi
+
+if [ ! -x "$WINE" ]; then
+	echo "ERROR: Wine executable not found!" >&2
+	exit 1
 fi
 
 system32="$WINEPREFIX/drive_c/windows/system32"

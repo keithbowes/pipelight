@@ -55,7 +55,6 @@ winecheck32:
 winecheck64:
 	$(MAKE) -C src/winecheck wincxx="$(win64cxx)" winflags="$(win64flags)" suffix="64"
 
-
 .PHONY: install
 install: all
 	mkdir -p "$(DESTDIR)$(prefix)/share/pipelight"
@@ -68,6 +67,7 @@ install: all
 	mkdir -p "$(DESTDIR)$(mozpluginpath)"
 
 	install -m 0644 share/sig-install-dependency.gpg "$(DESTDIR)$(prefix)/share/pipelight/sig-install-dependency.gpg"
+
 	install -m 0755 "src/windows/pluginloader.exe" "$(DESTDIR)$(prefix)/share/pipelight/pluginloader.exe"
 	if [ "$(win64)" = "true" ]; then \
 		install -m 0755 "src/windows/pluginloader64.exe" "$(DESTDIR)$(prefix)/share/pipelight/pluginloader64.exe"; \
@@ -82,7 +82,7 @@ install: all
 	ln -s "$(winepath)" "$(DESTDIR)$(prefix)/share/pipelight/wine"
 
 	for script in $(notdir $(PLUGIN_SCRIPTS)); do \
-		sed         's|@@WINE_PATH@@|$(winepath)|g' share/scripts/$${script} > pipelight-script.tmp; \
+		sed         's|@@PIPELIGHT_SHARE_PATH@@|$(prefix)/share/pipelight|g' share/scripts/$${script} > pipelight-script.tmp; \
 		install -m 0755 pipelight-script.tmp "$(DESTDIR)$(prefix)/share/pipelight/scripts/$${script%.*}" || exit 1; \
 		rm pipelight-script.tmp; \
 	done
