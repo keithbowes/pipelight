@@ -18,7 +18,7 @@ ACCEPTALL=0
 STANDARD_PLUGINS=("silverlight5.1" "silverlight5.0" "silverlight4" "flash" "unity3d" "widevine")
 ADDITIONAL_PLUGINS=("shockwave" "foxitpdf" "grandstream" "adobereader" "hikvision" "npactivex" "roblox" "vizzedrgr" "viewright-caiway" "triangleplayer")
 
-if [[ "$PLUGINLOADER64_EXISTS" =~ ^@@.*@@$ ]] || [ "$PLUGINLOADER64_EXISTS" == "true" ]; then
+if [ "$PLUGINLOADER64_EXISTS" == "true" ]; then
 	ADDITIONAL_PLUGINS=("${ADDITIONAL_PLUGINS[@]}" "x64-unity3d" "x64-flash")
 fi
 
@@ -79,11 +79,6 @@ usage()
 
 version()
 {
-	if [[ "$VERSION" =~ ^@@.*@@$ ]]; then
-		echo "Pipelight version unknown"
-		return 1
-	fi
-
 	echo "Pipelight $VERSION"
 	return 0
 }
@@ -95,17 +90,9 @@ INSTALLDIR=""
 get_directories()
 {
 	if [ ! -z "$INSTALLDIR" ]; then return 0; fi
-
-	# Fallback to Ubuntu path if not installed via make install
-	if [[ "$LIBRARY_PATH" =~ ^@@.*@@$ ]] && [ -f "/usr/lib/pipelight/libpipelight.so" ]; then
-		LIBRARY_PATH="/usr/lib/pipelight"
-	elif [ ! -d "$LIBRARY_PATH" ]; then
+	if [ ! -d "$LIBRARY_PATH" ]; then
 		echo "ERROR: Failed to find $LIBRARY_PATH." >&2
 		exit 1
-	fi
-
-	if [[ "$PLUGIN_PATH" =~ ^@@.*@@$ ]]; then
-		PLUGIN_PATH="/usr/lib/mozilla/plugins"
 	fi
 
 	LIBRARY_PATH=$(realpath "$LIBRARY_PATH")
@@ -174,9 +161,6 @@ is_supported_plugin()
 show_license_dialog()
 {
 	local PLUGIN="$1"
-
-	if [[ "$CONFIG_PATH" =~ ^@@.*@@$ ]]; then return 1; fi
-	if [[ "$LICENSE_PATH" =~ ^@@.*@@$ ]]; then return 1; fi
 
 	if [ ! -f "$CONFIG_PATH/pipelight-$PLUGIN" ]; then
 		echo "ERROR: Config file for plugin $PLUGIN not found, unable to check license" >&2
@@ -565,9 +549,6 @@ lock_plugin()
 
 update_dependency_installer()
 {
-	if [[ "$DEPENDENCY_INSTALLER_PATH" =~ ^@@.*@@$ ]]; then return 1; fi
-	if [[ "$PIPELIGHT_PUBKEY" =~ ^@@.*@@$ ]]; then return 1; fi
-
 	local tmpfile=$(mktemp)
 	[ -f "$tmpfile" ] || return 1
 
