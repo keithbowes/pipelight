@@ -54,7 +54,7 @@ gccRuntimeDlls      = @@GCC_RUNTIME_DLLS@@
 # You should prefer using regKey and consider this option only if you have
 # multiple versions of the Unity3D plugin installed inside the Wineprefix.
 #
-dllPath           = C:\Program Files\Unity\WebPlayer\loader-x64
+dllPath           = C:\Program Files\Unity\WebPlayer64\loader-x64
 dllName           = npUnity3D64.dll
 
 #
