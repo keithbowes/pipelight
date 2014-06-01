@@ -412,8 +412,8 @@ bool checkACLs()
 		}
 	}
 
-	file = CreateFile(testFile, GENERIC_WRITE, 0, &secAttrs, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
-	if (!file)
+	file = CreateFileA(testFile, GENERIC_WRITE, 0, &secAttrs, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, NULL);
+	if (file == INVALID_HANDLE_VALUE)
 		return false;
 
 	CloseHandle(file);
