@@ -241,7 +241,7 @@ static  bool openConfig(std::ifstream &configFile, std::string &configPath, std:
 		if (configFile.is_open()) return true;
 
 		/* default config */
-		configPath = PIPELIGHT_CONFIG_PATH "/" + configName;
+		configPath = PIPELIGHT_SHARE_PATH "/configs/" + configName;
 		DBG_INFO("trying to load config file from '%s'.", configPath.c_str());
 		configFile.open(configPath);
 		if (configFile.is_open()) return true;
@@ -262,6 +262,9 @@ bool loadConfig(PluginConfig &config){
 
 	/* Add $wineuser variable */
 	variables["$wineuser"] = getWineUser();
+
+	/* Add $share variable */
+	variables["$share"] = PIPELIGHT_SHARE_PATH;
 
 	/* initialize config variables with default values */
 	config.configPath			= "";

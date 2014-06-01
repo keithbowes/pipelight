@@ -78,6 +78,9 @@ install: all
 	fi
 	install -m 0755 share/install-dependency "$(DESTDIR)$(prefix)/share/pipelight/install-dependency"
 
+	rm -f "$(DESTDIR)$(prefix)/share/pipelight/wine"
+	ln -s "$(winepath)" "$(DESTDIR)$(prefix)/share/pipelight/wine"
+
 	for script in $(notdir $(PLUGIN_SCRIPTS)); do \
 		sed         's|@@WINE_PATH@@|$(winepath)|g' share/scripts/$${script} > pipelight-script.tmp; \
 		install -m 0755 pipelight-script.tmp "$(DESTDIR)$(prefix)/share/pipelight/scripts/$${script%.*}" || exit 1; \
@@ -85,12 +88,7 @@ install: all
 	done
 
 	for config in $(notdir $(PLUGIN_CONFIGS)); do \
-		sed         's|@@PLUGINLOADER_PATH@@|$(prefix)/share/pipelight/pluginloader.exe|g' share/configs/$${config} > pipelight-config.tmp; \
-		sed -i'' -e 's|@@PLUGINLOADER64_PATH@@|$(prefix)/share/pipelight/pluginloader64.exe|g' pipelight-config.tmp; \
-		sed -i'' -e 's|@@DEPENDENCY_INSTALLER@@|$(prefix)/share/pipelight/install-dependency|g' pipelight-config.tmp; \
-		sed -i'' -e 's|@@SANDBOX_PATH@@|$(prefix)/share/pipelight/sandbox|g' pipelight-config.tmp; \
-		sed -i'' -e 's|@@WINE_PATH@@|$(winepath)|g' pipelight-config.tmp; \
-		sed -i'' -e 's|@@GCC_RUNTIME_DLLS@@|$(gccruntimedlls)|g' pipelight-config.tmp; \
+		sed         's|@@GCC_RUNTIME_DLLS@@|$(gccruntimedlls)|g' share/configs/$${config} > pipelight-config.tmp; \
 		sed -i'' -e 's|@@QUIET_INSTALLATION@@|$(quietinstallation)|g' pipelight-config.tmp; \
 		install -m 0644 pipelight-config.tmp "$(DESTDIR)$(prefix)/share/pipelight/configs/$${config%.*}" || exit 1; \
 		rm pipelight-config.tmp; \
@@ -130,6 +128,7 @@ uninstall:
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/winecheck.exe"
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/winecheck64.exe"
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/install-dependency"
+	rm -f "$(DESTDIR)$(prefix)/share/pipelight/wine"
 	rm -f  $(DESTDIR)$(prefix)/share/pipelight/scripts/configure-*
 	rm -f  $(DESTDIR)$(prefix)/share/pipelight/configs/pipelight-*
 	rm -f  $(DESTDIR)$(prefix)/share/pipelight/licenses/license-*
