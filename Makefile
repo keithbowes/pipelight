@@ -102,7 +102,7 @@ install: all
 
 	install -m 0644 src/linux/libpipelight.so "$(DESTDIR)$(prefix)/lib/pipelight/libpipelight.so"
 
-	sed         's|@@VERSION@@|$(version)|g' bin/pipelight-plugin > pipelight-plugin.tmp
+	sed         's|@@VERSION@@|$(version)|g' bin/pipelight-plugin.in > pipelight-plugin.tmp
 	sed -i'' -e 's|@@LIBRARY_PATH@@|$(prefix)/lib/pipelight/|g' pipelight-plugin.tmp
 	sed -i'' -e 's|@@CONFIG_PATH@@|$(prefix)/share/pipelight/configs|g' pipelight-plugin.tmp
 	sed -i'' -e 's|@@LICENSE_PATH@@|$(prefix)/share/pipelight/licenses|g' pipelight-plugin.tmp
