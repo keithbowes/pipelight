@@ -93,8 +93,7 @@ install: all
 
 	sed         's|@@VERSION@@|$(version)|g' bin/pipelight-plugin.in > pipelight-plugin.tmp
 	sed -i'' -e 's|@@PIPELIGHT_SHARE_PATH@@|$(prefix)/share/pipelight|g' pipelight-plugin.tmp
-	sed -i'' -e 's|@@LIBRARY_PATH@@|$(prefix)/lib/pipelight/|g' pipelight-plugin.tmp
-	sed -i'' -e 's|@@DEPENDENCY_INSTALLER@@|$(prefix)/share/pipelight/install-dependency|g' pipelight-plugin.tmp
+	sed -i'' -e 's|@@PIPELIGHT_LIBRARY_PATH@@|$(prefix)/lib/pipelight/|g' pipelight-plugin.tmp
 	sed -i'' -e 's|@@MOZ_PLUGIN_PATH@@|$(mozpluginpath)|g' pipelight-plugin.tmp
 	install -m 0755 pipelight-plugin.tmp "$(DESTDIR)$(prefix)/bin/pipelight-plugin"
 	rm pipelight-plugin.tmp
