@@ -9,11 +9,13 @@ cxx=""
 
 win32cxx=""
 win32flags="-m32"
+win32static=0
 winepath="/opt/wine-compholio/bin/wine"
 
 win64="false"
 win64cxx=""
 win64flags="-m64"
+win64static=0
 wine64path=""
 
 quietinstallation="true"
@@ -86,7 +88,7 @@ while [[ $# > 0 ]] ; do
 			;;
 
 		--win32-static)
-			win32flags="$win32flags -static-libgcc -static-libstdc++ -static"
+			win32static=1
 			;;
 		--win32-prebuilt)
 			win32cxx="prebuilt"
@@ -111,7 +113,7 @@ while [[ $# > 0 ]] ; do
 			;;
 
 		--win64-static)
-			win64flags="$win64flags -static-libgcc -static-libstdc++ -static"
+			win64static=1
 			;;
 		--win64-prebuilt)
 			win64cxx="prebuilt"
@@ -160,22 +162,26 @@ fi
 if [ -z "$win32cxx" ]; then
 	if command -v i686-w64-mingw32-g++ >/dev/null 2>&1; then
 		win32cxx="i686-w64-mingw32-g++"
-		win32flags="$win32flags -static-libgcc -static-libstdc++ -static"
+		win32static=1
 
-        elif command -v mingw32-g++ > /dev/null 2>&1; then
-                win32cxx="mingw32-g++"
-                win32flags="$win32flags -DMINGW32_FALLBACK -static-libgcc -static-libstdc++ -static"
+	elif command -v mingw32-g++ > /dev/null 2>&1; then
+		win32cxx="mingw32-g++"
+		win32flags="$win32flags -DMINGW32_FALLBACK"
+		win32static=1
 
 	elif command -v i686-pc-mingw32-g++ > /dev/null 2>&1; then
 		win32cxx="i686-pc-mingw32-g++"
-		win32flags="$win32flags -DMINGW32_FALLBACK -static-libgcc -static-libstdc++ -static"
+		win32flags="$win32flags -DMINGW32_FALLBACK"
+		win32static=1
 
 	elif command -v i586-mingw32msvc-c++ > /dev/null 2>&1; then
 		win32cxx="i586-mingw32msvc-c++"
-		win32flags="$win32flags -DMINGW32_FALLBACK -static-libgcc -static-libstdc++ -static"
+		win32flags="$win32flags -DMINGW32_FALLBACK"
+		win32static=1
 
 	elif command -v wineg++ > /dev/null 2>&1; then
 		win32cxx="wineg++"
+		win32static=0
 
 	else
 		echo "ERROR: No mingw32-g++ compiler found. Please use --win32-cxx to specify one."
@@ -186,12 +192,20 @@ fi
 if [ "$win64" == "true" ] && [ -z "$win64cxx" ]; then
 	if command -v x86_64-w64-mingw32-g++ >/dev/null 2>&1; then
 		win64cxx="x86_64-w64-mingw32-g++"
-		win64flags="$win64flags -static-libgcc -static-libstdc++ -static"
+		win64static=1
 
 	else
 		echo "ERROR: No mingw64-g++ compiler found. Please use --win64-cxx to specify one."
 		exit 1
 	fi
+fi
+
+if [ "$win32static" -ne 0 ]; then
+	win32flags="$win32flags -static-libgcc -static-libstdc++ -static"
+fi
+
+if [ "$win64static" -ne 0 ]; then
+	win64flags="$win64flags -static-libgcc -static-libstdc++ -static"
 fi
 
 if [ "$win64" == "true" ] && [ -z "$wine64path" ]; then
