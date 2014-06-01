@@ -48,6 +48,12 @@ Returns a list which contains both the plugins enabled for the current user and
 additionally the system-wide enabled plugins. If a plugin is enabled multiple
 times it also appears multiple times in the list.
 .TP
+\fB\-\-system\-check\fR
+Will perform some system checks to ensure that wine and all required components
+are installed correctly. A warning doesn't necessarily mean that something is
+wrong, but if you encounter a problem it is useful to attach this to your bug
+report.
+.TP
 \fB\-\-help\fR
 Shows a short version of this help.
 .TP
@@ -190,7 +196,7 @@ version of Wine).
 .B Pipelight Launchpad project page
 .UE ,
 .br
-.UR http://fds-team.de/cms/pipelight-installation.html
+.UR http://pipelight.net/cms/installation.html
 .B Installation instructions
 .UE ,
 .br
