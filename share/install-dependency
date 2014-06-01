@@ -467,7 +467,7 @@ install_x64_unity3d()
 		"$WINE" "$DOWNLOADFILE" /S /AllUsers 2>&1 | progressbar "Please wait, installing ..." "Running $DEP"
 	fi
 
-	local installdir="$WINEPREFIX/drive_c/Program Files/Unity/WebPlayer/loader-x64"
+	local installdir="$WINEPREFIX/drive_c/Program Files/Unity/WebPlayer64/loader-x64"
 	if [ ! -f "$installdir/npUnity3D64.dll" ]; then
 		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
 		return 1
