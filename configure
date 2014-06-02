@@ -230,8 +230,12 @@ resolvepath()
 		fi
 		local oldpath="$path"
 		while true; do
-			path=$(echo "$path" | sed -e 's!/\.\{0,1\}/!/!' -e 's!/\([^./]\{1,\}\)/\.\./!/!' \
-				-e 's!/\(\.[^./]\{1,\}\)/\.\./!/!' -e 's!/\(\.\.[^./]\{1,\}\)/\.\./!/!')
+			path=$(echo "$path" | sed -e 's!/\.\{0,1\}/!/!')
+			if [ "$path" == "$oldpath" ]; then break; fi
+			oldpath="$path"
+		done
+		while true; do
+			path=$(echo "$path" | sed -e 's!/\([^/]\{1,\}\)/\.\./!/!')
 			if [ "$path" == "$oldpath" ]; then break; fi
 			oldpath="$path"
 		done
