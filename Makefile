@@ -2,7 +2,7 @@ PLUGIN_CONFIGS=$(wildcard share/configs/*.in)
 PLUGIN_SCRIPTS=$(wildcard share/scripts/*.in)
 PLUGIN_LICENSES=$(wildcard share/licenses/*.in)
 
-include config.make
+-include config.make
 
 PROGRAMS := pluginloader32 winecheck32
 ifeq ($(win64),true)
@@ -18,28 +18,34 @@ export
 .PHONY: all
 all: linux $(PROGRAMS)
 
+config.make:
+	@echo ""
+	@echo "You need to call ./configure first." >&2
+	@echo ""
+	@exit 1
+
 .PHONY: linux
-linux:
+linux: config.make
 	$(MAKE) -C src/linux CXX="$(cxx)"
 
 .PHONY: pluginloader32
-pluginloader32:
+pluginloader32: config.make
 	$(MAKE) -C src/windows wincxx="$(win32cxx)" winflags="$(win32flags)" suffix=""
 
 .PHONY: pluginloader64
-pluginloader64:
+pluginloader64: config.make
 	$(MAKE) -C src/windows wincxx="$(win64cxx)" winflags="$(win64flags)" suffix="64"
 
 .PHONY: winecheck32
-winecheck32:
+winecheck32: config.make
 	$(MAKE) -C src/winecheck wincxx="$(win32cxx)" winflags="$(win32flags)" suffix=""
 
 .PHONY: winecheck64
-winecheck64:
+winecheck64: config.make
 	$(MAKE) -C src/winecheck wincxx="$(win64cxx)" winflags="$(win64flags)" suffix="64"
 
 .PHONY: install
-install: all
+install: config.make all
 	mkdir -p "$(DESTDIR)$(prefix)/share/pipelight"
 	mkdir -p "$(DESTDIR)$(prefix)/share/pipelight/configs"
 	mkdir -p "$(DESTDIR)$(prefix)/share/pipelight/licenses"
@@ -104,7 +110,7 @@ install: all
 	rm pipelight-manpage.tmp
 
 .PHONY: uninstall
-uninstall:
+uninstall: config.make
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/sig-install-dependency.gpg"
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/pluginloader.exe"
 	rm -f "$(DESTDIR)$(prefix)/share/pipelight/pluginloader64.exe"
