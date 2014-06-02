@@ -154,11 +154,9 @@ struct x11drv_escape{
 
 struct x11drv_escape_set_drawable{
 	int  code;
-	HWND hwnd;
 	XID  drawable;
 	int  mode;
 	RECT dc_rect;
-	XID  fbconfig_id;
 };
 
 /* convertToWindowsPath */
@@ -1012,11 +1010,9 @@ void dispatcher(int functionid, Stack &stack){
 						if (drawable != ndata->lastDrawableDC){
 							x11drv_escape_set_drawable escape_set_drawable;
 							escape_set_drawable.code		= X11DRV_SET_DRAWABLE;
-							escape_set_drawable.hwnd		= 0;
 							escape_set_drawable.drawable	= drawable;
 							escape_set_drawable.mode		= 1; /* IncludeInferiors */
 							memcpy(&escape_set_drawable.dc_rect, &ndata->browser, sizeof(ndata->browser));
-							escape_set_drawable.fbconfig_id	= 0;
 
 							if (ExtEscape(ndata->hDC, X11DRV_ESCAPE, sizeof(escape_set_drawable), (char *)&escape_set_drawable, 0, NULL))
 								ndata->lastDrawableDC = drawable;
@@ -1683,11 +1679,9 @@ void dispatcher(int functionid, Stack &stack){
 					if (ndata->hDC && ndata->lastDrawableDC){
 						x11drv_escape_set_drawable escape_set_drawable;
 						escape_set_drawable.code		= X11DRV_SET_DRAWABLE;
-						escape_set_drawable.hwnd		= 0;
 						escape_set_drawable.drawable	= ndata->lastDrawableDC;
 						escape_set_drawable.mode		= 1; /* IncludeInferiors */
 						memcpy(&escape_set_drawable.dc_rect, &browser, sizeof(browser));
-						escape_set_drawable.fbconfig_id	= 0;
 
 						if (!ExtEscape(ndata->hDC, X11DRV_ESCAPE, sizeof(escape_set_drawable), (char *)&escape_set_drawable, 0, NULL))
 							DBG_ERROR("X11DRV_SET_DRAWABLE failed");
