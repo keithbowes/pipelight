@@ -110,7 +110,6 @@ bool isSandboxed		= false;
 bool forceSetWindow		= false;
 
 /* hooks */
-bool unityHacks			= false;
 bool windowClassHook	= false;
 
 /* user agent and plugin data */
@@ -676,9 +675,6 @@ int main(int argc, char *argv[]){
 			forceSetWindow = true;
 
 		/* hooks */
-		else if (arg == "--unityhacks")
-			unityHacks = true;
-
 		else if (arg == "--windowclasshook")
 			windowClassHook = true;
 
@@ -724,7 +720,6 @@ int main(int argc, char *argv[]){
 	DBG_INFO("windowless mode       is %s.", (isWindowlessMode ? "on" : "off"));
 	DBG_INFO("linux windowless mode is %s.", (isLinuxWindowlessMode ? "on" : "off"));
 	DBG_INFO("force SetWindow       is %s.", (forceSetWindow ? "on" : "off"));
-	DBG_INFO("unity hacks           is %s.", (unityHacks ? "on" : "off"));
 	DBG_INFO("window class hook     is %s.", (windowClassHook ? "on" : "off"));
 	DBG_INFO("check opengl          is %s.", (checkOpenGLVendor ? "on" : "off"));
 	DBG_INFO("strict drawing        is %s.", (strictDrawing ? "on" : "off"));
@@ -756,9 +751,7 @@ int main(int argc, char *argv[]){
 	}
 
 	/* Install hooks */
-	if (unityHacks)			installUnityHooks();
 	if (windowClassHook)	installWindowClassHook();
-
 	installPopupHook();
 
 	if (checkOpenGLVendor){

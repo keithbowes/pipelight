@@ -305,7 +305,6 @@ bool loadConfig(PluginConfig &config){
 
 	config.silverlightGraphicDriverCheck		= false;
 
-	config.experimental_unityHacks				= false;
 	config.experimental_forceSetWindow			= false;
 	config.experimental_windowClassHook			= false;
 	config.experimental_strictDrawOrdering		= false;
@@ -466,10 +465,6 @@ bool loadConfig(PluginConfig &config){
 			config.silverlightGraphicDriverCheck = (value == "true" || value == "yes" ||
 				(value.find_first_of("true") != std::string::npos) ||
 				(value.find_first_of("hw-accel-default") != std::string::npos) );
-
-		}else if (key == "experimental-unityhacks"){
-			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
-			config.experimental_unityHacks = (value == "true" || value == "yes");
 
 		}else if (key == "experimental-forcesetwindow"){
 			std::transform(value.begin(), value.end(), value.begin(), c_tolower);

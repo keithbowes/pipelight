@@ -96,7 +96,6 @@ struct PluginConfig{
 
 	bool			silverlightGraphicDriverCheck;
 
-	bool			experimental_unityHacks;
 	bool			experimental_forceSetWindow;
 	bool			experimental_windowClassHook;
 	bool			experimental_strictDrawOrdering;

@@ -41,6 +41,5 @@
 
 extern bool installPopupHook();
 extern bool installWindowClassHook();
-extern bool installUnityHooks();
 
 #endif // ApiHook_h_

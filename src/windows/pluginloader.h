@@ -57,7 +57,6 @@ extern bool isSandboxed;
 extern bool forceSetWindow;
 
 /* hooks */
-extern bool unityHacks;
 extern bool windowClassHook;
 
 /* user agent and plugin data */

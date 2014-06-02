@@ -445,38 +445,3 @@ bool installWindowClassHook(){
 	InitializeCriticalSection(&prevWndProcCS);
 	return (originalCreateWindowExA && originalCreateWindowExW);
 }
-
-/* -------- Unity hooks --------*/
-
-typedef HDESK (* WINAPI OpenInputDesktopPtr)(DWORD dwFlags, BOOL fInherit, ACCESS_MASK dwDesiredAccess);
-OpenInputDesktopPtr originalOpenInputDesktop = NULL;
-
-/*
-	OpenInputDesktop is not supported by Wine, but Unity will enter an endless
-	loop in some games when we return 0. Since Wine ignores the parameter on
-	all functions which use an input desktop we simply return a fake handle.
-*/
-HDESK WINAPI myOpenInputDesktop(DWORD dwFlags, BOOL fInherit, ACCESS_MASK dwDesiredAccess){
-	HDESK res = originalOpenInputDesktop(dwFlags, fInherit, dwDesiredAccess);
-
-	/*
-		The Return value 0 will cause problems with some games, so we return
-		the Desktop used by the current thread instead, since this function is
-		implemented in Wine. The MSDN states that a handle returned by
-		GetThreadDesktop() does not need to be closed with CloseDesktop() in
-		contrary to OpenInputDesktop(), but Wine increases the refcounter on the
-		handle when GetThreadDesktop() is called. This bug (?) allows us to
-		treat the handle returned by GetThreadDesktop() as a new handle.
-	*/
-	if (!res)
-		res = GetThreadDesktop(GetCurrentThreadId());
-
-	return res;
-}
-
-bool installUnityHooks(){
-	if(!originalOpenInputDesktop)
-		originalOpenInputDesktop    = (OpenInputDesktopPtr)patchDLLExport(module_user32, "OpenInputDesktop", (void*)&myOpenInputDesktop);
-
-	return originalOpenInputDesktop;
-}

@@ -469,9 +469,6 @@ bool startWineProcess(){
 		if (config.embed)
 			argv.push_back( "--embed" );
 
-		if (config.experimental_unityHacks)
-			argv.push_back( "--unityHacks" );
-
 		if (config.experimental_forceSetWindow)
 			argv.push_back( "--forceSetWindow" );
 
