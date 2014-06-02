@@ -223,7 +223,24 @@ fi
 
 resolvepath()
 {
-	readlink -m "$1"
+	if [ ! -z "$1" ]; then
+		local path="$1/"
+		if [ "${path:0:1}" != "/" ]; then
+			path="$(pwd)/$path"
+		fi
+		local oldpath="$path"
+		while true; do
+			path=$(echo "$path" | sed -e 's!/\.\{0,1\}/!/!' -e 's!/\([^./]\{1,\}\)/\.\./!/!' \
+				-e 's!/\(\.[^./]\{1,\}\)/\.\./!/!' -e 's!/\(\.\.[^./]\{1,\}\)/\.\./!/!')
+			if [ "$path" == "$oldpath" ]; then break; fi
+			oldpath="$path"
+		done
+		if [ "$path" != "/" ] && [ "${path: -1}" == "/" ]; then
+			path="${path:0: -1}"
+		fi
+		echo "$path"
+	fi
+	return 0
 }
 
 # Normalize the paths
