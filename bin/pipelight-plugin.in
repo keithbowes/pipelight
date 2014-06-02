@@ -405,6 +405,12 @@ check_system()
 	export WINEARCH="win32"
 
 	echo ">> 32 bit <<"
+	"$PIPELIGHT_SHARE_PATH/wine" --version
+	echo ""
+	echo "Patches:"
+	"$PIPELIGHT_SHARE_PATH/wine" --patches
+	echo ""
+
 	"$PIPELIGHT_SHARE_PATH/wine" "$PIPELIGHT_SHARE_PATH/winecheck.exe"
 	if [ "$?" -ne "0" ]; then
 		retval=1
@@ -429,6 +435,12 @@ check_system()
 
 	echo ""
 	echo ">> 64 bit <<"
+	"$PIPELIGHT_SHARE_PATH/wine64" --version
+	echo ""
+	echo "Patches:"
+	"$PIPELIGHT_SHARE_PATH/wine64" --patches
+	echo ""
+
 	"$PIPELIGHT_SHARE_PATH/wine64" "$PIPELIGHT_SHARE_PATH/winecheck64.exe"
 	if [ "$?" -ne "0" ]; then
 		retval=1
