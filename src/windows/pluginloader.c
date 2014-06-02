@@ -591,12 +591,12 @@ bool setStrictDrawing(int value){
 	static HMODULE module_wined3d = NULL;
 	static wined3d_strictdrawing_setPtr wined3d_strictdrawing_set = NULL;
 
-	if (!wined3d_strictdrawing_set){
-		if (!module_wined3d){
-			if (!(module_wined3d = LoadLibraryA("wined3d.dll")))
-				return false;
-		}
+	if (!module_wined3d){
+		if (!(module_wined3d = LoadLibraryA("wined3d.dll")))
+			return false;
+	}
 
+	if (!wined3d_strictdrawing_set){
 		if (!(wined3d_strictdrawing_set = (wined3d_strictdrawing_setPtr)GetProcAddress(module_wined3d, "wined3d_strictdrawing_set")))
 			return false;
 	}
