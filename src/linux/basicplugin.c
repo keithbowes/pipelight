@@ -129,6 +129,14 @@ void attach(){
 		readResultVoid();
 	}
 
+	/* do we have to disable graphic acceleration for Silverlight? */
+	if (config.silverlightGraphicDriverCheck)
+	{
+		callFunction( SILVERLIGHT_IS_GRAPHIC_DRIVER_SUPPORTED );
+		if (!readResultInt32())
+			config.overwriteArgs["enableGPUAcceleration"] = "false";
+	}
+
 	/* initialisation successful */
 	initOkay = true;
 }
@@ -408,11 +416,8 @@ bool startWineProcess(){
 		if (config.experimental_windowClassHook)
 			argv.push_back( "--windowClassHook" );
 
-		if (config.silverlightGraphicDriverCheck)
-			argv.push_back( "--testOpenGL" );
-
 		if (config.experimental_strictDrawOrdering)
-			argv.push_back( "--strictDrawing" );
+			argv.push_back( "--strictDrawOrdering" );
 
 		argv.push_back(NULL);
 

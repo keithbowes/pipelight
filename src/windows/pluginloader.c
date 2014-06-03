@@ -74,26 +74,7 @@
 
 typedef void (* wined3d_strictdrawing_setPtr)(int value);
 
-struct OpenGLSupportEntry {
-	const char *vendor;
-	OPENGL_SUPPORT support;
-};
-
 /* BEGIN GLOBAL VARIABLES */
-
-OpenGLSupportEntry OpenGLSupportTable[] = {
-	{"Intel Open Source Technology Center", OPENGL_FULL},
-	{"NVIDIA Corporation", 					OPENGL_FULL},
-	{"nouveau", 							OPENGL_FULL},
-	{"Tungsten Graphics, Inc", 				OPENGL_FULL},
-	{"Advanced Micro Devices, Inc.", 		OPENGL_STRICT},
-	{"ATI Technologies Inc.", 				OPENGL_STRICT},
-	{" AMD ", 								OPENGL_STRICT},
-	{" ATI ", 								OPENGL_STRICT},
-	{" R600 ", 								OPENGL_STRICT},
-};
-
-OPENGL_SUPPORT openGLSupport = OPENGL_NOT_TESTED;
 
 char clsName[] = "VirtualBrowser";
 
@@ -108,6 +89,7 @@ bool isLinuxWindowlessMode = false;
 bool stayInFullscreen	= false;
 bool isSandboxed		= false;
 bool forceSetWindow		= false;
+bool strictDrawOrdering = false;
 
 /* hooks */
 bool windowClassHook	= false;
@@ -508,7 +490,7 @@ std::string readPathFromRegistry(HKEY hKey, std::string regKey){
 	return result;
 }
 
-bool checkOpenGL(){
+bool silverlightCheckGraphicDriver(){
 	HWND hWnd = 0;
 	HDC hDC = 0;
 	HGLRC context = NULL;
@@ -517,6 +499,21 @@ bool checkOpenGL(){
 	const char* renderer = NULL;
 	const char* vendor = NULL;
 	unsigned int i;
+
+	static const struct {
+		const char *vendor;
+		bool strict;
+	} supportedDrivers[] = {
+		{"Intel Open Source Technology Center", false},
+		{"NVIDIA Corporation", 					false},
+		{"nouveau", 							false},
+		{"Tungsten Graphics, Inc", 				false},
+		{"Advanced Micro Devices, Inc.", 		true},
+		{"ATI Technologies Inc.", 				true},
+		{" AMD ", 								true},
+		{" ATI ", 								true},
+		{" R600 ", 								true},
+	};
 
 	PIXELFORMATDESCRIPTOR pfd = {
 		sizeof(PIXELFORMATDESCRIPTOR),
@@ -537,29 +534,27 @@ bool checkOpenGL(){
 		0, 0, 0
 	};
 
-	openGLSupport = OPENGL_NOT_SUPPORTED;
-
 	hWnd = CreateWindowExA(0, clsName, "OpenGL Test", WS_TILEDWINDOW, 0, 0, 100, 100, 0, 0, 0, 0);
 	if (!hWnd)
 		return false;
 
 	hDC = GetDC(hWnd);
 	if (!hDC)
-		goto error;
+		goto out;
 
 	pixelformat = ChoosePixelFormat(hDC, &pfd);
 	if (!pixelformat)
-		goto error;
+		goto out;
 
 	if (!SetPixelFormat(hDC, pixelformat, &pfd))
-		goto error;
+		goto out;
 
 	context = wglCreateContext(hDC);
 	if (!context)
-		goto error;
+		goto out;
 
 	if (!wglMakeCurrent(hDC, context))
-		goto error;
+		goto out;
 
 	vendor		= (const char *)glGetString(GL_VENDOR);
 	renderer	= (const char *)glGetString(GL_RENDERER);
@@ -568,18 +563,28 @@ bool checkOpenGL(){
 	DBG_INFO("OpenGL Renderer: %s", renderer);
 
 	if (!vendor)
-		goto error;
+		goto out;
 
-	for (i = 0; i < sizeof(OpenGLSupportTable) / sizeof(OpenGLSupportTable[0]); i++){
-		if (strstr(vendor, OpenGLSupportTable[i].vendor)){
-			openGLSupport = OpenGLSupportTable[i].support;
+	for (i = 0; i < sizeof(supportedDrivers) / sizeof(supportedDrivers[0]); i++){
+		if (strstr(vendor, supportedDrivers[i].vendor)){
+
+			if (supportedDrivers[i].strict)
+			{
+				strictDrawOrdering = true;
+				DBG_INFO("Your GPU is in the restricted whitelist, using limited hardware acceleration.");
+			}
+			else
+				DBG_INFO("Your GPU is in the whitelist, hardware acceleration should work.");
+
+			result = true;
 			break;
 		}
 	}
 
-	result = true;
+	if (!result)
+		DBG_INFO("Your GPU is not in the whitelist, disabling OpenGL.");
 
-error:
+out:
 	if (context) wglDeleteContext(context);
 	if (hDC) ReleaseDC(hWnd, hDC);
 	if (hWnd) DestroyWindow(hWnd);
@@ -638,9 +643,6 @@ int main(int argc, char *argv[]){
 	std::string dllName;
 	std::string regKey;
 
-	bool checkOpenGLVendor = false;
-	bool strictDrawing = false;
-
 	for (int i = 1; i < argc; i++){
 		std::string arg = std::string(argv[i]);
 		std::transform(arg.begin(), arg.end(), arg.begin(), c_tolower);
@@ -679,11 +681,8 @@ int main(int argc, char *argv[]){
 			windowClassHook = true;
 
 		/* opengl */
-		else if (arg == "--testopengl")
-			checkOpenGLVendor = true;
-
-		else if (arg == "--strictdrawing")
-			strictDrawing = true;
+		else if (arg == "--strictdrawordering")
+			strictDrawOrdering = true;
 	}
 
 	/* required arguments available? */
@@ -721,8 +720,7 @@ int main(int argc, char *argv[]){
 	DBG_INFO("linux windowless mode is %s.", (isLinuxWindowlessMode ? "on" : "off"));
 	DBG_INFO("force SetWindow       is %s.", (forceSetWindow ? "on" : "off"));
 	DBG_INFO("window class hook     is %s.", (windowClassHook ? "on" : "off"));
-	DBG_INFO("check opengl          is %s.", (checkOpenGLVendor ? "on" : "off"));
-	DBG_INFO("strict drawing        is %s.", (strictDrawing ? "on" : "off"));
+	DBG_INFO("strict draw ordering  is %s.", (strictDrawOrdering ? "on" : "off"));
 
 	DBG_ASSERT(initCommIO(), "unable to initialize communication channel.");
 
@@ -754,31 +752,8 @@ int main(int argc, char *argv[]){
 	if (windowClassHook)	installWindowClassHook();
 	installPopupHook();
 
-	if (checkOpenGLVendor){
-		if (checkOpenGL()){
-			switch (openGLSupport){
-				case OPENGL_FULL:
-					DBG_INFO("Your GPU is in the whitelist, hardware acceleration should work.");
-					break;
-
-				case OPENGL_STRICT:
-					DBG_INFO("Your GPU is in the restricted whitelist, using limited hardware acceleration.");
-					break;
-
-				default: /* OPENGL_NOT_SUPPORTED */
-					DBG_INFO("Your GPU is not in the whitelist, disabling OpenGL.");
-					break;
-
-			}
-		}else
-			DBG_ERROR("there is something wrong with your OpenGL drivers.");
-	}
-
-	if (strictDrawing || openGLSupport == OPENGL_STRICT){
-		if(!setStrictDrawing(true))
-			DBG_WARN("failed to set strict drawing order!");
-		openGLSupport = OPENGL_STRICT;
-	}
+	if(!setStrictDrawing(strictDrawOrdering))
+		DBG_ERROR("failed to set/unset strict draw ordering!");
 
 	/* Load the DLL */
 	if (!initDLL(dllPath, dllName)){
@@ -850,6 +825,24 @@ void dispatcher(int functionid, Stack &stack){
 				writeInt32(PIPELIGHT_PROTOCOL_VERSION);
 
 				DBG_TRACE("INIT_OKAY -> %x", PIPELIGHT_PROTOCOL_VERSION);
+				returnCommand();
+			}
+			break;
+
+		case SILVERLIGHT_IS_GRAPHIC_DRIVER_SUPPORTED:
+			{
+				static int supported = -1;
+				DBG_TRACE("SILVERLIGHT_IS_GRAPHIC_DRIVER_SUPPORTED()");
+
+				if (supported == -1)
+					supported = silverlightCheckGraphicDriver(); 
+
+				if(!setStrictDrawing(strictDrawOrdering))
+					DBG_ERROR("failed to set/unset strict draw ordering!");
+
+				writeInt32(supported);
+
+				DBG_TRACE("SILVERLIGHT_IS_GRAPHIC_DRIVER_SUPPORTED -> %d\n", supported);
 				returnCommand();
 			}
 			break;
@@ -1399,13 +1392,6 @@ void dispatcher(int functionid, Stack &stack){
 				}else{
 					instance->ndata = NULL;
 					DBG_ERROR("unable to allocate memory for private data.");
-				}
-
-				if (openGLSupport == OPENGL_NOT_SUPPORTED)
-				{
-					argn.push_back(strdup("enableGPUAcceleration"));
-					argv.push_back(strdup("false"));
-					argc++;
 				}
 
 				/* append to the instance list */

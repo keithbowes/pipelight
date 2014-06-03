@@ -205,7 +205,7 @@ struct ParameterInfo{
 typedef std::vector<ParameterInfo> Stack;
 
 /* increase this whenever you do changes in the protocol stack */
-#define PIPELIGHT_PROTOCOL_VERSION 0x1000000F
+#define PIPELIGHT_PROTOCOL_VERSION 0x10000010
 
 enum{
 	/* ------- Special ------- */
@@ -220,6 +220,9 @@ enum{
 
 	/* Additional commands on the linux side */
 	CHANGE_EMBEDDED_MODE,
+
+	/* Additional commands on the windows side */
+	SILVERLIGHT_IS_GRAPHIC_DRIVER_SUPPORTED,
 
 	/* Handlemanager on the windows side */
 	WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA,

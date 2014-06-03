@@ -184,8 +184,8 @@ std::vector<MenuEntry> menuAddEntries(HMENU hMenu, HWND hwnd){
 	/* ------- Limited HW Acceleration ------- */
 	entryInfo.fMask			= MIIM_FTYPE | MIIM_STRING | MIIM_ID | MIIM_STATE;
 	entryInfo.fType			= MFT_STRING;
-	entryInfo.fState        = (openGLSupport == OPENGL_STRICT) ? MFS_CHECKED : 0;
-	entryInfo.dwTypeData	= (char*)"Limited HW Acceleration";
+	entryInfo.fState        = strictDrawOrdering ? MFS_CHECKED : 0;
+	entryInfo.dwTypeData	= (char*)"Strict Draw Ordering";
 	InsertMenuItemA(hMenu, count, true, &entryInfo);
 	entries.emplace_back(entryInfo.wID, MENU_ACTION_TOGGLE_STRICT);
 	count++; entryInfo.wID++;
@@ -227,9 +227,9 @@ bool menuHandler(NPP instance, UINT identifier, const std::vector<MenuEntry> &en
 				break;
 
 			case MENU_ACTION_TOGGLE_STRICT:
-				openGLSupport = (openGLSupport == OPENGL_STRICT) ? OPENGL_FULL : OPENGL_STRICT;
-				if(!setStrictDrawing((openGLSupport == OPENGL_STRICT)))
-					DBG_WARN("failed to change strict draw odering.");
+				strictDrawOrdering = !strictDrawOrdering;
+				if(!setStrictDrawing(strictDrawOrdering))
+					DBG_ERROR("failed to set/unset strict draw ordering!");
 				break;
 
 			case MENU_ACTION_TOGGLE_STAY_IN_FULLSCREEN:

@@ -55,6 +55,7 @@ extern bool isLinuxWindowlessMode;
 extern bool stayInFullscreen;
 extern bool isSandboxed;
 extern bool forceSetWindow;
+extern bool strictDrawOrdering;
 
 /* hooks */
 extern bool windowClassHook;
@@ -211,14 +212,6 @@ struct NetscapeData{
 	AsyncCallback *asyncCalls;
 
 };
-
-enum OPENGL_SUPPORT {
-	OPENGL_NOT_TESTED,
-	OPENGL_NOT_SUPPORTED,
-	OPENGL_FULL,
-	OPENGL_STRICT
-};
-extern OPENGL_SUPPORT openGLSupport;
 
 extern void changeEmbeddedMode(bool newEmbed);
 extern std::string getWineVersion();
