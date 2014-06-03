@@ -47,13 +47,14 @@
 
 const char *badOpenGLVendors[] =
 {
-	"llvmpipe",
+	"VMware, Inc."
 };
 
 const char *badOpenGLRenderer[] =
 {
 	"Software Rasterizer",
-	"Mesa GLX Indirect"
+	"Mesa GLX Indirect",
+	"llvmpipe"
 };
 
 struct fontsToCheck
