@@ -1,9 +1,23 @@
-pipelight-multi (0.2.7) UNRELEASED; urgency=low
+pipelight-multi (0.2.7) RELEASED; urgency=low
 
+  * Update Flash to 13.0.0.214
+  * Update Shockwave to 12.1.1.151
+  * Update for Unity3D plugin
+  * Update for Adobereader, FoxitReader and Roblox plugin
+  * Added experimental TrianglePlayer plugin
   * Fixed pluginloader.exe crash when closing browser window and using
-    multiple instances of the same plugin.
+    multiple instances of the same plugin
+  * Fix issue that Firefox detected wrong plugin version in some cases
+  * Fix structure for x11drv_escape_set_drawable (linux windowless mode)
+  * Integrate graphic driver check directly into pluginloader.exe
+  * Allow changing strict draw ordering at runtime via context menu
+  * Add system-check utility to verify that installation is correct
+  * Remove full paths from plugin config files
+  * Make scripts more compatible with BSD systems
+  * Add --debug configure option
+  * Code cleanup
 
- -- Michael Mueller <michael@fds-team.de>  Sun, 06 Apr 2014 20:02:02 +0200
+ -- Michael Mueller <michael@fds-team.de>  Tue, 03 Jun 2014 03:09:13 +0200
 
 
 pipelight-multi (0.2.6) RELEASED; urgency=low
