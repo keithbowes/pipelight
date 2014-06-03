@@ -240,7 +240,7 @@ resolvepath()
 			oldpath="$path"
 		done
 		if [ "$path" != "/" ] && [ "${path: -1}" == "/" ]; then
-			path="${path:0: -1}"
+			path="${path%/}"
 		fi
 		echo "$path"
 	fi
