@@ -437,7 +437,7 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	*/
 
 	std::map<std::string, std::string, stringInsensitiveCompare> tempArgs;
-	std::map<std::string, std::string>::iterator it;
+	std::map<std::string, std::string, stringInsensitiveCompare>::iterator it;
 	for (int i = 0; i < argc; i++){
 		if (!argn[i] || !argv[i])
 			DBG_ERROR("malformed argument '%s' -> '%s'", argn[i], argv[i]);

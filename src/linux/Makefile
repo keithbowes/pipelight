@@ -1,4 +1,5 @@
 CXX		?= g++
+UNAME_S		:= $(shell uname -s)
 
 ifeq ($(UNAME_S), FreeBSD)
 	CXXFLAGS += -I/usr/local/include
@@ -10,11 +11,10 @@ LDFLAGS		+= -lpthread
 OBJECTS		:= common.o basicplugin.o configloader.o diagnostic.o npclass.o nppfunctions.o
 COMMONHDR	:= ../common/common.h ../npapi-headers/npapi.h ../npapi-headers/npfunctions.h ../npapi-headers/npruntime.h ../npapi-headers/nptypes.h
 
-UNAME_S		:= $(shell uname -s)
 ifneq ($(UNAME_S),Darwin)
 	LDFLAGS += -lX11
 endif
-ifneq ($(UNAME_S), FreeBSD)
+ifneq ($(UNAME_S),FreeBSD)
 	LDFLAGS += -ldl
 endif
 
@@ -22,7 +22,7 @@ endif
 all: libpipelight.so
 
 libpipelight.so: $(OBJECTS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -shared $(OBJECTS) $(LDFLAGS) -o libpipelight.so
+	$(CXX) -shared $(OBJECTS) $(LDFLAGS) -o libpipelight.so
 
 common.o: ../common/common.c $(COMMONHDR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c ../common/common.c -o common.o
