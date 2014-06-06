@@ -21,6 +21,7 @@ wine64path=""
 quietinstallation="true"
 nogpuaccel="false"
 debug="false"
+downloader=""
 
 usage ()
 {
@@ -28,7 +29,7 @@ usage ()
 	echo "Usage: ./configure [--prefix=PREFIX] [--debug]"
 	echo "                   [--moz-plugin-path=PATH] [--gcc-runtime-dlls=PATH]"
 	echo "                   [--show-installation-dialogs] [--no-gpu-accel]"
-	echo "                   [--cxx]"
+	echo "                   [--cxx] [--downloader]"
 	echo " 32-bit options:"
 	echo "                   [--win32-prebuilt] [--win32-cxx=COMPILER]"
 	echo "                   [--win32-static] [--win32-flags=FLAGS]"
@@ -76,12 +77,19 @@ while [[ $# > 0 ]] ; do
 			quietinstallation="false"
 			;;
 
-                --cxx=*)
-                        cxx="${CMD#*=}"
-                        ;;
-                --cxx)
-                        cxx="$1"; shift
-                        ;;
+		--cxx=*)
+			cxx="${CMD#*=}"
+			;;
+		--cxx)
+			cxx="$1"; shift
+			;;
+
+		--downloader=*)
+			downloader="${CMD#*=}"
+			;;
+		--downloader)
+			downloader="$1"; shift
+			;;
 
 		--debug)
 			debug="true"
@@ -212,6 +220,19 @@ if [ "$win64" == "true" ] && [ -z "$wine64path" ]; then
 	wine64path="$winepath/../wine64"
 fi
 
+if [ -z "$downloader" ]; then
+	if [ "$win32cxx" == "prebuilt" ] || [ "$win64cxx" == "prebuilt" ]; then
+		if command -v wget >/dev/null 2>&1; then
+			downloader="wget -O"
+		elif command -v fetch >/dev/null 2>&1; then
+			downloader="fetch -o"
+		else
+			echo "ERROR: Could neither find wget nor fetch! Please use --downloader to specify a program."
+			exit 1
+		fi
+	fi
+fi
+
 # Get the version number
 changelog=$(head -n1 debian/changelog)
 if [[ "$changelog" =~ \((.*)\)\ (UNRELEASED)? ]]; then
@@ -258,8 +279,9 @@ gccruntimedlls=$(resolvepath "$gccruntimedlls")
 	echo "# General"
 	echo "version=$version"
 	echo "prefix=$prefix"
-	echo "mozpluginpath=$mozpluginpath"
-	echo "gccruntimedlls=$gccruntimedlls"
+	echo
+	echo "# Prebuilt"
+	echo "downloader=$downloader"
 	echo ""
 	echo "# Linux"
 	echo "cxx=$cxx"
@@ -276,6 +298,8 @@ gccruntimedlls=$(resolvepath "$gccruntimedlls")
 	echo "wine64path=$wine64path"
 	echo ""
 	echo "# Other settings"
+	echo "mozpluginpath=$mozpluginpath"
+	echo "gccruntimedlls=$gccruntimedlls"
 	echo "quietinstallation=$quietinstallation"
 	echo "nogpuaccel=$nogpuaccel"
 	echo "debug=$debug"
