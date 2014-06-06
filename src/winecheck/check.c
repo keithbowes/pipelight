@@ -45,6 +45,18 @@
 #include <assert.h>
 #include <GL/gl.h>
 
+#ifdef MINGW32_FALLBACK
+	typedef LONG (* WINAPI RegGetValueAPtr)(HKEY hkey, LPCSTR lpSubKey, LPCSTR lpValue, DWORD dwFlags, LPDWORD pdwType, PVOID pvData, LPDWORD pcbData);
+	typedef BOOL (* WINAPI CreateWellKnownSidPtr)(int WellKnownSidType, PSID DomainSid, PSID pSid, DWORD *cbSid);
+	RegGetValueAPtr RegGetValueA = NULL;
+	CreateWellKnownSidPtr CreateWellKnownSid = NULL;
+	#define RRF_RT_ANY   0x0000FFFF
+	#define RRF_RT_REG_SZ 0x00000002
+	#define SECURITY_MAX_SID_SIZE 0x44
+	#define WinBuiltinAdministratorsSid 26
+	HMODULE module_advapi32;
+#endif
+
 const char *badOpenGLVendors[] =
 {
 	"VMware, Inc."
@@ -350,7 +362,7 @@ bool checkFonts()
 			if (strstr(fontName, fonts[i].name))
 			{
 				lengthPath = sizeof(fontPath);
-				if (RegGetValue(hKey, NULL, fontName, RRF_RT_REG_SZ, NULL, fontPath, &lengthPath) != ERROR_SUCCESS)
+				if (RegGetValueA(hKey, NULL, fontName, RRF_RT_REG_SZ, NULL, fontPath, &lengthPath) != ERROR_SUCCESS)
 					continue;
 
 				if (checkFontFile(fonts[i].name, fontName, fontPath))
@@ -465,6 +477,13 @@ bool checkACLs()
 int main()
 {
 	bool test, ret = 0;
+
+#ifdef MINGW32_FALLBACK
+	assert(module_advapi32	= LoadLibraryA("advapi32.dll"));
+	assert(RegGetValueA = (RegGetValueAPtr)GetProcAddress(module_advapi32, "RegGetValueA"));
+	assert(CreateWellKnownSid = (CreateWellKnownSidPtr)GetProcAddress(module_advapi32, "CreateWellKnownSid"));
+#endif
+
 	assert(registerClass());
 
 	printf("Checking OpenGL ...\n");
