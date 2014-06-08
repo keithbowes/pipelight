@@ -849,9 +849,12 @@ if [ -z "$WINE" ] || [ -z "$WINEPREFIX" ]; then
 	exit 1
 fi
 
-if [ ! -w "$WINEPREFIX" ] && [ ! -w "$(dirname "$WINEPREFIX")" ]; then
-	echo "[$PRG] ERROR: You're running this script as a wrong user without access to the WINEPREFIX." >&2
-	exit 1
+if [ ! -w "$WINEPREFIX" ]; then
+	WINEPREFIX_PARENT="$(dirname "$WINEPREFIX")"
+	if [ ! -w "$WINEPREFIX_PARENT" ] || [ ! -O "$WINEPREFIX_PARENT" ]; then
+		echo "[$PRG] ERROR: You're running this script as a wrong user - WINEPREFIX or parent directory not owned by you." >&2
+		exit 1
+	fi
 fi
 
 # Silent installation
@@ -876,7 +879,7 @@ trap "EXITSTATUS=\$?; flock -u \"$LOCKFD\"; atexit; exit \"\$EXITSTATUS\"" 0
 if [ ! -f "$WINEPREFIX/system.reg" ]; then
 
 	# Directory exists, but without system.reg - wine will assume wrong platform, so create dummy system.reg
-	if [ -d "$WINEPREFIX" ] && [ ! -f "$WINEPREFIX/system.reg" ] && [ ! -z "$WINEARCH" ]; then
+	if [ -d "$WINEPREFIX" ] && [ ! -f "$WINEPREFIX/system.reg" ]; then
 		if [ "$WINEARCH" == "win32" ] || [ "$WINEARCH" == "win64" ]; then
 			echo -en "WINE REGISTRY Version 2\n\n#arch=$WINEARCH\n" > "$WINEPREFIX/system.reg"
 			echo "[$PRG] Forced creation of a $WINEARCH wine prefix."
