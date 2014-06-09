@@ -568,7 +568,7 @@ bool silverlightCheckGraphicDriver(){
 	DBG_INFO("OpenGL Vendor: %s", vendor);
 	DBG_INFO("OpenGL Renderer: %s", renderer);
 
-	if (!vendor)
+	if (!vendor || !renderer)
 		goto out;
 
 	for (i = 0; i < sizeof(supportedDrivers) / sizeof(supportedDrivers[0]); i++){
@@ -591,7 +591,7 @@ bool silverlightCheckGraphicDriver(){
 	if (!result)
 	{
 		for (i = 0; i < sizeof(supportedRenderers) / sizeof(supportedRenderers[0]); i++){
-			if (strstr(vendor, supportedRenderers[i].renderer)){
+			if (strstr(renderer, supportedRenderers[i].renderer)){
 
 				if (supportedRenderers[i].strict)
 				{
