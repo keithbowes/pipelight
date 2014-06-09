@@ -479,12 +479,15 @@ int main()
 	bool test, ret = 0;
 
 #ifdef MINGW32_FALLBACK
-	assert(module_advapi32	= LoadLibraryA("advapi32.dll"));
-	assert(RegGetValueA = (RegGetValueAPtr)GetProcAddress(module_advapi32, "RegGetValueA"));
-	assert(CreateWellKnownSid = (CreateWellKnownSidPtr)GetProcAddress(module_advapi32, "CreateWellKnownSid"));
+	module_advapi32 = LoadLibraryA("advapi32.dll");
+	assert(module_advapi32);
+
+	RegGetValueA = (RegGetValueAPtr)GetProcAddress(module_advapi32, "RegGetValueA");
+	CreateWellKnownSid = (CreateWellKnownSidPtr)GetProcAddress(module_advapi32, "CreateWellKnownSid");
+	assert(RegGetValueA && CreateWellKnownSid);
 #endif
 
-	assert(registerClass());
+	if (!registerClass()) ret = 1;
 
 	printf("Checking OpenGL ...\n");
 	test = checkOpenGL();
