@@ -510,6 +510,12 @@ bool silverlightCheckGraphicDriver(){
 		{"Tungsten Graphics, Inc", 				false},
 		{"Advanced Micro Devices, Inc.", 		true},
 		{"ATI Technologies Inc.", 				true},
+	};
+
+	static const struct {
+		const char *renderer;
+		bool strict;
+	} supportedRenderers[] = {
 		{" AMD ", 								true},
 		{" ATI ", 								true},
 		{" R600 ", 								true},
@@ -578,6 +584,26 @@ bool silverlightCheckGraphicDriver(){
 
 			result = true;
 			break;
+		}
+	}
+
+	/* Did we already whitelist the vendor? Otherwise check the renderer */
+	if (!result)
+	{
+		for (i = 0; i < sizeof(supportedRenderers) / sizeof(supportedRenderers[0]); i++){
+			if (strstr(vendor, supportedRenderers[i].renderer)){
+
+				if (supportedRenderers[i].strict)
+				{
+					strictDrawOrdering = true;
+					DBG_INFO("Your GPU is in the restricted whitelist, using limited hardware acceleration.");
+				}
+				else
+					DBG_INFO("Your GPU is in the whitelist, hardware acceleration should work.");
+
+				result = true;
+				break;
+			}
 		}
 	}
 
