@@ -1,3 +1,10 @@
+pipelight-multi (0.2.8) UNRELEASED; urgency=low
+
+  * Update Flash to 14.0.0.125
+
+ -- Michael Mueller <michael@fds-team.de>  Tue, 10 Jun 2014 18:34:02 +0200
+
+
 pipelight-multi (0.2.7.1) RELEASED; urgency=low
 
   * Update Shockwave to 12.1.2.152

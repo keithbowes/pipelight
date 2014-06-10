@@ -914,14 +914,14 @@ while [ $# -gt 0 ] ; do
 			SHA="55806d7bacf61799eaee18b0e8a6eda7bf62e384174f506ee75bfa3e898b233c"
 			;;
 		wine-flash-installer) # http://www.adobe.com/de/software/flash/about/
-			INS=(install_flash "13_0_0_214")
-			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/13.0.0.214/install_flash_player.exe"
-			SHA="844e9b4dd80fe347eb8d58a3029a0793e3e3313beaaffd66c098dfdda31ae06b"
+			INS=(install_flash "14_0_0_125")
+			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/14.0.0.125/install_flash_player.exe"
+			SHA="d44e3f26b0558ab07eb0f815b6bcd944847bde466631ca42636a3b38104298f2"
 			;;
 		wine-flash-debug-installer)
-			INS=(install_flash "13_0_0_214")
-			URL="http://download.macromedia.com/pub/flashplayer/updaters/13/flashplayer_13_plugin_debug.exe"
-			SHA="5c67aec55acec612a8c0601114b755960b4bbbaf7bc403c92897e805d85885f8"
+			INS=(install_flash "14_0_0_125")
+			URL="http://download.macromedia.com/pub/flashplayer/updaters/14/flashplayer_14_plugin_debug.exe"
+			SHA="76ebf2d8ada73ebf78546b2adc6eb102decc8463b0c7ec81f4e6c57352d7d3c8"
 			;;
 		wine-widevine-installer) # http://www.widevine.com/download/videooptimizer/index.html
 			INS=(install_widevine)
