@@ -921,7 +921,7 @@ while [ $# -gt 0 ] ; do
 		wine-flash-debug-installer)
 			INS=(install_flash "13_0_0_214")
 			URL="http://download.macromedia.com/pub/flashplayer/updaters/13/flashplayer_13_plugin_debug.exe"
-			SHA="80e80b99cedda0fc92da1aca1da5a1d92ddc041986a7421fe2feae44f5cf675f"
+			SHA="5c67aec55acec612a8c0601114b755960b4bbbaf7bc403c92897e805d85885f8"
 			;;
 		wine-widevine-installer) # http://www.widevine.com/download/videooptimizer/index.html
 			INS=(install_widevine)
