@@ -304,6 +304,7 @@ bool loadConfig(PluginConfig &config){
 	config.replaceJavascript.clear();
 
 	config.silverlightGraphicDriverCheck		= false;
+	config.x11WindowID							= 0;
 
 	config.experimental_forceSetWindow			= false;
 	config.experimental_windowClassHook			= false;
@@ -553,6 +554,10 @@ bool loadConfig(PluginConfig &config){
 		}
 		config.optionalDependencies.clear();
 	}
+
+#ifndef __APPLE__
+	config.x11WindowID = (Window)getEnvironmentInteger("PIPELIGHT_X11WINDOW");
+#endif
 
 	return true;
 }
