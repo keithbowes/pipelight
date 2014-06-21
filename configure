@@ -59,6 +59,13 @@ while [[ $# > 0 ]] ; do
 			winepath="$1"; shift
 			;;
 
+		--wine64-path=*)
+			wine64path="${CMD#*=}"
+			;;
+		--wine64-path)
+			wine64path="$1"; shift
+			;;
+
 		--moz-plugin-path=*)
 			mozpluginpath="${CMD#*=}"
 			;;
