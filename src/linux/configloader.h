@@ -44,6 +44,10 @@
 #include <vector>								// for std::vector
 #include <map>									// for std::map
 
+#ifndef __APPLE__
+#include <X11/Xlib.h>							// for Window
+#endif
+
 struct stringInsensitiveCompare {
 	bool operator() (const std::string& a, const std::string& b) const{
 		return strcasecmp(a.c_str(), b.c_str()) < 0;
@@ -95,6 +99,10 @@ struct PluginConfig{
 	std::map<std::string, std::string> replaceJavascript;
 
 	bool			silverlightGraphicDriverCheck;
+
+#ifndef __APPLE__
+	Window			x11WindowID;
+#endif
 
 	bool			experimental_forceSetWindow;
 	bool			experimental_windowClassHook;

@@ -478,6 +478,11 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	if (config.linuxWindowlessMode)
 		sBrowserFuncs->setvalue(instance, NPPVpluginWindowBool, NULL);
 
+#ifndef __APPLE__
+	if (result == NPERR_NO_ERROR && config.x11WindowID)
+		NPP_SetWindow(instance, NULL);
+#endif
+
 	/* Begin scheduling events */
 	if (startAsyncCall) sem_post(&eventThreadSemRequestAsyncCall);
 
@@ -600,17 +605,42 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window){
 
 	PluginData *pdata = (PluginData*)instance->pdata;
 
-	/* save the embed container */
-	if (pdata){
-		pdata->containerType	= window->type;
-		pdata->container		= window->window;
+#ifndef __APPLE__
+	NPWindow windowOverride;
+	if (config.x11WindowID){
+		if (!window){
+			Display *display = XOpenDisplay(NULL);
+			if (display)
+			{
+				unsigned int border, depth;
+				Window root;
+				if (XGetGeometry(display, config.x11WindowID, &root, &windowOverride.x, &windowOverride.y,
+						&windowOverride.width, &windowOverride.height, &border, &depth)){
+					windowOverride.window = (void *)config.x11WindowID;
+					window = &windowOverride;
+				}
+				XCloseDisplay(display);
+			}
+		}else{
+			DBG_TRACE(" -> result=0");
+			return NPERR_NO_ERROR;
+		}
 	}
+#endif
 
-	writeRectXYWH(window->x, window->y, window->width, window->height);
-	writeInt32((window->type == NPWindowTypeWindow && window->window) ? 1 : 0);
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPP_SET_WINDOW);
-	readResultVoid();
+	if (window){
+		/* save the embed container */
+		if (pdata){
+			pdata->containerType	= window->type;
+			pdata->container		= window->window;
+		}
+
+		writeRectXYWH(window->x, window->y, window->width, window->height);
+		writeInt32((window->type == NPWindowTypeWindow && window->window) ? 1 : 0);
+		writeHandleInstance(instance);
+		callFunction(FUNCTION_NPP_SET_WINDOW);
+		readResultVoid();
+	}
 
 	DBG_TRACE(" -> result=0");
 	return NPERR_NO_ERROR;

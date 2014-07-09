@@ -540,7 +540,7 @@ void dispatcher(int functionid, Stack &stack){
 
 							/* embed into child window */
 							if (embed){
-								parentWindow = (Window)getEnvironmentInteger("PIPELIGHT_X11WINDOW");
+								parentWindow = config.x11WindowID;
 								if (!parentWindow)
 									parentWindow = (Window)pdata->container;
 
