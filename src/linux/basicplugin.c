@@ -160,13 +160,13 @@ void checkPermissions(){
 		DBG_WARN("-------------------------------------------------------");
 	}
 
-	if (uid != euid){
-		if (setuid(uid) != 0 || geteuid() != uid)
+	if (gid != egid){
+		if (setgid(gid) != 0 || getegid() != gid)
 			result = false;
 	}
 
-	if (gid != egid){
-		if (setgid(gid) != 0 || getegid() != gid)
+	if (uid != euid){
+		if (setuid(uid) != 0 || geteuid() != uid)
 			result = false;
 	}
 
