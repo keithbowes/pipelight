@@ -914,14 +914,14 @@ while [ $# -gt 0 ] ; do
 			SHA="55806d7bacf61799eaee18b0e8a6eda7bf62e384174f506ee75bfa3e898b233c"
 			;;
 		wine-flash-installer) # http://www.adobe.com/de/software/flash/about/
-			INS=(install_flash "14_0_0_125")
-			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/14.0.0.125/install_flash_player.exe"
-			SHA="d44e3f26b0558ab07eb0f815b6bcd944847bde466631ca42636a3b38104298f2"
+			INS=(install_flash "14_0_0_145")
+			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/14.0.0.145/install_flash_player.exe"
+			SHA="9224209235365cde5a89c04611943b8777ce8a2357df472defa21252e41b8c86"
 			;;
 		wine-flash-debug-installer)
-			INS=(install_flash "14_0_0_125")
+			INS=(install_flash "14_0_0_145")
 			URL="http://download.macromedia.com/pub/flashplayer/updaters/14/flashplayer_14_plugin_debug.exe"
-			SHA="76ebf2d8ada73ebf78546b2adc6eb102decc8463b0c7ec81f4e6c57352d7d3c8"
+			SHA="5b0c8a4325d464a0fc5139602ce76c6791753c1056b6bdf87d8508576fa76084"
 			;;
 		wine-widevine-installer) # http://www.widevine.com/download/videooptimizer/index.html
 			INS=(install_widevine)
@@ -946,13 +946,13 @@ while [ $# -gt 0 ] ; do
 			;;
 		wine-foxitpdf-installer) # http://www.foxitsoftware.com/Secure_PDF_Reader/version_history.php
 			INS=(install_foxitpdf)
-			URL="http://cdn04.foxitsoftware.com/pub/foxit/reader/desktop/win/6.x/6.2/enu/EnterpriseFoxitReader620.0429_enu.msi"
-			SHA="973ccaba399d7c8da08f85e56caeaa5746cead1f1a8ea899776502a693211105"
+			URL="http://cdn04.foxitsoftware.com/pub/foxit/reader/desktop/win/6.x/6.2/enu/EnterpriseFoxitReader621.0618_enu.msi"
+			SHA="7b0e2d19975fb0b6c5abd3f367c2d1190e15cb3f4243e91bb86d19da6b6e8c47"
 			;;
 		wine-shockwave-installer) # http://get.adobe.com/de/shockwave/otherversions/
-			INS=(install_shockwave "1212152")
+			INS=(install_shockwave "1213153")
 			URL="http://fpdownload.macromedia.com/get/shockwave/default/english/win95nt/latest/sw_lic_full_installer.exe"
-			SHA="a9258f3341b5f0a8e24b95750ba671deaf40a41991373d8bf1850c2194ccc3f1"
+			SHA="e7ebe5771c741754bc933a3ad2a3fbd8c08619f3237342318d5751506d1a75ac"
 			;;
 		wine-grandstream-installer)
 			INS=(install_grandstream)
