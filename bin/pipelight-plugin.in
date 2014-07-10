@@ -494,7 +494,7 @@ create_mozilla_plugins()
 			continue
 		fi
 
-		if ! install -m 0644 "$src" "$dst" 2>/dev/null; then
+		if ! (cp -af "$src" "$dst" 2>/dev/null && touch "$dst"); then
 			echo "ERROR: failed to create copy of $src at $dst" >&2
 			echo "ERROR: are you running this program with root rights?" >&2
 			return 1
