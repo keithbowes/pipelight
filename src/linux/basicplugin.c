@@ -40,6 +40,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>								// for POSIX api
+#include <grp.h>								// for initgroups()
+#include <pwd.h>								// for struct passwd
 #include <iostream>								// for std::ios_base
 #include <string>								// for std::string
 #include <errno.h>
@@ -152,6 +154,7 @@ void checkPermissions(){
 	uid_t euid = geteuid();
 	gid_t gid  = getgid();
 	gid_t egid = getegid();
+	passwd* user = NULL;
 
 	if (euid == 0 || egid == 0){
 		DBG_WARN("-------------------------------------------------------");
@@ -160,18 +163,31 @@ void checkPermissions(){
 		DBG_WARN("-------------------------------------------------------");
 	}
 
-	if (gid != egid){
-		if (setgid(gid) != 0 || getegid() != gid)
-			result = false;
-	}
+	/* When dropping privileges from root, the initgroups() call will
+	 * remove any extraneous groups and just use the groups the real
+	 * user is a member of.  If we don't call this, then even though
+	 * our gid or uid has dropped, we may still have group-permissions
+	 * that enable us to do super-user things.  This will fail if we
+	 * aren't root or could not properly acquire the user's credentials.
+	 */
 
-	if (uid != euid){
-		if (setuid(uid) != 0 || geteuid() != uid)
-			result = false;
-	}
+	if (!(user = getpwuid(uid)))
+		DBG_ERROR("call to getpwuid() failed.");
 
-	if (!result)
+	if (user && gid != egid && (euid == 0 || egid == 0))
+		if (initgroups(user->pw_name, user->pw_gid))
+			DBG_ERROR("failed to drop group-privileges by calling initgroups().");
+
+	if (gid != egid)
+		result = (!setgid(gid) && getegid() == gid);
+
+	if (uid != euid)
+		result = (!setuid(uid) && geteuid() == uid && result);
+
+	if (!result){
 		DBG_ERROR("failed to set permissions to uid=%d, gid=%d.", uid, gid);
+		DBG_ERROR("running with uid=%d, gid=%d.", geteuid(), getegid());
+	}
 }
 
 /* convertWinePath */
