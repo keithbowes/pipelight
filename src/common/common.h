@@ -60,6 +60,11 @@
 
 /* #define PIPELIGHT_DEBUG */
 
+#ifdef PLUGINLOADER
+	NPIdentifier NP_LOADDS NPN_GetIntIdentifier(int32_t intid);
+	NPIdentifier NP_LOADDS NPN_GetStringIdentifier(const NPUTF8* name);
+#endif
+
 extern char strMultiPluginName[64];
 
 #ifdef PLUGINLOADER

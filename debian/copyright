@@ -20,6 +20,10 @@ Copyright:	1998, Netscape Communications Corporation
 			1998, Josh Aas <josh@mozilla.com>
 License: MPL-1.1 or GPL-2 or LGPL-2.1
 
+Files: src/npapi-headers/npruntime.h
+Copyright:  2014, Michael Müller
+License: MPL-1.1 or GPL-2 or LGPL-2.1
+
 Files: debian/po/*
 Copyright: see individual files for the creator of the translation
 License: BSD-3-clause
