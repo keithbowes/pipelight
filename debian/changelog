@@ -1,6 +1,9 @@
 pipelight-multi (0.2.8) UNRELEASED; urgency=low
 
   * Update Flash to 14.0.0.125
+  * Effectively drop group-privileges by calling initgroups()
+    prior to setuid() and/or setgid()
+  * Prefer `cp -af` over `install -m 0644`, but change timestamp
 
  -- Michael Mueller <michael@fds-team.de>  Tue, 10 Jun 2014 18:34:02 +0200
 
