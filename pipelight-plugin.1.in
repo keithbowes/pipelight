@@ -27,7 +27,7 @@ Can be used to automate the process of accepting the license agreement.
 Enables the specified plugin for the current user (by creating a symlink in
 \fI$HOME/.mozilla/plugins\fR). When you run this command as root the plugin is
 enabled system-wide by creating a symlink in the mozilla plugins directory
-instead (often located at \fI/usr/lib/mozilla/plugins\fR). For a list of
+instead (often located at \fI@@MOZ_PLUGIN_PATH@@\fR). For a list of
 plugins see the \fBPLUGINS\fR section in this man page.
 .TP
 \fB\-\-disable\fR \fIPLUGIN\fR
@@ -144,28 +144,28 @@ browsers will not have Silverlight enabled, because they don't search for
 plugins in the custom plugin directory.
 .SH FILES
 .TP
-\fI@@PREFIX@@/bin/pipelight-plugin\fR
+\fI@@BINDIR@@/pipelight-plugin\fR
 Commandline utility to enable/disable plugins and to update the plugin database.
 .TP
-\fI@@PREFIX@@/lib/pipelight/libpipelight*.so\fR
+\fI@@LIBDIR@@/pipelight/libpipelight*.so\fR
 The shared library \fIlibpipelight.so\fR and additional copies for all
 unlocked and standard plugins.
 .TP
-\fI@@PREFIX@@/share/pipelight/licenses/*\fR
+\fI@@DATADIR@@/pipelight/licenses/*\fR
 License information for supported plugins.
 .TP
-\fI@@PREFIX@@/share/pipelight/configs/*\fR
+\fI@@DATADIR@@/pipelight/configs/*\fR
 Configuration files containing for example which dependencies are required for
 a specific plugin, and where Pipelight can find the plugin DLLs. Normally
 there should be \fBno\fR need to edit them manually!
 .TP
-\fI@@PREFIX@@/share/pipelight/scripts/*\fR
+\fI@@DATADIR@@/pipelight/scripts/*\fR
 Helper scripts for specific plugins, for example to enable/disable GPU acceleration.
 .TP
-\fI@@PREFIX@@/share/pipelight/*\fR
+\fI@@DATADIR@@/pipelight/*\fR
 Directory containing other files used internally by Pipelight.
 .TP
-\fI/usr/lib/mozilla/plugins/libpipelight-*.so\fR
+\fI@@MOZ_PLUGIN_PATH@@/libpipelight-*.so\fR
 Symlinks to all enabled system-wide plugins.
 .TP
 \fI$HOME/.mozilla/plugins/libpipelight-*.so\fR

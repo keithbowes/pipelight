@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!@@BASH@@
 PIPELIGHT_SHARE_PATH="@@PIPELIGHT_SHARE_PATH@@"
 
 # Don't run this as root
