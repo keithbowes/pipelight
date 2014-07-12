@@ -2,27 +2,28 @@ CXX		?= g++
 UNAME_S		:= $(shell uname -s)
 
 ifeq ($(UNAME_S), FreeBSD)
-	CXXFLAGS += -I/usr/local/include
-	LDFLAGS  += -L/usr/local/lib
+	CXXFLAGS := -I/usr/local/include $(CXXFLAGS)
+	LDFLAGS  := -L/usr/local/lib $(LDFLAGS)
 endif
 
-CXXFLAGS	+= -Wall -fPIC -std=gnu++0x
-LDFLAGS		+= -lpthread
+CXXFLAGS	:= -Wall -fPIC -std=gnu++0x -DPIPELIGHT_SHARE_PATH='"$(datadir)/pipelight"' $(CXXFLAGS)
+LDFLAGS		:= -lpthread $(LDFLAGS)
+
 OBJECTS		:= common.o basicplugin.o configloader.o diagnostic.o npclass.o nppfunctions.o
 COMMONHDR	:= ../common/common.h ../npapi-headers/npapi.h ../npapi-headers/npfunctions.h ../npapi-headers/npruntime.h ../npapi-headers/nptypes.h
 
 ifneq ($(UNAME_S),Darwin)
-	LDFLAGS += -lX11
+	LDFLAGS := -lX11 $(LDFLAGS)
 endif
 ifneq ($(UNAME_S),FreeBSD)
-	LDFLAGS += -ldl
+	LDFLAGS := -ldl $(LDFLAGS)
 endif
 
 .PHONY: all
 all: libpipelight.so
 
 libpipelight.so: $(OBJECTS)
-	$(CXX) -shared $(OBJECTS) $(LDFLAGS) -o libpipelight.so
+	$(CXX) -shared $(CPPFLAGS) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS) -o libpipelight.so
 
 common.o: ../common/common.c $(COMMONHDR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c ../common/common.c -o common.o
@@ -31,7 +32,7 @@ basicplugin.o: basicplugin.c basicplugin.h configloader.h $(COMMONHDR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c basicplugin.c -o basicplugin.o
 
 configloader.o: configloader.c configloader.h $(COMMONHDR)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -DPIPELIGHT_SHARE_PATH='"$(prefix)/share/pipelight"' -c configloader.c -o configloader.o
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c configloader.c -o configloader.o
 
 diagnostic.o: diagnostic.c diagnostic.h basicplugin.h configloader.h $(COMMONHDR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c diagnostic.c -o diagnostic.o
