@@ -594,13 +594,16 @@ update_dependency_installer()
 	fi
 
 	# Ensure the signature is valid, extract the content
-	if ! gpg --batch --no-default-keyring --keyring "$PIPELIGHT_SHARE_PATH/sig-install-dependency.gpg" --decrypt "$tmpfile" > "$decfile"; then
+	if ! @@GPG@@ --batch --no-default-keyring --keyring "$PIPELIGHT_SHARE_PATH/sig-install-dependency.gpg" --decrypt "$tmpfile" > "$decfile"; then
 		rm "$tmpfile"
 		rm "$decfile"
 		echo ""
 		echo "ERROR: Failed to verify signature of the dependency-installer script" >&2
 		return 1
 	fi
+
+	# Replace '/usr/bin/env bash' with real bash-interp
+	sed -i'' -e '1s|/usr/bin/env bash|@@BASH@@|' "$decfile"
 
 	# We don't need the original one anymore
 	rm "$tmpfile"

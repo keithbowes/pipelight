@@ -14,9 +14,11 @@ ifeq ($(debug),true)
 endif
 
 SED_OPTS :=	-e 's|@@BASH@@|$(bashinterp)|g' \
+			-e '1s|/usr/bin/env bash|$(bashinterp)|' \
 			-e 's|@@BINDIR@@|$(bindir)|g' \
 			-e 's|@@DATADIR@@|$(datadir)|g' \
 			-e 's|@@GCC_RUNTIME_DLLS@@|$(gccruntimedlls)|g' \
+			-e 's|@@GPG@@|$(gpgexec)|g' \
 			-e 's|@@LIBDIR@@|$(libdir)|g' \
 			-e 's|@@MANDIR@@|$(mandir)|g' \
 			-e 's|@@MOZ_PLUGIN_PATH@@|$(mozpluginpath)|g' \
@@ -87,7 +89,9 @@ install: config.make all
 		ln -s "$(wine64path)" "$(DESTDIR)$(datadir)/pipelight/wine64"; \
 	fi
 
-	install -m 0755 share/install-dependency "$(DESTDIR)$(datadir)/pipelight/install-dependency"
+	sed $(SED_OPTS) share/install-dependency > install-dependency.tmp
+	install -m 0755 install-dependency.tmp "$(DESTDIR)$(datadir)/pipelight/install-dependency"
+	rm install-dependency.tmp
 
 	for script in $(notdir $(PLUGIN_SCRIPTS)); do \
 		sed $(SED_OPTS) share/scripts/$${script} > pipelight-script.tmp; \
@@ -147,3 +151,7 @@ clean:
 	for dir in src/linux src/windows src/winecheck; do \
 		$(MAKE) -C $$dir $@; \
 	done
+
+.PHONY: dist-clean
+dist-clean: clean
+	rm -f config.make
