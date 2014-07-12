@@ -1,5 +1,15 @@
 #!/usr/bin/env bash
 
+init_dirs()
+{
+	[[ -z "$mozpluginpath" && ! -z "$libdir" ]] && mozpluginpath="$libdir/mozilla/plugins"
+	[[ -z "$mozpluginpath" ]] && mozpluginpath="/usr/lib/mozilla/plugins"
+	[[ -z "$bindir" ]] && bindir="$1/bin"
+	[[ -z "$datadir" ]] && datadir="$1/share"
+	[[ -z "$libdir" ]] && libdir="$1/lib"
+	[[ -z "$mandir" ]] && mandir="$1/share/man"
+}
+
 resolvepath()
 {
 	if [ ! -z "$1" ]; then
@@ -29,10 +39,12 @@ resolvepath()
 usage()
 {
 	echo ""
-	echo "Usage: ./configure [--prefix=PREFIX] [--debug]"
+	echo "Usage: ./configure [--prefix=PREFIX] [--bindir=PATH] [--datadir=PATH]"
+	echo "                   [--libdir=PATH] [--mandir=PATH] [--bash-interp=PATH]"
 	echo "                   [--moz-plugin-path=PATH] [--gcc-runtime-dlls=PATH]"
 	echo "                   [--show-installation-dialogs] [--no-gpu-accel]"
-	echo "                   [--cxx] [--downloader]"
+	echo "                   [--cxx] [--mingw-cxxflags=FLAGS] [--downloader] [--debug]"
+	echo "                   [--so-mode=OCTAL]"
 	echo " 32-bit options:"
 	echo "                   [--win32-prebuilt] [--win32-cxx=COMPILER]"
 	echo "                   [--win32-static] [--win32-flags=FLAGS]"
@@ -48,8 +60,11 @@ usage()
 # Default configuration
 version="unknown"
 prefix="/usr/local"
-mozpluginpath="/usr/lib/mozilla/plugins"
-gccruntimedlls=""
+bindir=""
+datadir=""
+libdir=""
+mandir=""
+downloader=""
 cxx=""
 
 win32cxx=""
@@ -63,10 +78,17 @@ win64flags="-m64"
 win64static=0
 wine64path=""
 
+bashinterp="$(which bash)"
+mingw_cxxflags="$(echo "$CXXFLAGS" |										\
+	sed -e 's!-fstack-protector\(.[a-zA-Z0-9]*\)! !g'						\
+	-e 's!-m\([0-9]\|arch\|float-abi\|fpu\|tune\)[=]*\([a-zA-Z0-9-]*\)! !g'	\
+	-e 's![ \t]\+! !g' -e 's!\(^[ \t]*\|[ \t]*$\)!!g')"
+mozpluginpath=""
+gccruntimedlls=""
 quietinstallation="true"
 nogpuaccel="false"
 debug="false"
-downloader=""
+so_mode="0644"
 
 while [[ $# > 0 ]] ; do
 	CMD="$1"; shift
@@ -76,6 +98,48 @@ while [[ $# > 0 ]] ; do
 			;;
 		--prefix)
 			prefix="$1"; shift
+			;;
+
+		--bindir=*)
+			bindir="${CMD#*=}"
+			;;
+		--bindir)
+			bindir="$1"; shift
+			;;
+
+		--datadir=*)
+			datadir="${CMD#*=}"
+			;;
+		--datadir)
+			datadir="$1"; shift
+			;;
+
+		--libdir=*)
+			libdir="${CMD#*=}"
+			;;
+		--libdir)
+			libdir="$1"; shift
+			;;
+
+		--mandir=*)
+			mandir="${CMD#*=}"
+			;;
+		--mandir)
+			mandir="$1"; shift
+			;;
+
+		--bash-interp=*)
+			bash_interp="${CMD#*=}"
+			;;
+		--bash-interp)
+			bash_interp="$1"; shift
+			;;
+
+		--mingw-cxxflags=*)
+			mingw_cxxflags="${CMD#*=}"
+			;;
+		--mingw-cxxflags)
+			mingw_cxxflags="$1"; shift
 			;;
 
 		--wine-path=*)
@@ -126,6 +190,13 @@ while [[ $# > 0 ]] ; do
 
 		--debug)
 			debug="true"
+			;;
+
+		--so-mode=*)
+			so_mode="${CMD#*=}"
+			;;
+		--so-mode)
+			so_mode="$1"; shift
 			;;
 
 		--win32-static)
@@ -187,6 +258,9 @@ while [[ $# > 0 ]] ; do
 			;;
 	esac
 done
+
+# Intialize other dirs, if not already set by switches
+init_dirs "$prefix"
 
 # Try to autodetect compiler
 if [ -z "$cxx" ]; then
@@ -277,15 +351,24 @@ fi
 
 # Normalize the paths
 prefix=$(resolvepath "$prefix")
+bindir=$(resolvepath "$bindir")
+datadir=$(resolvepath "$datadir")
+libdir=$(resolvepath "$libdir")
+mandir=$(resolvepath "$mandir")
 winepath=$(resolvepath "$winepath")
 wine64path=$(resolvepath "$wine64path")
 mozpluginpath=$(resolvepath "$mozpluginpath")
 gccruntimedlls=$(resolvepath "$gccruntimedlls")
+bash_interp=$(resolvepath "$bash_interp")
 
 (
 	echo "# General"
 	echo "version=$version"
 	echo "prefix=$prefix"
+	echo "bindir=$bindir"
+	echo "datadir=$datadir"
+	echo "libdir=$libdir"
+	echo "mandir=$mandir"
 	echo
 	echo "# Prebuilt"
 	echo "downloader=$downloader"
@@ -305,11 +388,14 @@ gccruntimedlls=$(resolvepath "$gccruntimedlls")
 	echo "wine64path=$wine64path"
 	echo ""
 	echo "# Other settings"
+	echo "bashinterp=$bashinterp"
+	echo "mingw_cxxflags=$mingw_cxxflags"
 	echo "mozpluginpath=$mozpluginpath"
 	echo "gccruntimedlls=$gccruntimedlls"
 	echo "quietinstallation=$quietinstallation"
 	echo "nogpuaccel=$nogpuaccel"
 	echo "debug=$debug"
+	echo "so_mode=$so_mode"
 ) > config.make
 
 echo "Configuration Summary"
