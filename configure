@@ -1,5 +1,50 @@
 #!/usr/bin/env bash
 
+resolvepath()
+{
+	if [ ! -z "$1" ]; then
+		local path="$1/"
+		if [ "${path:0:1}" != "/" ]; then
+			path="$(pwd)/$path"
+		fi
+		local oldpath="$path"
+		while true; do
+			path=$(echo "$path" | sed -e 's!/\.\{0,1\}/!/!')
+			if [ "$path" == "$oldpath" ]; then break; fi
+			oldpath="$path"
+		done
+		while true; do
+			path=$(echo "$path" | sed -e 's!/\([^/]\{1,\}\)/\.\./!/!')
+			if [ "$path" == "$oldpath" ]; then break; fi
+			oldpath="$path"
+		done
+		if [ "$path" != "/" ] && [ "${path: -1}" == "/" ]; then
+			path="${path%/}"
+		fi
+		echo "$path"
+	fi
+	return 0
+}
+
+usage()
+{
+	echo ""
+	echo "Usage: ./configure [--prefix=PREFIX] [--debug]"
+	echo "                   [--moz-plugin-path=PATH] [--gcc-runtime-dlls=PATH]"
+	echo "                   [--show-installation-dialogs] [--no-gpu-accel]"
+	echo "                   [--cxx] [--downloader]"
+	echo " 32-bit options:"
+	echo "                   [--win32-prebuilt] [--win32-cxx=COMPILER]"
+	echo "                   [--win32-static] [--win32-flags=FLAGS]"
+	echo "                   [--wine-path=PATH]"
+	echo " 64 bit options:"
+	echo "                   [--with-win64]"
+	echo "                   [--win64-prebuilt] [--win64-cxx=COMPILER]"
+	echo "                   [--win64-static] [--win64-flags=FLAGS]"
+	echo "                   [--wine64-path=PATH]"
+	echo ""
+}
+
 # Default configuration
 version="unknown"
 prefix="/usr/local"
@@ -22,25 +67,6 @@ quietinstallation="true"
 nogpuaccel="false"
 debug="false"
 downloader=""
-
-usage ()
-{
-	echo ""
-	echo "Usage: ./configure [--prefix=PREFIX] [--debug]"
-	echo "                   [--moz-plugin-path=PATH] [--gcc-runtime-dlls=PATH]"
-	echo "                   [--show-installation-dialogs] [--no-gpu-accel]"
-	echo "                   [--cxx] [--downloader]"
-	echo " 32-bit options:"
-	echo "                   [--win32-prebuilt] [--win32-cxx=COMPILER]"
-	echo "                   [--win32-static] [--win32-flags=FLAGS]"
-	echo "                   [--wine-path=PATH]"
-	echo " 64 bit options:"
-	echo "                   [--with-win64]"
-	echo "                   [--win64-prebuilt] [--win64-cxx=COMPILER]"
-	echo "                   [--win64-static] [--win64-flags=FLAGS]"
-	echo "                   [--wine64-path=PATH]"
-	echo ""
-}
 
 while [[ $# > 0 ]] ; do
 	CMD="$1"; shift
@@ -248,32 +274,6 @@ if [[ "$changelog" =~ \((.*)\)\ (UNRELEASED)? ]]; then
 		version="$version-daily"
 	fi
 fi
-
-resolvepath()
-{
-	if [ ! -z "$1" ]; then
-		local path="$1/"
-		if [ "${path:0:1}" != "/" ]; then
-			path="$(pwd)/$path"
-		fi
-		local oldpath="$path"
-		while true; do
-			path=$(echo "$path" | sed -e 's!/\.\{0,1\}/!/!')
-			if [ "$path" == "$oldpath" ]; then break; fi
-			oldpath="$path"
-		done
-		while true; do
-			path=$(echo "$path" | sed -e 's!/\([^/]\{1,\}\)/\.\./!/!')
-			if [ "$path" == "$oldpath" ]; then break; fi
-			oldpath="$path"
-		done
-		if [ "$path" != "/" ] && [ "${path: -1}" == "/" ]; then
-			path="${path%/}"
-		fi
-		echo "$path"
-	fi
-	return 0
-}
 
 # Normalize the paths
 prefix=$(resolvepath "$prefix")
