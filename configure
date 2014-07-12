@@ -41,10 +41,10 @@ usage()
 	echo ""
 	echo "Usage: ./configure [--prefix=PREFIX] [--bindir=PATH] [--datadir=PATH]"
 	echo "                   [--libdir=PATH] [--mandir=PATH] [--bash-interp=PATH]"
-	echo "                   [--moz-plugin-path=PATH] [--gcc-runtime-dlls=PATH]"
-	echo "                   [--show-installation-dialogs] [--no-gpu-accel]"
-	echo "                   [--cxx] [--mingw-cxxflags=FLAGS] [--downloader] [--debug]"
-	echo "                   [--so-mode=OCTAL]"
+	echo "                   [--gpg-exec=PATH] [--moz-plugin-path=PATH]"
+	echo "                   [--gcc-runtime-dlls=PATH][--show-installation-dialogs]"
+	echo "                   [--no-gpu-accel] [--cxx] [--mingw-cxxflags=FLAGS]"
+	echo "                   [--downloader] [--debug] [--so-mode=OCTAL]"
 	echo " 32-bit options:"
 	echo "                   [--win32-prebuilt] [--win32-cxx=COMPILER]"
 	echo "                   [--win32-static] [--win32-flags=FLAGS]"
@@ -79,9 +79,14 @@ win64static=0
 wine64path=""
 
 bashinterp="$(which bash)"
-mingw_cxxflags="$(echo "$CXXFLAGS" |										\
-	sed -e 's!-fstack-protector\(.[a-zA-Z0-9]*\)! !g'						\
-	-e 's!-m\([0-9]\|arch\|float-abi\|fpu\|tune\)[=]*\([a-zA-Z0-9-]*\)! !g'	\
+if which gpg &> /dev/null; then
+	gpgexec="$(which gpg)"
+else
+	gpgexec="/usr/bin/gpg"
+fi
+mingw_cxxflags="$(echo "$CXXFLAGS" | \
+	sed -e 's!-fstack-protector\(.[a-zA-Z0-9]*\)! !g' \
+	-e 's!-m\([0-9]\|arch\|float-abi\|fpu\|tune\)[=]*\([a-zA-Z0-9-]*\)! !g' \
 	-e 's![ \t]\+! !g' -e 's!\(^[ \t]*\|[ \t]*$\)!!g')"
 mozpluginpath=""
 gccruntimedlls=""
@@ -133,6 +138,13 @@ while [[ $# > 0 ]] ; do
 			;;
 		--bash-interp)
 			bash_interp="$1"; shift
+			;;
+
+		--gpg-exec=*)
+			gpgexec="${CMD#*=}"
+			;;
+		--gpg-exec)
+			gpgexec="$1"; shift
 			;;
 
 		--mingw-cxxflags=*)
@@ -360,6 +372,7 @@ wine64path=$(resolvepath "$wine64path")
 mozpluginpath=$(resolvepath "$mozpluginpath")
 gccruntimedlls=$(resolvepath "$gccruntimedlls")
 bash_interp=$(resolvepath "$bash_interp")
+gpgexec=$(resolvepath "$gpgexec")
 
 (
 	echo "# General"
@@ -389,6 +402,7 @@ bash_interp=$(resolvepath "$bash_interp")
 	echo ""
 	echo "# Other settings"
 	echo "bashinterp=$bashinterp"
+	echo "gpgexec=$gpgexec"
 	echo "mingw_cxxflags=$mingw_cxxflags"
 	echo "mozpluginpath=$mozpluginpath"
 	echo "gccruntimedlls=$gccruntimedlls"
