@@ -20,7 +20,7 @@ commit=$(shell git log --pretty=format:'%H' -n 1 || echo "prebuilt")
 	$(downloader) "../../pluginloader-$(commit).tar.gz.sig" "http://repos.fds-team.de/pluginloader/$(commit)/pluginloader.tar.gz.sig"
 
 pluginloader$(suffix).exe: ../../pluginloader-$(commit).tar.gz ../../pluginloader-$(commit).tar.gz.sig
-	gpg --batch --no-default-keyring --keyring "../../share/sig-pluginloader.gpg" --verify "../../pluginloader-$(commit).tar.gz.sig"
+	$(gpgexec) --batch --no-default-keyring --keyring "../../share/sig-pluginloader.gpg" --verify "../../pluginloader-$(commit).tar.gz.sig"
 	tar --strip-components=2 -xvf "../../pluginloader-$(commit).tar.gz" src/windows/pluginloader$(suffix).exe
 
 else

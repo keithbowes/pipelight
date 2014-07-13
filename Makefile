@@ -45,19 +45,19 @@ linux: config.make
 
 .PHONY: pluginloader32
 pluginloader32: config.make
-	$(MAKE) -C src/windows mingw_cxxflags="$(mingw_cxxflags)" wincxx="$(win32cxx)" winflags="$(win32flags)" suffix=""
+	$(MAKE) -C src/windows gpgexec="$(gpgexec)" mingw_cxxflags="$(mingw_cxxflags)" wincxx="$(win32cxx)" winflags="$(win32flags)" suffix=""
 
 .PHONY: pluginloader64
 pluginloader64: config.make
-	$(MAKE) -C src/windows mingw_cxxflags="$(mingw_cxxflags)" wincxx="$(win64cxx)" winflags="$(win64flags)" suffix="64"
+	$(MAKE) -C src/windows gpgexec="$(gpgexec)" mingw_cxxflags="$(mingw_cxxflags)" wincxx="$(win64cxx)" winflags="$(win64flags)" suffix="64"
 
 .PHONY: winecheck32
 winecheck32: config.make
-	$(MAKE) -C src/winecheck mingw_cxxflags="$(mingw_cxxflags)" wincxx="$(win32cxx)" winflags="$(win32flags)" suffix=""
+	$(MAKE) -C src/winecheck gpgexec="$(gpgexec)" mingw_cxxflags="$(mingw_cxxflags)" wincxx="$(win32cxx)" winflags="$(win32flags)" suffix=""
 
 .PHONY: winecheck64
 winecheck64: config.make
-	$(MAKE) -C src/winecheck mingw_cxxflags="$(mingw_cxxflags)" wincxx="$(win64cxx)" winflags="$(win64flags)" suffix="64"
+	$(MAKE) -C src/winecheck gpgexec="$(gpgexec)" mingw_cxxflags="$(mingw_cxxflags)" wincxx="$(win64cxx)" winflags="$(win64flags)" suffix="64"
 
 .PHONY: install
 install: config.make all
