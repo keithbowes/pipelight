@@ -70,16 +70,16 @@ install: config.make all
 			"$(DESTDIR)$(mandir)/man1" \
 			"$(DESTDIR)$(mozpluginpath)"
 
-	install -m 0644 share/sig-install-dependency.gpg "$(DESTDIR)$(datadir)/pipelight/sig-install-dependency.gpg"
+	install -pm 0644 share/sig-install-dependency.gpg "$(DESTDIR)$(datadir)/pipelight/sig-install-dependency.gpg"
 
-	install -m 0755 "src/windows/pluginloader.exe" "$(DESTDIR)$(datadir)/pipelight/pluginloader.exe"
+	install -pm 0755 "src/windows/pluginloader.exe" "$(DESTDIR)$(datadir)/pipelight/pluginloader.exe"
 	if [ "$(win64)" = "true" ]; then \
-		install -m 0755 "src/windows/pluginloader64.exe" "$(DESTDIR)$(datadir)/pipelight/pluginloader64.exe"; \
+		install -pm 0755 "src/windows/pluginloader64.exe" "$(DESTDIR)$(datadir)/pipelight/pluginloader64.exe"; \
 	fi
 
-	install -m 0755 "src/winecheck/winecheck.exe" "$(DESTDIR)$(datadir)/pipelight/winecheck.exe"
+	install -pm 0755 "src/winecheck/winecheck.exe" "$(DESTDIR)$(datadir)/pipelight/winecheck.exe"
 	if [ "$(win64)" = "true" ]; then \
-		install -m 0755 "src/winecheck/winecheck64.exe" "$(DESTDIR)$(datadir)/pipelight/winecheck64.exe"; \
+		install -pm 0755 "src/winecheck/winecheck64.exe" "$(DESTDIR)$(datadir)/pipelight/winecheck64.exe"; \
 	fi
 
 	rm -f "$(DESTDIR)$(datadir)/pipelight/wine"
@@ -90,35 +90,41 @@ install: config.make all
 	fi
 
 	sed $(SED_OPTS) share/install-dependency > install-dependency.tmp
-	install -m 0755 install-dependency.tmp "$(DESTDIR)$(datadir)/pipelight/install-dependency"
+	touch -r share/install-dependency install-dependency.tmp
+	install -pm 0755 install-dependency.tmp "$(DESTDIR)$(datadir)/pipelight/install-dependency"
 	rm install-dependency.tmp
 
 	for script in $(notdir $(PLUGIN_SCRIPTS)); do \
 		sed $(SED_OPTS) share/scripts/$${script} > pipelight-script.tmp; \
-		install -m 0755 pipelight-script.tmp "$(DESTDIR)$(datadir)/pipelight/scripts/$${script%.*}" || exit 1; \
+		touch -r share/scripts/$${script} pipelight-script.tmp; \
+		install -pm 0755 pipelight-script.tmp "$(DESTDIR)$(datadir)/pipelight/scripts/$${script%.*}" || exit 1; \
 		rm pipelight-script.tmp; \
 	done
 
 	for config in $(notdir $(PLUGIN_CONFIGS)); do \
 		sed $(SED_OPTS) share/configs/$${config} > pipelight-config.tmp; \
-		install -m 0644 pipelight-config.tmp "$(DESTDIR)$(datadir)/pipelight/configs/$${config%.*}" || exit 1; \
+		touch -r share/configs/$${config} pipelight-config.tmp; \
+		install -pm 0644 pipelight-config.tmp "$(DESTDIR)$(datadir)/pipelight/configs/$${config%.*}" || exit 1; \
 		rm pipelight-config.tmp; \
 	done
 
 	for license in $(notdir $(PLUGIN_LICENSES)); do \
 		sed $(SED_OPTS) share/licenses/$${license} > pipelight-license.tmp; \
-		install -m 0644 pipelight-license.tmp "$(DESTDIR)$(datadir)/pipelight/licenses/$${license%.*}" || exit 1; \
+		touch -r share/licenses/$${license} pipelight-license.tmp; \
+		install -pm 0644 pipelight-license.tmp "$(DESTDIR)$(datadir)/pipelight/licenses/$${license%.*}" || exit 1; \
 		rm pipelight-license.tmp; \
 	done
 
-	install -m $(so_mode) src/linux/libpipelight.so "$(DESTDIR)$(libdir)/pipelight/libpipelight.so"
+	install -pm $(so_mode) src/linux/libpipelight.so "$(DESTDIR)$(libdir)/pipelight/libpipelight.so"
 
 	sed $(SED_OPTS) bin/pipelight-plugin.in > pipelight-plugin.tmp
-	install -m 0755 pipelight-plugin.tmp "$(DESTDIR)$(bindir)/pipelight-plugin"
+	touch -r bin/pipelight-plugin.in pipelight-plugin.tmp
+	install -pm 0755 pipelight-plugin.tmp "$(DESTDIR)$(bindir)/pipelight-plugin"
 	rm pipelight-plugin.tmp
 
 	sed $(SED_OPTS) pipelight-plugin.1.in > pipelight-manpage.tmp
-	install -m 0644 pipelight-manpage.tmp "$(DESTDIR)$(mandir)/man1/pipelight-plugin.1"
+	touch -r pipelight-plugin.1.in pipelight-manpage.tmp
+	install -pm 0644 pipelight-manpage.tmp "$(DESTDIR)$(mandir)/man1/pipelight-plugin.1"
 	rm pipelight-manpage.tmp
 
 .PHONY: uninstall
