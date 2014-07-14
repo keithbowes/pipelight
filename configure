@@ -41,18 +41,20 @@ usage()
 	echo ""
 	echo "Usage: ./configure [--prefix=PREFIX] [--bindir=PATH] [--datadir=PATH]"
 	echo "                   [--libdir=PATH] [--mandir=PATH] [--bash-interp=PATH]"
-	echo "                   [--gpg-exec=PATH] [--moz-plugin-path=PATH]"
-	echo "                   [--gcc-runtime-dlls=PATH][--show-installation-dialogs]"
-	echo "                   [--no-gpu-accel] [--cxx] [--mingw-cxxflags=FLAGS]"
-	echo "                   [--downloader] [--debug] [--so-mode=OCTAL]"
-	echo " 32-bit options:"
-	echo "                   [--win32-prebuilt] [--win32-cxx=COMPILER]"
-	echo "                   [--win32-static] [--win32-flags=FLAGS]"
+	echo "                   [--moz-plugin-path=PATH] [--gcc-runtime-dlls=PATH]"
+	echo "                   [--gpg-exec=PATH] [--so-mode=OCTAL] [--no-gpu-accel]"
+	echo "                   [--show-installation-dialogs] [--debug] [--cxx=COMPILER]"
+	echo "                   [--cxxflags=FLAGS] [--mingw-cxxflags=FLAGS]"
+	echo ""
+	echo " prebuilt options: [--downloader=CMDLINE]"
+	echo ""
+	echo " win32 options:    [--win32-prebuilt] [--win32-cxx=COMPILER]"
+	echo "                   [--win32-flags=FLAGS] [--win32-static]"
 	echo "                   [--wine-path=PATH]"
-	echo " 64 bit options:"
-	echo "                   [--with-win64]"
+	echo ""
+	echo " win64 options:    [--with-win64]"
 	echo "                   [--win64-prebuilt] [--win64-cxx=COMPILER]"
-	echo "                   [--win64-static] [--win64-flags=FLAGS]"
+	echo "                   [--win64-flags=FLAGS] [--win64-static]"
 	echo "                   [--wine64-path=PATH]"
 	echo ""
 }
@@ -64,8 +66,27 @@ bindir=""
 datadir=""
 libdir=""
 mandir=""
-downloader=""
+bashinterp="$(which bash)"
+if which gpg &> /dev/null; then
+	gpgexec="$(which gpg)"
+else
+	gpgexec="/usr/bin/gpg"
+fi
+mozpluginpath=""
+gccruntimedlls=""
+so_mode="0644"
+nogpuaccel="false"
+quietinstallation="true"
+debug="false"
+
 cxx=""
+cxxflags="$CXXFLAGS"
+mingw_cxxflags="$(echo "$CXXFLAGS" | \
+	sed -e 's!-fstack-protector\(.[a-zA-Z0-9]*\)! !g' \
+	-e 's!-m\([0-9]\|arch\|float-abi\|fpu\|tune\)[=]*\([a-zA-Z0-9-]*\)! !g' \
+	-e 's![ \t]\+! !g' -e 's!\(^[ \t]*\|[ \t]*$\)!!g')"
+
+downloader=""
 
 win32cxx=""
 win32flags="-m32"
@@ -77,23 +98,6 @@ win64cxx=""
 win64flags="-m64"
 win64static=0
 wine64path=""
-
-bashinterp="$(which bash)"
-if which gpg &> /dev/null; then
-	gpgexec="$(which gpg)"
-else
-	gpgexec="/usr/bin/gpg"
-fi
-mingw_cxxflags="$(echo "$CXXFLAGS" | \
-	sed -e 's!-fstack-protector\(.[a-zA-Z0-9]*\)! !g' \
-	-e 's!-m\([0-9]\|arch\|float-abi\|fpu\|tune\)[=]*\([a-zA-Z0-9-]*\)! !g' \
-	-e 's![ \t]\+! !g' -e 's!\(^[ \t]*\|[ \t]*$\)!!g')"
-mozpluginpath=""
-gccruntimedlls=""
-quietinstallation="true"
-nogpuaccel="false"
-debug="false"
-so_mode="0644"
 
 while [[ $# > 0 ]] ; do
 	CMD="$1"; shift
@@ -147,27 +151,6 @@ while [[ $# > 0 ]] ; do
 			gpgexec="$1"; shift
 			;;
 
-		--mingw-cxxflags=*)
-			mingw_cxxflags="${CMD#*=}"
-			;;
-		--mingw-cxxflags)
-			mingw_cxxflags="$1"; shift
-			;;
-
-		--wine-path=*)
-			winepath="${CMD#*=}"
-			;;
-		--wine-path)
-			winepath="$1"; shift
-			;;
-
-		--wine64-path=*)
-			wine64path="${CMD#*=}"
-			;;
-		--wine64-path)
-			wine64path="$1"; shift
-			;;
-
 		--moz-plugin-path=*)
 			mozpluginpath="${CMD#*=}"
 			;;
@@ -182,8 +165,23 @@ while [[ $# > 0 ]] ; do
 			gccruntimedlls="$1"; shift
 			;;
 
+		--so-mode=*)
+			so_mode="${CMD#*=}"
+			;;
+		--so-mode)
+			so_mode="$1"; shift
+			;;
+
+		--no-gpu-accel)
+			nogpuaccel="true"
+			;;
+
 		--show-installation-dialogs)
 			quietinstallation="false"
+			;;
+
+		--debug)
+			debug="true"
 			;;
 
 		--cxx=*)
@@ -193,6 +191,20 @@ while [[ $# > 0 ]] ; do
 			cxx="$1"; shift
 			;;
 
+		--cxxflags=*)
+			cxxflags="${CMD#*=}"
+			;;
+		--cxxflags)
+			cxxflags="$1"; shift
+			;;
+
+		--mingw-cxxflags=*)
+			mingw_cxxflags="${CMD#*=}"
+			;;
+		--mingw-cxxflags)
+			mingw_cxxflags="$1"; shift
+			;;
+
 		--downloader=*)
 			downloader="${CMD#*=}"
 			;;
@@ -200,24 +212,9 @@ while [[ $# > 0 ]] ; do
 			downloader="$1"; shift
 			;;
 
-		--debug)
-			debug="true"
-			;;
-
-		--so-mode=*)
-			so_mode="${CMD#*=}"
-			;;
-		--so-mode)
-			so_mode="$1"; shift
-			;;
-
-		--win32-static)
-			win32static=1
-			;;
 		--win32-prebuilt)
 			win32cxx="prebuilt"
 			;;
-
 		--win32-cxx=*)
 			win32cxx="${CMD#*=}"
 			;;
@@ -231,18 +228,24 @@ while [[ $# > 0 ]] ; do
 		--win32-flags)
 			win32flags="$win32flags $1"; shift
 			;;
+		--win32-static)
+			win32static=1
+			;;
+
+		--wine-path=*)
+			winepath="${CMD#*=}"
+			;;
+		--wine-path)
+			winepath="$1"; shift
+			;;
 
 		--with-win64)
 			win64="true"
 			;;
 
-		--win64-static)
-			win64static=1
-			;;
 		--win64-prebuilt)
 			win64cxx="prebuilt"
 			;;
-
 		--win64-cxx=*)
 			win64cxx="${CMD#*=}"
 			;;
@@ -256,9 +259,15 @@ while [[ $# > 0 ]] ; do
 		--win64-flags)
 			win64flags="$win64flags $1"; shift
 			;;
+		--win64-static)
+			win64static=1
+			;;
 
-		--no-gpu-accel)
-			nogpuaccel="true"
+		--wine64-path=*)
+			wine64path="${CMD#*=}"
+			;;
+		--wine64-path)
+			wine64path="$1"; shift
 			;;
 
 		--help)
@@ -367,14 +376,18 @@ bindir=$(resolvepath "$bindir")
 datadir=$(resolvepath "$datadir")
 libdir=$(resolvepath "$libdir")
 mandir=$(resolvepath "$mandir")
-winepath=$(resolvepath "$winepath")
-wine64path=$(resolvepath "$wine64path")
-mozpluginpath=$(resolvepath "$mozpluginpath")
-gccruntimedlls=$(resolvepath "$gccruntimedlls")
 bashinterp=$(resolvepath "$bashinterp")
 gpgexec=$(resolvepath "$gpgexec")
+mozpluginpath=$(resolvepath "$mozpluginpath")
+gccruntimedlls=$(resolvepath "$gccruntimedlls")
+winepath=$(resolvepath "$winepath")
+wine64path=$(resolvepath "$wine64path")
 
 (
+	echo "#"
+	echo "# This file is automatically created by ./configure, DO NOT EDIT!"
+	echo "#"
+	echo ""
 	echo "# General"
 	echo "version=$version"
 	echo "prefix=$prefix"
@@ -382,12 +395,20 @@ gpgexec=$(resolvepath "$gpgexec")
 	echo "datadir=$datadir"
 	echo "libdir=$libdir"
 	echo "mandir=$mandir"
-	echo
+	echo "bashinterp=$bashinterp"
+	echo "gpgexec=$gpgexec"
+	echo "mozpluginpath=$mozpluginpath"
+	echo "gccruntimedlls=$gccruntimedlls"
+	echo "so_mode=$so_mode"
+	echo "nogpuaccel=$nogpuaccel"
+	echo "quietinstallation=$quietinstallation"
+	echo "debug=$debug"
+	echo "cxx=$cxx"
+	echo "cxxflags=$cxxflags"
+	echo "mingw_cxxflags=$mingw_cxxflags"
+	echo ""
 	echo "# Prebuilt"
 	echo "downloader=$downloader"
-	echo ""
-	echo "# Linux"
-	echo "cxx=$cxx"
 	echo ""
 	echo "# Win32"
 	echo "win32cxx=$win32cxx"
@@ -399,17 +420,6 @@ gpgexec=$(resolvepath "$gpgexec")
 	echo "win64cxx=$win64cxx"
 	echo "win64flags=$win64flags"
 	echo "wine64path=$wine64path"
-	echo ""
-	echo "# Other settings"
-	echo "bashinterp=$bashinterp"
-	echo "gpgexec=$gpgexec"
-	echo "mingw_cxxflags=$mingw_cxxflags"
-	echo "mozpluginpath=$mozpluginpath"
-	echo "gccruntimedlls=$gccruntimedlls"
-	echo "quietinstallation=$quietinstallation"
-	echo "nogpuaccel=$nogpuaccel"
-	echo "debug=$debug"
-	echo "so_mode=$so_mode"
 ) > config.make
 
 echo "Configuration Summary"
