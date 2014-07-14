@@ -90,7 +90,7 @@ dllName             = npctrl.dll
 # would work with older versions.
 #
 # overwriteArg      = minRuntimeVersion=5.0.61118.0
-# overwriteArg      = enableGPUAcceleration=false
+@@SILVERLIGHT_GPU_ACCEL@@
 # overwriteArg      = enableGPUAcceleration=true
 #
 

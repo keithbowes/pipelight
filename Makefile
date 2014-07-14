@@ -39,6 +39,12 @@ SED_OPTS :=	-e 's|@@BASH@@|$(bash_interp)|g' \
 			-e 's|@@QUIET_INSTALLATION@@|$(quietinstallation)|g' \
 			-e 's|@@VERSION@@|$(version)|g'
 
+ifeq ($(no_gpu_accel),true)
+	SED_OPTS := $(SED_OPTS) -e 's|@@SILVERLIGHT_GPU_ACCEL@@|overwriteArg        = enableGPUAcceleration=false|g'
+else
+	SED_OPTS := $(SED_OPTS) -e 's|@@SILVERLIGHT_GPU_ACCEL@@|# overwriteArg      = enableGPUAcceleration=false|g'
+endif
+
 export
 
 .PHONY: all
