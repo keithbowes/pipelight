@@ -68,12 +68,12 @@ linux: config.make
 	CXX="$(cxx)" CXXFLAGS="$(cxxflags)" $(MAKE) -C src/linux
 
 .PHONY: prebuilt32
-prebuilt32: pluginloader-$(git_commit).tar.gz pluginloader-$(git_commit).tar.gz.sig
+prebuilt32: config.make pluginloader-$(git_commit).tar.gz pluginloader-$(git_commit).tar.gz.sig
 	$(gpgexec) --batch --no-default-keyring --keyring "share/sig-pluginloader.gpg" --verify "pluginloader-$(git_commit).tar.gz.sig"
 	tar -xvf "pluginloader-$(git_commit).tar.gz" src/windows/pluginloader.exe src/winecheck/winecheck.exe
 
 .PHONY: prebuilt64
-prebuilt64: pluginloader-$(git_commit).tar.gz pluginloader-$(git_commit).tar.gz.sig
+prebuilt64: config.make pluginloader-$(git_commit).tar.gz pluginloader-$(git_commit).tar.gz.sig
 	$(gpgexec) --batch --no-default-keyring --keyring "share/sig-pluginloader.gpg" --verify "pluginloader-$(git_commit).tar.gz.sig"
 	tar -xvf "pluginloader-$(git_commit).tar.gz" src/windows/pluginloader64.exe src/winecheck/winecheck64.exe
 
