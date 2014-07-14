@@ -11,6 +11,7 @@ pipelight-multi (0.2.7.2) UNRELEASED; urgency=low
     libdir, mandir, mingw-cxxflags, so-modeq, git-commit
   * Preserve timestamps on 'make install'
   * Additional improvements to the build system
+  * Fix --no-gpu-accel configure switch
 
  -- Michael Mueller <michael@fds-team.de>  Mon, 14 Jul 2014 19:54:57 +0200
 
