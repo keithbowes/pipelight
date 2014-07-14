@@ -391,6 +391,11 @@ if [ "$win64_static" -ne 0 ]; then
 	win64_flags="$win64_flags -static-libgcc -static-libstdc++ -static"
 fi
 
+if [ ! -z "$mingw_cxxflags" ]; then
+	win32_flags="$mingw_cxxflags $win32_flags"
+	win64_flags="$mingw_cxxflags $win64_flags"
+fi
+
 if [ "$win64" == "true" ] && [ -z "$wine64_path" ]; then
 	wine64_path="$wine_path/../wine64"
 fi
@@ -430,7 +435,6 @@ wine64_path=$(resolvepath "$wine64_path")
 	echo "debug=$debug"
 	echo "cxx=$cxx"
 	echo "cxxflags=$cxxflags"
-	echo "mingw_cxxflags=$mingw_cxxflags"
 	echo ""
 	echo "# Prebuilt"
 	echo "git_commit=$git_commit"
