@@ -94,7 +94,7 @@ win32_flags="-m32"
 win32_static=0
 wine_path="/opt/wine-compholio/bin/wine"
 
-win64="false"
+with_win64="false"
 win64_cxx=""
 win64_flags="-m64"
 win64_static=0
@@ -248,7 +248,7 @@ while [[ $# > 0 ]] ; do
 			;;
 
 		--with-win64)
-			win64="true"
+			with_win64="true"
 			;;
 
 		--win64-prebuilt)
@@ -372,7 +372,7 @@ if [ -z "$win32_cxx" ]; then
 fi
 
 # # Try to autodetect windows 64-bit compiler (if required)
-if [ "$win64" == "true" ] && [ -z "$win64_cxx" ]; then
+if [ "$with_win64" == "true" ] && [ -z "$win64_cxx" ]; then
 	if command -v x86_64-w64-mingw32-g++ >/dev/null 2>&1; then
 		win64_cxx="x86_64-w64-mingw32-g++"
 		win64_static=1
@@ -396,7 +396,7 @@ if [ ! -z "$mingw_cxxflags" ]; then
 	win64_flags="$mingw_cxxflags $win64_flags"
 fi
 
-if [ "$win64" == "true" ] && [ -z "$wine64_path" ]; then
+if [ "$with_win64" == "true" ] && [ -z "$wine64_path" ]; then
 	wine64_path="$wine_path/../wine64"
 fi
 
@@ -446,7 +446,7 @@ wine64_path=$(resolvepath "$wine64_path")
 	echo "wine_path=$wine_path"
 	echo ""
 	echo "# Win64"
-	echo "win64=$win64"
+	echo "with_win64=$with_win64"
 	echo "win64_cxx=$win64_cxx"
 	echo "win64_flags=$win64_flags"
 	echo "wine64_path=$wine64_path"
@@ -456,8 +456,13 @@ echo "Configuration Summary"
 echo "---------------------"
 echo ""
 echo "Pipelight has been configured with:"
-echo ""
-cat config.make
+while IFS="=" read key val; do
+	if [ -z "$key" ]; then
+		echo ""
+	elif [ "${key:0:1}" != "#" ]; then
+		printf "%20s = %s\n" "$(echo "$key" | sed -e 's|_|-|g')" "$val"
+	fi
+done < config.make 
 echo ""
 echo "IMPORTANT: Please ensure you have XATTR support enabled for both wine and"
 echo "           your file system (required to watch DRM protected content)!"

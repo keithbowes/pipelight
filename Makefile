@@ -12,7 +12,7 @@ else
 	PROGRAMS := $(PROGRAMS) pluginloader32 winecheck32
 endif
 
-ifeq ($(win64),true)
+ifeq ($(with_win64),true)
 	ifeq ($(win64_cxx),prebuilt)
 		PROGRAMS := $(PROGRAMS) prebuilt64
 	else
@@ -101,18 +101,18 @@ install: config.make all
 	install -pm 0644 share/sig-install-dependency.gpg "$(DESTDIR)$(datadir)/pipelight/sig-install-dependency.gpg"
 
 	install -pm 0755 "src/windows/pluginloader.exe" "$(DESTDIR)$(datadir)/pipelight/pluginloader.exe"
-	if [ "$(win64)" = "true" ]; then \
+	if [ "$(with_win64)" = "true" ]; then \
 		install -pm 0755 "src/windows/pluginloader64.exe" "$(DESTDIR)$(datadir)/pipelight/pluginloader64.exe"; \
 	fi
 
 	install -pm 0755 "src/winecheck/winecheck.exe" "$(DESTDIR)$(datadir)/pipelight/winecheck.exe"
-	if [ "$(win64)" = "true" ]; then \
+	if [ "$(with_win64)" = "true" ]; then \
 		install -pm 0755 "src/winecheck/winecheck64.exe" "$(DESTDIR)$(datadir)/pipelight/winecheck64.exe"; \
 	fi
 
 	rm -f "$(DESTDIR)$(datadir)/pipelight/wine"
 	ln -s "$(wine_path)" "$(DESTDIR)$(datadir)/pipelight/wine"
-	if [ "$(win64)" = "true" ]; then \
+	if [ "$(with_win64)" = "true" ]; then \
 		rm -f "$(DESTDIR)$(datadir)/pipelight/wine64"; \
 		ln -s "$(wine64_path)" "$(DESTDIR)$(datadir)/pipelight/wine64"; \
 	fi
