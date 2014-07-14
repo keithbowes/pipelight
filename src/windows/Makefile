@@ -1,6 +1,6 @@
 suffix		:=
-CXX			:= $(wincxx)
-CXXFLAGS	:= -Wall -std=gnu++0x -D_WIN32_WINNT=0x0502 -DPLUGINLOADER -DPIPELIGHT_VERSION='"$(version)"' $(winflags) $(mingw_cxxflags)
+CXX			:= $(win_cxx)
+CXXFLAGS	:= -Wall -std=gnu++0x -D_WIN32_WINNT=0x0502 -DPLUGINLOADER -DPIPELIGHT_VERSION='"$(version)"' $(win_flags) $(mingw_cxxflags)
 LDFLAGS		:= -lversion -lgdi32 -lole32 -lopengl32
 OBJECTS		:= common$(suffix).o apihook$(suffix).o npclass$(suffix).o npnfunctions$(suffix).o pluginloader$(suffix).o
 COMMONHDR	:= ../common/common.h ../npapi-headers/npapi.h ../npapi-headers/npfunctions.h ../npapi-headers/npruntime.h ../npapi-headers/nptypes.h
@@ -10,7 +10,6 @@ all: pluginloader$(suffix).exe
 
 pluginloader$(suffix).exe: $(OBJECTS)
 	rm -f "pluginloader$(suffix).exe.so"
-
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS) -o pluginloader$(suffix).exe
 
 	if [ -f "pluginloader$(suffix).exe.so" ]; then \

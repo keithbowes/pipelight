@@ -1,6 +1,6 @@
 suffix		:=
-CXX			:= $(wincxx)
-CXXFLAGS	:= -Wall -std=gnu++0x -D_WIN32_WINNT=0x0502 -DPLUGINLOADER $(winflags) $(mingw_cxxflags)
+CXX			:= $(win_cxx)
+CXXFLAGS	:= -Wall -std=gnu++0x -D_WIN32_WINNT=0x0502 -DPLUGINLOADER $(win_flags) $(mingw_cxxflags)
 LDFLAGS		:= -lgdi32 -lopengl32
 OBJECTS		:= check$(suffix).o
 
@@ -8,6 +8,7 @@ OBJECTS		:= check$(suffix).o
 all: winecheck$(suffix).exe
 
 winecheck$(suffix).exe: $(OBJECTS)
+	rm -f "winecheck$(suffix).exe.so"
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS) -o winecheck$(suffix).exe
 
 	if [ -f "winecheck$(suffix).exe.so" ]; then \

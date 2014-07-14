@@ -6,14 +6,14 @@ PLUGIN_LICENSES=$(wildcard share/licenses/*.in)
 
 PROGRAMS :=
 
-ifeq ($(win32cxx),prebuilt)
+ifeq ($(win32_cxx),prebuilt)
 	PROGRAMS := $(PROGRAMS) prebuilt32
 else
 	PROGRAMS := $(PROGRAMS) pluginloader32 winecheck32
 endif
 
 ifeq ($(win64),true)
-	ifeq ($(win64cxx),prebuilt)
+	ifeq ($(win64_cxx),prebuilt)
 		PROGRAMS := $(PROGRAMS) prebuilt64
 	else
 		PROGRAMS := $(PROGRAMS) pluginloader64 winecheck64
@@ -24,15 +24,15 @@ ifeq ($(debug),true)
 	CXXFLAGS := $(CXXFLAGS) -DPIPELIGHT_DEBUG
 endif
 
-SED_OPTS :=	-e 's|@@BASH@@|$(bashinterp)|g' \
-			-e '1s|/usr/bin/env bash|$(bashinterp)|' \
+SED_OPTS :=	-e 's|@@BASH@@|$(bash_interp)|g' \
+			-e '1s|/usr/bin/env bash|$(bash_interp)|' \
 			-e 's|@@BINDIR@@|$(bindir)|g' \
 			-e 's|@@DATADIR@@|$(datadir)|g' \
-			-e 's|@@GCC_RUNTIME_DLLS@@|$(gccruntimedlls)|g' \
+			-e 's|@@GCC_RUNTIME_DLLS@@|$(gcc_runtime_dlls)|g' \
 			-e 's|@@GPG@@|$(gpgexec)|g' \
 			-e 's|@@LIBDIR@@|$(libdir)|g' \
 			-e 's|@@MANDIR@@|$(mandir)|g' \
-			-e 's|@@MOZ_PLUGIN_PATH@@|$(mozpluginpath)|g' \
+			-e 's|@@MOZ_PLUGIN_PATH@@|$(moz_plugin_path)|g' \
 			-e 's|@@PIPELIGHT_LIBRARY_PATH@@|$(libdir)/pipelight|g' \
 			-e 's|@@PIPELIGHT_SHARE_PATH@@|$(datadir)/pipelight|g' \
 			-e 's|@@PREFIX@@|$(prefix)|g' \
@@ -73,19 +73,19 @@ prebuilt64: pluginloader-$(git_commit).tar.gz pluginloader-$(git_commit).tar.gz.
 
 .PHONY: pluginloader32
 pluginloader32: config.make
-	$(MAKE) -C src/windows gpgexec="$(gpgexec)" wincxx="$(win32cxx)" mingw_cxxflags="$(mingw_cxxflags)" winflags="$(win32flags)" suffix=""
+	$(MAKE) -C src/windows win_cxx="$(win32_cxx)" mingw_cxxflags="$(mingw_cxxflags)" win_flags="$(win32_flags)" suffix=""
 
 .PHONY: pluginloader64
 pluginloader64: config.make
-	$(MAKE) -C src/windows gpgexec="$(gpgexec)" wincxx="$(win64cxx)" mingw_cxxflags="$(mingw_cxxflags)" winflags="$(win64flags)" suffix="64"
+	$(MAKE) -C src/windows win_cxx="$(win64_cxx)" mingw_cxxflags="$(mingw_cxxflags)" win_flags="$(win64_flags)" suffix="64"
 
 .PHONY: winecheck32
 winecheck32: config.make
-	$(MAKE) -C src/winecheck gpgexec="$(gpgexec)" wincxx="$(win32cxx)" mingw_cxxflags="$(mingw_cxxflags)" winflags="$(win32flags)" suffix=""
+	$(MAKE) -C src/winecheck win_cxx="$(win32_cxx)" mingw_cxxflags="$(mingw_cxxflags)" win_flags="$(win32_flags)" suffix=""
 
 .PHONY: winecheck64
 winecheck64: config.make
-	$(MAKE) -C src/winecheck gpgexec="$(gpgexec)" wincxx="$(win64cxx)" mingw_cxxflags="$(mingw_cxxflags)" winflags="$(win64flags)" suffix="64"
+	$(MAKE) -C src/winecheck win_cxx="$(win64_cxx)" mingw_cxxflags="$(mingw_cxxflags)" win_flags="$(win64_flags)" suffix="64"
 
 .PHONY: install
 install: config.make all
@@ -96,7 +96,7 @@ install: config.make all
 			"$(DESTDIR)$(datadir)/pipelight/scripts" \
 			"$(DESTDIR)$(libdir)/pipelight" \
 			"$(DESTDIR)$(mandir)/man1" \
-			"$(DESTDIR)$(mozpluginpath)"
+			"$(DESTDIR)$(moz_plugin_path)"
 
 	install -pm 0644 share/sig-install-dependency.gpg "$(DESTDIR)$(datadir)/pipelight/sig-install-dependency.gpg"
 
@@ -111,10 +111,10 @@ install: config.make all
 	fi
 
 	rm -f "$(DESTDIR)$(datadir)/pipelight/wine"
-	ln -s "$(winepath)" "$(DESTDIR)$(datadir)/pipelight/wine"
+	ln -s "$(wine_path)" "$(DESTDIR)$(datadir)/pipelight/wine"
 	if [ "$(win64)" = "true" ]; then \
 		rm -f "$(DESTDIR)$(datadir)/pipelight/wine64"; \
-		ln -s "$(wine64path)" "$(DESTDIR)$(datadir)/pipelight/wine64"; \
+		ln -s "$(wine64_path)" "$(DESTDIR)$(datadir)/pipelight/wine64"; \
 	fi
 
 	sed $(SED_OPTS) share/install-dependency > install-dependency.tmp
@@ -178,7 +178,7 @@ uninstall: config.make
 			"$(DESTDIR)$(datadir)/pipelight/scripts" \
 			"$(DESTDIR)$(datadir)/pipelight" \
 			"$(DESTDIR)$(libdir)/pipelight" \
-			"$(DESTDIR)$(mozpluginpath)"
+			"$(DESTDIR)$(moz_plugin_path)"
 
 .PHONY: clean
 clean:
