@@ -4,36 +4,6 @@ CXXFLAGS	:= -Wall -std=gnu++0x -D_WIN32_WINNT=0x0502 -DPLUGINLOADER $(winflags) 
 LDFLAGS		:= -lgdi32 -lopengl32
 OBJECTS		:= check$(suffix).o
 
-ifeq ($(wincxx),prebuilt)
-
-.PHONY: all
-all: winecheck$(suffix).exe
-
-ifeq ($(wildcard winecheck$(suffix).exe),)
-commit=$(shell git log --pretty=format:'%H' -n 1 || echo "prebuilt")
-
-../../pluginloader-$(commit).tar.gz:
-	$(downloader) "../../pluginloader-$(commit).tar.gz"     "http://repos.fds-team.de/pluginloader/$(commit)/pluginloader.tar.gz"
-
-../../pluginloader-$(commit).tar.gz.sig:
-	$(downloader) "../../pluginloader-$(commit).tar.gz.sig" "http://repos.fds-team.de/pluginloader/$(commit)/pluginloader.tar.gz.sig"
-
-winecheck$(suffix).exe: ../../pluginloader-$(commit).tar.gz ../../pluginloader-$(commit).tar.gz.sig
-	$(gpgexec) --batch --no-default-keyring --keyring "../../share/sig-pluginloader.gpg" --verify "../../pluginloader-$(commit).tar.gz.sig" && \
-	tar --strip-components=2 -xvf "../../pluginloader-$(commit).tar.gz" src/winecheck/winecheck$(suffix).exe
-
-else
-
-winecheck$(suffix).exe:
-
-endif
-
-.PHONY: clean
-clean:
-	rm -f *.o
-
-else
-
 .PHONY: all
 all: winecheck$(suffix).exe
 
@@ -51,5 +21,3 @@ check$(suffix).o: check.c
 .PHONY: clean
 clean:
 	rm -f *.exe *.exe.so *.o
-
-endif

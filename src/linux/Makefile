@@ -8,7 +8,6 @@ endif
 
 CXXFLAGS	:= -Wall -fPIC -std=gnu++0x -DPIPELIGHT_SHARE_PATH='"$(datadir)/pipelight"' $(CXXFLAGS)
 LDFLAGS		:= -lpthread $(LDFLAGS)
-
 OBJECTS		:= common.o basicplugin.o configloader.o diagnostic.o npclass.o nppfunctions.o
 COMMONHDR	:= ../common/common.h ../npapi-headers/npapi.h ../npapi-headers/npfunctions.h ../npapi-headers/npruntime.h ../npapi-headers/nptypes.h
 

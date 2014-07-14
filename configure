@@ -46,7 +46,7 @@ usage()
 	echo "                   [--show-installation-dialogs] [--debug] [--cxx=COMPILER]"
 	echo "                   [--cxxflags=FLAGS] [--mingw-cxxflags=FLAGS]"
 	echo ""
-	echo " prebuilt options: [--downloader=CMDLINE]"
+	echo " prebuilt options: [--git-commit=TAG/SHA1] [--downloader=CMDLINE]"
 	echo ""
 	echo " win32 options:    [--win32-prebuilt] [--win32-cxx=COMPILER]"
 	echo "                   [--win32-flags=FLAGS] [--win32-static]"
@@ -86,6 +86,7 @@ mingw_cxxflags="$(echo "$CXXFLAGS" | \
 	-e 's!-m\([0-9]\|arch\|float-abi\|fpu\|tune\)[=]*\([a-zA-Z0-9-]*\)! !g' \
 	-e 's![ \t]\+! !g' -e 's!\(^[ \t]*\|[ \t]*$\)!!g')"
 
+git_commit=""
 downloader=""
 
 win32cxx=""
@@ -205,6 +206,13 @@ while [[ $# > 0 ]] ; do
 			mingw_cxxflags="$1"; shift
 			;;
 
+		--git-commit=*)
+			git_commit="${CMD#*=}"
+			;;
+		--git-commit)
+			git_commit="$1"; shift
+			;;
+
 		--downloader=*)
 			downloader="${CMD#*=}"
 			;;
@@ -280,10 +288,26 @@ while [[ $# > 0 ]] ; do
 	esac
 done
 
+# Determine current git commit
+if [ -z "$git_commit" ] && [ -d "./.git" ] && command -v git >/dev/null 2>&1; then
+	git_commit="$(git log --pretty=format:'%H' -n 1)"
+fi
+
+# Get the version number
+changelog="$(head -n1 ./debian/changelog)"
+if [[ "$changelog" =~ \((.*)\)\ (UNRELEASED)? ]]; then
+	version="${BASH_REMATCH[1]}"
+	if [ "${BASH_REMATCH[2]}" == "UNRELEASED" ]; then
+		version="$version-daily"
+	elif [ -z "$git_commit" ]; then
+		git_commit="v$version"
+	fi
+fi
+
 # Intialize other dirs, if not already set by switches
 init_dirs "$prefix"
 
-# Try to autodetect compiler
+# Try to autodetect linux compiler
 if [ -z "$cxx" ]; then
         if command -v g++ >/dev/null 2>&1; then
                 cxx="g++"
@@ -295,6 +319,28 @@ if [ -z "$cxx" ]; then
         fi
 fi
 
+# In case of using prebuilt windows binaries we need the git_commit variable, and a downloader if the files don't exist yet
+if [ "$win32cxx" == "prebuilt" ] || [ "$win64cxx" == "prebuilt" ]; then
+	if [ -z "$git_commit" ]; then
+		echo "ERROR: Unable to determine git commit! Please use --git-commit to specify the tag/sha1 of this version."
+		exit 1
+	fi
+
+	if [ ! -f "./pluginloader-$git_commit.tar.gz" ] || [ ! -f "./pluginloader-$git_commit.tar.gz.sig" ]; then
+		if [ -z "$downloader" ]; then
+			if command -v wget >/dev/null 2>&1; then
+				downloader="wget -O"
+			elif command -v fetch >/dev/null 2>&1; then
+				downloader="fetch -o"
+			else
+				echo "ERROR: Could neither find wget nor fetch! Please use --downloader to specify a program."
+				exit 1
+			fi
+		fi
+	fi
+fi
+
+# Try to autodetect windows 32-bit compiler
 if [ -z "$win32cxx" ]; then
 	if command -v i686-w64-mingw32-g++ >/dev/null 2>&1; then
 		win32cxx="i686-w64-mingw32-g++"
@@ -325,6 +371,7 @@ if [ -z "$win32cxx" ]; then
 	fi
 fi
 
+# # Try to autodetect windows 64-bit compiler (if required)
 if [ "$win64" == "true" ] && [ -z "$win64cxx" ]; then
 	if command -v x86_64-w64-mingw32-g++ >/dev/null 2>&1; then
 		win64cxx="x86_64-w64-mingw32-g++"
@@ -346,28 +393,6 @@ fi
 
 if [ "$win64" == "true" ] && [ -z "$wine64path" ]; then
 	wine64path="$winepath/../wine64"
-fi
-
-if [ -z "$downloader" ]; then
-	if [ "$win32cxx" == "prebuilt" ] || [ "$win64cxx" == "prebuilt" ]; then
-		if command -v wget >/dev/null 2>&1; then
-			downloader="wget -O"
-		elif command -v fetch >/dev/null 2>&1; then
-			downloader="fetch -o"
-		else
-			echo "ERROR: Could neither find wget nor fetch! Please use --downloader to specify a program."
-			exit 1
-		fi
-	fi
-fi
-
-# Get the version number
-changelog=$(head -n1 debian/changelog)
-if [[ "$changelog" =~ \((.*)\)\ (UNRELEASED)? ]]; then
-	version="${BASH_REMATCH[1]}"
-	if [ "${BASH_REMATCH[2]}" == "UNRELEASED" ]; then
-		version="$version-daily"
-	fi
 fi
 
 # Normalize the paths
@@ -408,6 +433,7 @@ wine64path=$(resolvepath "$wine64path")
 	echo "mingw_cxxflags=$mingw_cxxflags"
 	echo ""
 	echo "# Prebuilt"
+	echo "git_commit=$git_commit"
 	echo "downloader=$downloader"
 	echo ""
 	echo "# Win32"

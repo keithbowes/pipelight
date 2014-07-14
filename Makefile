@@ -4,9 +4,20 @@ PLUGIN_CONFIGS=$(wildcard share/configs/*.in)
 PLUGIN_SCRIPTS=$(wildcard share/scripts/*.in)
 PLUGIN_LICENSES=$(wildcard share/licenses/*.in)
 
-PROGRAMS := pluginloader32 winecheck32
+PROGRAMS :=
+
+ifeq ($(win32cxx),prebuilt)
+	PROGRAMS := $(PROGRAMS) prebuilt32
+else
+	PROGRAMS := $(PROGRAMS) pluginloader32 winecheck32
+endif
+
 ifeq ($(win64),true)
-	PROGRAMS:= $(PROGRAMS) pluginloader64 winecheck64
+	ifeq ($(win64cxx),prebuilt)
+		PROGRAMS := $(PROGRAMS) prebuilt64
+	else
+		PROGRAMS := $(PROGRAMS) pluginloader64 winecheck64
+	endif
 endif
 
 ifeq ($(debug),true)
@@ -39,25 +50,42 @@ config.make:
 	@echo ""
 	@exit 1
 
+
+pluginloader-$(git_commit).tar.gz:
+	$(downloader) "pluginloader-$(git_commit).tar.gz"     "http://repos.fds-team.de/pluginloader/$(git_commit)/pluginloader.tar.gz"
+
+pluginloader-$(git_commit).tar.gz.sig:
+	$(downloader) "pluginloader-$(git_commit).tar.gz.sig" "http://repos.fds-team.de/pluginloader/$(git_commit)/pluginloader.tar.gz.sig"
+
 .PHONY: linux
 linux: config.make
 	$(MAKE) -C src/linux CXX="$(cxx)"
 
+.PHONY: prebuilt32
+prebuilt32: pluginloader-$(git_commit).tar.gz pluginloader-$(git_commit).tar.gz.sig
+	$(gpgexec) --batch --no-default-keyring --keyring "share/sig-pluginloader.gpg" --verify "pluginloader-$(git_commit).tar.gz.sig"
+	tar -xvf "pluginloader-$(git_commit).tar.gz" src/windows/pluginloader.exe src/winecheck/winecheck.exe
+
+.PHONY: prebuilt64
+prebuilt64: pluginloader-$(git_commit).tar.gz pluginloader-$(git_commit).tar.gz.sig
+	$(gpgexec) --batch --no-default-keyring --keyring "share/sig-pluginloader.gpg" --verify "pluginloader-$(git_commit).tar.gz.sig"
+	tar -xvf "pluginloader-$(git_commit).tar.gz" src/windows/pluginloader64.exe src/winecheck/winecheck64.exe
+
 .PHONY: pluginloader32
 pluginloader32: config.make
-	$(MAKE) -C src/windows gpgexec="$(gpgexec)" mingw_cxxflags="$(mingw_cxxflags)" wincxx="$(win32cxx)" winflags="$(win32flags)" suffix=""
+	$(MAKE) -C src/windows gpgexec="$(gpgexec)" wincxx="$(win32cxx)" mingw_cxxflags="$(mingw_cxxflags)" winflags="$(win32flags)" suffix=""
 
 .PHONY: pluginloader64
 pluginloader64: config.make
-	$(MAKE) -C src/windows gpgexec="$(gpgexec)" mingw_cxxflags="$(mingw_cxxflags)" wincxx="$(win64cxx)" winflags="$(win64flags)" suffix="64"
+	$(MAKE) -C src/windows gpgexec="$(gpgexec)" wincxx="$(win64cxx)" mingw_cxxflags="$(mingw_cxxflags)" winflags="$(win64flags)" suffix="64"
 
 .PHONY: winecheck32
 winecheck32: config.make
-	$(MAKE) -C src/winecheck gpgexec="$(gpgexec)" mingw_cxxflags="$(mingw_cxxflags)" wincxx="$(win32cxx)" winflags="$(win32flags)" suffix=""
+	$(MAKE) -C src/winecheck gpgexec="$(gpgexec)" wincxx="$(win32cxx)" mingw_cxxflags="$(mingw_cxxflags)" winflags="$(win32flags)" suffix=""
 
 .PHONY: winecheck64
 winecheck64: config.make
-	$(MAKE) -C src/winecheck gpgexec="$(gpgexec)" mingw_cxxflags="$(mingw_cxxflags)" wincxx="$(win64cxx)" winflags="$(win64flags)" suffix="64"
+	$(MAKE) -C src/winecheck gpgexec="$(gpgexec)" wincxx="$(win64cxx)" mingw_cxxflags="$(mingw_cxxflags)" winflags="$(win64flags)" suffix="64"
 
 .PHONY: install
 install: config.make all
