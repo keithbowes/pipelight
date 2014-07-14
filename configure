@@ -134,10 +134,10 @@ while [[ $# > 0 ]] ; do
 			;;
 
 		--bash-interp=*)
-			bash_interp="${CMD#*=}"
+			bashinterp="${CMD#*=}"
 			;;
 		--bash-interp)
-			bash_interp="$1"; shift
+			bashinterp="$1"; shift
 			;;
 
 		--gpg-exec=*)
@@ -371,7 +371,7 @@ winepath=$(resolvepath "$winepath")
 wine64path=$(resolvepath "$wine64path")
 mozpluginpath=$(resolvepath "$mozpluginpath")
 gccruntimedlls=$(resolvepath "$gccruntimedlls")
-bash_interp=$(resolvepath "$bash_interp")
+bashinterp=$(resolvepath "$bashinterp")
 gpgexec=$(resolvepath "$gpgexec")
 
 (
