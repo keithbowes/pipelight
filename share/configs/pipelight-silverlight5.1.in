@@ -193,8 +193,7 @@ replaceJavascript = window.navigator = __pipelight_navigator
 #
 # overwriteArg      = enableGPUAcceleration=false/true
 #
-# to overwrite the check results. If you really want to skip this test
-# you can use: silverlightGraphicDriverCheck = /bin/true
+# to overwrite the check results.
 #
 silverlightGraphicDriverCheck  = true
 
