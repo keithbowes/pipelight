@@ -1,6 +1,6 @@
 suffix		:=
-CXX			:= $(win_cxx)
-CXXFLAGS	:= -Wall -std=gnu++0x -D_WIN32_WINNT=0x0502 -DPLUGINLOADER $(win_flags) $(mingw_cxxflags)
+CXX			?= i686-w64-mingw32-g++
+CXXFLAGS	:= -Wall -std=gnu++0x -D_WIN32_WINNT=0x0502 -DPLUGINLOADER $(CXXFLAGS)
 LDFLAGS		:= -lgdi32 -lopengl32
 OBJECTS		:= check$(suffix).o
 

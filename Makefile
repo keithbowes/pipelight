@@ -59,7 +59,7 @@ pluginloader-$(git_commit).tar.gz.sig:
 
 .PHONY: linux
 linux: config.make
-	$(MAKE) -C src/linux CXX="$(cxx)"
+	CXX="$(cxx)" CXXFLAGS="$(cxxflags)" $(MAKE) -C src/linux
 
 .PHONY: prebuilt32
 prebuilt32: pluginloader-$(git_commit).tar.gz pluginloader-$(git_commit).tar.gz.sig
@@ -73,19 +73,19 @@ prebuilt64: pluginloader-$(git_commit).tar.gz pluginloader-$(git_commit).tar.gz.
 
 .PHONY: pluginloader32
 pluginloader32: config.make
-	$(MAKE) -C src/windows win_cxx="$(win32_cxx)" mingw_cxxflags="$(mingw_cxxflags)" win_flags="$(win32_flags)" suffix=""
-
-.PHONY: pluginloader64
-pluginloader64: config.make
-	$(MAKE) -C src/windows win_cxx="$(win64_cxx)" mingw_cxxflags="$(mingw_cxxflags)" win_flags="$(win64_flags)" suffix="64"
+	CXX="$(win32_cxx)" CXXFLAGS="$(mingw_cxxflags) $(win32_flags)" $(MAKE) -C src/windows suffix=""
 
 .PHONY: winecheck32
 winecheck32: config.make
-	$(MAKE) -C src/winecheck win_cxx="$(win32_cxx)" mingw_cxxflags="$(mingw_cxxflags)" win_flags="$(win32_flags)" suffix=""
+	CXX="$(win32_cxx)" CXXFLAGS="$(mingw_cxxflags) $(win32_flags)" $(MAKE) -C src/winecheck suffix=""
+
+.PHONY: pluginloader64
+pluginloader64: config.make
+	CXX="$(win64_cxx)" CXXFLAGS="$(mingw_cxxflags) $(win64_flags)" $(MAKE) -C src/windows suffix="64"
 
 .PHONY: winecheck64
 winecheck64: config.make
-	$(MAKE) -C src/winecheck win_cxx="$(win64_cxx)" mingw_cxxflags="$(mingw_cxxflags)" win_flags="$(win64_flags)" suffix="64"
+	CXX="$(win64_cxx)" CXXFLAGS="$(mingw_cxxflags) $(win64_flags)" $(MAKE) -C src/winecheck suffix="64"
 
 .PHONY: install
 install: config.make all

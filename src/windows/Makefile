@@ -1,6 +1,6 @@
 suffix		:=
-CXX			:= $(win_cxx)
-CXXFLAGS	:= -Wall -std=gnu++0x -D_WIN32_WINNT=0x0502 -DPLUGINLOADER -DPIPELIGHT_VERSION='"$(version)"' $(win_flags) $(mingw_cxxflags)
+CXX			?= i686-w64-mingw32-g++
+CXXFLAGS	:= -Wall -std=gnu++0x -D_WIN32_WINNT=0x0502 -DPLUGINLOADER -DPIPELIGHT_VERSION='"$(version)"' $(CXXFLAGS)
 LDFLAGS		:= -lversion -lgdi32 -lole32 -lopengl32
 OBJECTS		:= common$(suffix).o apihook$(suffix).o npclass$(suffix).o npnfunctions$(suffix).o pluginloader$(suffix).o
 COMMONHDR	:= ../common/common.h ../npapi-headers/npapi.h ../npapi-headers/npfunctions.h ../npapi-headers/npruntime.h ../npapi-headers/nptypes.h

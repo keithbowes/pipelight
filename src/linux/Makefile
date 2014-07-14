@@ -1,4 +1,3 @@
-CXX		?= g++
 UNAME_S		:= $(shell uname -s)
 
 ifeq ($(UNAME_S), FreeBSD)
@@ -6,6 +5,7 @@ ifeq ($(UNAME_S), FreeBSD)
 	LDFLAGS  := -L/usr/local/lib $(LDFLAGS)
 endif
 
+CXX			?= g++
 CXXFLAGS	:= -Wall -fPIC -std=gnu++0x -DPIPELIGHT_SHARE_PATH='"$(datadir)/pipelight"' $(CXXFLAGS)
 LDFLAGS		:= -lpthread $(LDFLAGS)
 OBJECTS		:= common.o basicplugin.o configloader.o diagnostic.o npclass.o nppfunctions.o
