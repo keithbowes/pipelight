@@ -1,3 +1,9 @@
+pipelight-multi (0.2.7.3) UNRELEASED; urgency=high
+
+  * Fix 'pipelight-plugin --update' command
+
+ -- Sebastian Lackner <sebastian@fds-team.de>  Sun, 20 Jul 2014 05:05:43 +0200
+
 pipelight-multi (0.2.7.2) RELEASED; urgency=low
 
   * Update Flash to 14.0.0.145

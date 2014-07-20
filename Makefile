@@ -29,7 +29,7 @@ SED_OPTS :=	-e 's|@@BASH@@|$(bash_interp)|g' \
 			-e 's|@@BINDIR@@|$(bindir)|g' \
 			-e 's|@@DATADIR@@|$(datadir)|g' \
 			-e 's|@@GCC_RUNTIME_DLLS@@|$(gcc_runtime_dlls)|g' \
-			-e 's|@@GPG@@|$(gpgexec)|g' \
+			-e 's|@@GPG@@|$(gpg_exec)|g' \
 			-e 's|@@LIBDIR@@|$(libdir)|g' \
 			-e 's|@@MANDIR@@|$(mandir)|g' \
 			-e 's|@@MOZ_PLUGIN_PATH@@|$(moz_plugin_path)|g' \
