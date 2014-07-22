@@ -195,3 +195,18 @@ clean:
 .PHONY: dist-clean
 dist-clean: clean
 	rm -f config.make
+
+.PHONY: pluginloader-tarball
+pluginloader-tarball: config.make all
+	mkdir -p "$(DESTDIR)/src/windows"
+	mkdir -p "$(DESTDIR)/src/winecheck"
+
+	install -pm 0755 "src/windows/pluginloader.exe" "$(DESTDIR)/src/windows/pluginloader.exe"
+	if [ "$(with_win64)" = "true" ]; then \
+		install -pm 0755 "src/windows/pluginloader64.exe" "$(DESTDIR)/src/windows/pluginloader64.exe"; \
+	fi
+
+	install -pm 0755 "src/winecheck/winecheck.exe" "$(DESTDIR)/src/winecheck/winecheck.exe"
+	if [ "$(with_win64)" = "true" ]; then \
+		install -pm 0755 "src/winecheck/winecheck64.exe" "$(DESTDIR)/src/winecheck/winecheck64.exe"; \
+	fi
