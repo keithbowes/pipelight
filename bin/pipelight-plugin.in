@@ -575,6 +575,8 @@ lock_plugin()
 
 update_dependency_installer()
 {
+	if ! get_directories; then return 1; fi
+
 	local dependencyinstaller="$PIPELIGHT_SHARE_PATH/install-dependency"
 	local tmpfile=$(mktemp)
 	[ -f "$tmpfile" ] || return 1
@@ -625,6 +627,13 @@ update_dependency_installer()
 	fi
 
 	rm "$decfile"
+
+	# Update timestamps of libpipelight-*.so files
+	for entry in "${ALL_PLUGINS[@]}"; do
+		local dst="$PIPELIGHT_LIBRARY_PATH/libpipelight-$entry.so"
+		[ -e "$dst" ] && touch "$dst"
+	done
+
 	echo ""
 	echo "Script dependency-installer has been updated to version $sha"
 	return 0
