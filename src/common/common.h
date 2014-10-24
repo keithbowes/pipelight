@@ -948,7 +948,7 @@ inline std::string trim(std::string str){
 	return str;
 }
 
-inline void pokeString(char *dest, const char *str, size_t maxLength){
+inline void __pokeString(char *dest, const char *str, size_t maxLength){
 	if (maxLength > 0){
 		size_t length = strlen(str);
 
@@ -960,9 +960,12 @@ inline void pokeString(char *dest, const char *str, size_t maxLength){
 	}
 }
 
-inline void pokeString(char *dest, const std::string str, size_t maxLength){
-	pokeString(dest, str.c_str(), maxLength);
+inline void __pokeString(char *dest, const std::string str, size_t maxLength){
+	__pokeString(dest, str.c_str(), maxLength);
 }
+
+#define pokeString(dest, str) \
+	__pokeString((dest), (str), sizeof(dest))
 
 #define c_alphanumchar(c) \
 	( ((c) >= 'A' && (c) <= 'Z') || ((c) >= 'a' && (c) <= 'z') || ((c) >= '0' && (c) <= '9') || (c) == '_' )

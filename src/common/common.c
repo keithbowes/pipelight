@@ -106,11 +106,11 @@ bool initCommIO(){
 	Initializes the plugin name
 */
 void setMultiPluginName(const std::string str){
-	pokeString(strMultiPluginName, str, sizeof(strMultiPluginName));
+	pokeString(strMultiPluginName, str);
 }
 
 void setMultiPluginName(const char *str){
-	pokeString(strMultiPluginName, str, sizeof(strMultiPluginName));
+	pokeString(strMultiPluginName, str);
 }
 
 /*

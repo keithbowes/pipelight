@@ -126,14 +126,14 @@ void attach(){
 
 		if (!loadPluginInformation()){
 			if(config.pluginName == ""){
-				pokeString(strMimeType, "application/x-pipelight-error:pipelighterror:Error during initialization", sizeof(strMimeType));
-				pokeString(strPluginName, "Pipelight Error!", sizeof(strPluginName));
+				pokeString(strMimeType, "application/x-pipelight-error:pipelighterror:Error during initialization");
+				pokeString(strPluginName, "Pipelight Error!");
 			}else{
-				pokeString(strMimeType, "application/x-pipelight-error-"+config.pluginName+":pipelighterror-"+config.pluginName+":Error during initialization", sizeof(strMimeType));		
-				pokeString(strPluginName, "Pipelight Error (" + config.pluginName +")!", sizeof(strPluginName));
+				pokeString(strMimeType, "application/x-pipelight-error-"+config.pluginName+":pipelighterror-"+config.pluginName+":Error during initialization");
+				pokeString(strPluginName, "Pipelight Error (" + config.pluginName +")!");
 			}
-			pokeString(strPluginDescription, "Something went wrong, check the terminal output", sizeof(strPluginDescription));
-			pokeString(strPluginVersion, "0.0", sizeof(strPluginVersion));
+			pokeString(strPluginDescription, "Something went wrong, check the terminal output");
+			pokeString(strPluginVersion, "0.0");
 		}
 
 		return;
@@ -159,12 +159,12 @@ void attach(){
 	result = readResultString();
 	for (std::vector<MimeInfo>::iterator it = config.fakeMIMEtypes.begin(); it != config.fakeMIMEtypes.end(); it++)
 		result += ";" + it->mimeType + ":" + it->extension + ":" + it->description;
-	pokeString(strMimeType, result, sizeof(strMimeType));
+	pokeString(strMimeType, result);
 
 	/* plugin name */
 	callFunction(FUNCTION_GET_NAME);
 	result = readResultString();
-	pokeString(strPluginName, result, sizeof(strPluginName));
+	pokeString(strPluginName, result);
 
 	/* plugin description */
 	if (config.fakeVersion != "")
@@ -173,7 +173,7 @@ void attach(){
 		callFunction(FUNCTION_GET_DESCRIPTION);
 		result = readResultString();
 	}
-	pokeString(strPluginDescription, result, sizeof(strPluginDescription));
+	pokeString(strPluginDescription, result);
 
 	/* plugin version */
 	if (config.fakeVersion != "")
@@ -182,7 +182,7 @@ void attach(){
 		callFunction(FUNCTION_GET_VERSION);
 		result = readResultString();
 	}
-	pokeString(strPluginVersion, result, sizeof(strPluginVersion));
+	pokeString(strPluginVersion, result);
 
 	savePluginInformation();
 
