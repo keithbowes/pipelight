@@ -1153,51 +1153,23 @@ void dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		case FUNCTION_GET_VERSION:
+		case FUNCTION_GET_PLUGIN_INFO:
 			{
-				DBG_TRACE("FUNCTION_GET_VERSION()");
+				DBG_TRACE("FUNCTION_GET_PLUGIN_INFO()");
 
 				writeString(np_FileVersion);
-
-				DBG_TRACE("FUNCTION_GET_VERSION -> str='%s'", np_FileVersion.c_str());
-				returnCommand();
-			}
-			break;
-
-		case FUNCTION_GET_MIMETYPE:
-			{
-				DBG_TRACE("FUNCTION_GET_MIMETYPE()");
+				writeString(np_FileDescription);
+				writeString(np_ProductName);
 
 				std::string mimeType = createLinuxCompatibleMimeType();
 				writeString(mimeType);
 
-				DBG_TRACE("FUNCTION_GET_MIMETYPE -> str='%s'", mimeType.c_str());
+
+				DBG_TRACE("FUNCTION_GET_PLUGIN_INFO -> mime='%s', name='%s', description='%s', version='%s'",
+					mimeType.c_str(), np_ProductName.c_str(), np_FileDescription.c_str(), np_FileVersion.c_str());
 				returnCommand();
 			}
 			break;
-
-		case FUNCTION_GET_NAME:
-			{
-				DBG_TRACE("FUNCTION_GET_NAME()");
-
-				writeString(np_ProductName);
-
-				DBG_TRACE("FUNCTION_GET_NAME -> str='%s'", np_ProductName.c_str());
-				returnCommand();
-			}
-			break;
-
-		case FUNCTION_GET_DESCRIPTION:
-			{
-				DBG_TRACE("FUNCTION_GET_DESCRIPTION()");
-
-				writeString(np_FileDescription);
-
-				DBG_TRACE("FUNCTION_GET_DESCRIPTION -> str='%s'", np_FileDescription.c_str());
-				returnCommand();
-			}
-			break;
-
 
 		case FUNCTION_NP_INVOKE:
 			{

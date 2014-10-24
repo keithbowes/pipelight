@@ -90,6 +90,7 @@ void detach() DESTRUCTOR;
 
 void attach(){
 	std::string result;
+	Stack stack;
 
 	std::ios_base::sync_with_stdio(false);		/* Fix for Opera: Dont sync stdio */
 	setbuf(stderr, NULL);						/* Disable stderr buffering */
@@ -154,34 +155,29 @@ void attach(){
 			config.overwriteArgs["enableGPUAcceleration"] = "false";
 	}
 
+	callFunction(FUNCTION_GET_PLUGIN_INFO);
+	readCommands(stack);
+
 	/* mime types */
-	callFunction(FUNCTION_GET_MIMETYPE);
-	result = readResultString();
+	result = readString(stack);
 	for (std::vector<MimeInfo>::iterator it = config.fakeMIMEtypes.begin(); it != config.fakeMIMEtypes.end(); it++)
 		result += ";" + it->mimeType + ":" + it->extension + ":" + it->description;
 	pokeString(strMimeType, result);
 
 	/* plugin name */
-	callFunction(FUNCTION_GET_NAME);
-	result = readResultString();
+	result = readString(stack);
 	pokeString(strPluginName, result);
 
 	/* plugin description */
+	result = readString(stack);
 	if (config.fakeVersion != "")
 		result = config.fakeVersion;
-	else{
-		callFunction(FUNCTION_GET_DESCRIPTION);
-		result = readResultString();
-	}
 	pokeString(strPluginDescription, result);
 
 	/* plugin version */
+	result = readString(stack);
 	if (config.fakeVersion != "")
 		result = config.fakeVersion;
-	else{
-		callFunction(FUNCTION_GET_VERSION);
-		result = readResultString();
-	}
 	pokeString(strPluginVersion, result);
 
 	savePluginInformation();

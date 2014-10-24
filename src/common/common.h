@@ -210,7 +210,7 @@ struct ParameterInfo{
 typedef std::vector<ParameterInfo> Stack;
 
 /* increase this whenever you do changes in the protocol stack */
-#define PIPELIGHT_PROTOCOL_VERSION 0x10000010
+#define PIPELIGHT_PROTOCOL_VERSION 0x10000011
 
 enum{
 	/* ------- Special ------- */
@@ -243,10 +243,7 @@ enum{
 	WINDOWLESS_EVENT_KEYBOARD,
 
 	/* ------- Plugin ------- */
-	FUNCTION_GET_VERSION,
-	FUNCTION_GET_MIMETYPE,
-	FUNCTION_GET_NAME,
-	FUNCTION_GET_DESCRIPTION,
+	FUNCTION_GET_PLUGIN_INFO,
 
 	FUNCTION_NP_INVOKE,
 	FUNCTION_NP_INVOKE_DEFAULT,
