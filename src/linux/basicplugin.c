@@ -89,6 +89,8 @@ void detach() DESTRUCTOR;
 /* END GLOBAL VARIABLES */
 
 void attach(){
+	std::string result;
+
 	std::ios_base::sync_with_stdio(false);		/* Fix for Opera: Dont sync stdio */
 	setbuf(stderr, NULL);						/* Disable stderr buffering */
 
@@ -121,6 +123,19 @@ void attach(){
 	/* we want to be sure that wine is up and running until we return! */
 	if (!pluginInitOkay()){
 		DBG_ERROR("error during the initialization of the wine process - aborting.");
+
+		if (!loadPluginInformation()){
+			if(config.pluginName == ""){
+				pokeString(strMimeType, "application/x-pipelight-error:pipelighterror:Error during initialization", sizeof(strMimeType));
+				pokeString(strPluginName, "Pipelight Error!", sizeof(strPluginName));
+			}else{
+				pokeString(strMimeType, "application/x-pipelight-error-"+config.pluginName+":pipelighterror-"+config.pluginName+":Error during initialization", sizeof(strMimeType));		
+				pokeString(strPluginName, "Pipelight Error (" + config.pluginName +")!", sizeof(strPluginName));
+			}
+			pokeString(strPluginDescription, "Something went wrong, check the terminal output", sizeof(strPluginDescription));
+			pokeString(strPluginVersion, "0.0", sizeof(strPluginVersion));
+		}
+
 		return;
 	}
 
@@ -138,6 +153,38 @@ void attach(){
 		if (!readResultInt32())
 			config.overwriteArgs["enableGPUAcceleration"] = "false";
 	}
+
+	/* mime types */
+	callFunction(FUNCTION_GET_MIMETYPE);
+	result = readResultString();
+	for (std::vector<MimeInfo>::iterator it = config.fakeMIMEtypes.begin(); it != config.fakeMIMEtypes.end(); it++)
+		result += ";" + it->mimeType + ":" + it->extension + ":" + it->description;
+	pokeString(strMimeType, result, sizeof(strMimeType));
+
+	/* plugin name */
+	callFunction(FUNCTION_GET_NAME);
+	result = readResultString();
+	pokeString(strPluginName, result, sizeof(strPluginName));
+
+	/* plugin description */
+	if (config.fakeVersion != "")
+		result = config.fakeVersion;
+	else{
+		callFunction(FUNCTION_GET_DESCRIPTION);
+		result = readResultString();
+	}
+	pokeString(strPluginDescription, result, sizeof(strPluginDescription));
+
+	/* plugin version */
+	if (config.fakeVersion != "")
+		result = config.fakeVersion;
+	else{
+		callFunction(FUNCTION_GET_VERSION);
+		result = readResultString();
+	}
+	pokeString(strPluginVersion, result, sizeof(strPluginVersion));
+
+	savePluginInformation();
 
 	/* initialisation successful */
 	initOkay = true;

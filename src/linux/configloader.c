@@ -49,6 +49,7 @@
 
 #include "../common/common.h"
 #include "configloader.h"
+#include "basicplugin.h"
 
 /* defined in basicplugin.h, but we don't want to pull in the whole header */
 extern bool checkSilverlightGraphicDriver();
@@ -560,4 +561,105 @@ bool loadConfig(PluginConfig &config){
 #endif
 
 	return true;
+}
+
+void savePluginInformation(){
+	std::string home, path;
+	uint32_t len;
+	FILE *file;
+
+	home = getHomeDirectory();
+	if (home == "")
+		return;
+
+	path = home + "/.cache";
+	if (mkdir(path.c_str(), 0755) < 0 && errno != EEXIST)
+		return;
+
+	path = home + "/.cache/pipelight";
+	if (mkdir(path.c_str(), 0755) < 0 && errno != EEXIST)
+		return;
+
+	path = home + "/.cache/pipelight/plugininfo-" + config.pluginName;
+	file = fopen(path.c_str(), "wb");
+	if (!file)
+		return;
+
+	/* mime types */
+	len = strlen(strMimeType);
+	fwrite(&len, 1, sizeof(len), file);
+	fwrite(strMimeType, 1, len, file);
+
+	/* plugin name */
+	len = strlen(strPluginName);
+	fwrite(&len, 1, sizeof(len), file);
+	fwrite(strPluginName, 1, len, file);
+
+	/* plugin description */
+	len = strlen(strPluginDescription);
+	fwrite(&len, 1, sizeof(len), file);
+	fwrite(strPluginDescription, 1, len, file);
+
+	/* plugin version */
+	len = strlen(strPluginVersion);
+	fwrite(&len, 1, sizeof(len), file);
+	fwrite(strPluginVersion, 1, len, file);
+
+	fclose(file);
+}
+
+#define fread_check(ptr, size, count, file)						\
+	do {														\
+		if (fread((ptr), (size), (count), (file)) != (count))	\
+			goto err;											\
+	} while (0)
+
+bool loadPluginInformation(){
+	std::string home, path;
+	uint32_t len;
+	FILE *file;
+
+	home = getHomeDirectory();
+	if (home == "")
+		return false;
+
+	path = home + "/.cache/pipelight/plugininfo-" + config.pluginName;
+	file = fopen(path.c_str(), "rb");
+	if (!file)
+		return false;
+
+	/* mime types */
+	fread_check(&len, 1, sizeof(len), file);
+	if (len >= sizeof(strMimeType))
+		goto err;
+	fread_check(strMimeType, 1, len, file);
+	strMimeType[len] = 0;
+
+	/* plugin name */
+	fread_check(&len, 1, sizeof(len), file);
+	if (len >= sizeof(strPluginName))
+		goto err;
+	fread_check(strPluginName, 1, len, file);
+	strPluginName[len] = 0;
+
+	/* plugin description */
+	fread_check(&len, 1, sizeof(len), file);
+	if (len >= sizeof(strPluginDescription))
+		goto err;
+	fread_check(strPluginDescription, 1, len, file);
+	strPluginDescription[len] = 0;
+
+	/* plugin version */
+	fread_check(&len, 1, sizeof(len), file);
+	if (len >= sizeof(strPluginVersion))
+		goto err;
+	fread_check(strPluginVersion, 1, len, file);
+	strPluginVersion[len] = 0;
+
+	fclose(file);
+	return true;
+
+err:
+	fclose(file);
+	return false;
 }

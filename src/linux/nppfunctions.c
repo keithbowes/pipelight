@@ -161,19 +161,6 @@ NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs *bFuncs, NPPluginFuncs* pFuncs)
 /* NP_GetPluginVersion */
 NP_EXPORT(/*const*/ char*) NP_GetPluginVersion(){
 	DBG_TRACE("()");
-
-	if (initOkay){
-		std::string result;
-		if (config.fakeVersion != "")
-			result = config.fakeVersion;
-		else{
-			callFunction(FUNCTION_GET_VERSION);
-			result = readResultString();
-		}
-		pokeString(strPluginVersion, result, sizeof(strPluginVersion));
-	}else
-		pokeString(strPluginVersion, "0.0", sizeof(strPluginVersion));
-
 	DBG_TRACE(" -> version='%s'", strPluginVersion);
 	return strPluginVersion;
 }
@@ -181,23 +168,6 @@ NP_EXPORT(/*const*/ char*) NP_GetPluginVersion(){
 /* NP_GetMIMEDescription */
 NP_EXPORT(const char*) NP_GetMIMEDescription(){
 	DBG_TRACE("()");
-
-	if (initOkay){
-		callFunction(FUNCTION_GET_MIMETYPE);
-		std::string result = readResultString();
-
-		for (std::vector<MimeInfo>::iterator it = config.fakeMIMEtypes.begin(); it != config.fakeMIMEtypes.end(); it++)
-			result += ";" + it->mimeType + ":" + it->extension + ":" + it->description;
-
-		pokeString(strMimeType, result, sizeof(strMimeType));
-
-	}else{
-		if(config.pluginName == "")
-			pokeString(strMimeType, "application/x-pipelight-error:pipelighterror:Error during initialization", sizeof(strMimeType));
-		else
-			pokeString(strMimeType, "application/x-pipelight-error-"+config.pluginName+":pipelighterror-"+config.pluginName+":Error during initialization", sizeof(strMimeType));
-	}
-
 	DBG_TRACE(" -> mimeType='%s'", strMimeType);
 	return strMimeType;
 }
@@ -212,31 +182,11 @@ NP_EXPORT(NPError) NP_GetValue(void *future, NPPVariable variable, void *value){
 	switch (variable) {
 
 		case NPPVpluginNameString:
-			if (!initOkay)
-				resultStr = (config.pluginName == "") ? "Pipelight Error!" : ("Pipelight Error (" + config.pluginName +")!");
-			else{
-				callFunction(FUNCTION_GET_NAME);
-				resultStr = readResultString();
-			}
-
-			pokeString(strPluginName, resultStr, sizeof(strPluginName));
-
 			*((char**)value)	= strPluginName;
 			result				= NPERR_NO_ERROR;
 			break;
 
 		case NPPVpluginDescriptionString:
-			if (!initOkay)
-				resultStr = "Something went wrong, check the terminal output";
-			else if (config.fakeVersion != "")
-				resultStr = config.fakeVersion;
-			else{
-				callFunction(FUNCTION_GET_DESCRIPTION);
-				resultStr = readResultString();
-			}
-
-			pokeString(strPluginDescription, resultStr, sizeof(strPluginDescription));
-
 			*((char**)value)	= strPluginDescription;
 			result				= NPERR_NO_ERROR;
 			break;

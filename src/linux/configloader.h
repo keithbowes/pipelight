@@ -110,5 +110,7 @@ struct PluginConfig{
 };
 
 extern bool loadConfig(PluginConfig &config);
+extern void savePluginInformation();
+extern bool loadPluginInformation();
 
 #endif // ConfigLoader_h_
