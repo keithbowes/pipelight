@@ -64,7 +64,6 @@ struct MimeInfo{
 struct PluginConfig{
 	std::string		configPath;
 	std::string		pluginName;
-	bool			diagnosticMode;
 
 	std::string		sandboxPath;
 

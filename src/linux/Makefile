@@ -8,7 +8,7 @@ endif
 CXX			?= g++
 CXXFLAGS	:= -Wall -fPIC -std=gnu++0x -DPIPELIGHT_SHARE_PATH='"$(datadir)/pipelight"' $(CXXFLAGS)
 LDFLAGS		:= -lpthread $(LDFLAGS)
-OBJECTS		:= common.o basicplugin.o configloader.o diagnostic.o npclass.o nppfunctions.o
+OBJECTS		:= common.o basicplugin.o configloader.o npclass.o nppfunctions.o
 COMMONHDR	:= ../common/common.h ../npapi-headers/npapi.h ../npapi-headers/npfunctions.h ../npapi-headers/npruntime.h ../npapi-headers/nptypes.h
 
 ifneq ($(UNAME_S),Darwin)
@@ -33,13 +33,10 @@ basicplugin.o: basicplugin.c basicplugin.h configloader.h $(COMMONHDR)
 configloader.o: configloader.c configloader.h $(COMMONHDR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c configloader.c -o configloader.o
 
-diagnostic.o: diagnostic.c diagnostic.h basicplugin.h configloader.h $(COMMONHDR)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c diagnostic.c -o diagnostic.o
-
 npclass.o: npclass.c $(COMMONHDR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c npclass.c -o npclass.o
 
-nppfunctions.o: nppfunctions.c basicplugin.h configloader.h diagnostic.h $(COMMONHDR)
+nppfunctions.o: nppfunctions.c basicplugin.h configloader.h $(COMMONHDR)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c nppfunctions.c -o nppfunctions.o
 
 .PHONY: clean

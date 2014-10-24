@@ -44,7 +44,6 @@
 
 #include "../common/common.h"
 #include "basicplugin.h"
-#include "diagnostic.h"
 
 /* NP_Initialize */
 NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs *bFuncs, NPPluginFuncs* pFuncs){
@@ -310,11 +309,6 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	instance->pdata			= pdata;
 
 	if (pdata->pipelightError){
-
-		/* run diagnostic stuff if its the wrong mimetype */
-		if (invalidMimeType && config.diagnosticMode)
-			runDiagnostic(instance);
-
 		DBG_TRACE(" -> result=%d", NPERR_GENERIC_ERROR);
 		return NPERR_GENERIC_ERROR;
 	}
@@ -444,7 +438,7 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 NPError NPP_Destroy(NPP instance, NPSavedData** save){
 	DBG_TRACE("( instance=%p, save=%p )", instance, save);
 
-	/* Initialization failed or diagnostic mode */
+	/* Initialization failed */
 	PluginData *pdata = (PluginData*)instance->pdata;
 	if (!pdata){
 		DBG_TRACE(" -> result=%d", NPERR_GENERIC_ERROR);

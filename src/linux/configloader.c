@@ -270,7 +270,6 @@ bool loadConfig(PluginConfig &config){
 	/* initialize config variables with default values */
 	config.configPath			= "";
 	config.pluginName			= "";
-	config.diagnosticMode		= false;
 
 	config.sandboxPath			= "";
 
@@ -349,10 +348,6 @@ bool loadConfig(PluginConfig &config){
 
 		if (key[0] == '$'){
 			variables[key] = value;
-
-		}else if (key == "diagnosticmode"){
-			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
-			config.diagnosticMode = (value == "true" || value == "yes");
 
 		}else if (key == "sandboxpath"){
 			if (checkIfExists(value))
