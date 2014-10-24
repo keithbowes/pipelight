@@ -21,7 +21,9 @@ ifeq ($(with_win64),true)
 endif
 
 ifeq ($(debug),true)
-	CXXFLAGS := $(CXXFLAGS) -DPIPELIGHT_DEBUG
+	cxxflags := $(cxxflags) -DPIPELIGHT_DEBUG
+	win32_flags := $(win32_flags) -DPIPELIGHT_DEBUG
+	win64_flags := $(win64_flags) -DPIPELIGHT_DEBUG
 endif
 
 SED_OPTS :=	-e 's|@@BASH@@|$(bash_interp)|g' \
