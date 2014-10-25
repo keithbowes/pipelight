@@ -87,12 +87,13 @@ NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs *bFuncs, NPPluginFuncs* pFuncs)
 			!sBrowserFuncs->hasproperty ||
 			!sBrowserFuncs->identifierisstring ||
 			!sBrowserFuncs->intfromidentifier ||
+			!sBrowserFuncs->invalidaterect ||
 			!sBrowserFuncs->invoke ||
 			!sBrowserFuncs->invokeDefault ||
 			!sBrowserFuncs->memalloc ||
 			!sBrowserFuncs->memfree ||
 			!sBrowserFuncs->newstream ||
-			!sBrowserFuncs->pluginthreadasynccall ||
+			/* !sBrowserFuncs->pluginthreadasynccall || */
 			!sBrowserFuncs->poppopupsenabledstate ||
 			!sBrowserFuncs->posturl ||
 			!sBrowserFuncs->posturlnotify ||
@@ -105,9 +106,10 @@ NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs *bFuncs, NPPluginFuncs* pFuncs)
 			/* !sBrowserFuncs->scheduletimer || */
 			!sBrowserFuncs->setexception ||
 			!sBrowserFuncs->setproperty ||
+			!sBrowserFuncs->setvalue ||
 			!sBrowserFuncs->status ||
 			!sBrowserFuncs->uagent ||
-			/*!sBrowserFuncs->unscheduletimer || */
+			/* !sBrowserFuncs->unscheduletimer || */
 			!sBrowserFuncs->utf8fromidentifier ||
 			!sBrowserFuncs->write ){
 		DBG_ERROR("your browser doesn't support all required functions!");
@@ -324,7 +326,7 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	bool startAsyncCall = false;
 
 	/* Detect Opera browsers and set eventAsyncCall to true in this case */
-	if (!config.eventAsyncCall && config.operaDetection){
+	if (!config.eventAsyncCall && config.operaDetection && sBrowserFuncs->pluginthreadasynccall){
 		if (std::string(sBrowserFuncs->uagent(instance)).find("Opera") != std::string::npos){
 			config.eventAsyncCall = true;
 			DBG_INFO("Opera browser detected, changed eventAsyncCall to true.");
