@@ -46,6 +46,7 @@ usage()
 	echo "  --disable-all               disable all plugins"
 	echo "  --list-enabled              list enabled plugins for the current user"
 	echo "  --list-enabled-all          list all enabled plugins"
+	echo "  --show-license              print license for plugin"
 	echo "  --system-check              do a system check"
 	echo "  --help                      shows this help"
 	echo "  --version                   shows the current version of Pipelight"
@@ -151,9 +152,11 @@ is_supported_plugin()
 # > Shows the license agreement of a specific plugin and asks the user
 # arguments:
 # $1	- name of the plugin
+# $2	- print raw license
 show_license_dialog()
 {
 	local PLUGIN="$1"
+	local PRINT_ONLY="$2"
 	local configpath="$PIPELIGHT_SHARE_PATH/configs"
 	local licensepath="$PIPELIGHT_SHARE_PATH/licenses"
 
@@ -170,21 +173,29 @@ show_license_dialog()
 	local licenses=0
 	for dep in $(sed -n 's|^[ \t]*dependency[ \t]*=[ \t]*wine-\(.*\)-installer[ \t]*$|\1|p' "$configpath/pipelight-$PLUGIN"); do
 		if [ -f "$licensepath/license-$dep.txt" ]; then
-			if [ "$licenses" -eq 0 ]; then
+			if [ "$licenses" -eq 0 ] && [ "$PRINT_ONLY" -eq 0 ]; then
 				echo ""
 				echo "The following modules require a license confirmation before they can be enabled:"
 				echo ""
 			fi
 			while IFS= read line; do
 				if [ "$line" == "---" ]; then break; fi
-				echo "$line" | sed	-e 's|^\(\[\*\].*\)$|'$color1'\1'$color0'|g' \
-									-e 's|\(http://[^ \t]*\)|'$color3'\1'$color0'|g' \
-									-e 's|\(/usr/[^ \t]*\)|'$color3'\1'$color0'|g'
+				if [ "$PRINT_ONLY" -eq 0 ]; then
+					echo "$line" | sed	-e 's|^\(\[\*\].*\)$|'$color1'\1'$color0'|g' \
+										-e 's|\(http://[^ \t]*\)|'$color3'\1'$color0'|g' \
+										-e 's|\(/usr/[^ \t]*\)|'$color3'\1'$color0'|g'
+				else
+					echo "$line"
+				fi
 			done < "$licensepath/license-$dep.txt"
 			echo ""
 			(( licenses++ ))
 		fi
 	done
+
+	if [ "$PRINT_ONLY" -ne 0 ]; then
+		return 0
+	fi
 
 	if [ "$ACCEPTALL" -eq 0 ] && [ "$licenses" -ne 0 ]; then
 		read -p "Do you accept the $licenses license(s) above? [Y/N] " -n 1 -r choice
@@ -219,6 +230,26 @@ show_license_dialog()
 	return 0
 }
 
+
+# > Print raw license for a plugin
+# arguments:
+# $1	- name of the plugin
+print_license()
+{
+	local PLUGIN="$1"
+	if ! get_directories; then return 1; fi
+
+	PLUGIN=$(resolve_plugin_alias "$PLUGIN")
+	[ $? -eq 0 ] || return 1;
+
+	if ! is_supported_plugin "$PLUGIN"; then
+		echo "ERROR: Plugin $PLUGIN is unknown" >&2
+		return 1
+	fi
+
+	show_license_dialog "$PLUGIN" 1;
+	return $?
+}
 
 # > Enables/Disables a given plugin
 # arguments:
@@ -261,7 +292,7 @@ enable_plugin()
 	elif [ -e "$dst" ]; then
 		echo "ERROR: $dst exists but is not a symlink, aborting - delete or rename this file manually." >&2
 		return 1
-	elif ! show_license_dialog "$PLUGIN"; then
+	elif ! show_license_dialog "$PLUGIN" 0; then
 		echo "Aborting" >&1
 		return 1
 	fi
@@ -706,6 +737,14 @@ while [[ $# > 0 ]] ; do
 			;;
 		--list-enabled-all)
 			if ! list_all_enabled_plugins; then RET=1; fi
+			;;
+
+		--show-license)
+			if ! print_license "$1"; then RET=1; fi
+			shift
+			;;
+		--show-license=*)
+			if ! print_license "${CMD#*=}"; then RET=1; fi
 			;;
 
 		--system-check)
