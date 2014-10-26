@@ -134,7 +134,6 @@ struct PluginData{
 #endif
 };
 
-extern std::string convertWinePath(std::string path, bool direction = false);
 extern bool checkPluginInstallation();
 extern bool startWineProcess();
 
