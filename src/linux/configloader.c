@@ -255,7 +255,8 @@ static  bool openConfig(std::ifstream &configFile, std::string &configPath, std:
 /* loadConfig, parses the config file */
 bool loadConfig(PluginConfig &config){
 	std::map<std::string, std::string> variables;
-	int environmentVariable;
+	int environmentVariableInt;
+	std::string environmentVariableStr;
 
 	/* Add $home to variables */
 	std::string homeDir = getHomeDirectory();
@@ -497,9 +498,9 @@ bool loadConfig(PluginConfig &config){
 	}
 
 	/* environment variable to overwrite embedding */
-	environmentVariable = getEnvironmentInteger("PIPELIGHT_EMBED", -1);
-	if (environmentVariable >= 0){
-		config.embed = (environmentVariable >= 1);
+	environmentVariableInt = getEnvironmentInteger("PIPELIGHT_EMBED", -1);
+	if (environmentVariableInt >= 0){
+		config.embed = (environmentVariableInt >= 1);
 		DBG_INFO("embed set via commandline to %s", config.embed ? "true" : "false");
 	}
 
@@ -511,10 +512,10 @@ bool loadConfig(PluginConfig &config){
 #endif
 
 	/* environment variable to overwrite windowlessmode */
-	environmentVariable = getEnvironmentInteger("PIPELIGHT_WINDOWLESSMODE", -1);
-	if (environmentVariable >= 0){
-		config.windowlessMode		= (environmentVariable >= 1);
-		config.linuxWindowlessMode	= (environmentVariable >= 2);
+	environmentVariableInt = getEnvironmentInteger("PIPELIGHT_WINDOWLESSMODE", -1);
+	if (environmentVariableInt >= 0){
+		config.windowlessMode		= (environmentVariableInt >= 1);
+		config.linuxWindowlessMode	= (environmentVariableInt >= 2);
 		DBG_INFO("windowlessMode set via commandline to %s",		config.windowlessMode ? "true" : "false");
 		DBG_INFO("linuxWindowlessMode set via commandline to %s",	config.linuxWindowlessMode ? "true" : "false");
 	}
@@ -526,14 +527,19 @@ bool loadConfig(PluginConfig &config){
 	}
 #endif
 
+	/* environment variable to overwrite Wine path */
+	environmentVariableStr = getEnvironmentString("PIPELIGHT_WINE");
+	if (environmentVariableStr != "")
+		config.winePath = environmentVariableStr;
+
 	/* check if hw acceleration should be used (only for Silverlight) */
 	if (config.silverlightGraphicDriverCheck){
-		environmentVariable = getEnvironmentInteger("PIPELIGHT_GPUACCELERATION", -1);
-		if (environmentVariable >= 0){
-			config.overwriteArgs["enableGPUAcceleration"]	= (environmentVariable >= 1) ? "true" : "false";
-			config.experimental_strictDrawOrdering			= (environmentVariable >= 2);
+		environmentVariableInt = getEnvironmentInteger("PIPELIGHT_GPUACCELERATION", -1);
+		if (environmentVariableInt >= 0){
+			config.overwriteArgs["enableGPUAcceleration"]	= (environmentVariableInt >= 1) ? "true" : "false";
+			config.experimental_strictDrawOrdering			= (environmentVariableInt >= 2);
 			config.silverlightGraphicDriverCheck			= false;
-			DBG_INFO("enableGPUAcceleration set via commandline to %s", (environmentVariable >= 1) ? "true" : "false");
+			DBG_INFO("enableGPUAcceleration set via commandline to %s", (environmentVariableInt >= 1) ? "true" : "false");
 
 		}else if (config.overwriteArgs.find("enableGPUAcceleration") != config.overwriteArgs.end()){
 			config.silverlightGraphicDriverCheck			= false;
