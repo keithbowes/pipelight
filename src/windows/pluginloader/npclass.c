@@ -38,7 +38,7 @@
 
 #define __WINESRC__
 
-#include "../common/common.h"
+#include "common/common.h"
 
 /*
 	NP Class

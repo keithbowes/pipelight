@@ -1,8 +1,8 @@
-suffix		:=
-CXX			?= i686-w64-mingw32-g++
-CXXFLAGS	:= -Wall -std=gnu++0x -D_WIN32_WINNT=0x0502 -DPLUGINLOADER $(CXXFLAGS)
 LDFLAGS		:= -lgdi32 -lopengl32
-OBJECTS		:= check$(suffix).o
+export
+
+SOURCE		= $(wildcard *.c)
+OBJECTS		= $(SOURCE:.c=$(suffix).o)
 
 .PHONY: all
 all: winecheck$(suffix).exe
@@ -16,8 +16,10 @@ winecheck$(suffix).exe: $(OBJECTS)
 		mv "winecheck$(suffix).exe.so" "winecheck$(suffix).exe"; \
 	fi
 
-check$(suffix).o: check.c
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c check.c -o check$(suffix).o
+%$(suffix).o: %.c
+	$(CXX) $(CXXFLAGS) -MMD -MP -o $@ -c $<
+
+-include $(SOURCE:.c=.d)
 
 .PHONY: clean
 clean:

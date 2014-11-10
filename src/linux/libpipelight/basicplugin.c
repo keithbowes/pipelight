@@ -51,7 +51,6 @@
 #include <X11/Xmd.h>							// for CARD32
 #endif
 
-#include "../common/common.h"
 #include "basicplugin.h"
 
 /* BEGIN GLOBAL VARIABLES

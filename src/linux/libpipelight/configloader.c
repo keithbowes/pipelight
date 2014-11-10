@@ -47,7 +47,7 @@
 #include <map>									// for std::map
 #include <dlfcn.h>
 
-#include "../common/common.h"
+#include "common/common.h"
 #include "configloader.h"
 #include "basicplugin.h"
 

@@ -44,7 +44,7 @@
 #include <pthread.h>							// alternative to ScheduleTimer etc.
 #include <semaphore.h>
 
-#include "../common/common.h"
+#include "common/common.h"
 #include "configloader.h"
 
 extern char strMimeType[2048];

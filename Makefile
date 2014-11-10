@@ -9,14 +9,14 @@ PROGRAMS :=
 ifeq ($(win32_cxx),prebuilt)
 	PROGRAMS := $(PROGRAMS) prebuilt32
 else
-	PROGRAMS := $(PROGRAMS) pluginloader32 winecheck32
+	PROGRAMS := $(PROGRAMS) windows32
 endif
 
 ifeq ($(with_win64),true)
 	ifeq ($(win64_cxx),prebuilt)
 		PROGRAMS := $(PROGRAMS) prebuilt64
 	else
-		PROGRAMS := $(PROGRAMS) pluginloader64 winecheck64
+		PROGRAMS := $(PROGRAMS) windows64
 	endif
 endif
 
@@ -72,28 +72,21 @@ linux: config.make
 .PHONY: prebuilt32
 prebuilt32: config.make pluginloader-$(git_commit).tar.gz pluginloader-$(git_commit).tar.gz.sig
 	$(gpg_exec) --batch --no-default-keyring --keyring "share/sig-pluginloader.gpg" --verify "pluginloader-$(git_commit).tar.gz.sig"
-	tar -xvf "pluginloader-$(git_commit).tar.gz" src/windows/pluginloader.exe src/winecheck/winecheck.exe
+	tar -xvf "pluginloader-$(git_commit).tar.gz" src/windows/pluginloader/pluginloader.exe src/windows/winecheck/winecheck.exe
 
 .PHONY: prebuilt64
 prebuilt64: config.make pluginloader-$(git_commit).tar.gz pluginloader-$(git_commit).tar.gz.sig
 	$(gpg_exec) --batch --no-default-keyring --keyring "share/sig-pluginloader.gpg" --verify "pluginloader-$(git_commit).tar.gz.sig"
-	tar -xvf "pluginloader-$(git_commit).tar.gz" src/windows/pluginloader64.exe src/winecheck/winecheck64.exe
+	tar -xvf "pluginloader-$(git_commit).tar.gz" src/windows/pluginloader/pluginloader64.exe src/windows/winecheck/winecheck64.exe
 
-.PHONY: pluginloader32
-pluginloader32: config.make
+.PHONY: windows32
+windows32: config.make
 	CXX="$(win32_cxx)" CXXFLAGS="$(win32_flags)" $(MAKE) -C src/windows suffix=""
 
-.PHONY: winecheck32
-winecheck32: config.make
-	CXX="$(win32_cxx)" CXXFLAGS="$(win32_flags)" $(MAKE) -C src/winecheck suffix=""
-
-.PHONY: pluginloader64
-pluginloader64: config.make
+.PHONY: windows64
+windows64: config.make
 	CXX="$(win64_cxx)" CXXFLAGS="$(win64_flags)" $(MAKE) -C src/windows suffix="64"
 
-.PHONY: winecheck64
-winecheck64: config.make
-	CXX="$(win64_cxx)" CXXFLAGS="$(win64_flags)" $(MAKE) -C src/winecheck suffix="64"
 
 .PHONY: install
 install: config.make all
@@ -108,14 +101,14 @@ install: config.make all
 
 	install -pm 0644 share/sig-install-dependency.gpg "$(DESTDIR)$(datadir)/pipelight/sig-install-dependency.gpg"
 
-	install -pm 0755 "src/windows/pluginloader.exe" "$(DESTDIR)$(datadir)/pipelight/pluginloader.exe"
+	install -pm 0755 "src/windows/pluginloader/pluginloader.exe" "$(DESTDIR)$(datadir)/pipelight/pluginloader.exe"
 	if [ "$(with_win64)" = "true" ]; then \
-		install -pm 0755 "src/windows/pluginloader64.exe" "$(DESTDIR)$(datadir)/pipelight/pluginloader64.exe"; \
+		install -pm 0755 "src/windows/pluginloader/pluginloader64.exe" "$(DESTDIR)$(datadir)/pipelight/pluginloader64.exe"; \
 	fi
 
-	install -pm 0755 "src/winecheck/winecheck.exe" "$(DESTDIR)$(datadir)/pipelight/winecheck.exe"
+	install -pm 0755 "src/windows/winecheck/winecheck.exe" "$(DESTDIR)$(datadir)/pipelight/winecheck.exe"
 	if [ "$(with_win64)" = "true" ]; then \
-		install -pm 0755 "src/winecheck/winecheck64.exe" "$(DESTDIR)$(datadir)/pipelight/winecheck64.exe"; \
+		install -pm 0755 "src/windows/winecheck/winecheck64.exe" "$(DESTDIR)$(datadir)/pipelight/winecheck64.exe"; \
 	fi
 
 	rm -f "$(DESTDIR)$(datadir)/pipelight/wine"
@@ -151,7 +144,7 @@ install: config.make all
 		rm pipelight-license.tmp; \
 	done
 
-	install -pm $(so_mode) src/linux/libpipelight.so "$(DESTDIR)$(libdir)/pipelight/libpipelight.so"
+	install -pm $(so_mode) src/linux/libpipelight/libpipelight.so "$(DESTDIR)$(libdir)/pipelight/libpipelight.so"
 
 	sed $(SED_OPTS) bin/pipelight-plugin.in > pipelight-plugin.tmp
 	touch -r bin/pipelight-plugin.in pipelight-plugin.tmp
@@ -190,7 +183,7 @@ uninstall: config.make
 
 .PHONY: clean
 clean:
-	for dir in src/linux src/windows src/winecheck; do \
+	for dir in src/linux src/windows src/common; do \
 		$(MAKE) -C $$dir $@; \
 	done
 
@@ -200,15 +193,15 @@ dist-clean: clean
 
 .PHONY: pluginloader-tarball
 pluginloader-tarball: config.make all
-	mkdir -p "$(DESTDIR)/src/windows"
-	mkdir -p "$(DESTDIR)/src/winecheck"
+	mkdir -p "$(DESTDIR)/src/windows/pluginloader"
+	mkdir -p "$(DESTDIR)/src/windows/winecheck"
 
-	install -pm 0755 "src/windows/pluginloader.exe" "$(DESTDIR)/src/windows/pluginloader.exe"
+	install -pm 0755 "src/windows/pluginloader/pluginloader.exe" "$(DESTDIR)/src/windows/pluginloader/pluginloader.exe"
 	if [ "$(with_win64)" = "true" ]; then \
-		install -pm 0755 "src/windows/pluginloader64.exe" "$(DESTDIR)/src/windows/pluginloader64.exe"; \
+		install -pm 0755 "src/windows/pluginloader/pluginloader64.exe" "$(DESTDIR)/src/windows/pluginloader/pluginloader64.exe"; \
 	fi
 
-	install -pm 0755 "src/winecheck/winecheck.exe" "$(DESTDIR)/src/winecheck/winecheck.exe"
+	install -pm 0755 "src/windows/winecheck/winecheck.exe" "$(DESTDIR)/src/windows/winecheck/winecheck.exe"
 	if [ "$(with_win64)" = "true" ]; then \
-		install -pm 0755 "src/winecheck/winecheck64.exe" "$(DESTDIR)/src/winecheck/winecheck64.exe"; \
+		install -pm 0755 "src/windows/winecheck/winecheck64.exe" "$(DESTDIR)/src/windows/winecheck/winecheck64.exe"; \
 	fi

@@ -1,44 +1,17 @@
-UNAME_S		:= $(shell uname -s)
+CXXFLAGS	:= -I../../../include -Wall -std=gnu++0x -fPIC $(CXXFLAGS)
+export
 
-ifeq ($(UNAME_S), FreeBSD)
-	CXXFLAGS := -I/usr/local/include $(CXXFLAGS)
-	LDFLAGS  := -L/usr/local/lib $(LDFLAGS)
-endif
-
-CXX			?= g++
-CXXFLAGS	:= -Wall -fPIC -std=gnu++0x -DPIPELIGHT_SHARE_PATH='"$(datadir)/pipelight"' $(CXXFLAGS)
-LDFLAGS		:= -lpthread $(LDFLAGS)
-OBJECTS		:= common.o basicplugin.o configloader.o npclass.o nppfunctions.o
-COMMONHDR	:= ../common/common.h ../npapi-headers/npapi.h ../npapi-headers/npfunctions.h ../npapi-headers/npruntime.h ../npapi-headers/nptypes.h
-
-ifneq ($(UNAME_S),Darwin)
-	LDFLAGS := -lX11 $(LDFLAGS)
-endif
-ifneq ($(UNAME_S),FreeBSD)
-	LDFLAGS := -ldl $(LDFLAGS)
-endif
+SUBDIRS		= $(dir $(wildcard */Makefile))
 
 .PHONY: all
-all: libpipelight.so
+all: $(SUBDIRS)
 
-libpipelight.so: $(OBJECTS)
-	$(CXX) -shared $(CPPFLAGS) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS) -o libpipelight.so
-
-common.o: ../common/common.c $(COMMONHDR)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c ../common/common.c -o common.o
-
-basicplugin.o: basicplugin.c basicplugin.h configloader.h $(COMMONHDR)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c basicplugin.c -o basicplugin.o
-
-configloader.o: configloader.c configloader.h $(COMMONHDR)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c configloader.c -o configloader.o
-
-npclass.o: npclass.c $(COMMONHDR)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c npclass.c -o npclass.o
-
-nppfunctions.o: nppfunctions.c basicplugin.h configloader.h $(COMMONHDR)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c nppfunctions.c -o nppfunctions.o
+.PHONY: $(SUBDIRS)
+$(SUBDIRS):
+	$(MAKE) -C $@
 
 .PHONY: clean
 clean:
-	rm -f libpipelight.so *.o
+	for dir in $(SUBDIRS); do \
+		$(MAKE) -C $$dir $@; \
+	done

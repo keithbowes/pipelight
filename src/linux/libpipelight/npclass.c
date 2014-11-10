@@ -38,7 +38,7 @@
 
 #include <string.h>								// for memcpy
 
-#include "../common/common.h"
+#include "common/common.h"
 
 void NPInvalidateFunction(NPObject *npobj){
 	DBG_TRACE("( npobj=%p )", npobj);

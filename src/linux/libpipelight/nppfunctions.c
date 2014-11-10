@@ -42,7 +42,7 @@
 #include <signal.h>								// waitpid, kill, ...
 #include <string.h>								// for memcpy, ...
 
-#include "../common/common.h"
+#include "common/common.h"
 #include "basicplugin.h"
 
 /* NP_Initialize */

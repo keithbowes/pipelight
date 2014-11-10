@@ -42,7 +42,7 @@
 #include <map>
 #include <set>
 
-#include "../common/common.h"
+#include "common/common.h"
 
 extern std::map<HWND, NPP> hwndToInstance;
 extern std::set<NPP> instanceList;

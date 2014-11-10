@@ -39,7 +39,7 @@
 #define __WINESRC__
 
 #include <vector>								// for std::vector
-#include "../common/common.h"
+#include "common/common.h"
 #include "pluginloader.h"
 
 #include <windows.h>							// for PVOID and other types
