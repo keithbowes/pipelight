@@ -645,6 +645,13 @@ update_dependency_installer()
 	local sha="$(sha256sum "$decfile" | cut -d' ' -f1)"
 	if [ -f "$dependencyinstaller" ] && [ "$sha" == "$(sha256sum "$dependencyinstaller" | cut -d' ' -f1)" ]; then
 		rm "$decfile"
+
+		# Try to update timestamps of libpipelight-*.so files anyway (but ignore failures)
+		for entry in "${ALL_PLUGINS[@]}"; do
+			local dst="$PIPELIGHT_LIBRARY_PATH/libpipelight-$entry.so"
+			[ -e "$dst" ] && touch "$dst" 2>/dev/null
+		done
+
 		echo ""
 		echo "Script dependency-installer is already up-to-date."
 		return 0
