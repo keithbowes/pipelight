@@ -1,6 +1,7 @@
 pipelight-multi (0.2.8) UNRELEASED; urgency=low
 
   * Use signature for install-dependency.sig in clearsign format
+  * Use new key for signing install-dependency.sig (used for --update)
   * Update Flash to 16.0.0.235
   * Update Silverlight to 5.1.30514.0
   * Update AdobeReader to 11.0.08

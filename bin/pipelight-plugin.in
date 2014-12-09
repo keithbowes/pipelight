@@ -3,7 +3,7 @@ VERSION="@@VERSION@@"
 PIPELIGHT_SHARE_PATH="@@PIPELIGHT_SHARE_PATH@@"
 PIPELIGHT_LIBRARY_PATH="@@PIPELIGHT_LIBRARY_PATH@@"
 PLUGIN_PATH="@@MOZ_PLUGIN_PATH@@"
-DEPENDENCY_INSTALLER_URL="https://bitbucket.org/mmueller2012/pipelight/raw/master/share/install-dependency.sig"
+DEPENDENCY_INSTALLER_URL="https://bitbucket.org/mmueller2012/pipelight/raw/master/share/install-dependency-1434FC73.sig"
 ACCEPTALL=0
 
 # Supported plugins (i686)
