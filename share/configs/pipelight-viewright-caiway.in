@@ -93,7 +93,7 @@ dependencyInstaller = $share/install-dependency
 # dependencyInstaller, can be used multiple times. (optional)
 #
 # Useful values for ViewRight for Caiway are:
-#   wine-ViewRight for Caiway-installer
+#   wine-viewright-caiway-installer
 #
 dependency          = wine-viewright-caiway-installer
 
