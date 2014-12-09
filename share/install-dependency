@@ -914,14 +914,14 @@ while [ $# -gt 0 ] ; do
 			SHA="afa7a7081d30b00a4f57c32932bd6d84940bb43b3f5feb0828ff988c80e2d485"
 			;;
 		wine-flash-installer) # http://www.adobe.com/de/software/flash/about/
-			INS=(install_flash "15_0_0_239")
-			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/15.0.0.239/install_flash_player.exe"
-			SHA="17ec50dda2b146f7286e8aca2661789203e89170e6476286afc1da173991aabe"
+			INS=(install_flash "16_0_0_235")
+			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/16.0.0.235/install_flash_player.exe"
+			SHA="4e83b1af33587cc7bcab870b9f30395f2d78a249c46cf8953ffcd928c8f9f07c"
 			;;
 		wine-flash-debug-installer)
-			INS=(install_flash "15_0_0_239")
-			URL="http://download.macromedia.com/pub/flashplayer/updaters/15/flashplayer_15_plugin_debug.exe"
-			SHA="4041eca3554bc8acb6901cf0efbfdda6a08ebaf6f509e11c0c32e63d03d2aa90"
+			INS=(install_flash "16_0_0_235")
+			URL="http://download.macromedia.com/pub/flashplayer/updaters/16/flashplayer_16_plugin_debug.exe"
+			SHA="08fc11fc121464412a278aa3aee67bec62348b8ea687cf65286edb86fff0aa74"
 			;;
 		wine-widevine-installer) # http://www.widevine.com/download/videooptimizer/index.html
 			INS=(install_widevine)
@@ -932,12 +932,12 @@ while [ $# -gt 0 ] ; do
 		wine-unity3d-installer)
 			INS=(install_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayer.exe"
-			SHA="bd35ee29bed6ebb66f179409fcee1e5ee4fec310bd5158bd090705df391fab05"
+			SHA="84568878b561f248869701f4f768ae22fb35ab025bb514919a86a5eeb4fe3e2f"
 			;;
 		wine-x64-unity3d-installer)
 			INS=(install_x64_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayerFull64.exe"
-			SHA="dde8e7cf262e66c743de863753c8784f4d6c709f6f6c97d5e8057516851fc36b"
+			SHA="a4ae24820ec2f1c87e26123227c1ccd330c8b0f69f7e2f2586761e174a300802"
 			;;
 		wine-adobereader-installer) # http://get.adobe.com/de/reader/otherversions/
 			INS=(install_adobereader)
@@ -950,9 +950,9 @@ while [ $# -gt 0 ] ; do
 			SHA="7b0e2d19975fb0b6c5abd3f367c2d1190e15cb3f4243e91bb86d19da6b6e8c47"
 			;;
 		wine-shockwave-installer) # http://get.adobe.com/de/shockwave/otherversions/
-			INS=(install_shockwave "1214154")
+			INS=(install_shockwave "1215155")
 			URL="http://fpdownload.macromedia.com/get/shockwave/default/english/win95nt/latest/sw_lic_full_installer.exe"
-			SHA="d5047fe24ebaff22b75b845d0571e9867b399b107d81ee27715dc87ec3bc18e1"
+			SHA="ed1d5eda2ac41a311914f2b1fbaa6d60f7081c0fbea07c990d210a4313c696ba"
 			;;
 		wine-grandstream-installer)
 			INS=(install_grandstream)
@@ -995,7 +995,7 @@ while [ $# -gt 0 ] ; do
 			URL="http://www.vizzed.co/VizzedRgrPlugin-v2.0.msi"
 			SHA="ddc99b1a6902e30f355533620637a2d1b7d1ff3b1bd76a65cb1fbd78b2b396cb"
 			;;
-		wine-viewright-caiway-installer) #https://www.caiway.nl/site/nl/applicatie/multiscreentvplugins
+		wine-viewright-caiway-installer) # https://www.caiway.nl/site/nl/applicatie/multiscreentvplugins
 			INS=(install_viewright_caiway)
 			URL="https://www.caiway.nl/downloads/ViewRightWebInstaller-3.5.0.0_CaiW.msi"
 			SHA="9436dea83e42204d0a9bc4d128c2f2693dd9c5f9636d5fa57441ef5886f3ab43"
