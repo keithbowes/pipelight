@@ -6,6 +6,7 @@ pipelight-multi (0.2.8) UNRELEASED; urgency=low
   * Update AdobeReader to 11.0.08
   * Update Shockwave to 12.1.5.155
   * Update Unity3D checksum
+  * Remove TrianglePlayer plugin (doesn't exist anymore?)
 
  -- Sebastian Lackner <sebastian@fds-team.de>  Wed, 10 Sep 2014 11:18:54 +0200
 

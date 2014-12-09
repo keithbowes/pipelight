@@ -32,7 +32,6 @@ usage()
 	echo "	wine-roblox-installer"
 	echo "	wine-vizzedrgr-installer"
 	echo "	wine-viewright-caiway-installer"
-	echo "	wine-triangleplayer-installer"
 	echo ""
 	echo "Library dependencies:"
 	echo "	wine-mpg2splt-installer"
@@ -719,24 +718,6 @@ install_viewright_caiway()
 	return 0
 }
 
-# > Install TrianglePlayer
-# arguments: None
-# $DOWNLOADFILE
-install_triangleplayer()
-{
-	# Launch the installer
-	"$WINE" "$DOWNLOADFILE" 2>&1 | progressbar "Please wait, installing ..." "Running $DEP"
-
-	local installdir="$WINEPREFIX/drive_c/users/$USER/Application Data/TrianglePlayer"
-	if [ ! -f "$installdir/NPTrianglePlayer.dll" ]; then
-		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
-		return 1
-	fi
-
-	# Successful
-	return 0
-}
-
 # Use fetch on FreeBSD if wget is not available
 if command -v wget >/dev/null 2>&1; then
 	download_file()
@@ -1003,11 +984,6 @@ while [ $# -gt 0 ] ; do
 			URL="https://www.caiway.nl/downloads/ViewRightWebInstaller-3.5.0.0_CaiW.msi"
 			SHA="9436dea83e42204d0a9bc4d128c2f2693dd9c5f9636d5fa57441ef5886f3ab43"
 			;;
-		wine-triangleplayer-installer)
-			INS=(install_triangleplayer)
-			URL="http://107.6.61.221/TLT_GBE/TrianglePlayer_setup_GBE.exe"
-			SHA="30d871eb39002a52d405e3f40d2fb2047eb2e1f9b3597b27571633f442a5dea3"
-			;;
 		*)
 			echo "[$PRG] ERROR: No installer script found for $DEP." >&2
 			RET=1
@@ -1045,17 +1021,17 @@ exit "$RET"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBCAAGBQJUh3ZbAAoJEAtrgXwcOwUzDSAP/iPJHDIBlCGgXK1bpt8W8aaD
-8m3LY2x03jLinZpg1vUdzIjlnbAdqTUkBFVogemuGR7ktgFGaDh3mCYo8Ou1o/xr
-0QuQCXCyeDIl0R9a68nRMDMBAuK4dHhz0ObjQY7HgmDX+pyOfckjreQN4G+UThm+
-HQ0CplpNcfk/1FjANzo3KXxRMm9L4ssTuTNismgC2IzxbC4JZJLVhNnQbgrp30d+
-Hhd0qWDpj8/DGkDDBzQpmKpSKkqwPVGzPht0EOTkQEkhOwzv0MqfBP+Qtbet39/y
-wPjslJsuDylhKlieTWpFSKeDkkh25c8B+qIhObTWoaPqCoS4Kg2jnaa7NaUnlyUF
-vJtt5O8sfpXZy+NGu73Cy/ijACjYNSDm439p27WwwZyWAFU6By+HpAHvgMpX11Mp
-L6NjeKeB7UXbH/DbihSZ7RKdTw2adKSbvgprb6qX2p+B/Zj6+KUwroXfy9DaQjFv
-n6v48WFnJ9PEK/ag/wvTfDoanZ6WJKRuX0vILrtb0ROioiaPotsSlEmeroLtAftI
-+9hNIBN68WIZ6nQqcqcRKi7ZnG//pqxCplUkRfZL/Ir5ByF3WcVHA6hHolKRS4Ys
-9wqRJAFqC+ftO6eaVXIK0lqhEYeH+mVKjxjCh8FrJ/QYr84WFQsuzeohWbTMGIoX
-mvjYWt54Fei9Qa+SAVEU
-=KbTh
+iQIcBAEBCAAGBQJUh3gAAAoJEAtrgXwcOwUzxj4QAKyTnM+iAAdmeY2ygL5LB8hs
+VEe8VO8v9ibozuz3SqVh0zYSce4/0qxBU1WHzV52dPBIlMRyBPvmIj9yb9rQCpni
+U5J7cKkMDH4qhbHaZ1qamX8Wr/vJmo05V/saaSoxWBFRwSrlEqimcdcymVhpZVHL
+PYOU7xY5FaRNnfynVAVCRIBz0oHcaFJnaKDalaaYwACb9wyr6DuDx1blKVAlJhDz
+Ldguin4XNfytEt87zA3lgib1xDc3p8afxNE5FbNxHo9UbC9n7yg7AmyFPYQgm6yC
+k1bjt/9HE4TdMWv5X16GW9xW0alz4joAieLKK9Q1E3B8zNht4reF9/SA6AoT6L/E
+Vx0xdFk6o4WRjfH/3zlYK4G1YcyA1agNX0cfQ4HlAo5ZXTvTym/f6sz/KlSVLIzD
+tcuBA5TpQcjSuqJUVEu16RFWwTF5J/8T0ngnkQLExXyjsR0Q3mXJgjGyEFBHWUfj
+/XAzBIp5/HOxEsHVTQ1PY3EItc3maxTRbUe+U7XP735iiawKumS4OoUyKg5yhhm3
+LGTiSd2DQnWf8TkU9KJD2Ic12Ohk7Ro5uefCzx1jFHvWwd7GBqDnyIVgN8khODRx
+acAkz4RbJo1gNZJh8XRkJqPvfpafOl8PXHEjuNnruXs05htwSJMWQBeotm9Vmy80
+J+Slvr0w1/jFUWzCnPQE
+=k7wv
 -----END PGP SIGNATURE-----
