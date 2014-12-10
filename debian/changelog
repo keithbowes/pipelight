@@ -1,4 +1,4 @@
-pipelight-multi (0.2.8) UNRELEASED; urgency=low
+pipelight-multi (0.2.8) RELEASED; urgency=low
 
   * Use signature for install-dependency.sig in clearsign format
   * Use new key for signing install-dependency.sig (used for --update)
@@ -16,7 +16,7 @@ pipelight-multi (0.2.8) UNRELEASED; urgency=low
   * Rewrite Makefile system to automatically detect dependencies
   * Code cleanup
 
- -- Sebastian Lackner <sebastian@fds-team.de>  Wed, 10 Sep 2014 11:18:54 +0200
+ -- Sebastian Lackner <sebastian@fds-team.de>  Wed, 10 Dec 2014 05:55:56 +0100
 
 
 pipelight-multi (0.2.7.3) RELEASED; urgency=high
