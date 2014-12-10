@@ -442,7 +442,7 @@ check_system()
 	"$PIPELIGHT_SHARE_PATH/wine" --patches
 	echo ""
 
-	"$PIPELIGHT_SHARE_PATH/wine" "$PIPELIGHT_SHARE_PATH/winecheck.exe"
+	"$PIPELIGHT_SHARE_PATH/wine" "$PIPELIGHT_SHARE_PATH/winecheck.exe" 2>&1 | grep -v "fixme:winediag:start_process"
 	if [ "$?" -ne "0" ]; then
 		retval=1
 	fi
@@ -472,7 +472,7 @@ check_system()
 	"$PIPELIGHT_SHARE_PATH/wine64" --patches
 	echo ""
 
-	"$PIPELIGHT_SHARE_PATH/wine64" "$PIPELIGHT_SHARE_PATH/winecheck64.exe"
+	"$PIPELIGHT_SHARE_PATH/wine64" "$PIPELIGHT_SHARE_PATH/winecheck64.exe" 2>&1 | grep -v "fixme:winediag:start_process"
 	if [ "$?" -ne "0" ]; then
 		retval=1
 	fi
