@@ -45,6 +45,18 @@
 #include "common/common.h"
 #include "basicplugin.h"
 
+static std::string pipelightErrorJS =
+	"if (!window.__pipelight_error){\n"
+	"	if (confirm(\""
+			"Pipelight\\n\\n"
+			"There was an error during the plugin initialization!\\n\\n"
+			"Press OK to open a page with additional information."
+		"\")){\n"
+	"		window.open(\"http://pipelight.net/cms/faqs/faq-pipelight-error-in-aboutplugins.html\",'_blank');\n"
+	"	}\n"
+	"	window.__pipelight_error = true;\n"
+	"}";
+
 /* NP_Initialize */
 NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs *bFuncs, NPPluginFuncs* pFuncs){
 	DBG_TRACE("( bFuncs=%p, pFuncs=%p )", bFuncs, pFuncs);
@@ -287,6 +299,28 @@ void* timerThread(void *argument){
 	return NULL;
 }
 
+void executeJS(NPP instance, std::string code)
+{
+	NPObject *windowObj;
+	NPString script;
+
+	script.UTF8Characters	= code.c_str();
+	script.UTF8Length		= code.size();
+
+	NPVariant resultVariant;
+	resultVariant.type				= NPVariantType_Void;
+	resultVariant.value.objectValue = NULL;
+
+	if (sBrowserFuncs->getvalue(instance, NPNVWindowNPObject, &windowObj) == NPERR_NO_ERROR){
+		if (sBrowserFuncs->evaluate(instance, windowObj, &script, &resultVariant)){
+			sBrowserFuncs->releasevariantvalue(&resultVariant);
+			DBG_INFO("successfully executed JavaScript.");
+		}else
+			DBG_ERROR("failed to execute JavaScript, take a look at the JS console.");
+		sBrowserFuncs->releaseobject(windowObj);
+	}
+}
+
 /* NPP_New */
 NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char *argn[], char *argv[], NPSavedData* saved){
 	std::string mimeType(pluginType);
@@ -311,6 +345,13 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	instance->pdata			= pdata;
 
 	if (pdata->pipelightError){
+		/* show error message */
+		if (sBrowserFuncs->pushpopupsenabledstate)
+			sBrowserFuncs->pushpopupsenabledstate(instance, true);
+		executeJS(instance, pipelightErrorJS);
+		if (sBrowserFuncs->poppopupsenabledstate)
+			sBrowserFuncs->poppopupsenabledstate(instance);
+
 		DBG_TRACE(" -> result=%d", NPERR_GENERIC_ERROR);
 		return NPERR_GENERIC_ERROR;
 	}
@@ -334,25 +375,8 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	}
 
 	/* Execute Javascript if defined */
-	if (config.executeJavascript != ""){
-		NPObject		*windowObj;
-		NPString		script;
-		script.UTF8Characters	= config.executeJavascript.c_str();
-		script.UTF8Length		= config.executeJavascript.size();
-
-		NPVariant resultVariant;
-		resultVariant.type				= NPVariantType_Void;
-		resultVariant.value.objectValue = NULL;
-
-		if (sBrowserFuncs->getvalue(instance, NPNVWindowNPObject, &windowObj) == NPERR_NO_ERROR){
-			if (sBrowserFuncs->evaluate(instance, windowObj, &script, &resultVariant)){
-				sBrowserFuncs->releasevariantvalue(&resultVariant);
-				DBG_INFO("successfully executed JavaScript.");
-			}else
-				DBG_ERROR("failed to execute JavaScript, take a look at the JS console.");
-			sBrowserFuncs->releaseobject(windowObj);
-		}
-	}
+	if (config.executeJavascript != "")
+		executeJS(instance, config.executeJavascript);
 
 	/* Setup eventhandling */
 	if (config.eventAsyncCall){
