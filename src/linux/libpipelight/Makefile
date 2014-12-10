@@ -23,16 +23,15 @@ all: libpipelight.so
 %.o: %.c
 	$(CXX) $(CXXFLAGS) -MMD -MP -o $@ -c $<
 
+../../common/common_lin.o: dummy
+	$(MAKE) -C ../../common/
+
 -include $(SOURCE:.c=.d)
 
-libpipelight.so: $(SUBDIRS) $(OBJECTS)
+libpipelight.so: $(OBJECTS)
 	$(CXX) -shared $(CXXFLAGS) $(OBJECTS) $(LDFLAGS) -o libpipelight.so
 
-.PHONY: $(SUBDIRS)
-$(SUBDIRS):
-	$(MAKE) -C $@
-
-.PHONY: clean
+.PHONY: clean dummy
 clean:
 	rm -f *.so *.o *.d
 	for dir in $(SUBDIRS); do \

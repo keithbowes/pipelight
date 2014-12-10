@@ -10,7 +10,7 @@ OBJECTS			= $(SOURCE:.c=$(suffix).o) ../../common/common_win$(suffix).o
 .PHONY: all
 all: pluginloader$(suffix).exe
 
-pluginloader$(suffix).exe: $(SUBDIRS) $(OBJECTS)
+pluginloader$(suffix).exe: $(OBJECTS)
 	rm -f "pluginloader$(suffix).exe.so"
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS) -o pluginloader$(suffix).exe
 
@@ -22,13 +22,12 @@ pluginloader$(suffix).exe: $(SUBDIRS) $(OBJECTS)
 %$(suffix).o: %.c
 	$(CXX) $(CXXFLAGS) -MMD -MP -o $@ -c $<
 
+../../common/common_win$(suffix).o: dummy
+	$(MAKE) -C ../../common/
+
 -include $(SOURCE:.c=.d)
 
-.PHONY: $(SUBDIRS)
-$(SUBDIRS):
-	$(MAKE) -C $@
-
-.PHONY: clean
+.PHONY: clean dummy
 clean:
 	rm -f *.exe *.exe.so *.o *.d
 	for dir in $(SUBDIRS); do \
