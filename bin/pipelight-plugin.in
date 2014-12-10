@@ -449,7 +449,7 @@ check_system()
 	echo ""
 
 	"$PIPELIGHT_SHARE_PATH/wine" "$PIPELIGHT_SHARE_PATH/winecheck.exe" 2>&1 | \
-		grep -v "^\\(fixme:winediag:start_process\\|wine: cannot find .*winemenubuilder\\.exe\\|err:wineboot:ProcessRunKeys Error running cmd .*winemenubuilder\\.exe\\)"
+		grep -v "^\\(fixme:winediag:start_process\\|wine: cannot find .*winemenubuilder\\.exe\\|err:wineboot:ProcessRunKeys Error running cmd .*winemenubuilder\\.exe\\|wine: created the configuration directory\\|wine: configuration in .* has been updated\\)"
 	if [ "$?" -ne "0" ]; then
 		retval=1
 	fi
@@ -486,7 +486,7 @@ check_system()
 	echo ""
 
 	"$PIPELIGHT_SHARE_PATH/wine64" "$PIPELIGHT_SHARE_PATH/winecheck64.exe" 2>&1 | \
-		grep -v "^\\(fixme:winediag:start_process\\|wine: cannot find .*winemenubuilder\\.exe\\|err:wineboot:ProcessRunKeys Error running cmd .*winemenubuilder\\.exe\\)"
+		grep -v "^\\(fixme:winediag:start_process\\|wine: cannot find .*winemenubuilder\\.exe\\|err:wineboot:ProcessRunKeys Error running cmd .*winemenubuilder\\.exe\\|wine: created the configuration directory\\|wine: configuration in .* has been updated\\)"
 	if [ "$?" -ne "0" ]; then
 		retval=1
 	fi
