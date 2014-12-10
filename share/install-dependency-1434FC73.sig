@@ -970,9 +970,9 @@ while [ $# -gt 0 ] ; do
 			EXT="zip"
 			;;
 		wine-roblox-installer)
-			INS=(install_roblox "ca7bb36aabe54be5")
-			URL="http://setup.roblox.com/version-ca7bb36aabe54be5-Roblox.exe"
-			SHA="7be0878706eb22ed09c8fe6ee401b744cf338d71a06060e61f159ab00852953a"
+			INS=(install_roblox "632471a80776450d")
+			URL="http://setup.roblox.com/version-632471a80776450d-Roblox.exe"
+			SHA="901505c1311cb592521ea6bec09ec793194d1ecb0630686e72a948850e55d632"
 			;;
 		wine-vizzedrgr-installer)
 			INS=(install_vizzedrgr)
@@ -1021,17 +1021,17 @@ exit "$RET"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBCAAGBQJUh49RAAoJEIPHP7IUNPxzAZAP/iGNi+Ofa+16w6VPeUL8rS4/
-dJ+YSI+TZuypEBNycPnAp6WsEcZPApZ8G+F7JwTNPnflFPUoKndlR7q9ZG8YHTmT
-FVAyilpTiz8aIheUq8YOGeoCgWh9lx47ltuqTQT0X1zHH9fpGgqvYmWBJJblEfD5
-YLvjMimf4dpxFR4peneAAN88xCTFXRDpf+mUsl3icLgHa8QL6AxXYALNrzQ2qsQ/
-Ix5I/poo9HRt6XBXHiIsADG1Dd/OW+JLumg9rZv+KfyENckcudpxsrXCtxG2tT18
-aOeQUESfr+e/EYzrzWDPTgb3uW4k8Y64SKRmwG9sRtBsGCGQELd9iVY5sCKok+A1
-DzPuiqzGpHVzpv56skvAzRR32Cd9c5GYVmlSwcHl/+EXG1JvT/phQvglXTm8KvBr
-UfD+FbIlBTP+SmzEQGMj/bvSmMVB0zZwOeOu9OEZtD+G8ku9ad5bXE05D7vbKi3O
-n01q9CH+Nn4O/wVmC4rNNzLA++N1Zaze+kDmO0YbsDMBjKqJRu4dvf1KNco+ZJZQ
-W4lgoCBLFhifduuqZU3x2inqBW4YbRRJplSLd8Dz+4p0zTgejXvA+zOCd5yIU0Lb
-AbBmmRBstA/8R6W+GRoqULDPuk4PDXBL/chz4ZsZYaByDOSn3efHBq+OTIMh420O
-nb8Xy093x5N1H9CEPaeP
-=v4Gt
+iQIcBAEBCAAGBQJUh5RIAAoJEIPHP7IUNPxzrHsP+gK1Mk+T8TWufISlJY+TN06/
+ma7ooGR+BrM7H2dBrVaHVX0xWRmH8UagEBJzWRokNU942H6FuqX9F1gnepfD0tHZ
+RpxjbgbUEZvXipmZZ54xSWhG3O5n4fcujRulNY4krCelzy5CalopW4TBK+R3daSf
+YFDHxjAtRrGty/JXeNcUBkx0J8MCEmG+sbTGN6vbK5huYKAdbTOpIXhjNQ87dQzU
+cMZ01hrjQvWeUYF73HIdPXMAjs1uH+d4DeLolz4o5+iur8pudIakylkA5Y+MPMW3
+cSwnWRfwknfqMiwU5MgeDhLEpqzL1m7TKP0idSZiczyiivF4p95kUAr3llom4H/0
+X+HD+0jAq+DsHtKjKZ9tcckW5Mx/Un2k0XgdqrvUlFmkfI6sbQcqVxXGRSXarOsM
+iUE5PNQZaHHbZRdd4W3X2+ukP5D2azLs8Bp4APvgTeVx2JRrebSP0RMDLDjHfDG8
+2YJYz1y+bWlz7P8JvR2Y/pWVMPHnDOD4T35q5VaxkKb7V/0OrbiQ1Rcx5isPgdXg
+zWu1bGaBN/csthxsycdDDEzbk0aE+Xf03SoHk0obiz/EOU3DF1TFcO7V2Z6HRzM0
+DQhj1pKUKOSmLE6c5KhlhtolH5znZOL7ubuLazqzdd5dmq1WhIuMP0sKnjg3R0Lc
+S/9Xknozl/G8yyfoDOPm
+=1sJB
 -----END PGP SIGNATURE-----
