@@ -436,13 +436,20 @@ check_system()
 	export WINEARCH="win32"
 
 	echo ">> 32 bit <<"
-	"$PIPELIGHT_SHARE_PATH/wine" --version
 	echo ""
-	echo "Patches:"
-	"$PIPELIGHT_SHARE_PATH/wine" --patches
+	echo "Checking Wine version ..."
+	echo -n "Version: "; "$PIPELIGHT_SHARE_PATH/wine" --version
+	if "$PIPELIGHT_SHARE_PATH/wine" --patches &> /dev/null; then
+		echo "Patched Wine version: PASSED"
+		echo "(Run '$PIPELIGHT_SHARE_PATH/wine --patches' for more details.)"
+	else
+		echo "Patched Wine version: FAILURE"
+		retval=1
+	fi
 	echo ""
 
-	"$PIPELIGHT_SHARE_PATH/wine" "$PIPELIGHT_SHARE_PATH/winecheck.exe" 2>&1 | grep -v "fixme:winediag:start_process"
+	"$PIPELIGHT_SHARE_PATH/wine" "$PIPELIGHT_SHARE_PATH/winecheck.exe" 2>&1 | \
+		grep -v "^\\(fixme:winediag:start_process\\|wine: cannot find .*winemenubuilder\\.exe\\|err:wineboot:ProcessRunKeys Error running cmd .*winemenubuilder\\.exe\\)"
 	if [ "$?" -ne "0" ]; then
 		retval=1
 	fi
@@ -466,13 +473,20 @@ check_system()
 
 	echo ""
 	echo ">> 64 bit <<"
-	"$PIPELIGHT_SHARE_PATH/wine64" --version
 	echo ""
-	echo "Patches:"
-	"$PIPELIGHT_SHARE_PATH/wine64" --patches
+	echo "Checking Wine version ..."
+	echo -n "Version: "; "$PIPELIGHT_SHARE_PATH/wine64" --version
+	if "$PIPELIGHT_SHARE_PATH/wine64" --patches &> /dev/null; then
+		echo "Patched Wine version: PASSED"
+		echo "(Run '$PIPELIGHT_SHARE_PATH/wine64 --patches' for more details.)"
+	else
+		echo "Patched Wine version: FAILURE"
+		retval=1
+	fi
 	echo ""
 
-	"$PIPELIGHT_SHARE_PATH/wine64" "$PIPELIGHT_SHARE_PATH/winecheck64.exe" 2>&1 | grep -v "fixme:winediag:start_process"
+	"$PIPELIGHT_SHARE_PATH/wine64" "$PIPELIGHT_SHARE_PATH/winecheck64.exe" 2>&1 | \
+		grep -v "^\\(fixme:winediag:start_process\\|wine: cannot find .*winemenubuilder\\.exe\\|err:wineboot:ProcessRunKeys Error running cmd .*winemenubuilder\\.exe\\)"
 	if [ "$?" -ne "0" ]; then
 		retval=1
 	fi
