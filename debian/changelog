@@ -5,6 +5,7 @@ pipelight-multi (0.2.8) UNRELEASED; urgency=low
   * Update Flash to 16.0.0.235
   * Update Silverlight to 5.1.30514.0
   * Update AdobeReader to 11.0.08
+  * Update Foxit Reader to 7.0.6.1126
   * Update Shockwave to 12.1.5.155
   * Update Unity3D checksum
   * Remove TrianglePlayer plugin (doesn't exist anymore?)

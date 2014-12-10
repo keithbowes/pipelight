@@ -930,8 +930,8 @@ while [ $# -gt 0 ] ; do
 			;;
 		wine-foxitpdf-installer) # http://www.foxitsoftware.com/Secure_PDF_Reader/version_history.php
 			INS=(install_foxitpdf)
-			URL="http://cdn04.foxitsoftware.com/pub/foxit/reader/desktop/win/6.x/6.2/enu/EnterpriseFoxitReader621.0618_enu.msi"
-			SHA="7b0e2d19975fb0b6c5abd3f367c2d1190e15cb3f4243e91bb86d19da6b6e8c47"
+			URL="http://cdn04.foxitsoftware.com/pub/foxit/reader/desktop/win/7.x/7.0/enu/EnterpriseFoxitReader706.1126_enu.msi"
+			SHA="4be8aadcc4fea96277b4d879bb0320a9bd027ebfb2de1306399b4c29abe94206"
 			;;
 		wine-shockwave-installer) # http://get.adobe.com/de/shockwave/otherversions/
 			INS=(install_shockwave "1215155")
@@ -1021,17 +1021,17 @@ exit "$RET"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBCAAGBQJUh4ooAAoJEIPHP7IUNPxzlh8P/3AJHi1xvzIMEUjL4lxt87jR
-VZk41U8w82a+kmDphbEzBT5PbS6GPNmQbGlYra4kU7n5iiWCLF8uTmSS/ieAIb9s
-l9lYOxNWQr51sTY9APpcgfkFbU7aemMP91Z0URVXAHUFgdZIt/8P00pRYJ6IV+eb
-sIEePSu79lbhW+BAquv82kU05D5i44xl6ubdshiTXM6ZrMyvxZSsRh6L/WsTE6nw
-DaDHzTWQU1eUrSo1py9NGoohkfRcB3HVyZpEo9TrANGTTdvje/AJHW+hLn5WPnUn
-aKQ6TPWMtHBXgZSfiTfHdgY6KmnhQeGXTtFExZgDGb65nnmbZR1d/3dxg7A6eVz9
-Ax0vQDvyu0mEOUtep8aQQO+m7ydVs4Dd0ZYhKWJ0D56KNGrxRrbajaJooZ3HjC9n
-THzSP4IKyryxJfna56CfSvMUJL2hmD23YXGdjNUKPo7x8oR8Nh+ADYxX31ucxmAw
-gXpQx2e7UAV5r4njv+PhnhFPtk9US57fyXvr8QCYo5CHGKD0Yb7oC2AJjoXbAYzH
-LpdF2iVAf8iV/I06+CzGbCwwy9ycWzpocyITy2IkPTS7dfrhwONFQYCVp1bMbvMJ
-a5XOmWx/iGnRSI3rfHqOcRyiKkYhdRKcYYOYkjS1sWnviSdkLtiZFayK1Mb48DQ/
-ZUIUdA60n46D3D5jwRec
-=t9cj
+iQIcBAEBCAAGBQJUh49RAAoJEIPHP7IUNPxzAZAP/iGNi+Ofa+16w6VPeUL8rS4/
+dJ+YSI+TZuypEBNycPnAp6WsEcZPApZ8G+F7JwTNPnflFPUoKndlR7q9ZG8YHTmT
+FVAyilpTiz8aIheUq8YOGeoCgWh9lx47ltuqTQT0X1zHH9fpGgqvYmWBJJblEfD5
+YLvjMimf4dpxFR4peneAAN88xCTFXRDpf+mUsl3icLgHa8QL6AxXYALNrzQ2qsQ/
+Ix5I/poo9HRt6XBXHiIsADG1Dd/OW+JLumg9rZv+KfyENckcudpxsrXCtxG2tT18
+aOeQUESfr+e/EYzrzWDPTgb3uW4k8Y64SKRmwG9sRtBsGCGQELd9iVY5sCKok+A1
+DzPuiqzGpHVzpv56skvAzRR32Cd9c5GYVmlSwcHl/+EXG1JvT/phQvglXTm8KvBr
+UfD+FbIlBTP+SmzEQGMj/bvSmMVB0zZwOeOu9OEZtD+G8ku9ad5bXE05D7vbKi3O
+n01q9CH+Nn4O/wVmC4rNNzLA++N1Zaze+kDmO0YbsDMBjKqJRu4dvf1KNco+ZJZQ
+W4lgoCBLFhifduuqZU3x2inqBW4YbRRJplSLd8Dz+4p0zTgejXvA+zOCd5yIU0Lb
+AbBmmRBstA/8R6W+GRoqULDPuk4PDXBL/chz4ZsZYaByDOSn3efHBq+OTIMh420O
+nb8Xy093x5N1H9CEPaeP
+=v4Gt
 -----END PGP SIGNATURE-----

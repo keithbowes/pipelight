@@ -930,8 +930,8 @@ while [ $# -gt 0 ] ; do
 			;;
 		wine-foxitpdf-installer) # http://www.foxitsoftware.com/Secure_PDF_Reader/version_history.php
 			INS=(install_foxitpdf)
-			URL="http://cdn04.foxitsoftware.com/pub/foxit/reader/desktop/win/6.x/6.2/enu/EnterpriseFoxitReader621.0618_enu.msi"
-			SHA="7b0e2d19975fb0b6c5abd3f367c2d1190e15cb3f4243e91bb86d19da6b6e8c47"
+			URL="http://cdn04.foxitsoftware.com/pub/foxit/reader/desktop/win/7.x/7.0/enu/EnterpriseFoxitReader706.1126_enu.msi"
+			SHA="4be8aadcc4fea96277b4d879bb0320a9bd027ebfb2de1306399b4c29abe94206"
 			;;
 		wine-shockwave-installer) # http://get.adobe.com/de/shockwave/otherversions/
 			INS=(install_shockwave "1215155")
@@ -1021,17 +1021,17 @@ exit "$RET"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBCAAGBQJUh3gAAAoJEAtrgXwcOwUzxj4QAKyTnM+iAAdmeY2ygL5LB8hs
-VEe8VO8v9ibozuz3SqVh0zYSce4/0qxBU1WHzV52dPBIlMRyBPvmIj9yb9rQCpni
-U5J7cKkMDH4qhbHaZ1qamX8Wr/vJmo05V/saaSoxWBFRwSrlEqimcdcymVhpZVHL
-PYOU7xY5FaRNnfynVAVCRIBz0oHcaFJnaKDalaaYwACb9wyr6DuDx1blKVAlJhDz
-Ldguin4XNfytEt87zA3lgib1xDc3p8afxNE5FbNxHo9UbC9n7yg7AmyFPYQgm6yC
-k1bjt/9HE4TdMWv5X16GW9xW0alz4joAieLKK9Q1E3B8zNht4reF9/SA6AoT6L/E
-Vx0xdFk6o4WRjfH/3zlYK4G1YcyA1agNX0cfQ4HlAo5ZXTvTym/f6sz/KlSVLIzD
-tcuBA5TpQcjSuqJUVEu16RFWwTF5J/8T0ngnkQLExXyjsR0Q3mXJgjGyEFBHWUfj
-/XAzBIp5/HOxEsHVTQ1PY3EItc3maxTRbUe+U7XP735iiawKumS4OoUyKg5yhhm3
-LGTiSd2DQnWf8TkU9KJD2Ic12Ohk7Ro5uefCzx1jFHvWwd7GBqDnyIVgN8khODRx
-acAkz4RbJo1gNZJh8XRkJqPvfpafOl8PXHEjuNnruXs05htwSJMWQBeotm9Vmy80
-J+Slvr0w1/jFUWzCnPQE
-=k7wv
+iQIcBAEBCAAGBQJUh49NAAoJEAtrgXwcOwUzC8IP/3/KDlJQelr1hyK6rD5JOEY8
+hP1YYxBfOapUnVa4iC5ED+vecblCusPWjiPvhmK4YTgv9LWg43exbFx6cm1Sfng7
+/UCKDhRSx2Sz+1d80F+E35v6nXXC9xlhGoTPM9LUcbpKOv30xw4b3zibk/dk4gPn
+Lia8FS3v1Pw9QnR9seggGXoOCnH+MieVkvm/T+P+pmYXNYm+OVokEFGDM4VGjOJi
+b9pR4WQHiP1teexD2Tb5YpgX0OsG2DBuxDg/9eAyQsbORYz1YngPiPV0JqCQjbTY
+H/72hJRc5URZZMYeZJ/B+sVfJd3Mc5FTqWGkl6rb2Iqr+ITRM87ZEdbZAdlfsT7q
+D4UeeiotkKPWawWzWzXZTZfNS9bD1RALQu3zDgM9nkiTy9ZV4GM69/UJBgNRU5Z6
+CmDq47kDonzBwnBcfHKXOgbmav3wbVpK1/9OdK5ulkXs8NdYzJcOGNoE/xJNCkYg
+y7loG5wimqxLbmBxd0494rSP8wCv4UX1/uv2FD2Z2KhIBizFrqkhtcMqS4jeMmVI
+Tlo1EuyTaU/tyEWunJK0yu6cnYVJy62uNTBDI51Hmu9iVYIi1h7+rLn67F4aEE6B
+nWz0GSmed/COla2u5SpEgKnDVhvGkj1d9q60xUBuCpRGPb3B+qqPMfl/9Jjd/eHq
+PZeTT2tEfoWGLCeOv0jg
+=2Afr
 -----END PGP SIGNATURE-----

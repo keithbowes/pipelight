@@ -927,8 +927,8 @@ while [ $# -gt 0 ] ; do
 			;;
 		wine-foxitpdf-installer) # http://www.foxitsoftware.com/Secure_PDF_Reader/version_history.php
 			INS=(install_foxitpdf)
-			URL="http://cdn04.foxitsoftware.com/pub/foxit/reader/desktop/win/6.x/6.2/enu/EnterpriseFoxitReader621.0618_enu.msi"
-			SHA="7b0e2d19975fb0b6c5abd3f367c2d1190e15cb3f4243e91bb86d19da6b6e8c47"
+			URL="http://cdn04.foxitsoftware.com/pub/foxit/reader/desktop/win/7.x/7.0/enu/EnterpriseFoxitReader706.1126_enu.msi"
+			SHA="4be8aadcc4fea96277b4d879bb0320a9bd027ebfb2de1306399b4c29abe94206"
 			;;
 		wine-shockwave-installer) # http://get.adobe.com/de/shockwave/otherversions/
 			INS=(install_shockwave "1215155")
