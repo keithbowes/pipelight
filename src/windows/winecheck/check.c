@@ -232,7 +232,7 @@ bool checkOpenGL()
 	{
 		if (strstr(vendor, badOpenGLVendors[i]))
 		{
-			fprintf(stderr, "ERROR: found bad OpenGL Vendor: %s\n", badOpenGLVendors[i]);
+			printf("ERROR: found bad OpenGL Vendor: %s\n", badOpenGLVendors[i]);
 			badOpenGL = true;
 			break;
 		}
@@ -242,7 +242,7 @@ bool checkOpenGL()
 	{
 		if (strstr(renderer, badOpenGLRenderer[i]))
 		{
-			fprintf(stderr, "ERROR: found bad OpenGL Renderer: %s\n", badOpenGLRenderer[i]);
+			printf("ERROR: found bad OpenGL Renderer: %s\n", badOpenGLRenderer[i]);
 			badOpenGL = true;
 			break;
 		}
@@ -380,7 +380,7 @@ bool checkFonts()
 	{
 		if (!fonts[i].found)
 		{
-			fprintf(stderr, "Missing %s\n", fonts[i].name);
+			printf("Missing %s\n", fonts[i].name);
 			result = false;
 		}
 	}
@@ -428,7 +428,7 @@ bool checkACLs()
 	{
 		if (!DeleteFile(testFile))
 		{
-			fprintf(stderr, "Failed to delete old test file!\n");
+			printf("Failed to delete old test file!\n");
 			return false;
 		}
 	}
