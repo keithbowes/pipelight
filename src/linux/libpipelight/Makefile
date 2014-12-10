@@ -20,6 +20,9 @@ SUBDIRS		:= ../../common/
 .PHONY: all
 all: libpipelight.so
 
+libpipelight.so: $(OBJECTS)
+	$(CXX) -shared $(CXXFLAGS) $(OBJECTS) $(LDFLAGS) -o libpipelight.so
+
 %.o: %.c
 	$(CXX) $(CXXFLAGS) -MMD -MP -o $@ -c $<
 
@@ -27,9 +30,6 @@ all: libpipelight.so
 	$(MAKE) -C ../../common/
 
 -include $(SOURCE:.c=.d)
-
-libpipelight.so: $(OBJECTS)
-	$(CXX) -shared $(CXXFLAGS) $(OBJECTS) $(LDFLAGS) -o libpipelight.so
 
 .PHONY: clean dummy
 clean:
