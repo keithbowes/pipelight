@@ -1,4 +1,4 @@
-CXXFLAGS		:= -DPIPELIGHT_SHARE_PATH='"$(datadir)/pipelight"' $(CXXFLAGS)
+CXXFLAGS		:= -fvisibility=hidden -DPIPELIGHT_SHARE_PATH='"$(datadir)/pipelight"' $(CXXFLAGS)
 LDFLAGS			:= -lpthread $(LDFLAGS)
 UNAME_S			:= $(shell uname -s)
 ifeq ($(UNAME_S), FreeBSD)
