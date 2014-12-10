@@ -134,7 +134,4 @@ struct PluginData{
 #endif
 };
 
-extern bool checkPluginInstallation();
-extern bool startWineProcess();
-
 #endif // BasicPlugin_h_

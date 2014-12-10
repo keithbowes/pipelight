@@ -53,6 +53,9 @@
 
 #include "basicplugin.h"
 
+static bool checkPluginInstallation();
+static bool startWineProcess();
+
 /* BEGIN GLOBAL VARIABLES
 
 	Note: As global variables should be initialized properly BEFORE the attach function is called.
@@ -82,12 +85,12 @@ NPNetscapeFuncs* sBrowserFuncs		= NULL;
 PluginConfig config INIT_EARLY;
 
 // Attach has to be called as the last step
-void attach() CONSTRUCTOR;
-void detach() DESTRUCTOR;
+static void attach() CONSTRUCTOR;
+static void detach() DESTRUCTOR;
 
 /* END GLOBAL VARIABLES */
 
-void attach(){
+static void attach(){
 	std::string result;
 	Stack stack;
 
@@ -185,12 +188,12 @@ void attach(){
 	initOkay = true;
 }
 
-void detach(){
+static void detach(){
 	/* TODO: Deinitialize pointers etc. */
 }
 
 /* checkPermissions */
-void checkPermissions(){
+static void checkPermissions(){
 	bool result = true;
 	uid_t uid  = getuid();
 	uid_t euid = geteuid();
@@ -233,7 +236,7 @@ void checkPermissions(){
 }
 
 /* checkPluginInstallation */
-bool checkPluginInstallation(){
+static bool checkPluginInstallation(){
 
 	/* Output wine prefix */
 	DBG_INFO("using wine prefix directory %s.", config.winePrefix.c_str());
@@ -310,7 +313,7 @@ bool checkPluginInstallation(){
 }
 
 /* startWineProcess */
-bool startWineProcess(){
+static bool startWineProcess(){
 	int tempPipeOut[2], tempPipeIn[2];
 
 	if (pipe(tempPipeOut) == -1 || pipe(tempPipeIn) == -1){
@@ -418,7 +421,7 @@ bool startWineProcess(){
 
 #ifndef __APPLE__
 /* sendXembedMessage */
-void sendXembedMessage(Display* display, Window win, long message, long detail, long data1, long data2){
+static void sendXembedMessage(Display* display, Window win, long message, long detail, long data1, long data2){
 	XEvent ev;
 	memset(&ev, 0, sizeof(ev));
 
@@ -438,7 +441,7 @@ void sendXembedMessage(Display* display, Window win, long message, long detail, 
 }
 
 /* setXembedWindowInfo */
-void setXembedWindowInfo(Display* display, Window win, int flags){
+static void setXembedWindowInfo(Display* display, Window win, int flags){
 	CARD32 list[2];
 	Atom xembedInfo = XInternAtom(display, "_XEMBED_INFO", False);
 
