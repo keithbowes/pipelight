@@ -266,7 +266,7 @@ inline void timerFunc(NPP __instance, uint32_t __timerID){
 
 }
 
-void timerThreadAsyncFunc(void* argument){
+static void timerThreadAsyncFunc(void* argument){
 
 	/* has been cancelled if we cannot acquire this lock */
 	if (sem_trywait(&eventThreadSemScheduledAsyncCall)) return;
@@ -278,7 +278,7 @@ void timerThreadAsyncFunc(void* argument){
 	sem_post(&eventThreadSemRequestAsyncCall);
 }
 
-void* timerThread(void *argument){
+static void* timerThread(void *argument){
 	while (true){
 		sem_wait(&eventThreadSemRequestAsyncCall);
 
@@ -299,7 +299,7 @@ void* timerThread(void *argument){
 	return NULL;
 }
 
-void executeJS(NPP instance, std::string code)
+static void executeJS(NPP instance, std::string code)
 {
 	NPObject *windowObj;
 	NPString script;
