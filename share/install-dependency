@@ -967,9 +967,9 @@ while [ $# -gt 0 ] ; do
 			EXT="zip"
 			;;
 		wine-roblox-installer)
-			INS=(install_roblox "ca7bb36aabe54be5")
-			URL="http://setup.roblox.com/version-ca7bb36aabe54be5-Roblox.exe"
-			SHA="7be0878706eb22ed09c8fe6ee401b744cf338d71a06060e61f159ab00852953a"
+			INS=(install_roblox "632471a80776450d")
+			URL="http://setup.roblox.com/version-632471a80776450d-Roblox.exe"
+			SHA="901505c1311cb592521ea6bec09ec793194d1ecb0630686e72a948850e55d632"
 			;;
 		wine-vizzedrgr-installer)
 			INS=(install_vizzedrgr)
