@@ -578,22 +578,18 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window){
 #ifndef __APPLE__
 	NPWindow windowOverride;
 	if (config.x11WindowID){
-		if (!window){
-			Display *display = XOpenDisplay(NULL);
-			if (display)
-			{
-				unsigned int border, depth;
-				Window root;
-				if (XGetGeometry(display, config.x11WindowID, &root, &windowOverride.x, &windowOverride.y,
-						&windowOverride.width, &windowOverride.height, &border, &depth)){
-					windowOverride.window = (void *)config.x11WindowID;
-					window = &windowOverride;
-				}
-				XCloseDisplay(display);
+		Display *display = XOpenDisplay(NULL);
+		if (display)
+		{
+			unsigned int border, depth;
+			Window root;
+			if (XGetGeometry(display, config.x11WindowID, &root, &windowOverride.x, &windowOverride.y,
+					&windowOverride.width, &windowOverride.height, &border, &depth)){
+				windowOverride.type = NPWindowTypeWindow;
+				windowOverride.window = (void *)config.x11WindowID;
+				window = &windowOverride;
 			}
-		}else{
-			DBG_TRACE(" -> result=0");
-			return NPERR_NO_ERROR;
+			XCloseDisplay(display);
 		}
 	}
 #endif
