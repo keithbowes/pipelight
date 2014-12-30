@@ -933,7 +933,7 @@ while [ $# -gt 0 ] ; do
 		wine-shockwave-installer) # http://get.adobe.com/de/shockwave/otherversions/
 			INS=(install_shockwave "1215155")
 			URL="http://fpdownload.macromedia.com/get/shockwave/default/english/win95nt/latest/sw_lic_full_installer.exe"
-			SHA="ed1d5eda2ac41a311914f2b1fbaa6d60f7081c0fbea07c990d210a4313c696ba"
+			SHA="7855a0bb7f776fa16d91423463faca9e0333d3ce294e609ee316cc6e566bb17f"
 			;;
 		wine-grandstream-installer)
 			INS=(install_grandstream)

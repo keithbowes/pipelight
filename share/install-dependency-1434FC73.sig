@@ -936,7 +936,7 @@ while [ $# -gt 0 ] ; do
 		wine-shockwave-installer) # http://get.adobe.com/de/shockwave/otherversions/
 			INS=(install_shockwave "1215155")
 			URL="http://fpdownload.macromedia.com/get/shockwave/default/english/win95nt/latest/sw_lic_full_installer.exe"
-			SHA="ed1d5eda2ac41a311914f2b1fbaa6d60f7081c0fbea07c990d210a4313c696ba"
+			SHA="7855a0bb7f776fa16d91423463faca9e0333d3ce294e609ee316cc6e566bb17f"
 			;;
 		wine-grandstream-installer)
 			INS=(install_grandstream)
@@ -1021,17 +1021,17 @@ exit "$RET"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBCAAGBQJUh5RIAAoJEIPHP7IUNPxzrHsP+gK1Mk+T8TWufISlJY+TN06/
-ma7ooGR+BrM7H2dBrVaHVX0xWRmH8UagEBJzWRokNU942H6FuqX9F1gnepfD0tHZ
-RpxjbgbUEZvXipmZZ54xSWhG3O5n4fcujRulNY4krCelzy5CalopW4TBK+R3daSf
-YFDHxjAtRrGty/JXeNcUBkx0J8MCEmG+sbTGN6vbK5huYKAdbTOpIXhjNQ87dQzU
-cMZ01hrjQvWeUYF73HIdPXMAjs1uH+d4DeLolz4o5+iur8pudIakylkA5Y+MPMW3
-cSwnWRfwknfqMiwU5MgeDhLEpqzL1m7TKP0idSZiczyiivF4p95kUAr3llom4H/0
-X+HD+0jAq+DsHtKjKZ9tcckW5Mx/Un2k0XgdqrvUlFmkfI6sbQcqVxXGRSXarOsM
-iUE5PNQZaHHbZRdd4W3X2+ukP5D2azLs8Bp4APvgTeVx2JRrebSP0RMDLDjHfDG8
-2YJYz1y+bWlz7P8JvR2Y/pWVMPHnDOD4T35q5VaxkKb7V/0OrbiQ1Rcx5isPgdXg
-zWu1bGaBN/csthxsycdDDEzbk0aE+Xf03SoHk0obiz/EOU3DF1TFcO7V2Z6HRzM0
-DQhj1pKUKOSmLE6c5KhlhtolH5znZOL7ubuLazqzdd5dmq1WhIuMP0sKnjg3R0Lc
-S/9Xknozl/G8yyfoDOPm
-=1sJB
+iQIcBAEBCAAGBQJUourRAAoJEIPHP7IUNPxzzfgQAJux19rktOw/wOCBgoo2vRf6
++wv7mm4PRsn+ESRXfYYSLMnV1gQPw25cqY4J+EnvukXgeBRp3LHHf3tI8gZ1k6bd
+onowvZTlOEbrpYTJE4oHPKY50Xk+TKewb45ZqQcInL5ncJetX5ZasddkOLSADw2G
+zW5jHZGX6rpVv5ecr9e42x4GuxaS2Z4KyFZagLnVnyJ111WKLSw6cBzAV+oqdQSR
+yBvkRiMyVuW2GxP7KbpI77f+Eu0gIU0FDrW8amdCshQydBjrZWr1LRQFC8m9BrJt
+sBSk0HhlHzHmEG5PuHYcqVnZW2DIGJwezXSbMxTmuAqpMtIAI/96J6v3QMAq8tlE
+V/bFOqUbYTPSvEUe1XRX83lfCHyJJ41zpuBGiSEQGS51GpXFSLWrbqXSQKYWsQKm
+g7TbWynsZe3ufhTV0YHVJXwhGGK66EKWFft6w8OfpYqcnVVoFmi8ZJA0193UJtDm
+dAzLgWpHPBTNEdIl7EY0OtHBLw5B1VnJdSzZ6DrUsECGjQSFD3HMe9UwSO0hTb2V
+SKk3ienYhxvusr9pr8/uRn+x/S0jSIGCf4rUhS7uxiLLFP+e1v1ySvQdq8vRSsJo
+y8C1zdNE10rIGKYCwZd6Gy5dqwFZ7gEBXzJ8BBOh6Ec/09d3hfcYohbW4CzHu9OZ
+FIb9PaVWpF7+rO2n2luS
+=ndXm
 -----END PGP SIGNATURE-----
