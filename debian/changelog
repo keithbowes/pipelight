@@ -1,8 +1,9 @@
-pipelight-multi (0.2.9) UNRELEASED; urgency=low
+pipelight-multi (0.2.8.1) RELEASED; urgency=low
 
+  * Change dependency from wine-compholio to wine-staging for Debian/Ubuntu
   * Update checksum for Shockwave
 
- -- Sebastian Lackner <sebastian@fds-team.de>  Tue, 30 Dec 2014 19:10:20 +0100
+ -- Michael Mueller <michael@fds-team.de>  Sun, 11 Jan 2015 05:09:54 +0100
 
 
 pipelight-multi (0.2.8) RELEASED; urgency=low

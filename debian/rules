@@ -4,9 +4,9 @@
 
 override_dh_auto_configure:
 ifeq ($(DEB_BUILD_ARCH), amd64)
-	dh_auto_configure -- --win32-static --gcc-runtime-dlls=""  --with-win64
+	dh_auto_configure -- --win32-static --gcc-runtime-dlls=""  --with-win64 --wine-path="/opt/wine-staging/bin/wine"
 else
-	dh_auto_configure -- --win32-static --gcc-runtime-dlls=""
+	dh_auto_configure -- --win32-static --gcc-runtime-dlls=""  --wine-path="/opt/wine-staging/bin/wine"
 endif
 
 override_dh_auto_install:
