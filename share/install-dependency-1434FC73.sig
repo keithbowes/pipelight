@@ -916,12 +916,12 @@ while [ $# -gt 0 ] ; do
 		wine-unity3d-installer)
 			INS=(install_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayer.exe"
-			SHA="84568878b561f248869701f4f768ae22fb35ab025bb514919a86a5eeb4fe3e2f"
+			SHA="0c1d592c55a5b45cc69ed9a5fb151ca0931a7f8f45b68d3b61c347472b287d1a"
 			;;
 		wine-x64-unity3d-installer)
 			INS=(install_x64_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayerFull64.exe"
-			SHA="a4ae24820ec2f1c87e26123227c1ccd330c8b0f69f7e2f2586761e174a300802"
+			SHA="73c9da4d887a9a9f6e45b9ea6c9661c08134ad9cb29ad931d0872fb0eb038bcc"
 			;;
 		wine-adobereader-installer) # http://get.adobe.com/de/reader/otherversions/
 			INS=(install_adobereader)
@@ -1021,17 +1021,17 @@ exit "$RET"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJUx+CvAAoJEIPHP7IUNPxz/yEP/i4CbydSs/c4pkq8cFgiXtny
-qOCACaiCBNjBCo9EvjUy9ymBnyPcG4GFjxXWPMg6lv+w3+jeTUJDl534ycAkWMzr
-gHfJiMY3FZRf2LD6GiNdMRnhZUBGLSePcZYiXFi++p3fhJ8o7cKqzEp1QryKwuv0
-puKOI/8sVqOn6vVbVf2CgT2kz4FZC8U74JbUtXDMnbXSRLBfzrlVap/F5qqTp1JA
-KRf1fPo75mj005XwiOAQG4080roHvbbyBZqL0OFNh3UjDf577gvOAgU5/6/zi1/N
-bNI5xMff4OIb0Qhy1+CxDH3faWVMdj2kH+mCxbHZNeZnupYCNUqG+Id+g4vyX4FT
-ox3dvqHHdwSGOoTQla2IG/sHrIRQOEFpgcuMpn7IWLyqPzLVrCy0QGRVLwz/jUH8
-EaHKiMyh5KB3SB/iXqoEL1fGEhLItas8YOJt+DNdoFPN383TrDofSrqWUyKyK+bV
-qkkBsZc17nFd3Y2qYB42QQXvD3OxWwqn4DG5pLLq0DXRhnTdLsEIEouFgGMRH3gd
-BHwd7ynRIBykWPoT4mDBaPthIOPxShmDzCD2+cKMABaExsh/kMDKtVRgQOnY46M0
-1JouCQgkEHzHDb7mAcH31ddJqhLCYlvMaOVsDgsZrVDBV1WW1AjXl2NaaY0nn7XC
-zy2DjOR2a2M6JgUTYi97
-=JLvK
+iQIbBAEBAgAGBQJUzN1zAAoJEIPHP7IUNPxzG2sP+MEVcXio3pezzeg8DqBSFM5M
+Ov1MfUFdy11/vr2CuZZk9f8KTzYxE8PFNyommwxEa+kQRNmW9vIOYz2EAFgxnIw9
+3kGa+U2OPTOKGq2vlEKNMHNPTaY8C5M/HmSM0Mt6FBE5l6nSCMV0IqtVT6vCDR4T
+aySmDWHT2+xUWFDJ10DzQxlfYh3++qiVBk2o0ugGJ91Q/EDb2V9xrWFf28jP9Ptr
+FRBicP3jd667QXzh7IW7/GQ4RnznLlFriPxdwUMOXF1V8v+MryFEp7ju9Oe+wUp8
+hGPfDKChOy9375MymSpZBGL2yuRs99f1DMgIbOtGL01JAT/jK0a2VwnzTKHl5sr2
+OC2U3i8FkIhgUrcJjinviljD17WxfNw2STCGJPi4J9K+HEpntJOuXOuyE6jb8N3A
+/gJQMhm56Vy8znB5fGmFV5lATKaoOxDbCKpG95Y2eOrpdZd2Z6oxtUFDVuySPzAv
+H/2pg0x5qf6ts4sLK1nph4fZ/24V7L0IVRm1zejazq7BlnEgaPxQuQBf95jKx3sJ
+WHcyG4IxPDN7D4Pv7VnDtzS17E/k14j5VDoqtA9eYIHc48fKeBruU5Ibrx4ukWZ6
+AjcnxwS4XMI8vPN9viJLBY8G9yuA7pFMmdg4/Z/cZabAFBoTQghkNSybvi8+NJyn
+ZjBY5mg6/lIMGS+yDTU=
+=m2BW
 -----END PGP SIGNATURE-----
