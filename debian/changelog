@@ -1,3 +1,12 @@
+pipelight-multi (0.2.9) UNRELEASED; urgency=low
+
+  * Update Flash to 16.0.0.305
+  * Update Shockwave to 12.1.6.156
+  * Update Unity3D checksum
+
+ -- Sebastian Lackner <sebastian@fds-team.de>  Thu, 05 Feb 2015 13:37:26 +0100
+
+
 pipelight-multi (0.2.8.1) RELEASED; urgency=low
 
   * Change dependency from wine-compholio to wine-staging for Debian/Ubuntu
