@@ -1,5 +1,5 @@
 -----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA256
+Hash: SHA1
 
 #!/usr/bin/env bash
 
@@ -916,12 +916,12 @@ while [ $# -gt 0 ] ; do
 		wine-unity3d-installer)
 			INS=(install_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayer.exe"
-			SHA="945005ef7c241b064e57f1837dcf54e2c169ae5d0c127ea1711dcfd30829a583"
+			SHA="e75d216889289b0347cbe33ec5fe4310ef8fea219a5b30ca936e43cbd4ac9b09"
 			;;
 		wine-x64-unity3d-installer)
 			INS=(install_x64_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayerFull64.exe"
-			SHA="dd552508b5d6cc8d0bd5d58f98dce9fa00e94c5859aca4ed4e7003c690150fa8"
+			SHA="f8c54ef839635bfa3ce016a00618f03fb5596e370a929524b2de58ee538dae94"
 			;;
 		wine-adobereader-installer) # http://get.adobe.com/de/reader/otherversions/
 			INS=(install_adobereader)
@@ -1019,19 +1019,19 @@ done
 
 exit "$RET"
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Version: GnuPG v1
 
-iQIcBAEBCAAGBQJU6VClAAoJEIPHP7IUNPxzcP4QAIPnwDBMbJNJ4ipM5XpCCxoF
-YO9jPh2wxRf6sKAlQBhOyM8vlqSoWxl35vG45NViSBQBf8h90FomWUOrDaxIke1Q
-Qn60AqbcbvzDXFMsWyHFjNV8GxxU0CVNuo9I09CxQRrchENiafWkQRT49Ri3o/Kf
-9yTDPUaUBh//izT+0fA3BbPfHhcM2BtzuRYZSegmU00PqlUpz4o/NWJBbgl/7clN
-ugYZr9bRPZSZppxQZdqL8YeiwppTnktYDzWXgK5UjNZvjNuEqLNuZ6hIOE4ck5Sn
-GGD6DPd9+a+yaKwAMsJlJnVDIYihFihU4gl1AX14brqcWLUuxxikKQ2/EovP3mDG
-w5Mm3D9bGub0krEC5h4sATSLGyd/0rbD+IhxAQFhp6yhXTiG9FjdtPmjm2WjA4fA
-e0SoBRpnaP+Kx3ZAqo4YBTV/sGgZ51h50wR8+3k9K47uIYVJMSmEu0vuht+A0MwT
-+C2GW3f3bt1TAdOc+W/VgC7AEMbqO6SXL2wcdS6xBpzOabGFbBT62PkU5lN6BDSt
-sSBkdyEg0Z/NHeNF3HQxE+db24IaXKaHoWVAiVHQXulQASKJbDxX1BuWmgdJOpCR
-uzn7X22lRAbfg9CHkbaKAPka0JsW5WdNzCNkAbHmS5HiOybPJAqVtLQ3eHwKscAT
-yJTout4XZNQFWbTc37JY
-=TL3W
+iQIcBAEBAgAGBQJU73n2AAoJEIPHP7IUNPxzfSIP/j9zX7j09uKXPU2dblJGD+12
+AtXgYacJhY+zUAE/3H2Xuxc2FMOXedNzXF0YvEvqbRl5F8D8kwwVenfqVnTntQDs
+e9+cJTf7NKKX80mBaGEd66xo5hCTfwv+UFQ7Rgs6A6KIVL82wxTQIyOhbYZeQzft
+9rb2t7Lt6h0GovKQ2puTORFp16jLd70T07LMJ2iVR+8DjqCU102hhwrgiNIgeYJD
+NgpPddtD1AvfivRH8B6vIz7RPGB/2H+iwmCozxZDZmLKua8hwzUtP/rzKiOETUSB
+EOmwLghYaf/XyIu46DcqhNM/C8rSGtX68pf0TmRzU2/lFOPosRq5F4qh5SlkDjKI
+O52VphRdQMyrKbRlEK9KPlf0sd0hjZk+T8V7V/qgWstsOXVaFL9IHPSHa1JJajjW
+dRBzAufCjg4sWdFysjG13dUKkfbzSrzPUcrmAsayUa695gIts7dZX5/xnWEFvW1D
+5mbZcsTDGLVX+cSl+1oPswJfze9GRI6uo0O50V0mvWToadxlZjcrhzESlHHmZtoG
+5ynOKed9aVdKj3n0g95t1XnvPDt+JWM57tXuaHXIPMBRY12FxSjhX50EC1a9x3Z6
+cwWrZ8wQhVj5opcj36KXdXM4YTOZOwyEUp805WsUj2a/EG3vcg+GairUjoz6N750
+ATfDRb7CW54wfOtsKPi0
+=yo0d
 -----END PGP SIGNATURE-----
