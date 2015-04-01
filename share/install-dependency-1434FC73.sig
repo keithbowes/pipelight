@@ -916,12 +916,12 @@ while [ $# -gt 0 ] ; do
 		wine-unity3d-installer)
 			INS=(install_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayer.exe"
-			SHA="40282134cba12dd054f2c5ff49aa461e53567d314de21b967ddf4e037f9ee037"
+			SHA="e354e05e3e1a2a73cf6313581fd5c722209f06abf2e3b34f647887727bfeb683"
 			;;
 		wine-x64-unity3d-installer)
 			INS=(install_x64_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayerFull64.exe"
-			SHA="5941641388e0cdcaffd692fcb6b48b95d59f0ad693a6eeabd1f1753007c5f070"
+			SHA="693237d7dec38167a1d5df6e9dc706ca9416d1af359fa749edd1c5608b7cb6d7"
 			;;
 		wine-adobereader-installer) # http://get.adobe.com/de/reader/otherversions/
 			INS=(install_adobereader)
@@ -1021,17 +1021,17 @@ exit "$RET"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBCAAGBQJVFakBAAoJEIPHP7IUNPxzyiEQAM4JXrlvV0k+kN6KzqzIaLku
-378Huk65aCyaxYi/sUPbAfE3ie9W008NRwQxGybyuhi2OpW8128Wk7ZDMb0WPe0u
-jWvZTYHDECYu0+T6D4pxtxJeHHfvOviYmpH+Tziicx+BXQn79tA9gRbzaAOK/+hp
-vkz9nkzzXihCONGQJN0QguXguNHhrrXNInGrS6pAl4+GtSzslxI9zkLytxHrYC3X
-u57KOTgz786EM+1BFb/kOjuddNytq6K0GRqCWqSec/KxH2INyjPr654/dCYlYX5+
-mxDrqzunRSeGsNsHvtexzFmITpqac84jfninHXwc2iZPCGbWUHQCjx3voyOr0EIW
-keKkHLavzMVWbIXHwtLdRZDV3l9O+6K7xH1Uevh4YldFE9iYbi/khvGyMK6tDgvp
-DJGrFwSYRvqOJxckjmHd1EldVTrzuSy+C8eOMhi74k1BYKv6+TZorwIxYldP/uWP
-C2kU6/iuYoVbFbPfxl01nT0oPo7fwLzIL3lXo0j6CI5/6qayoG6uaC5yIG2oZ/hJ
-d4cyOc1NAVrOaPKVAL33PYWYBc/XOycN2ApkrrhJXCOmVi32NZHqC3lvmRg3QOsU
-qVjz3u6DvQLquOLD6ceCjKL6U96j7/ZPLIMkHh/DRjdeC02kJS+L3e5VO48jz2df
-lbvky2pmCpX0vfYynKGz
-=ABPQ
+iQIcBAEBCAAGBQJVHGBTAAoJEIPHP7IUNPxz0psQAL2zdmsjhQYXWpPgvtuxhZFH
+oBfFoyzblwrlryXKYl0Hqqv1ShuvLye6GIcG5TJP7UsfHzXA3am8j3vHX1rs4UVj
+K42TNmdK5ThP7U+H25OHzoJXnRDSEbm03o12ZOuzka6DNs1X6iaAyHCx3LlRLuh4
+bhbFEoOSfzBf+TezxRT/8TGu643tdN+JmoDyGWl+t0qCWr6y94KfcGBB1zlvkprb
+nXRBjXM8wWTMoijexe8W9zerX05IuT+kwekoxxODiicHm2IMUwpQQJzBkmZDt6qm
+3V9hIMSeXTfPjOYcCweOjbuCyZ5PTHpjTVR8LCxqvIHupG+iFsaapCHf5WSYKl2w
+ejme48DhDF//7yVi+AO+SBxmI5aDX6BNV4V1SQzLfnjJZGdLIMKmIpFqkD1F2YZC
+MnuFSIt+NQLoVXcDygKz9Rv5mf3xNCQpJallOwIpuEYldAoq0PXqsqbl1B4FbtQD
+50h3d48pyCrhJbgv+EfQKOJEpPvAemjQYp25ffW09h0AqdcvyDTBrCP+pmYKdHDq
+hFMniZvS8m6szPWaybSqPuQXiaxn0pMA1XT+JYijEbwAYNHHN8ICNkKEF7NeGB5q
+xqe6f0g1fGhYKd23YxasWkcmlz9H3DeDj2nfeb6vB/AI6TdN2e1iy6G9eZNPT40w
+6GITDqZlbUm9+ae9G8Hj
+=BLT6
 -----END PGP SIGNATURE-----
