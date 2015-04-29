@@ -895,14 +895,14 @@ while [ $# -gt 0 ] ; do
 			SHA="afa7a7081d30b00a4f57c32932bd6d84940bb43b3f5feb0828ff988c80e2d485"
 			;;
 		wine-flash-installer) # http://www.adobe.com/de/software/flash/about/
-			INS=(install_flash "17_0_0_134")
-			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/17.0.0.134/install_flash_player.exe"
-			SHA="04cfb59a4f2988f7d274b8443b2f39de5d396d0cefc277542ad64f8931ea74db"
+			INS=(install_flash "17_0_0_169")
+			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/17.0.0.169/install_flash_player.exe"
+			SHA="a9327e39a8f45e73aa78ade2bc3dcfa299ba4e932bbdf04e2a29b0f8e3c08a79"
 			;;
 		wine-flash-debug-installer)
-			INS=(install_flash "17_0_0_134")
+			INS=(install_flash "17_0_0_169")
 			URL="http://download.macromedia.com/pub/flashplayer/updaters/17/flashplayer_17_plugin_debug.exe"
-			SHA="3b88fb2cd357e9d0b8ab91a6d3775b5bfa02f26c5e4f1a0c2e294272d36eca11"
+			SHA="c08790a7a86964842511031d523c7a3b303df54f0982e9e4be81b769b2cf5fb0"
 			;;
 		wine-widevine-installer) # http://www.widevine.com/download/videooptimizer/index.html
 			INS=(install_widevine)

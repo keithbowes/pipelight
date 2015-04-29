@@ -1,5 +1,5 @@
 -----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA256
+Hash: SHA1
 
 #!/usr/bin/env bash
 
@@ -898,14 +898,14 @@ while [ $# -gt 0 ] ; do
 			SHA="afa7a7081d30b00a4f57c32932bd6d84940bb43b3f5feb0828ff988c80e2d485"
 			;;
 		wine-flash-installer) # http://www.adobe.com/de/software/flash/about/
-			INS=(install_flash "17_0_0_134")
-			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/17.0.0.134/install_flash_player.exe"
-			SHA="04cfb59a4f2988f7d274b8443b2f39de5d396d0cefc277542ad64f8931ea74db"
+			INS=(install_flash "17_0_0_169")
+			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/17.0.0.169/install_flash_player.exe"
+			SHA="a9327e39a8f45e73aa78ade2bc3dcfa299ba4e932bbdf04e2a29b0f8e3c08a79"
 			;;
 		wine-flash-debug-installer)
-			INS=(install_flash "17_0_0_134")
+			INS=(install_flash "17_0_0_169")
 			URL="http://download.macromedia.com/pub/flashplayer/updaters/17/flashplayer_17_plugin_debug.exe"
-			SHA="3b88fb2cd357e9d0b8ab91a6d3775b5bfa02f26c5e4f1a0c2e294272d36eca11"
+			SHA="c08790a7a86964842511031d523c7a3b303df54f0982e9e4be81b769b2cf5fb0"
 			;;
 		wine-widevine-installer) # http://www.widevine.com/download/videooptimizer/index.html
 			INS=(install_widevine)
@@ -916,12 +916,12 @@ while [ $# -gt 0 ] ; do
 		wine-unity3d-installer)
 			INS=(install_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayer.exe"
-			SHA="e354e05e3e1a2a73cf6313581fd5c722209f06abf2e3b34f647887727bfeb683"
+			SHA="3c092294550d8e16c866ec1b9d3215d1a3b6dbc313bdaaf82aadabe304e9a654"
 			;;
 		wine-x64-unity3d-installer)
 			INS=(install_x64_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayerFull64.exe"
-			SHA="693237d7dec38167a1d5df6e9dc706ca9416d1af359fa749edd1c5608b7cb6d7"
+			SHA="69524273532409ac72ac84a6f28d4c30131c7773c4a9b12057d6dc0c98a9fa8b"
 			;;
 		wine-adobereader-installer) # http://get.adobe.com/de/reader/otherversions/
 			INS=(install_adobereader)
@@ -934,9 +934,9 @@ while [ $# -gt 0 ] ; do
 			SHA="4be8aadcc4fea96277b4d879bb0320a9bd027ebfb2de1306399b4c29abe94206"
 			;;
 		wine-shockwave-installer) # http://get.adobe.com/de/shockwave/otherversions/
-			INS=(install_shockwave "1217157")
+			INS=(install_shockwave "1218158")
 			URL="http://fpdownload.macromedia.com/get/shockwave/default/english/win95nt/latest/sw_lic_full_installer.exe"
-			SHA="8570a99f6d9bbd0d5d8be604c4139e948f3266bc3fbb5a5d24e0f625e22c6689"
+			SHA="a8e01a99c7ccd19e0692d475fbb0717e5edf4aad6116e565fc5c9fce83441255"
 			;;
 		wine-grandstream-installer)
 			INS=(install_grandstream)
@@ -1019,19 +1019,19 @@ done
 
 exit "$RET"
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Version: GnuPG v1
 
-iQIcBAEBCAAGBQJVHGBTAAoJEIPHP7IUNPxz0psQAL2zdmsjhQYXWpPgvtuxhZFH
-oBfFoyzblwrlryXKYl0Hqqv1ShuvLye6GIcG5TJP7UsfHzXA3am8j3vHX1rs4UVj
-K42TNmdK5ThP7U+H25OHzoJXnRDSEbm03o12ZOuzka6DNs1X6iaAyHCx3LlRLuh4
-bhbFEoOSfzBf+TezxRT/8TGu643tdN+JmoDyGWl+t0qCWr6y94KfcGBB1zlvkprb
-nXRBjXM8wWTMoijexe8W9zerX05IuT+kwekoxxODiicHm2IMUwpQQJzBkmZDt6qm
-3V9hIMSeXTfPjOYcCweOjbuCyZ5PTHpjTVR8LCxqvIHupG+iFsaapCHf5WSYKl2w
-ejme48DhDF//7yVi+AO+SBxmI5aDX6BNV4V1SQzLfnjJZGdLIMKmIpFqkD1F2YZC
-MnuFSIt+NQLoVXcDygKz9Rv5mf3xNCQpJallOwIpuEYldAoq0PXqsqbl1B4FbtQD
-50h3d48pyCrhJbgv+EfQKOJEpPvAemjQYp25ffW09h0AqdcvyDTBrCP+pmYKdHDq
-hFMniZvS8m6szPWaybSqPuQXiaxn0pMA1XT+JYijEbwAYNHHN8ICNkKEF7NeGB5q
-xqe6f0g1fGhYKd23YxasWkcmlz9H3DeDj2nfeb6vB/AI6TdN2e1iy6G9eZNPT40w
-6GITDqZlbUm9+ae9G8Hj
-=BLT6
+iQIcBAEBAgAGBQJVQRGEAAoJEIPHP7IUNPxzlNAP/0KlMoLfMFjAkxJW/FCFxgLP
+xEkJgV1kyeaCqT30qxdZnAxS7IqxtPOPJnXr+u4eNREa6R31prWTVMukyOSnvBC+
+vx4gn47Zd1ZyI3czcGnd0y+U0ckE/j1ZjpIa6JIVMHNaXvdUHs44wsHIiS/XoRca
+vrnWxlLtYlOSv9v32J9zm7zaa3SIzfRojV0UkR0qlDJkixngKMHWfb4bZIsKT9/q
+R807h3BjD3v1dKyPPSXRCi8GuI/CBLT6lCyqg5bKLdiLWn39vIOmsAXIlqybM7HK
+qMf2xtUFyaHvQKkSw1qOOQKBb1glTsSTe50RNxMGQXvhxCq+mcYUVaX3xHJke+zI
+szo1PQRsut7/GSv1L0CFTO7ASZr9zgrIXNWuhfaR0FallI7XgTYiFCcCXR97v7DS
+3cIj8dppgyTRQMcTAXc42bEe4F8K5yCtSf1NO2pC98Pfd0PAMnUdD3oejMl4ckag
+qqv748Dlb9hQkkosLGlJRPV+toz5b+MnpdvimBEwDtGxUp6TrPhicSW7kwXTTFqy
+8mvuVtAbxkGpietIptrgTVMLvVwOVDAmxPgCaanVmHWJOuQmHKPvYdPDF7AAdnZw
+JFM8Y0kDMbRDOFhf4LmTmc9thDqHAaDgb1WJy/p5Xxi6yst8SlAE1IZSetlp74bW
+7RwgsaiAb8uZTmo5WmR/
+=xANi
 -----END PGP SIGNATURE-----
