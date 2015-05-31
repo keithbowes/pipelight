@@ -1,5 +1,5 @@
 -----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA256
+Hash: SHA1
 
 #!/usr/bin/env bash
 
@@ -395,8 +395,9 @@ install_shockwave()
 		"$WINE" "$DOWNLOADFILE" /S 2>&1 | progressbar "Please wait, installing ..." "Running $DEP"
 	fi
 
-	local installdir="$WINEPREFIX/drive_c/windows/system32/Adobe/Director"
-	if [ ! -f "$installdir/np32dsw_$VER.dll" ]; then
+	local installdir1="$WINEPREFIX/drive_c/windows/system32/Adobe/Director"
+	local installdir2="$WINEPREFIX/drive_c/windows/syswow64/Adobe/Director"
+	if [ ! -f "$installdir1/np32dsw_$VER.dll" ] && [ ! -f "$installdir2/np32dsw_$VER.dll" ]; then
 		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
 		return 1
 	fi
@@ -893,9 +894,9 @@ while [ $# -gt 0 ] ; do
 			SHA="dd45a55419026c592f8b6fc848dceface7e1ce98720bf13848a2e8ae366b29e8"
 			;;
 		wine-silverlight5.1-installer) # http://www.microsoft.com/getsilverlight/locale/en-us/html/Microsoft%20Silverlight%20Release%20History.htm
-			INS=(install_silverlight "5.1.30514.0" "latest")
-			URL="http://silverlight.dlservice.microsoft.com/download/F/8/C/F8C0EACB-92D0-4722-9B18-965DD2A681E9/30514.00/Silverlight.exe"
-			SHA="afa7a7081d30b00a4f57c32932bd6d84940bb43b3f5feb0828ff988c80e2d485"
+			INS=(install_silverlight "5.1.40416.0" "latest")
+			URL="http://silverlight.dlservice.microsoft.com/download/B/D/C/BDCE18B1-73C1-47BA-9B11-46A4C14CF7B0/40416.00/Silverlight.exe"
+			SHA="84b5fcfab16a8f276e314f6a8077bfa0e0e15dab09b292445427a98cd42e4509"
 			;;
 		wine-flash-installer) # http://www.adobe.com/de/software/flash/about/
 			INS=(install_flash "17_0_0_188")
@@ -1019,19 +1020,19 @@ done
 
 exit "$RET"
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Version: GnuPG v1
 
-iQIcBAEBCAAGBQJVV6vrAAoJEIPHP7IUNPxzUMwP/iM52u8peyAXuSKgYAAhBPOE
-E123MH2sb6etzjkLOru9UvD8pSLuybplu5H+R23eDIIxQW582r061G2cpqTPz/2E
-eYLG81W3R03NkJyhkYuz2r6sbyJNVSW5hNDs5kJQ1aIIbnFM+gbrPt7hOxgW/9ts
-X3xR8bBCVOZDgG5QTzpI/yoWo6ufbUvzbYfbH3hvQgpMoW3j9JKOrGURiIuMikIr
-7TJBenkTleagZgCnF+oYnXEkbwz0ZrZrEHoAY9b5lqonOOTBWZaetSXX8FnX9ave
-+sXfV0l3PZO8zNvzFClGqQWLjQjaPL0A2sH+tbbBOzs0hxZdgbAo0RNSgu3aGFqh
-t+zMJ1Z/bapyDusPMTsY3EXh5Lbti3kKaHdq0OZJbyN2Q3NRuk3OU0Ild2gAb72P
-tKjmdV2bidQzeeEb4cae4cE20Sk3a4xgs2v2KlAHe80/A4/m6OvJfoJ/Np/n7fta
-LNjkDlzJNha2bdIGkKi7t612CzwoY6J6OtW8WA7w3IEssciJhF7IZ2Q2ADrylJw0
-46Nsh955qt1cNccGKuwZOYDhV5+gqrueXFzMAbPbJGoJruc2zLvQE4dId2p7L2ea
-8KBlaB6EaSBT0hNlTD7l9ervr1kVUo0llmqzwyMOstuQa6ZlgZDLqzcCWnDaMj/j
-ipdB+HmOyj+OVw9BZ4v2
-=HvCa
+iQIcBAEBAgAGBQJVawfOAAoJEIPHP7IUNPxz4xQP/0Bo2sDqchUGbbsB2O9W0uVi
+lnKUzZMVcTqzmuOmVaGP6ENXq0BQl1tngoZsYANVUTmv6OIG82haoKScKB6cq5rJ
+H+bUty9lyc4nAemgEPwaHcAlxTsK4ULYIBpjRuz4nfC9yi/SGJzwP/mJs2UHj0qy
+G3n3ne97wQV9Wyki4/oppMCgLDi0dZdlfXco/xhwg7phT5jATVD7e5E452nBWbZ/
+/E/S7+G34YZDhQY0YcMPqD4Wz79b2DISUMtzczXtF1AubF6XeiPTkTAClUWjX83Q
+gpDgGrOlH3bJ/Ue5MjRWBcu5bMkkDRlTIqQYfNBz9Xj4NRLHkGRD0ZCoXGkBugqP
+W5U5SA14fj4KKhTrFMqYGawZ5TxZKbsD1KqBpm0i1nfn7gfpWabXDgLcRCIk8x5u
+sb/1A8sEdD75K5nXnFMuRFoFh3Fp9nPqTcJj4qHaQaST36eyXKiXbhzuSiiJA0SB
+y9R38daAS6sonmXTTnY3z0ZpBpf6q9eMBufWTnHZ+s+9OPB4HeItS3D/AqWtTz6O
+jT4Qs0EUUnO6e/aabJjKQot+CyTtqmCDlki+WO8SiaDKxW3FRMJHqanJCc2I6xIs
+FcxlCEc6V9WkfAP8UnUOnO4uASwimIvMm7Bv9xBnBOVJOILu1wgEV1s1TuaYWdys
+7969BoNDrXATHxgjq57U
+=od3P
 -----END PGP SIGNATURE-----

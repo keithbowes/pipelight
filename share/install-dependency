@@ -392,8 +392,9 @@ install_shockwave()
 		"$WINE" "$DOWNLOADFILE" /S 2>&1 | progressbar "Please wait, installing ..." "Running $DEP"
 	fi
 
-	local installdir="$WINEPREFIX/drive_c/windows/system32/Adobe/Director"
-	if [ ! -f "$installdir/np32dsw_$VER.dll" ]; then
+	local installdir1="$WINEPREFIX/drive_c/windows/system32/Adobe/Director"
+	local installdir2="$WINEPREFIX/drive_c/windows/syswow64/Adobe/Director"
+	if [ ! -f "$installdir1/np32dsw_$VER.dll" ] && [ ! -f "$installdir2/np32dsw_$VER.dll" ]; then
 		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
 		return 1
 	fi
@@ -890,9 +891,9 @@ while [ $# -gt 0 ] ; do
 			SHA="dd45a55419026c592f8b6fc848dceface7e1ce98720bf13848a2e8ae366b29e8"
 			;;
 		wine-silverlight5.1-installer) # http://www.microsoft.com/getsilverlight/locale/en-us/html/Microsoft%20Silverlight%20Release%20History.htm
-			INS=(install_silverlight "5.1.30514.0" "latest")
-			URL="http://silverlight.dlservice.microsoft.com/download/F/8/C/F8C0EACB-92D0-4722-9B18-965DD2A681E9/30514.00/Silverlight.exe"
-			SHA="afa7a7081d30b00a4f57c32932bd6d84940bb43b3f5feb0828ff988c80e2d485"
+			INS=(install_silverlight "5.1.40416.0" "latest")
+			URL="http://silverlight.dlservice.microsoft.com/download/B/D/C/BDCE18B1-73C1-47BA-9B11-46A4C14CF7B0/40416.00/Silverlight.exe"
+			SHA="84b5fcfab16a8f276e314f6a8077bfa0e0e15dab09b292445427a98cd42e4509"
 			;;
 		wine-flash-installer) # http://www.adobe.com/de/software/flash/about/
 			INS=(install_flash "17_0_0_188")
