@@ -917,12 +917,12 @@ while [ $# -gt 0 ] ; do
 		wine-unity3d-installer)
 			INS=(install_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayer.exe"
-			SHA="06d841635164d8913451a8d6957ea194e05fe87b476eba5eebabf612a1f88099"
+			SHA="5b3580233cffff62560dece02f4bf60c9f7ebe2a3ca1546a3d6cf3a8a2cc885e"
 			;;
 		wine-x64-unity3d-installer)
 			INS=(install_x64_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayerFull64.exe"
-			SHA="e73f2c6cdc8789d9a78763c2d76f30a3934862b8297032c1d2c97c4ff5070d92"
+			SHA="bf419b6c62bcb6c168d390ad34cb4f5d8c9a44f0ffda5086ed645189d719df98"
 			;;
 		wine-adobereader-installer) # http://get.adobe.com/de/reader/otherversions/
 			INS=(install_adobereader)
@@ -1022,17 +1022,17 @@ exit "$RET"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJVawfOAAoJEIPHP7IUNPxz4xQP/0Bo2sDqchUGbbsB2O9W0uVi
-lnKUzZMVcTqzmuOmVaGP6ENXq0BQl1tngoZsYANVUTmv6OIG82haoKScKB6cq5rJ
-H+bUty9lyc4nAemgEPwaHcAlxTsK4ULYIBpjRuz4nfC9yi/SGJzwP/mJs2UHj0qy
-G3n3ne97wQV9Wyki4/oppMCgLDi0dZdlfXco/xhwg7phT5jATVD7e5E452nBWbZ/
-/E/S7+G34YZDhQY0YcMPqD4Wz79b2DISUMtzczXtF1AubF6XeiPTkTAClUWjX83Q
-gpDgGrOlH3bJ/Ue5MjRWBcu5bMkkDRlTIqQYfNBz9Xj4NRLHkGRD0ZCoXGkBugqP
-W5U5SA14fj4KKhTrFMqYGawZ5TxZKbsD1KqBpm0i1nfn7gfpWabXDgLcRCIk8x5u
-sb/1A8sEdD75K5nXnFMuRFoFh3Fp9nPqTcJj4qHaQaST36eyXKiXbhzuSiiJA0SB
-y9R38daAS6sonmXTTnY3z0ZpBpf6q9eMBufWTnHZ+s+9OPB4HeItS3D/AqWtTz6O
-jT4Qs0EUUnO6e/aabJjKQot+CyTtqmCDlki+WO8SiaDKxW3FRMJHqanJCc2I6xIs
-FcxlCEc6V9WkfAP8UnUOnO4uASwimIvMm7Bv9xBnBOVJOILu1wgEV1s1TuaYWdys
-7969BoNDrXATHxgjq57U
-=od3P
+iQIcBAEBAgAGBQJVb7SaAAoJEIPHP7IUNPxzBnQP/3rAaCbwDKX7ScjzNMNFDW2A
+i5kHxZWEWOOq5gPXM+APcpwO/BabhmfOF93fN0OvtTgSffgcVHCaBwtmt3SObh5r
+eUt8Fd08MIL0bMDtlnXsHQJb35kq7Eo3AWL3HQZTgNXaBSHny1Bbnb+chKOY/xgI
+gdX6/UErV0A43xhCcbpAUT7jSxVDxym5ChU7YZz70+Vfizh9nPsl13GOIaJaMqAb
+8BhjFDZU8ZD72yR9nLroOiQskdamwgnOCBO9ucVagm+063YdkucHFyn9qF/Moqr4
+GOavvnmTdfQPz2ZC3ze4/PU0HcTsS+QjaxAsnnay4tR1v/hAbwl4m3WkAk6aHb0u
+cX3m18uaramzaiI5+QwYHemQuPKyvC8QwHDcSEtT35uv6iflroRHlIYw7BNuTD4B
+mnYLu7vdeWnsr4JBVDd3BKUoVkSr0U9EELJlsQmxSVfAI6yM7hEVYmXnb0kI6Bhw
+V44n74stT8srxL09+F7c2irNOFlc2vBsGIiO6mRvH7TPJind4Q1unZwqnHuZ1rNJ
+ezAErppwWYQtm0Q3mk/4MjMM2yQampuwVdBC5Kgy/sIgW5Jn5En5WZPWlpK2rCu3
+9K3WOuUVMiqsXEPAlPsrAiV284qpSrC9+BMiVuYoKHyVfaQD9uljjzBz4KNfz9gT
+mVkBpsiwfKmTHJVhwsaS
+=/RP/
 -----END PGP SIGNATURE-----
