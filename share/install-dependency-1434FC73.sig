@@ -917,12 +917,12 @@ while [ $# -gt 0 ] ; do
 		wine-unity3d-installer)
 			INS=(install_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayer.exe"
-			SHA="5b3580233cffff62560dece02f4bf60c9f7ebe2a3ca1546a3d6cf3a8a2cc885e"
+			SHA="be3d9c5dd36aac046b117dddc8f066247a422e19391e7af8f0f962a08df0fecd"
 			;;
 		wine-x64-unity3d-installer)
 			INS=(install_x64_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayerFull64.exe"
-			SHA="bf419b6c62bcb6c168d390ad34cb4f5d8c9a44f0ffda5086ed645189d719df98"
+			SHA="54cd580eb80b09b919a5e8516f5bb1349aa0c0880bc5ee2712733eeb367d420d"
 			;;
 		wine-adobereader-installer) # http://get.adobe.com/de/reader/otherversions/
 			INS=(install_adobereader)
@@ -1022,17 +1022,17 @@ exit "$RET"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJVb7SaAAoJEIPHP7IUNPxzBnQP/3rAaCbwDKX7ScjzNMNFDW2A
-i5kHxZWEWOOq5gPXM+APcpwO/BabhmfOF93fN0OvtTgSffgcVHCaBwtmt3SObh5r
-eUt8Fd08MIL0bMDtlnXsHQJb35kq7Eo3AWL3HQZTgNXaBSHny1Bbnb+chKOY/xgI
-gdX6/UErV0A43xhCcbpAUT7jSxVDxym5ChU7YZz70+Vfizh9nPsl13GOIaJaMqAb
-8BhjFDZU8ZD72yR9nLroOiQskdamwgnOCBO9ucVagm+063YdkucHFyn9qF/Moqr4
-GOavvnmTdfQPz2ZC3ze4/PU0HcTsS+QjaxAsnnay4tR1v/hAbwl4m3WkAk6aHb0u
-cX3m18uaramzaiI5+QwYHemQuPKyvC8QwHDcSEtT35uv6iflroRHlIYw7BNuTD4B
-mnYLu7vdeWnsr4JBVDd3BKUoVkSr0U9EELJlsQmxSVfAI6yM7hEVYmXnb0kI6Bhw
-V44n74stT8srxL09+F7c2irNOFlc2vBsGIiO6mRvH7TPJind4Q1unZwqnHuZ1rNJ
-ezAErppwWYQtm0Q3mk/4MjMM2yQampuwVdBC5Kgy/sIgW5Jn5En5WZPWlpK2rCu3
-9K3WOuUVMiqsXEPAlPsrAiV284qpSrC9+BMiVuYoKHyVfaQD9uljjzBz4KNfz9gT
-mVkBpsiwfKmTHJVhwsaS
-=/RP/
+iQIcBAEBAgAGBQJVdgSNAAoJEIPHP7IUNPxzymMQAM9Z8P65o7WDLxcOTYYdlFp2
+84Y3QNNdRRghgicDwF2yO8v+0Tt3vzVKyh8rSS1l8qp+bUPAb/HpquQXJLm6bMYP
+IUui/ypOVlQb8ccdDgtOyXScmR/ONZZ2Nmufr1A0GnOn7wq0IDksUBg8CHxObngF
+W7jtplpfk0YHuF7YHQadhw7x0C8YR+H4c7m4d8vpyRnFMVkl4y9UJBdSkfcHGI+t
+11hii7q1YK8Yycy8LmeDeK5+0aiAkUr13bT/2meivDfkN2z5TDr5FDZThAbfYbq/
+/oUlm5wV8hF69B8kZS6aDRx+84+AhLKL3Y3ue4POjKwKJU5TMmlqBHB+qYVOqKe2
+CVERnuFwNEEqA55OrdlZVNMQ9dUPY7iqZx5XD30LIGtgSjKUAG1dK93BnAEUsfPL
+DxILJ0uY4yaxZnbB1yWFqwoyuxIvjmmQ2AJBCP+9gTJPYgheeUyKy55TbrFW6Kw9
+hAFpbmjkxGFBFUSkx9iYu4g4Nq6lV2GnQeEFvLhhIAMG6tTNNQl2zIVxOrWPSigu
+gB7arqmQS5b9fmMhiC8hffIFDXTVnA9+WycEoIKXFfyplAytjgH1h5Op81B4XWTX
+g4uvUy2ZrvhJIlBiH5j2K6d++1vG0isT6CsvMncLqNbcT/pdLz+H6MKh7MJwfPLi
+Lasbh+UAGz4KPldoOhRU
+=I2wv
 -----END PGP SIGNATURE-----
