@@ -935,9 +935,9 @@ while [ $# -gt 0 ] ; do
 			SHA="4be8aadcc4fea96277b4d879bb0320a9bd027ebfb2de1306399b4c29abe94206"
 			;;
 		wine-shockwave-installer) # http://get.adobe.com/de/shockwave/otherversions/
-			INS=(install_shockwave "1218158")
+			INS=(install_shockwave "1219159")
 			URL="http://fpdownload.macromedia.com/get/shockwave/default/english/win95nt/latest/sw_lic_full_installer.exe"
-			SHA="a8e01a99c7ccd19e0692d475fbb0717e5edf4aad6116e565fc5c9fce83441255"
+			SHA="53f15311f0632a2847ba502ab1c8df62897381a3318f3797ccc6f84cfa47ecbf"
 			;;
 		wine-grandstream-installer)
 			INS=(install_grandstream)
@@ -1022,17 +1022,17 @@ exit "$RET"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJVpRqxAAoJEIPHP7IUNPxz6ogP/R2Grk/r6dyfyqNpfjUaoM45
-2SAkAr0Rs88tKPvbnXvlR8Bpwo309HfSRWzsTRKl7PBDsV1igLgREhk2pUejBbq5
-wws5+TI1nwmylVAku5sQ5EB37983JKPbTVvu1J5ODA3sci87Izk77EIXhwglZfpt
-jJcQdU1bOzPcJz6D58Siuc5TiVqFGO2iHaWlCkDqHJahZ3TGgGKwbtQVCnfbFUjj
-oOq6Q4M+Ajjmyjv0i68CtYGsAD1bpiNrfsq2DzfCgmqhA9uLga1ijtZd5kRR8NdR
-u4pwGEYIS1wQ/Z/xzrig0Xi8+QYs0oe7eVIjVIbOyjopUB+IoEy/5ab9s1UyHaPw
-XxbWRj1Z/fFHE1rVqpp3WjHoM98XDqxUbyml+OO5MNLknQ3pNkZV4fYjAAJuXCNA
-WgmVftaBBa1OMPzsnR4rtYp8rYYn+G8WzhT5eqbR0dNc+cP0j3+o2me3zFe5m3IW
-pkavSVhUiQttmG0LLOASDyGEIe5TvnwKJ2nzrMshLOGDp1SbdgkrPFnh9630q6x4
-Ud4auSpVbSd3sLl/euhHccuuW1sj+Qo5PmQqVP4FePoQoI2KYSTIPXg+JeMBE2oS
-8jH+XYcXCzlpLL6PZhE0qrisBb4/8wOl4umHdizi55ddyjaxj2H+2diPBsKwDfGB
-BqSEA8tn2NcYviNIE19j
-=wcMt
+iQIcBAEBAgAGBQJVq/dVAAoJEIPHP7IUNPxzz4YQALN1bz57HgSOy2RAfQGUMFba
+fx5NVLgMiUYTRE3vNLzc1/qo6O4XKiqIn3ZAwZnPykMPIexhtpSqSOUqSRZ1ilBO
+nYcO3DwtNTc/mTg1QUZ+b5OrTNb8Rh4J8Vbq3wND9Ks1gKvOP3f/s2/YgrKyxrqJ
+EjRPJFHsKc/om4hy49CftNDkiBFmuc5Arr/1pbMH8crbsUGSAaELrvKwbm7rBsBN
+IcYAz9NA6bfxGmajXouzuH41WDADdDjUIKXJAlNgmJ7P+dQHmkHfG/L66yjg7Yxc
+QS4c831ws12z1f0j3xGpZQEA0EJajlNl+ELj5hlIRZdybl/uXtmQTjwOhSd8bJny
+FCLzO0ZSFIwQSjlv8FMQ4Bp90JmkFt5PshdIcXad980ZlveSkvOF5EAB3SfXuqPu
+iY2HFePpiw0U3+tBEsm/bGYdVbkpZxV6kZggOccOl+tilAhnpWiIcyHPKRyUVwc2
+TUy1jfXnSzfNrCffDUp7oiFlc2PyiGxL4d+o9fT82/u32GiKHUhbq/wnvnnjywrU
+2X4fbMLQ07gsO9zSYTETbhGZXlQ7aWcqtcP/ZTmeHj+iLoA8izRNoV2Cn1dkLbBv
+3ww7y1iVKWAs+sH6IDaAdzNlv6pnY4ODWYRD2HxcwbAy8asFwL0XiOlopR1DIYPb
+PQWiKfrcUleiMRmpNW0s
+=WVc9
 -----END PGP SIGNATURE-----
