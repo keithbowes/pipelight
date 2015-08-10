@@ -935,9 +935,9 @@ while [ $# -gt 0 ] ; do
 			SHA="4be8aadcc4fea96277b4d879bb0320a9bd027ebfb2de1306399b4c29abe94206"
 			;;
 		wine-shockwave-installer) # http://get.adobe.com/de/shockwave/otherversions/
-			INS=(install_shockwave "1219159")
+			INS=(install_shockwave "1219160")
 			URL="http://fpdownload.macromedia.com/get/shockwave/default/english/win95nt/latest/sw_lic_full_installer.exe"
-			SHA="53f15311f0632a2847ba502ab1c8df62897381a3318f3797ccc6f84cfa47ecbf"
+			SHA="180c7ccce064ea5c067d336d8de45d819d87435d3bf9b8ace418a39059df73d4"
 			;;
 		wine-grandstream-installer)
 			INS=(install_grandstream)
@@ -1022,17 +1022,17 @@ exit "$RET"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJVq/dVAAoJEIPHP7IUNPxzz4YQALN1bz57HgSOy2RAfQGUMFba
-fx5NVLgMiUYTRE3vNLzc1/qo6O4XKiqIn3ZAwZnPykMPIexhtpSqSOUqSRZ1ilBO
-nYcO3DwtNTc/mTg1QUZ+b5OrTNb8Rh4J8Vbq3wND9Ks1gKvOP3f/s2/YgrKyxrqJ
-EjRPJFHsKc/om4hy49CftNDkiBFmuc5Arr/1pbMH8crbsUGSAaELrvKwbm7rBsBN
-IcYAz9NA6bfxGmajXouzuH41WDADdDjUIKXJAlNgmJ7P+dQHmkHfG/L66yjg7Yxc
-QS4c831ws12z1f0j3xGpZQEA0EJajlNl+ELj5hlIRZdybl/uXtmQTjwOhSd8bJny
-FCLzO0ZSFIwQSjlv8FMQ4Bp90JmkFt5PshdIcXad980ZlveSkvOF5EAB3SfXuqPu
-iY2HFePpiw0U3+tBEsm/bGYdVbkpZxV6kZggOccOl+tilAhnpWiIcyHPKRyUVwc2
-TUy1jfXnSzfNrCffDUp7oiFlc2PyiGxL4d+o9fT82/u32GiKHUhbq/wnvnnjywrU
-2X4fbMLQ07gsO9zSYTETbhGZXlQ7aWcqtcP/ZTmeHj+iLoA8izRNoV2Cn1dkLbBv
-3ww7y1iVKWAs+sH6IDaAdzNlv6pnY4ODWYRD2HxcwbAy8asFwL0XiOlopR1DIYPb
-PQWiKfrcUleiMRmpNW0s
-=WVc9
+iQIcBAEBAgAGBQJVyS6DAAoJEIPHP7IUNPxzEDwQALRwm972Ls/2GkdpLuwr1M2+
+SJFrUoLB95MDGzSqjtVHnJCnAmSwXI+OKVpjLmKSoICFQc0Eccsp/HRuL+00yOs9
+XMlL8njybn7rC6YxwwgOyAnzHX7ECFVdyj8qz4/6gPDBwZ3k16YnkqLiRHCbhZMO
+GzgUcGzvY2zuwAaLSCnOG0JehHT3teV0M08uGA+HGflAKuO854SLem4broyTUVmT
+ts0HToH6Owv9TAaCA98DpjTmw22GPH2bJ3mpKx95Iu5WJRtvfnz8Wc0+b1FAY+Cm
+40bIoS99tPf00afawb9GMBLLNpvFQKzTr3AF1IdoffWmGracTPBKSYurG5CIhcIR
+nnK6d7rqolGggmM4DE+nsvx5iwBJIfr76qLIr3/5XgaCh5HGnzfu1a3zEIdD2g7f
+M8Ta3wZ1kJawQ2mFVpCReMA8jauJ+n++bNJrYy4p0Zsk0WDh5GB0m1/9woLlUUWY
+0F38EJl2zJbvNjI2/vbKsWdAvfbqKc0iG24Cz6626dllspqA2mE288/OxufyK0cf
+RqKYCUZkbj+eWq7F1+y1N/xv2Li5htRdow0/m/Uq3qXKPY/AxGNmi+LJ6W9RIgQb
+KIyu1WdBN41ItIwwK3137rYIB/ja5tXE6KWrvDHa3pQ1uN0cTMMWUQFtrZam6jEs
+OzZbMcwR04AzcJqZKfAe
+=pjv6
 -----END PGP SIGNATURE-----
