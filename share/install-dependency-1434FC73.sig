@@ -935,9 +935,9 @@ while [ $# -gt 0 ] ; do
 			SHA="4be8aadcc4fea96277b4d879bb0320a9bd027ebfb2de1306399b4c29abe94206"
 			;;
 		wine-shockwave-installer) # http://get.adobe.com/de/shockwave/otherversions/
-			INS=(install_shockwave "1219160")
+			INS=(install_shockwave "1220162")
 			URL="http://fpdownload.macromedia.com/get/shockwave/default/english/win95nt/latest/sw_lic_full_installer.exe"
-			SHA="180c7ccce064ea5c067d336d8de45d819d87435d3bf9b8ace418a39059df73d4"
+			SHA="8a29f61c70830968112e36b4b75a225a5fb9db6710d4a7b04a21ef6d716b6eb1"
 			;;
 		wine-grandstream-installer)
 			INS=(install_grandstream)
@@ -1022,17 +1022,17 @@ exit "$RET"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJV7KcyAAoJEIPHP7IUNPxz9c4QAND3TQeHsXPRsgOejV2n8uj9
-jckneDjtaszcEheTdKS058hp/XRYT6jjYjp5eEJ3XZUiMhpBZ22kATuDZ08I/S2c
-c7U976etVoQyN6lSM4ZsfQAmTAz4EWhUf59G0Cn0gr7Exh5hyjGDN25pVYLJLE8c
-2v1xcN2paqEFPVe/VmgS3nVcH2dUJll2NRdKIDg7CSj6tiya9ckGkm/QBXt70RCI
-nL186XosYOjSkCzYbSzPDgVN7WoPZAfixN9bPKi/EmI2sAWwGXmclsfDbgw+r1aA
-1Ws7QQCfCmBeTVRBgPnqR2VvuF5Ar2JCCafJNgAVSd4Z06dbdOhvuBBxx3NB2hF1
-OzzeUVJBIbSKQaaBvaP83iow6s+7ie2fM2rdxj/rcj27RVA3Ajz0bP9epQKH3Mvz
-ZDKr04rfWvYNsn7sH+YBST2g+Ex2yRnzN+pp9W8hkZ5smM6JUFFfW6ZAbEQWN1+0
-IXQQoh7aiSr1v3uMFz18Hp1T3HLn5s3WYBK4vOL17zhqVUnWtT1+QCjOvVlIzUx7
-Q2KJjhBNBXwkLE+v7OdhmgY1KtEiN+2apJf2iIazI1GAcHQw0QOfNNXPo+jCHoGx
-VdaE9/IRYluV5a+tn+3+0+MVnJqrCQW4+cWMX7BkLHJuLTPIxPa7kSGUdcqz4EBX
-9zciaUnyliFkOE9VQaSI
-=Gx/o
+iQIcBAEBAgAGBQJV8bCoAAoJEIPHP7IUNPxz6pMP/2FMjUGcCCaOJNmv8XKSjB3l
+wMtMfTjzorFC8M/rwt11vXipLwGG8DiwVXTiJjdByE0X4nNw3DQIART2xo0lL7Bt
+cygt6PqGRALou5CBxNJhIsnhP2C2CgKDlmdOL4QrcQOZMZKg4WB+O4Am2Hi6ipjR
+imy4QNy2vJ/+UPYdlcyN9SCtSQwYrHwQ5P7dwKtAzdhL4t2L1kTCg20uHbO30Ikt
+6v3hhNqGj85wFUoy2/Q2mx6fBqU2c3tx3tUvdCR6n8bpGYYJGBjdtPH9QBdvNErW
+GqrobBW8ilsI+CxgULnH7e/qyNCUCrJcmedIueQH/592/Nt/g5z9EGNdjX4vsal7
+UV9avwEc4VDOaV5v6aOV7TbKKA8/4hNdLciXhpxPa2sozdPCfncQYJSYdLSnNbW2
+e8gF/E5zxqpj5Kerko/0bgV49PB3Ir4cmJNvecbEyghs4YpgX+avt5gJ7XIzHV7R
+l1Ns6mT90ryQZWnn1TXjp+eKRwXodD4wBn/E5Iv3Doopxw6FGelhwYaKnuYhzyK5
+nv2CIgil7P62efSHA1bcqTd0E8qfnAO+edvsFyxijSbxCmm7VuR3pITohtB+MjFb
+g205FXictBeRaO+DeQKd1tzpS4wNmhG6bbehJIFktGP7NfmNKlFKxk57wqTQKrIo
+h8dukWUJ9WlofrSXc4YM
+=XGqa
 -----END PGP SIGNATURE-----
