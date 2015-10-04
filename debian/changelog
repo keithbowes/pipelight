@@ -1,10 +1,12 @@
-pipelight-multi (0.2.9) UNRELEASED; urgency=low
+pipelight-multi (0.2.8.2) RELEASED; urgency=low
 
-  * Update Flash to 17.0.0.134
-  * Update Shockwave to 12.1.6.156
+  * Update Flash to 19.0.0.185
+  * Update Shockwave to 12.2.0.162
+  * Update Silverlight 5 to 5.1.40416.0
   * Update Unity3D checksum
+  * Fix compatibility with gpg2
 
- -- Sebastian Lackner <sebastian@fds-team.de>  Thu, 05 Feb 2015 13:37:26 +0100
+ -- Michael Mueller <michael@fds-team.de>  Sun, 04 Oct 2015 14:32:48 +0200
 
 
 pipelight-multi (0.2.8.1) RELEASED; urgency=low
