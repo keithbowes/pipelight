@@ -1,3 +1,9 @@
+pipelight-multi (0.2.9) UNRELEASED; urgency=low
+
+  * Update Flash to 19.0.0.226
+
+ -- Michael Mueller <michael@fds-team.de>  Fri, 16 Oct 2015 18:00:47 +0200
+
 pipelight-multi (0.2.8.2) RELEASED; urgency=low
 
   * Update Flash to 19.0.0.185
