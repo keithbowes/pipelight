@@ -1,5 +1,5 @@
 -----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hash: SHA256
 
 #!/usr/bin/env bash
 
@@ -917,12 +917,12 @@ while [ $# -gt 0 ] ; do
 		wine-unity3d-installer)
 			INS=(install_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayer.exe"
-			SHA="211563777a14bd3956a4d74ce8a2ed8f6374c13d7ba495d12329f5eb346b9e99"
+			SHA="b3a02801a87f28a728e5f2ee4bf5e75ce40671ec0ca96387cd0fa829dac3687d"
 			;;
 		wine-x64-unity3d-installer)
 			INS=(install_x64_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayerFull64.exe"
-			SHA="a70ac97df65aff2da160d03310bca8445377856dec0d21ca6f8f06b7dd1b1cc4"
+			SHA="7b083d9a2649d87e71ccef4281104f40c9c4330177356b1ee8ae4f5e25adb1a1"
 			;;
 		wine-adobereader-installer) # http://get.adobe.com/de/reader/otherversions/
 			INS=(install_adobereader)
@@ -1020,19 +1020,19 @@ done
 
 exit "$RET"
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Version: GnuPG v2
 
-iQIcBAEBAgAGBQJWISENAAoJEIPHP7IUNPxzvQ0QAJSU9jbcoW90k5Fb9fBoGioA
-ZaOYcxmoIvV5ftG3RE2v5CWPd1ikURuTKLsxw67eq7p+CT0aVkcu1YCarJ7BcFKh
-b6XJe1YFU6+Mtv51qtq1svXzcMmU+LN3jwdg806OtG/Kql4hixzfzX7KDITxd51l
-atSacoMXxYS8m4HprjiWkpJH54svskHnWm84+asjPnBhpDi/kTVOlWPNI0HiZFx9
-Fw/CQaFbo7xjK3j126JhB2PJuR+wDZAiIhY7KIB3wrJEvB76Sfzwm9/dhlZQzw97
-dbtgoriuUwF7kYAW4wZonZGk6GgBzmxSFr6+6rNTQydK2DFSM4fGgJo0P1zubKIk
-lCCpaOLP2ndibGrdlg535TeP9EsGznSxFKE+hpHpZNklyGymRJSG3dV3Sk9NAKPX
-LRA0Ne2xhZH+rVGQq0BHhjuzHIvLKkXFus9tl7bHffODJX8T7WO2lvdQdJUGbrIr
-a90I3Ape8shrYMRmZs/ZXibJNAQZWhsKj/Gx5/x3c+8GJBPOiX83IwEAW/yspEtJ
-k5f2M4BvlMTbwk6rkpjyiptftDSwjFBY6GtZjxUsTX25+mMWLPuLwVA9xKuoE5OM
-b4k7iqxF7jd55wLWN6thNv2X3jHTYDZO/WaQot+s8icdNdo+VyfQHxEzXpfmeFyW
-Yn+HiAaMzNYIspKX22ET
-=ebMC
+iQIcBAEBCAAGBQJWULhWAAoJEIPHP7IUNPxzxdoQAKwBwgF9HhZKCP9hWKPRQoLQ
+ucml5NYTK/fZ1Qyzq1nS+8rGdJQ7eEh+lANr7+O3MnpraFHF0AV+VBPS54pAPhf/
+riR6G2aHMFjDKxe+zHmFEHS/xLKGZEI+hA3YCvpsk3wFU+AJrE+s1oRl1GgZUv/3
+ikZdmmq8bcXvVYxloZ9uaGTdGD09hULaZ0SLxqm2T1UcimjP3BO+0VWdNsEb6zGp
+ftXbPpiIUYhADzR3SLgBmaHGvnyNw+GV+0ykxn/6gULEBMsGNhuZiRawqwufSAV+
+4aPr6wF15gB+l9X+ZfboQ0iKpbRVXco69c5PrgI2WDGMok1ighpJJP1qjajIGv/2
+//MamzZ/ENZmaWGZYRLgs2gIJO+5XZ6VJ89xbrvzC6lNRRBdJXEof0aw2iOKOaWi
+Xe4rpa+njo7suD/1otAcI503Q54pK0zsn8gQoJzzxV1I78vP7QZt9TTKVSi1IKLl
+CLutcW+5mM1DcK5uV00ZMdlrT41KvIo4/3iVANoXNA6BZq0o0oggjCA3Y8alvO/A
+Pg2PeKHCITOi9mDdANEEAq4K5dtmFy5OOHRENK28wdPKL97gMaPOnyaPuJZrZ9wm
+3o+aRrjxjk3lSSArflfklQjEzBIvBitGstd5OE+6A39GV7hJtUOsj6wG8ES7OdNZ
+6NJVs9BvfmsIz30FRvep
+=rQyd
 -----END PGP SIGNATURE-----
