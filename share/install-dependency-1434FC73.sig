@@ -917,12 +917,12 @@ while [ $# -gt 0 ] ; do
 		wine-unity3d-installer)
 			INS=(install_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayer.exe"
-			SHA="b3a02801a87f28a728e5f2ee4bf5e75ce40671ec0ca96387cd0fa829dac3687d"
+			SHA="c018d069288ff34cdd6098047104d200ee9b2b56ab7394588c0bafd1f207453d"
 			;;
 		wine-x64-unity3d-installer)
 			INS=(install_x64_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayerFull64.exe"
-			SHA="7b083d9a2649d87e71ccef4281104f40c9c4330177356b1ee8ae4f5e25adb1a1"
+			SHA="8e6b8af230b11b21fe36b185e0ca039fe27908128228b4efc622e586eea161ea"
 			;;
 		wine-adobereader-installer) # http://get.adobe.com/de/reader/otherversions/
 			INS=(install_adobereader)
@@ -1022,17 +1022,17 @@ exit "$RET"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJWVg4sAAoJEIPHP7IUNPxzEpsP/iI9RuASDxIGBgvhDrflaM93
-Geiw71hkmROIyBzSSEQCysuXC5embE4hWlc0DMTM5UbscfEMO017p8VjgvYAF3jG
-auwK03jPw0GiUoCDUFPLgRpJgEY4JGPbIaU+cYCwASzZJCaraCmac6/TJiElCGmb
-+lhIJaLxqcr9ytbfQaOr1ELxtx+KKetMfVL4MubwbQWT9VH7xlFqur5TMBZMsYTW
-cGH0J9G1FUnXZ+TtLcAWW+KlhKf/YZD9McQGKz+ILLgr9NhPtYpRkPAwb2CjQKP5
-+lVOXWBMfqg596KpcUKB8nEsj7AQipo2Kh316NmiGC2HkBYqeHqtdqnOiUhdJ97q
-MxcecIELmBfD3SmeQonZPMCAg+VqGIODJDKnfsoMaLr97EUIIgiUXYkRXOFDRuYD
-ND+v+ghqB4soJKEDCOHD6VJhvUGiAGWZSi/3HK6rSKdJOzEzBn0pqVvAeV/hPhlX
-GdemPv6pf8c5TwbHnC9n4cm7aIirqSIRvzY8vfTd2Fc+1iix2FXuPruxN8Byapq7
-1Ztm0A4/U/wwTK8oF7zLhJmqY3L2XpZ57K3TVW7ajvJF9FGjHYdOgpUj3ml8nkIj
-ra30OOudpqGp6UFOlBKMFSUWqAqYSIpxRS8+7PWVTVs27GUC+De8Yl827Llc9aIy
-O1oT/74MrxAIVg3DFjzX
-=pWzm
+iQIcBAEBAgAGBQJWY16lAAoJEIPHP7IUNPxzmrEQAJ2zP/CTM+zhwyQVYbSA1Y3q
+gh0txsNNqy9iWbjY5+x9jdvbL7sLMPkOzTOre7Kz/+nUCbkCbxc9H/wkm9Ka6KHU
+gWWiii3Yc4PKFCXRhLjUxZDCGquU9uz6rmKM6cMPkXinQ9zP0RhBtNL/RuyboQ70
+7I0X2z9YYxlC3b0N5/I0jcaU7/0uS5bc3rOWFgou4g918B152RryRvpNUTt1dBkG
+SlO7aUu5a4B08bGisEYWwWPyZDwTc9ZqnfFJpgJBs0TIxQyHbAGlY4t/sx9y1pTW
+URU5878MOl9tXJpCPi6SCG9Q4x/Z9DCCVcwSYqFaouxoEiep5oqFS1KJqblOH5GD
+GgldOumPEMF2bl/D8Wen47/w633pEklTQ4Kr46fLa6hBvCyk/04shZlage619ro9
+aov1yk3Xg3bUHID9J/BKzH0WZqgVXyumnUAQbBzxPr2222WfX4R9tMy6qEYaMFSz
+XhEOyXG+VEKBTTjobTU1njlCxVr7fhrBd9Vr6FTYnqqANA8HNguGqGvhZi5fezI1
+dnxi03u/K5djOe1r2/KW6Dc6vK3GIVMlrJ6JGi3wWURgDZz+X5+DsUnAtPLVNFoX
+uYP4NTSL5Lc2xoGMtb85sv8MIBuVMArv0AXsqeFQCiJKORCcgVNHMy+XVZBqCe1j
+xJDHXU+iiXgg8bcYkbFv
+=NfUt
 -----END PGP SIGNATURE-----
