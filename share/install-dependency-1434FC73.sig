@@ -1,5 +1,5 @@
 -----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hash: SHA256
 
 #!/usr/bin/env bash
 
@@ -917,12 +917,12 @@ while [ $# -gt 0 ] ; do
 		wine-unity3d-installer)
 			INS=(install_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayer.exe"
-			SHA="c018d069288ff34cdd6098047104d200ee9b2b56ab7394588c0bafd1f207453d"
+			SHA="870a5feb12dd989fe228d715a6ade4b36326af0f754b1dcb3db89c073fbe17ef"
 			;;
 		wine-x64-unity3d-installer)
 			INS=(install_x64_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayerFull64.exe"
-			SHA="8e6b8af230b11b21fe36b185e0ca039fe27908128228b4efc622e586eea161ea"
+			SHA="1007542f4cb73a5eab9cffe32a5e30532ab043c7c3fc02d5d4578693c292a43e"
 			;;
 		wine-adobereader-installer) # http://get.adobe.com/de/reader/otherversions/
 			INS=(install_adobereader)
@@ -1020,19 +1020,19 @@ done
 
 exit "$RET"
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Version: GnuPG v2
 
-iQIcBAEBAgAGBQJWaKUZAAoJEIPHP7IUNPxzAPEQAKCl6OEDxX9U4/iwJKbfA9E/
-XVYO4/YCG1vBqF26JerD/GF493iuGFxZzgRLJQ4xp6WzQf3TO7mE+6gVL0Deplh2
-N1lGDhVsqFMDzy3ehs85UDvlHPn7iEqrXMxNsMLrQUhAYNCBw7QvFu23BtkFHrRU
-I8qjeV4JlOtZI/LtJfNccNLBLgcBSaLMhZ+K/hnu76hQY5qePMjL2i65D0GYY/F+
-N4pqifb0n9lGr9sEQqxA+XpBOGEVGJmHWbzA7zsfT/EGU0vpZQCWEXqKSMXsYzWt
-mWinu8blag4JwHdl9Ml3HH+h011I3uiVYX0rursP/nd9KUpp+XAUKlXzd7VOIOen
-16C4UM6caEXOBchcI7gOb95bdcNfAF1qqqIoZbA16A7I8ytT4oiodJKYZ2jUD6C7
-EWkfhUF70PVLghLoNBU3td5j/grteTm4zWrY/+r6liX0RK8emDTsDi1hH2rUU6J+
-ITH+8lYSwUl6skp10EUY+xUKczYTmtqpTBFM+AEunitAI58wU8HxTodCMxw/l7gM
-8e8ATRk68NHWDtX/OrzBNQU8m+jfpttGDltRv4WxYjqfi3UYA5N2y+dcUBZDeX86
-3tZA+41dKCcIVHGjlkyki5Qqo51ecCbYtrCR9nOlxathpyVRB0stnrG3vbFOCQf+
-nI0vVhqTi3tyThL32X6X
-=o+i5
+iQIcBAEBCAAGBQJWb0ilAAoJEIPHP7IUNPxz0XIP/0Stus5p10CWIAzSgxiwAU1a
+M9EmtuKl+j2BZTyomyRZGIPA579b4Pr8hkGD7vrq0In/is/sHoucDBfZnvqwft+r
+gxt9R1dqPUWnj4L70wYuSXfVLJblWlw2Y6o54ssbqvcQ+p5GIZTYoCEc4W6WHAWl
+20pbPK1yZGevmAUkRg7VfqA9NQAS4JiQrYi1GUxxQzzXiRcYcP7AubZF/xyscX18
+YZSKLN/28VdS0MqGSvSMNGz7KUtMWD4Eb0BzFKjQhK+Np6M+KbmeHZuxTdARhg5p
+EjjM9fImOyXcWIdx71oony8E6TLvkWI5JpmKRV3Z1y8jQmhWVyYutkOzW59zHkxl
+LdnSaSN/Xa4DiH/9T0Ixcekz1fI61vUrYorfcK+HSc8IthgG/r1HRm3hx+6D0ozd
+49lFj7J15/ICdwk8KUq7qwuIAkYVlR76S8XjcbLwn1yDgvP/aMmTiY4N53h1rMDp
+dhb95Ga3aDoAk+gLgeT2KKb41Sqd+AemSzxLduZHhV+vSNtUZeT8bUC1NFsBzDk0
+uDeZXs8Wx4YsAZThGJAoWb8NkgTsA16MaE8b23fEAbh883WJFSCepBpa95g6tx1t
+irGaLqu7q5XoOQG89GO0bFyJcHXb/SjD6ncJdiRao5FVwP7exP7UJfORa0W/Q7BB
+0Yr9A5424i0e1JKB8kTT
+=PlIw
 -----END PGP SIGNATURE-----
