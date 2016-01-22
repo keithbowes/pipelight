@@ -29,6 +29,7 @@ usage()
 	echo "	wine-roblox-installer"
 	echo "	wine-vizzedrgr-installer"
 	echo "	wine-viewright-caiway-installer"
+	echo "	wine-google-earth-installer"
 	echo ""
 	echo "Library dependencies:"
 	echo "	wine-mpg2splt-installer"
@@ -716,6 +717,24 @@ install_viewright_caiway()
 	return 0
 }
 
+# > Install Google Earth plugin
+# arguments: None
+# $DOWNLOADFILE
+install_google_earth()
+{
+	# Launch the installer
+	"$WINE" "$DOWNLOADFILE" 2>&1
+
+	local installdir="$WINEPREFIX/drive_c/Program Files/Google/Google Earth/plugin"
+	if [ ! -f "$installdir/npgeplugin.dll" ]; then
+		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
+		return 1
+	fi
+
+	# Successful
+	return 0
+}
+
 # Use fetch on FreeBSD if wget is not available
 if command -v wget >/dev/null 2>&1; then
 	download_file()
@@ -981,6 +1000,11 @@ while [ $# -gt 0 ] ; do
 			INS=(install_viewright_caiway)
 			URL="https://www.caiway.nl/downloads/ViewRightWebInstaller-3.5.0.0_CaiW.msi"
 			SHA="9436dea83e42204d0a9bc4d128c2f2693dd9c5f9636d5fa57441ef5886f3ab43"
+			;;
+		wine-google-earth-installer)
+			INS=(install_google_earth)
+			URL="http://dl.google.com/dl/edgedl/earth/plugin/7.1.5.1557/GoogleEarth-Win-Plugin-7.1.5.1557.exe"
+			SHA="852f7ba6b748157ad3659d447c5e064a3f6ce198634023048eb680d5141fe720"
 			;;
 		*)
 			echo "[$PRG] ERROR: No installer script found for $DEP." >&2

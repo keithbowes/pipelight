@@ -32,6 +32,7 @@ usage()
 	echo "	wine-roblox-installer"
 	echo "	wine-vizzedrgr-installer"
 	echo "	wine-viewright-caiway-installer"
+	echo "	wine-google-earth-installer"
 	echo ""
 	echo "Library dependencies:"
 	echo "	wine-mpg2splt-installer"
@@ -719,6 +720,24 @@ install_viewright_caiway()
 	return 0
 }
 
+# > Install Google Earth plugin
+# arguments: None
+# $DOWNLOADFILE
+install_google_earth()
+{
+	# Launch the installer
+	"$WINE" "$DOWNLOADFILE" 2>&1
+
+	local installdir="$WINEPREFIX/drive_c/Program Files/Google/Google Earth/plugin"
+	if [ ! -f "$installdir/npgeplugin.dll" ]; then
+		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
+		return 1
+	fi
+
+	# Successful
+	return 0
+}
+
 # Use fetch on FreeBSD if wget is not available
 if command -v wget >/dev/null 2>&1; then
 	download_file()
@@ -985,6 +1004,11 @@ while [ $# -gt 0 ] ; do
 			URL="https://www.caiway.nl/downloads/ViewRightWebInstaller-3.5.0.0_CaiW.msi"
 			SHA="9436dea83e42204d0a9bc4d128c2f2693dd9c5f9636d5fa57441ef5886f3ab43"
 			;;
+		wine-google-earth-installer)
+			INS=(install_google_earth)
+			URL="http://dl.google.com/dl/edgedl/earth/plugin/7.1.5.1557/GoogleEarth-Win-Plugin-7.1.5.1557.exe"
+			SHA="852f7ba6b748157ad3659d447c5e064a3f6ce198634023048eb680d5141fe720"
+			;;
 		*)
 			echo "[$PRG] ERROR: No installer script found for $DEP." >&2
 			RET=1
@@ -1022,17 +1046,17 @@ exit "$RET"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJWjsduAAoJEIPHP7IUNPxza8wP+wS3f5QcTwGrUMmYP7XpG4D+
-MqCoJbfZeStoTLLj702VU1tWBy2GUUvNSUM0wk85P+cFzBk4TpPST9Qbrw2HdAAu
-6po8nlE718yjW4E1D319bt+PUkwWdUg1CX69Uyf+kf44p9ffLrlPm2boe8/pspgo
-xPZ+fKeBBFz8BvtpCn4sJNgv2gk4j6WbSt8DgfInYt/BuDAg1G3M5TTv72UlTaV2
-gVM91IUyt4jZcjQlJe09hWKP7wK98FHPMuNpq1xj8YiPnTjJ54mQB1mhaA1CynBi
-J5X4VvB3X2B6gUJGqZhHZKccgKvsqQTabtss/DMK0aKv6/2uWAusLwWNRwsHZr4B
-s7EAEEnZA3aneF7bjd+dO01HsC5yvVVebIAGujybrg9h0M4Sb8D9tMaBGz9WwV1Q
-8d691Lwlxmf8MYPSldQ1v9+0W2dSY0My5VGE4XTfplOisRgmvuZinZU+LnauBFGm
-xO+YLE6wdd/2SP2PyxLY7iSPKQgLfOD/e+3Zk4WTg4UpQnqZI211HGgn6Vf4WHy+
-kSj6/LpxG04P7t5yxRB5JIm4viKOSMwl3yTbzuOFpSyVpvwaFg0r2GG+mzE0hAF3
-UgIFM/G4/PJk9qZKvBJgWp0ucwp1bqME1MdxG6nYtqm73UVKgs37c6rXKfcI8dEr
-bDAylHkZqW3AlYQnHCEj
-=Aa0u
+iQIcBAEBAgAGBQJWokgUAAoJEIPHP7IUNPxzXMwQAI4xVGyU5mq0yHySx1pZvZ1f
+y+q9eTIHvgIzJEM2Ao3uoyDnD+3z+s6VdKzg09GkAdblaFPffD+227shSvL9tiKG
+hj/YMJbvai0u5GKQ/9P1NWNFx/c2FFcnVmh6f2EnSaZiTy2q6zDLkKeBk6nBKsW5
+wkxdG57YE+/5QsXhZ/W3COfPz+iBN6g/GLq+m2wBPMduccXr447e6p4mVtr6RSU1
+XNV4E+VSARAKyLsM9zBQURF/Cl9uvlLMPounlGDDrmABKyXrr3ouglQbqrY4EWfD
+R5IMvo7+rYoAhGM9lyiqqpEP31Maqz7ZzaBSxSyccRbAKFkwsJgl95ZttPauTSf1
+bY4EUp/0y8nbOvqze/tTT09O/sfb0ZjqohfKQ54PQGpZbVGm6dCSPaDJd3a6K0AG
+p1QrU42YZ9NH/AAwIZ2+0aDpv6bm7Kx0iNy4nib/qDhc4o1WTT210FguZzznDk8g
+pcMhJNB560NViltpcpRGqpD0/3hCBfA9bHiwsVTrFY+xOX3Do3fJ8OsDea0jTr5Q
+dgpoNgoortxnoCpffuoSkdLkS+pS1Zs5AEobwtc8KB0l60+XySIPQQISSO1jityt
+cs6CMCAqnU4WF8TrwrdtkxL8IUdrwUYk2XFLU2MmrclAIgrXxhexaglCQrVuDQ77
+u8bOHCbw96pAzg6xrNct
+=jkKh
 -----END PGP SIGNATURE-----
