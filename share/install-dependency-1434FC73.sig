@@ -936,12 +936,12 @@ while [ $# -gt 0 ] ; do
 		wine-unity3d-installer)
 			INS=(install_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayer.exe"
-			SHA="38786d8792be13a5d7c62ac9777b7b344ec7d992ecba4dbc39341f55143dd832"
+			SHA="04c9390ab695b379301bccfb6bbc305e4106e391963b5bfb41f1bf989382df9f"
 			;;
 		wine-x64-unity3d-installer)
 			INS=(install_x64_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayerFull64.exe"
-			SHA="1f6c83f8f9e2f0ac7f39e0fda9b63c537de9ae785083ef1b69e436a171d53cf4"
+			SHA="2c9431a6f5c579cdc928012145acdb27d78069a24ae0738ad17fd1e25ce355ec"
 			;;
 		wine-adobereader-installer) # http://get.adobe.com/de/reader/otherversions/
 			INS=(install_adobereader)
@@ -1046,17 +1046,17 @@ exit "$RET"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJWokgUAAoJEIPHP7IUNPxzXMwQAI4xVGyU5mq0yHySx1pZvZ1f
-y+q9eTIHvgIzJEM2Ao3uoyDnD+3z+s6VdKzg09GkAdblaFPffD+227shSvL9tiKG
-hj/YMJbvai0u5GKQ/9P1NWNFx/c2FFcnVmh6f2EnSaZiTy2q6zDLkKeBk6nBKsW5
-wkxdG57YE+/5QsXhZ/W3COfPz+iBN6g/GLq+m2wBPMduccXr447e6p4mVtr6RSU1
-XNV4E+VSARAKyLsM9zBQURF/Cl9uvlLMPounlGDDrmABKyXrr3ouglQbqrY4EWfD
-R5IMvo7+rYoAhGM9lyiqqpEP31Maqz7ZzaBSxSyccRbAKFkwsJgl95ZttPauTSf1
-bY4EUp/0y8nbOvqze/tTT09O/sfb0ZjqohfKQ54PQGpZbVGm6dCSPaDJd3a6K0AG
-p1QrU42YZ9NH/AAwIZ2+0aDpv6bm7Kx0iNy4nib/qDhc4o1WTT210FguZzznDk8g
-pcMhJNB560NViltpcpRGqpD0/3hCBfA9bHiwsVTrFY+xOX3Do3fJ8OsDea0jTr5Q
-dgpoNgoortxnoCpffuoSkdLkS+pS1Zs5AEobwtc8KB0l60+XySIPQQISSO1jityt
-cs6CMCAqnU4WF8TrwrdtkxL8IUdrwUYk2XFLU2MmrclAIgrXxhexaglCQrVuDQ77
-u8bOHCbw96pAzg6xrNct
-=jkKh
+iQIcBAEBAgAGBQJWrAiFAAoJEIPHP7IUNPxzIIwQALC0ojEvWgCsUILosIxmhoFk
+0tUG2EiCH1Vs5ls0rBhx0hs2/jsW3hs9gGanjZVsoAiD3I5fsXymEOyYYy/u1p8s
+VzRC3AUKu81sDPcmF3dsqcujyWXj8ZfE4ZC6q5FX2O3KtP5/X0GzxrbHiku7ARKG
+/vtcua9OanUk3mClNhaaik8Qi91lhXUZJEkEFa5Em0FfhzCmUdbiFb2MbMS4CQfc
+lfk1s042gFURh0ZNQTiTfROn/rPZbs4GuGW5EvY3fGxcO+RzX9xcrte4AytBTtNE
+6HHohWOvlMPNMRolglA52UwmcEtQLHApnk7AnC/0/sOxI/y53AkMGoXB8316XPcm
+HTomF8lgGlndVYoHuJlYIWVYqxv5uTVtaTR5Z/UwQdJu+rl30HxngklXSwpNuyQC
+ShR8p6MqZRRk4zL++BNSOxoyvU1L7hh0Qs+gCSVNNOIVzvkvtkGXbK5qctBtdsfD
+qhRnGADb5/3/Fc3JtGsSRgurYGFgD9qDkIer+GvEpM4WV1YSQlpn4E8C4BgqS35V
+95MrCFYRIQxf/5MqkJ/mFH9NVpYxJdaWInhnlKtBImJPXmzyXFW8TPy6dSbFC4aX
+RsqTkOhErwfpDHpYqpeCB0LgZv1nX5lsnUjzkOVqbE1Or4rT5nfldV1gkq3bPEzH
+7pdxChQnFeQm2YeRWjW3
+=QxnB
 -----END PGP SIGNATURE-----
