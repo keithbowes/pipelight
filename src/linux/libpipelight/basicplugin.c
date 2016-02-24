@@ -142,13 +142,6 @@ static void attach(){
 		return;
 	}
 
-	/* tell the windows side that a sandbox is active */
-	if (config.sandboxPath != ""){
-		writeInt32( (config.sandboxPath != "") );
-		callFunction( CHANGE_SANDBOX_STATE );
-		readResultVoid();
-	}
-
 	/* do we have to disable graphic acceleration for Silverlight? */
 	if (config.silverlightGraphicDriverCheck)
 	{
@@ -248,14 +241,6 @@ static bool checkPluginInstallation(){
 	/* Run the installer ... */
 	DBG_INFO("checking plugin installation - this might take some time.");
 
-	/* When using a sandbox, we have to create the directory in advance */
-	if (config.sandboxPath != ""){
-		if (mkdir(config.winePrefix.c_str(), 0755) != 0 && errno != EEXIST){
-			DBG_ERROR("unable to manually create wine prefix.");
-			return false;
-		}
-	}
-
 	pid_t pidInstall = fork();
 	if (pidInstall == 0){
 
@@ -279,9 +264,6 @@ static bool checkPluginInstallation(){
 		/* Generate argv array */
 		std::vector<const char*> argv;
 
-		if (config.sandboxPath != "")
-			argv.push_back( config.sandboxPath.c_str() );
-
 		argv.push_back( config.dependencyInstaller.c_str());
 
 		for (std::vector<std::string>::iterator it = config.dependencies.begin(); it != config.dependencies.end(); it++)
@@ -290,7 +272,7 @@ static bool checkPluginInstallation(){
 		argv.push_back(NULL);
 
 		execvp(argv[0], (char**)argv.data());
-		DBG_ABORT("error in execvp command - probably dependencyInstaller/sandbox not found or missing execute permission.");
+		DBG_ABORT("error in execvp command - probably dependencyInstaller not found or missing execute permission.");
 
 	}else if (pidInstall != -1){
 
@@ -352,9 +334,6 @@ static bool startWineProcess(){
 		/* Generate argv array */
 		std::vector<const char*> argv;
 
-		if (config.sandboxPath != "")
-			argv.push_back( config.sandboxPath.c_str() );
-
 		argv.push_back( config.winePath.c_str() );
 		argv.push_back( config.pluginLoaderPath.c_str() );
 
@@ -400,7 +379,7 @@ static bool startWineProcess(){
 
 		/* Execute wine */
 		execvp(argv[0], (char**)argv.data());
-		DBG_ABORT("error in execvp command - probably wine/sandbox not found or missing execute permission.");
+		DBG_ABORT("error in execvp command - probably wine not found or missing execute permission.");
 
 	}else if (pidPluginloader != -1){
 		/* The parent process will return normally and use the pipes to communicate with the child process */

@@ -272,8 +272,6 @@ bool loadConfig(PluginConfig &config){
 	config.configPath			= "";
 	config.pluginName			= "";
 
-	config.sandboxPath			= "";
-
 	config.winePath				= "wine";
 	config.wineArch				= "win32";
 	config.winePrefix			= "";
@@ -349,12 +347,6 @@ bool loadConfig(PluginConfig &config){
 
 		if (key[0] == '$'){
 			variables[key] = value;
-
-		}else if (key == "sandboxpath"){
-			if (checkIfExists(value))
-				config.sandboxPath = value;
-			else
-				DBG_WARN("sandbox not found or not installed!");
 
 		}else if (key == "winepath"){
 			config.winePath = value;

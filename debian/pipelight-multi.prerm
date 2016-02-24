@@ -6,8 +6,4 @@ pipelight-plugin --remove-mozilla-plugins
 # Keep the previous configuration on an update
 if [ "$1" != "upgrade" ]; then
 	pipelight-plugin --disable-all
-
-	if [ -e "/usr/share/pipelight/sandbox" ] || [ -L "/usr/share/pipelight/sandbox" ]; then
-		rm "/usr/share/pipelight/sandbox"
-	fi
 fi

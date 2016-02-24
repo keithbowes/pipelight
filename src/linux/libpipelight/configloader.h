@@ -65,8 +65,6 @@ struct PluginConfig{
 	std::string		configPath;
 	std::string		pluginName;
 
-	std::string		sandboxPath;
-
 	std::string		winePath;
 	std::string		wineArch;
 	std::string		winePrefix;

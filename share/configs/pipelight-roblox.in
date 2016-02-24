@@ -137,17 +137,3 @@ operaDetection      = true
 # executeJavascript = navigator = new Object();
 # executeJavascript = navigator.__proto__ = __originalNavigator;
 # executeJavascript = navigator.__defineGetter__('userAgent', function () { return 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:15.0) Gecko/20120427 Firefox/15.0a1'; });
-
-#------------------------- EXPERIMENTAL -------------------------
-# Watch out: The following section contains highly experimental
-# stuff! These functions are likely not working properly yet and
-# might be removed at any time.
-
-#
-# A sandbox is a method to isolate an untrusted program from the rest of
-# the system to prevent damage in case of a virus, program errors or
-# similar issues. We've been developing the ability to use a (self-created)
-# sandbox, but this feature still has to be considered experimental.
-# The feature will only be used when the sandbox path exists.
-#
-sandboxPath         = $share/sandbox

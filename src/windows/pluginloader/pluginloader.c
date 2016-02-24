@@ -87,7 +87,6 @@ bool isWindowlessMode	= false;
 bool isLinuxWindowlessMode = false;
 
 bool stayInFullscreen	= false;
-bool isSandboxed		= false;
 bool forceSetWindow		= false;
 bool strictDrawOrdering = false;
 
@@ -901,18 +900,6 @@ void dispatcher(int functionid, Stack &stack){
 				objectKill(obj);
 
 				DBG_TRACE("WIN_HANDLE_MANAGER_FREE_OBJECT -> void");
-				returnCommand();
-			}
-			break;
-
-		case CHANGE_SANDBOX_STATE:
-			{
-				bool state			= (bool)readInt32(stack);
-				DBG_TRACE("CHANGE_SANDBOX_STATE( state=%d )", state);
-
-				isSandboxed = state;
-
-				DBG_TRACE("CHANGE_SANDBOX_STATE -> void");
 				returnCommand();
 			}
 			break;

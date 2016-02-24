@@ -1,28 +1,4 @@
 #!/bin/sh -e
 #DEBHELPER#
 
-# Source debconf library.
-. /usr/share/debconf/confmodule
-
-if [ -x "/usr/bin/wine-sbox" ]; then
-	db_get pipelight-multi/sandbox
-else
-	RET=false
-fi
-
-if [ "$RET" = "true" ]; then
-	if [ ! -L "/usr/share/pipelight/sandbox" ] || [ ""$(readlink "/usr/share/pipelight/sandbox") != "/usr/bin/wine-sbox" ]; then
-
-		if [ -e "/usr/share/pipelight/sandbox" ] || [ -L "/usr/share/pipelight/sandbox" ]; then
-			rm "/usr/share/pipelight/sandbox"
-		fi
-
-		ln -s "/usr/bin/wine-sbox" "/usr/share/pipelight/sandbox"
-	fi
-else
-	if [ -e "/usr/share/pipelight/sandbox" ] || [ -L "/usr/share/pipelight/sandbox" ]; then
-		rm "/usr/share/pipelight/sandbox"
-	fi
-fi
-
 pipelight-plugin --create-mozilla-plugins

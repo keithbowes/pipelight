@@ -142,12 +142,3 @@ operaDetection      = true
 # if the user clicks somewhere else it is necessary to install a window class
 # hook. With some plugins this could lead to other problems! [default: false]
 experimental-windowClassHook = true
-
-#
-# A sandbox is a method to isolate an untrusted program from the rest of
-# the system to prevent damage in case of a virus, program errors or
-# similar issues. We've been developing the ability to use a (self-created)
-# sandbox, but this feature still has to be considered experimental.
-# The feature will only be used when the sandbox path exists.
-#
-sandboxPath         = $share/sandbox

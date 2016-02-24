@@ -53,7 +53,6 @@ extern bool isWindowlessMode;
 extern bool isLinuxWindowlessMode;
 
 extern bool stayInFullscreen;
-extern bool isSandboxed;
 extern bool forceSetWindow;
 extern bool strictDrawOrdering;
 
