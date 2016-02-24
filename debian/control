@@ -16,10 +16,3 @@ Replaces: pipelight (<< 0.2.0~)
 Description: allows usage of Windows NPAPI plugins through Wine
 	Pipelight allows one to use NPAPI plugins inside a Linux browser
 	with the help of Wine.
-
-Package: pipelight
-Architecture: amd64 i386
-Depends: ${misc:Depends}, pipelight-multi
-Description: allows usage of Silverlight through Wine
-	Pipelight allows one to use Silverlight inside a Linux browser 
-	with the help of Wine.

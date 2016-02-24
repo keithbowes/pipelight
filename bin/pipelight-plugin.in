@@ -92,12 +92,8 @@ get_directories()
 	PIPELIGHT_LIBRARY_PATH=$(realpath "$PIPELIGHT_LIBRARY_PATH")
 	PLUGIN_PATH=$(realpath "$PLUGIN_PATH")
 
-	# Global installation
-	if [ $(/usr/bin/id -u) -eq 0 ]; then
-		INSTALLDIR="$PLUGIN_PATH"
-
 	# Use environment variable (only if it doesn't point to the global directory)
-	elif [ ! -z "$MOZ_PLUGIN_PATH" ] && [ "$MOZ_PLUGIN_PATH" != "$PLUGIN_PATH" ] && [ -d "$MOZ_PLUGIN_PATH" ]; then
+	if [ ! -z "$MOZ_PLUGIN_PATH" ] && [ "$MOZ_PLUGIN_PATH" != "$PLUGIN_PATH" ] && [ -d "$MOZ_PLUGIN_PATH" ]; then
 		INSTALLDIR=$(realpath "$MOZ_PLUGIN_PATH")
 
 	# Local installation
