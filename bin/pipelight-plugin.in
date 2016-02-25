@@ -201,28 +201,6 @@ show_license_dialog()
 		fi
 	fi
 
-	local licenses=0
-	for dep in $(sed -n 's|^[ \t]*optional-dependency[ \t]*=[ \t]*wine-\(.*\)-installer[ \t]*$|\1|p' "$configpath/pipelight-$PLUGIN"); do
-		if [ -f "$licensepath/license-$dep.txt" ]; then
-			if [ "$licenses" -eq 0 ]; then
-				echo ""
-				echo "The following modules are marked as optional dependencies:"
-				echo ""
-			fi
-			while IFS= read line; do
-				if [ "$line" == "---" ]; then break; fi
-				echo "$line" | sed	-e 's|^\(\[\*\].*\)$|'$color2'\1 [OPTIONAL]'$color0'|g' \
-									-e 's|\(http://[^ \t]*\)|'$color3'\1'$color0'|g' \
-									-e 's|\(/usr/[^ \t]*\)|'$color3'\1'$color0'|g'
-			done < "$licensepath/license-$dep.txt"
-			echo ""
-			echo "	To agree to this license run (for each user who wants to use this module):"
-			echo "	"$color3"touch \$HOME/.config/wine-$dep-installer.accept-license"$color0
-			echo ""
-			(( licenses++ ))
-		fi
-	done
-
 	return 0
 }
 

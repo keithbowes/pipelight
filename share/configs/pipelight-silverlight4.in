@@ -124,7 +124,6 @@ dependencyInstaller = $share/install-dependency
 #
 dependency          = wine-silverlight4-installer
 dependency          = wine-mpg2splt-installer
-optional-dependency = wine-wininet-installer
 
 #
 # Doesn't show any dialogs which require manual confirmation during

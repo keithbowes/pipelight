@@ -87,7 +87,6 @@ struct PluginConfig{
 
 	std::string		dependencyInstaller;
 	std::vector<std::string> dependencies;
-	std::vector<std::string> optionalDependencies;
 	bool			quietInstallation;
 
 	bool			eventAsyncCall;

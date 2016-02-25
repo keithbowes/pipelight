@@ -294,7 +294,6 @@ bool loadConfig(PluginConfig &config){
 
 	config.dependencyInstaller	= "";
 	config.dependencies.clear();
-	config.optionalDependencies.clear();
 	config.quietInstallation	= true;
 
 	config.eventAsyncCall		= false;
@@ -425,9 +424,6 @@ bool loadConfig(PluginConfig &config){
 		}else if (key == "dependency"){
 			if (value != "") config.dependencies.push_back(value);
 
-		}else if (key == "optional-dependency"){
-			if (value != "") config.optionalDependencies.push_back(value);
-
 		}else if (key == "quietinstallation"){
 			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
 			config.quietInstallation = (value == "true" || value == "yes");
@@ -537,16 +533,6 @@ bool loadConfig(PluginConfig &config){
 			config.silverlightGraphicDriverCheck			= false;
 			DBG_INFO("enableGPUAcceleration set manually - skipping compatibility check.");
 		}
-	}
-
-	/* check for optional dependencies */
-	if (!config.optionalDependencies.empty()){
-		std::vector<std::string>::iterator it;
-		for (it = config.optionalDependencies.begin(); it != config.optionalDependencies.end(); it++){
-			if (checkIsFile(homeDir + "/.config/" + *it + ".accept-license"))
-				config.dependencies.push_back(*it);
-		}
-		config.optionalDependencies.clear();
 	}
 
 #ifndef __APPLE__
