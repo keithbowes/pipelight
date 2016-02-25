@@ -145,6 +145,19 @@ is_supported_plugin()
 	return 1
 }
 
+# > Get variable from plugin config
+# arguments:
+# $1	- name of the plugin
+# $2	- name of the config key
+get_config_key()
+{
+	local PLUGIN="$1"
+	local KEY="$2"
+
+	local configpath="$PIPELIGHT_SHARE_PATH/configs"
+	sed -n "s|^[ \t]*$KEY[ \t]*=[ \t]*\(.*\)[ \t]*$|\1|p" "$configpath/pipelight-$PLUGIN"
+}
+
 # > Shows the license agreement of a specific plugin and asks the user
 # arguments:
 # $1	- name of the plugin
@@ -167,7 +180,7 @@ show_license_dialog()
 	local color3=$(echo -en "\e[1m")
 
 	local licenses=0
-	for dep in $(sed -n 's|^[ \t]*dependency[ \t]*=[ \t]*wine-\(.*\)-installer[ \t]*$|\1|p' "$configpath/pipelight-$PLUGIN"); do
+	for dep in $(get_config_key "$PLUGIN" "dependency" | sed -n 's|wine-\(.*\)-installer|\1|p'); do
 		if [ -f "$licensepath/license-$dep.txt" ]; then
 			if [ "$licenses" -eq 0 ] && [ "$PRINT_ONLY" -eq 0 ]; then
 				echo ""
@@ -225,6 +238,42 @@ print_license()
 	return $?
 }
 
+# > Install a plugin
+# arguments:
+# $1	- name of the plugin
+install_plugin()
+{
+	local PLUGIN="$1"
+
+	local WINE=$(get_config_key "$PLUGIN" "winePath")
+	local WINEPREFIX=$(get_config_key "$PLUGIN" "winePrefix")
+	local WINEARCH=$(get_config_key "$PLUGIN" "wineArch")
+	local WINEDLLOVERRIDES=$(get_config_key "$PLUGIN" "wineDLLOverrides")
+
+	local dependencies=$(get_config_key "$PLUGIN" "dependency" | tr '\n' ' ')
+
+	# Many scripts use predefined variables, replace the most important ones
+	local WINE="${WINE/\$share/$PIPELIGHT_SHARE_PATH}"
+	local WINEPREFIX="${WINEPREFIX/\$HOME/$HOME}"
+
+	# Do we have anything to install?
+	if [ -z "$dependencies" ]; then return 0; fi
+
+	if [ -z "$WINE" ]; then
+		echo "ERROR: Failed to read wine path from plugin config for $PLUGIN." >&2
+		exit 1
+	fi
+
+	if [ -z "$WINEPREFIX" ]; then
+		echo "ERROR: Failed to read wine prefix from plugin config for $PLUGIN." >&2
+		exit 1
+	fi
+
+	WINE="$WINE" WINEPREFIX="$WINEPREFIX" WINEARCH="$WINEARCH" WINEDLLOVERRIDES="$WINEDLLOVERRIDES" \
+	QUIETINSTALLATION=1 "$PIPELIGHT_SHARE_PATH/install-dependency" $dependencies
+	return $?
+}
+
 # > Enables/Disables a given plugin
 # arguments:
 # $1	- name of the plugin
@@ -268,6 +317,11 @@ enable_plugin()
 		return 1
 	elif ! show_license_dialog "$PLUGIN" 0; then
 		echo "Aborting" >&1
+		return 1
+	fi
+
+	if ! install_plugin "$PLUGIN"; then
+		echo "ERROR: Failed to install $PLUGIN." >&2
 		return 1
 	fi
 
