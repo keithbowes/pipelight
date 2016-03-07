@@ -140,14 +140,6 @@ quietInstallation   = @@QUIET_INSTALLATION@@
 # eventAsyncCall    = true
 
 #
-# The opera browser claims to provide timer functions, but they
-# don't seem to work properly. When the opera detection is
-# enabled Pipelight will switch to eventAsyncCall automatically
-# based on the user agent string. [default: true]
-#
-operaDetection      = true
-
-#
 # We are currently implementing hardware acceleration support, which
 # can cause problems on some systems as especially specific open source
 # drivers render only garbage when hardware acceleration is enabled.

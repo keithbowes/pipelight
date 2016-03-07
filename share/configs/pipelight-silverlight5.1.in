@@ -140,14 +140,6 @@ quietInstallation   = @@QUIET_INSTALLATION@@
 # eventAsyncCall    = true
 
 #
-# The opera browser claims to provide timer functions, but they
-# don't seem to work properly. When the opera detection is
-# enabled Pipelight will switch to eventAsyncCall automatically
-# based on the user agent string. [default: true]
-#
-operaDetection      = true
-
-#
 # The following script fakes the user agent which is visible to
 # Silverlight (not for the rest of your website). This is achieved
 # by creating an object __pipelight_navigator, and then replacing

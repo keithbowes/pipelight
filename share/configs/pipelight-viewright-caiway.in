@@ -110,11 +110,3 @@ quietInstallation   = @@QUIET_INSTALLATION@@
 # approaches. [default: false]
 #
 # eventAsyncCall    = true
-
-#
-# The opera browser claims to provide timer functions, but they
-# don't seem to work properly. When the opera detection is
-# enabled Pipelight will switch to eventAsyncCall automatically
-# based on the user agent string. [default: true]
-#
-operaDetection      = true
