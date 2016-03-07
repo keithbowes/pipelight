@@ -1,5 +1,5 @@
 -----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
+Hash: SHA256
 
 #!/usr/bin/env bash
 
@@ -954,9 +954,9 @@ while [ $# -gt 0 ] ; do
 			SHA="4be8aadcc4fea96277b4d879bb0320a9bd027ebfb2de1306399b4c29abe94206"
 			;;
 		wine-shockwave-installer) # http://get.adobe.com/de/shockwave/otherversions/
-			INS=(install_shockwave "1223183")
+			INS=(install_shockwave "1224194")
 			URL="http://fpdownload.macromedia.com/get/shockwave/default/english/win95nt/latest/sw_lic_full_installer.exe"
-			SHA="6623ea683944800f96850239fef190723583dfbb98aa3f08c5bb9819e4e5a96e"
+			SHA="add6e1e1b5ac6f28eadb06a6b0220423a48c554ca4cbd212727dc79bc365ca7e"
 			;;
 		wine-grandstream-installer)
 			INS=(install_grandstream)
@@ -1044,19 +1044,19 @@ done
 
 exit "$RET"
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Version: GnuPG v2
 
-iQIcBAEBAgAGBQJW2J1XAAoJEIPHP7IUNPxzHpQQAJo5MtX0mc4E0k2Q5G90YA4E
-iipbneMd5K8syLUL3JN5+GORRusxq9rqDGjhuzemT/KdJJNgCD64pjmUaUSEs+Wr
-1UJCa95NbwI9PifRMxa9ZLwxM9hdpF2lV3tU0eKxaUH46Wup3KdsN9HHK4+zBqRZ
-SPswhPvEONtu+SXYvfosMm6q9O3alJdIg4Kg7P19MqpSEsodCXvf/qbXBbBdIw6f
-8pdLcNFQI1VQ0MzpRcOFRb8ZUFlHZHOumswq26CjvS8vzOmiVIrmRdWpak3Masi9
-ULMJ6/mw5GbfFHXW8Y58jSsMvd7qpb/xlP1nSJBQEGeoBS8CNrT1M+iDYcNCmH2G
-FkFcchAZ2THIe7jNfIxH8yvGsrriNarUqU9SfinaA8jn0cDS8fFzhBK8Z/eXwvo8
-WY0h94czYAo7x6lGBg74rYKJ2wEiabtKx2ukH+z7Q0YTn1AFvA9X1e3q1AjDSxFT
-OLPNFW9pmr9nZsXTzNN0YOa6mbUtUcyeYbx5NSMtmzUr190ISyyrthufe58YNQ3y
-7L8LLn3zgK6HyH2UD3Q1vnpkg4NNZI9vJL6qhAz/S2zszSvxvb0/hH+nTphUlnPv
-xzKl9qZ8HM5UEPR9QQVtloado6Ob4i1/H5onXqYFZDDGTG8bblzWDD/GgNE4NB63
-0+nWbB1F8Ok4KO94PDvl
-=nFOx
+iQIcBAEBCAAGBQJW3b99AAoJEIPHP7IUNPxzJxQQAMUL+c/fq+jcO9ULf+2suUZc
+KqgP2DHFqPGRAxhHk6ZAMfb5r/EYBd1RGMHPew9TI+NeTnJdqRuu7E4pXFcYKJx8
+EIZ9q/UVH6E0D2rbJdQhYPMUoC58Vc1JwbR4ogKEYXmFxJsl2z9+CfqjLO9ccGlq
+A2HeCCj3ZQGc/GkeQog/U0WmyYH8kmWXaQShKoVn5S9ypkLOUoF+zoc77nCE7h+7
+KsZ8+/sVNcsTfGTdzx777sMJRSFBVr8AvJ9JNlyraeS58t/1X8xWAsikFMShx7Ll
+58l1LkXJ2tRYNDgnmwNPY11t4yvnVOd8AM2H1dXmbp0GQ8o71zRG6dCwipPBgLJv
+la5Uw3LfsJwtcX1CpnKeN2oGtl6qC7mQej+AjLyfSErYCBFBJnoiU5lqfOd4KdOl
+VAP4t2TZj3PdYnDPtJROTMmKKx2KSQ/398afCVF81m33M1qA6tcjWuPo6VvF/1tu
+Zj78NYbqVMYMXt2AWepaT3SlU8IaLlsYiJ/GarjIFPFCLxUnnjh32yTmCfUr/tc6
+1/l+1agRcDns9YVpjdNsRw0YEvMARvc1Cl3vQH7d7OnrJDbVtUjWni7U37eajE+s
+nRBgjTKSVlgrpjjUvwfm12R83BSVcppsNFzNd+IFxdImr2LUDOWp+3fNFvJ3jUjl
+VwucOL6zWFJriRaoOCS3
+=K0GZ
 -----END PGP SIGNATURE-----
