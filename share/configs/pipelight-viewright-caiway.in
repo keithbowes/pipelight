@@ -51,15 +51,6 @@ regKey              = @verimatrix.com/ViewRightWeb
 # fakeVersion       =
 
 #
-# windowlessmode refers to a term of the Netscape Plugin API and
-# defines a different mode of drawing and handling events.
-# We set the default value to false to mime the behavior of a normal
-# browser.
-# [default: false]
-#
-windowlessMode      = false
-
-#
 # Path to the dependency installer script provided by the compholio
 # package. (optional)
 #

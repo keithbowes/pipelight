@@ -50,13 +50,6 @@ regKey              = @foxitsoftware.com/Foxit Reader Plugin,version=1.0,applica
 # fakeVersion       =
 
 #
-# windowlessmode refers to a term of the Netscape Plugin API and
-# defines a different mode of drawing and handling events.
-# [default: false]
-#
-windowlessMode      = false
-
-#
 # Path to the dependency installer script provided by the compholio
 # package. (optional)
 #

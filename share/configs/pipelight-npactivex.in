@@ -41,16 +41,6 @@ dllName             = npactivex.dll
 # fakeVersion       =
 
 #
-# windowlessmode refers to a term of the Netscape Plugin API and
-# defines a different mode of drawing and handling events.
-# On some desktop enviroments you may have problems using the
-# keyboard in windowless mode, on the other hand the drawing is
-# more efficient when this mode is enabled. Just choose what works
-# best for you. [default: false]
-#
-windowlessMode      = false
-
-#
 # Some browsers that don't support XEmbed only work with "real"
 # windowlessmode. The following option can be used to force this
 # mode. [default: false]

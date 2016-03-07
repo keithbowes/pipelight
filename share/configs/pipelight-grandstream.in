@@ -63,13 +63,6 @@ fakeMimeType = application/x-vnd-npgs_chromeplugins-plugin:rts:nprt = applicatio
 fakeMimeType = application/x-vnd-npGS_ChromePlugins-plugin:rts:nprt = application/x-vnd-npGS_Plugins-plugin
 
 #
-# windowlessmode refers to a term of the Netscape Plugin API and
-# defines a different mode of drawing and handling events.
-# [default: false]
-#
-windowlessMode      = false
-
-#
 # Path to the dependency installer script provided by the compholio
 # package. (optional)
 #
