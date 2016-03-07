@@ -117,15 +117,3 @@ quietInstallation   = @@QUIET_INSTALLATION@@
 # based on the user agent string. [default: true]
 #
 operaDetection      = true
-
-#
-# Minimal JavaScript user agent switcher. If your page doesn't check
-# the user agent before loading a Adobe Reader instance, you can use
-# this trick to overwrite the useragent or execute any other Java-
-# Script you want. You can use this command multiple times.
-# Uncomment the following 4 lines for FF15 spoofing.
-#
-# executeJavascript = var __originalNavigator = navigator;
-# executeJavascript = navigator = new Object();
-# executeJavascript = navigator.__proto__ = __originalNavigator;
-# executeJavascript = navigator.__defineGetter__('userAgent', function () { return 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:15.0) Gecko/20120427 Firefox/15.0a1'; });
