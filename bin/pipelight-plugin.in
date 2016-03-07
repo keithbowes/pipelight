@@ -268,7 +268,7 @@ install_plugin()
 		exit 1
 	fi
 	if [ -z "$WINEDLLOVERRIDES" ]; then
-		export WINEDLLOVERRIDES="mscoree,mshtml,winegstreamer,winemenubuilder.exe="
+		WINEDLLOVERRIDES="mscoree,mshtml,winegstreamer,winemenubuilder.exe="
 	fi
 
 	WINE="$WINE" WINEPREFIX="$WINEPREFIX" WINEARCH="$WINEARCH" WINEDLLOVERRIDES="$WINEDLLOVERRIDES" \
