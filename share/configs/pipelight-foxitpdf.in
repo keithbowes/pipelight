@@ -67,13 +67,6 @@ regKey              = @foxitsoftware.com/Foxit Reader Plugin,version=1.0,applica
 windowlessMode      = false
 
 #
-# embed defines whether the Foxit PDF Reader plugin should be shown
-# inside the browser (true) or an external window (false).
-# [default: true]
-#
-embed               = true
-
-#
 # Path to the dependency installer script provided by the compholio
 # package. (optional)
 #

@@ -77,13 +77,6 @@ fakeMimeType = application/x-vnd-npGS_ChromePlugins-plugin:rts:nprt = applicatio
 windowlessMode      = false
 
 #
-# embed defines whether the Grandstream plugin should be shown
-# inside the browser (true) or an external window (false).
-# [default: true]
-#
-embed               = true
-
-#
 # Path to the dependency installer script provided by the compholio
 # package. (optional)
 #
