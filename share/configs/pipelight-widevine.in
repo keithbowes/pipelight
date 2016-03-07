@@ -21,13 +21,6 @@ wineArch            = win32
 pluginLoaderPath    = $share/pluginloader.exe
 
 #
-# Path to the runtime DLLs (libgcc_s_sjlj-1.dll, libspp-0.dll,
-# libstdc++-6.dll). Only necessary when these DLLs are not in the same
-# directory as the pluginloader executable.
-#
-gccRuntimeDlls      = @@GCC_RUNTIME_DLLS@@
-
-#
 # Path and name to the Widevine library
 #
 dllPath             = C:\windows\system32
