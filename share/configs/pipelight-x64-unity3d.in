@@ -15,12 +15,6 @@ winePrefix          = $HOME/.wine-pipelight64
 wineArch            = win64
 
 #
-# DLLs to overwrite in Wine
-# (prevents Wine from asking for Gecko, Mono or winegstreamer)
-#
-wineDLLOverrides    = mscoree,mshtml,winegstreamer,winemenubuilder.exe=
-
-#
 # Path to the plugin loader executable
 # (Should be set correctly by the make script)
 #

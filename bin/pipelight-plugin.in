@@ -263,10 +263,12 @@ install_plugin()
 		echo "ERROR: Failed to read wine path from plugin config for $PLUGIN." >&2
 		exit 1
 	fi
-
 	if [ -z "$WINEPREFIX" ]; then
 		echo "ERROR: Failed to read wine prefix from plugin config for $PLUGIN." >&2
 		exit 1
+	fi
+	if [ -z "$WINEDLLOVERRIDES" ]; then
+		export WINEDLLOVERRIDES="mscoree,mshtml,winegstreamer,winemenubuilder.exe="
 	fi
 
 	WINE="$WINE" WINEPREFIX="$WINEPREFIX" WINEARCH="$WINEARCH" WINEDLLOVERRIDES="$WINEDLLOVERRIDES" \
