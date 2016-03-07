@@ -97,16 +97,3 @@ dependency          = wine-google-earth-installer
 # [default: true]
 #
 quietInstallation   = @@QUIET_INSTALLATION@@
-
-#
-# In order to support browsers without NPAPI timer support
-# (like Midori) we've implemented a fallback to
-# NPN_PluginThreadAsyncCall. In the default configuration
-# a timer based approach is preferred over async calls and the
-# plugin decides by itself which method to use depending on the
-# browser capabilities. Setting the following option to true
-# forces the plugin to use async calls. This might be mainly
-# useful for testing the difference between both event handling
-# approaches. [default: false]
-#
-# eventAsyncCall    = true
