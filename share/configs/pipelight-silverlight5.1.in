@@ -113,13 +113,6 @@ dependency          = wine-silverlight5.1-installer
 dependency          = wine-mpg2splt-installer
 
 #
-# Doesn't show any dialogs which require manual confirmation during
-# the installation process, like EULA or DRM dialogs.
-# [default: true]
-#
-quietInstallation   = @@QUIET_INSTALLATION@@
-
-#
 # The following script fakes the user agent which is visible to
 # Silverlight (not for the rest of your website). This is achieved
 # by creating an object __pipelight_navigator, and then replacing

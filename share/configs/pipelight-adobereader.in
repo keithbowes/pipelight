@@ -72,10 +72,3 @@ dependencyInstaller = $share/install-dependency
 #
 dependency          = wine-mspatcha-installer
 dependency          = wine-adobereader-installer
-
-#
-# Doesn't show any dialogs which require manual confirmation during
-# the installation process, like EULA or DRM dialogs.
-# [default: true]
-#
-quietInstallation   = @@QUIET_INSTALLATION@@

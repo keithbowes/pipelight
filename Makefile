@@ -38,7 +38,6 @@ SED_OPTS :=	-e 's|@@BASH@@|$(bash_interp)|g' \
 			-e 's|@@PIPELIGHT_LIBRARY_PATH@@|$(libdir)/pipelight|g' \
 			-e 's|@@PIPELIGHT_SHARE_PATH@@|$(datadir)/pipelight|g' \
 			-e 's|@@PREFIX@@|$(prefix)|g' \
-			-e 's|@@QUIET_INSTALLATION@@|$(quietinstallation)|g' \
 			-e 's|@@VERSION@@|$(version)|g'
 
 ifeq ($(no_gpu_accel),true)

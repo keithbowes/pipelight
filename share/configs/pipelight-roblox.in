@@ -74,10 +74,3 @@ dependencyInstaller = $share/install-dependency
 #
 dependency          = wine-roblox-installer
 dependency          = wine-wininet-installer
-
-#
-# Doesn't show any dialogs which require manual confirmation during
-# the installation process, like EULA or DRM dialogs.
-# [default: true]
-#
-quietInstallation   = @@QUIET_INSTALLATION@@

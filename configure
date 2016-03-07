@@ -43,8 +43,8 @@ usage()
 	echo "                   [--libdir=PATH] [--mandir=PATH] [--bash-interp=PATH]"
 	echo "                   [--moz-plugin-path=PATH] [--gcc-runtime-dlls=PATH]"
 	echo "                   [--gpg-exec=PATH] [--so-mode=OCTAL] [--no-gpu-accel]"
-	echo "                   [--show-installation-dialogs] [--debug] [--cxx=COMPILER]"
-	echo "                   [--cxxflags=FLAGS] [--mingw-cxxflags=FLAGS]"
+	echo "                   [--debug] [--cxx=COMPILER] [--cxxflags=FLAGS]"
+	echo "                   [--mingw-cxxflags=FLAGS]"
 	echo ""
 	echo " prebuilt options: [--git-commit=TAG/SHA1] [--downloader=CMDLINE]"
 	echo ""
@@ -76,7 +76,6 @@ moz_plugin_path=""
 gcc_runtime_dlls=""
 so_mode="0644"
 no_gpu_accel="false"
-quietinstallation="true"
 debug="false"
 
 cxx=""
@@ -175,10 +174,6 @@ while [[ $# > 0 ]] ; do
 
 		--no-gpu-accel)
 			no_gpu_accel="true"
-			;;
-
-		--show-installation-dialogs)
-			quietinstallation="false"
 			;;
 
 		--debug)
@@ -431,7 +426,6 @@ wine64_path=$(resolvepath "$wine64_path")
 	echo "gcc_runtime_dlls=$gcc_runtime_dlls"
 	echo "so_mode=$so_mode"
 	echo "no_gpu_accel=$no_gpu_accel"
-	echo "quietinstallation=$quietinstallation"
 	echo "debug=$debug"
 	echo "cxx=$cxx"
 	echo "cxxflags=$cxxflags"

@@ -113,13 +113,6 @@ dependency          = wine-silverlight4-installer
 dependency          = wine-mpg2splt-installer
 
 #
-# Doesn't show any dialogs which require manual confirmation during
-# the installation process, like EULA or DRM dialogs.
-# [default: true]
-#
-quietInstallation   = @@QUIET_INSTALLATION@@
-
-#
 # We are currently implementing hardware acceleration support, which
 # can cause problems on some systems as especially specific open source
 # drivers render only garbage when hardware acceleration is enabled.

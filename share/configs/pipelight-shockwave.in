@@ -97,10 +97,3 @@ dependencyInstaller = $share/install-dependency
 #   wine-Shockwave-installer
 #
 dependency          = wine-shockwave-installer
-
-#
-# Doesn't show any dialogs which require manual confirmation during
-# the installation process, like EULA or DRM dialogs.
-# [default: true]
-#
-quietInstallation   = @@QUIET_INSTALLATION@@

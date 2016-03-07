@@ -73,10 +73,3 @@ dependencyInstaller = $share/install-dependency
 #   wine-viewright-caiway-installer
 #
 dependency          = wine-viewright-caiway-installer
-
-#
-# Doesn't show any dialogs which require manual confirmation during
-# the installation process, like EULA or DRM dialogs.
-# [default: true]
-#
-quietInstallation   = @@QUIET_INSTALLATION@@

@@ -73,10 +73,3 @@ dependencyInstaller = $share/install-dependency
 #   wine-vizzedrgr-installer
 #
 dependency          = wine-vizzedrgr-installer
-
-#
-# Doesn't show any dialogs which require manual confirmation during
-# the installation process, like EULA or DRM dialogs.
-# [default: true]
-#
-quietInstallation   = @@QUIET_INSTALLATION@@

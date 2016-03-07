@@ -96,13 +96,6 @@ dependencyInstaller = $share/install-dependency
 #
 dependency          = wine-flash-installer
 
-#
-# Doesn't show any dialogs which require manual confirmation during
-# the installation process, like EULA or DRM dialogs.
-# [default: true]
-#
-quietInstallation   = @@QUIET_INSTALLATION@@
-
 #------------------------- EXPERIMENTAL -------------------------
 # Watch out: The following section contains highly experimental
 # stuff! These functions are likely not working properly yet and
