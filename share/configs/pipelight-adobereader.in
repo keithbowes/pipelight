@@ -50,16 +50,6 @@ regKey              = Adobe Reader
 # fakeVersion       = Adobe PDF Plug-In For Firefox and Netscape 11.0.04
 
 #
-# overwriteArg allows to overwrite/add initialization arguments
-# passed by websites to Adobe Reader applications. Since most
-# of the time PDF readers are started by files with PDF extensions
-# opened in the browser and not via an embed tag, it's unlikely
-# that this is ever used.
-#
-# overwriteArg =
-#
-
-#
 # windowlessmode refers to a term of the Netscape Plugin API and
 # defines a different mode of drawing and handling events.
 # [default: false]

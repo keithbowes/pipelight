@@ -50,13 +50,6 @@ regKey              = FireFoxWebPlugin
 # fakeVersion       =
 
 #
-# overwriteArg allows to overwrite/add initialization arguments
-# passed by websites to Grandstream applications.
-#
-# overwriteArg =
-#
-
-#
 # fakeMimeType allows to add MIME types to plugins which are not officially
 # offered by the plugin itself. They are mapped back to a supported ones, so
 # that it is possible to correct broken MIME types like ones containing

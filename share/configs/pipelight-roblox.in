@@ -51,16 +51,6 @@ regKey              = @nsroblox.roblox.com/launcher
 # fakeVersion       = 
 
 #
-# overwriteArg allows to overwrite/add initialization arguments
-# passed by websites to Roblox applications. You can
-# use this option as often as you want to overwrite multiple
-# parameters. 
-#
-# Examples:
-# overwriteArg      = 
-#
-
-#
 # windowlessmode refers to a term of the Netscape Plugin API and
 # defines a different mode of drawing and handling events.
 # We set the default value to false to mime the behavior of a normal

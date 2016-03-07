@@ -47,12 +47,6 @@ dllName             = npwidevinemediaoptimizer.dll
 # fakeVersion       =
 
 #
-# overwriteArg allows to overwrite/add initialization arguments
-# passed by websites to Widevine applications.
-#
-# overwriteArg      =
-
-#
 # windowlessmode refers to a term of the Netscape Plugin API and
 # defines a different mode of drawing and handling events.
 # [default: false]

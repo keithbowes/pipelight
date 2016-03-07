@@ -50,16 +50,6 @@ regKey              = @foxitsoftware.com/Foxit Reader Plugin,version=1.0,applica
 # fakeVersion       =
 
 #
-# overwriteArg allows to overwrite/add initialization arguments
-# passed by websites to Foxit PDF Reader applications. Since most
-# of the time PDF readers are started by files with PDF extensions
-# opened in the browser and not via an embed tag, it's unlikely
-# that this is ever used.
-#
-# overwriteArg =
-#
-
-#
 # windowlessmode refers to a term of the Netscape Plugin API and
 # defines a different mode of drawing and handling events.
 # [default: false]
