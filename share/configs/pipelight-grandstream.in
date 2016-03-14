@@ -1,71 +1,15 @@
-#
-# Path to the wine directory or the wine executable. When you
-# specify a directory it should contain /bin/wine.
-#
 winePath            = $share/wine
-
-#
-# Path to the wine prefix containing Grandstream
-#
 winePrefix          = $HOME/.wine-pipelight
-
-#
-# The wine architecture for the wine prefix containing Grandstream
-#
 wineArch            = win32
-
-#
-# Path to the plugin loader executable
-# (Should be set correctly by the make script)
-#
 pluginLoaderPath    = $share/pluginloader.exe
-
-#
-# Path and name to the Grandstream library
-# You should prefer using regKey and consider this option only if you have
-# multiple versions of the Grandstream plugin installed inside the Wineprefix.
-#
 # dllPath           = C:\Program Files\WebControl\
 # dllName           = npGS_Plugins.dll
-
-#
-# Name of the registry key at HKCU\Software\MozillaPlugins\ or
-# HKLM\Software\MozillaPlugins\ where to search for the plugin path.
-#
-# You should use this option instead of dllPath/dllName in most cases
-# since you do not need to alter dllPath on a Grandstream update.
-#
 regKey              = FireFoxWebPlugin
 
-#
-# Grandstream does not offer any version number to the browser
-#
-# fakeVersion       =
-
-#
-# fakeMimeType allows to add MIME types to plugins which are not officially
-# offered by the plugin itself. They are mapped back to a supported ones, so
-# that it is possible to correct broken MIME types like ones containing
-# upper case characters.
-#
-# Example:
 # fakeMimeType = fakedMimeType : fakedExtension : fakedDescription = realMimetype
-#
 fakeMimeType = application/x-vnd-npgs_plugins-plugin:rts:nprt = application/x-vnd-npGS_Plugins-plugin
 fakeMimeType = application/x-vnd-npgs_chromeplugins-plugin:rts:nprt = application/x-vnd-npGS_Plugins-plugin
 fakeMimeType = application/x-vnd-npGS_ChromePlugins-plugin:rts:nprt = application/x-vnd-npGS_Plugins-plugin
 
-#
-# Path to the dependency installer script provided by the compholio
-# package. (optional)
-#
 dependencyInstaller = $share/install-dependency
-
-#
-# Dependencies which should be installed for this plugin via the
-# dependencyInstaller, can be used multiple times. (optional)
-#
-# Useful values for Grandstream are:
-#   wine-grandstream-installer
-#
 dependency          = wine-grandstream-installer

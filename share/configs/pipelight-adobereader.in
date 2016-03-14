@@ -1,60 +1,10 @@
-#
-# Path to the wine directory or the wine executable. When you
-# specify a directory it should contain /bin/wine.
-#
 winePath            = $share/wine
-
-#
-# Path to the wine prefix containing Adobe Reader
-#
 winePrefix          = $HOME/.wine-pipelight
-
-#
-# The wine architecture for the wine prefix containing Adobe Reader
-#
 wineArch            = win32
-
-#
-# Path to the plugin loader executable
-# (Should be set correctly by the make script)
-#
 pluginLoaderPath    = $share/pluginloader.exe
-
-#
-# Path and name to the Adobe Reader library
-# You should prefer using regKey and consider this option only if you have
-# multiple versions of the Adobe Reader plugin installed inside the Wineprefix.
-#
 # dllPath           = C:\Program Files\Adobe\Reader 11.0\Reader\AIR
 # dllName           = nppdf32.dll
-
-#
-# Name of the registry key at HKCU\Software\MozillaPlugins\ or
-# HKLM\Software\MozillaPlugins\ where to search for the plugin path.
-#
-# You should use this option instead of dllPath/dllName in most cases
-# since you do not need to alter dllPath on a Adobe Reader update.
-#
 regKey              = Adobe Reader
-
-#
-# Adobe Reader does not offer any version number to the browser
-#
-# fakeVersion       = Adobe PDF Plug-In For Firefox and Netscape 11.0.04
-
-#
-# Path to the dependency installer script provided by the compholio
-# package. (optional)
-#
 dependencyInstaller = $share/install-dependency
-
-#
-# Dependencies which should be installed for this plugin via the
-# dependencyInstaller, can be used multiple times. (optional)
-#
-# Useful values for Adobe Reader are:
-#   wine-mspatcha-installer
-#   wine-adobereader-installer
-#
 dependency          = wine-mspatcha-installer
 dependency          = wine-adobereader-installer

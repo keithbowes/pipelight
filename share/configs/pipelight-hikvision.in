@@ -1,59 +1,9 @@
-#
-# Path to the wine directory or the wine executable. When you
-# specify a directory it should contain /bin/wine.
-#
 winePath            = $share/wine
-
-#
-# Path to the wine prefix containing Hikvision
-#
 winePrefix          = $HOME/.wine-pipelight
-
-#
-# The wine architecture for the wine prefix containing Hikvision
-#
 wineArch            = win32
-
-#
-# Path to the plugin loader executable
-# (Should be set correctly by the make script)
-#
 pluginLoaderPath    = $share/pluginloader.exe
-
-#
-# Path and name to the Hikvision library
-# You should prefer using regKey and consider this option only if you have
-# multiple versions of the Hikvision plugin installed inside the Wineprefix.
-#
 # dllPath           = C:\Program Files\Web Components\
 # dllName           = npWebVideoPlugin.dll
-
-#
-# Name of the registry key at HKCU\Software\MozillaPlugins\ or
-# HKLM\Software\MozillaPlugins\ where to search for the plugin path.
-#
-# You should use this option instead of dllPath/dllName in most cases
-# since you do not need to alter dllPath on a Hikvision update.
-#
 regKey              = Web Components
-
-#
-# fakeVersion allows to fake the version string of Hikvision
-# We don't know any reason why it would be necessary for Hikvision
-#
-# fakeVersion       = 
-
-#
-# Path to the dependency installer script provided by the compholio
-# package. (optional)
-#
 dependencyInstaller = $share/install-dependency
-
-#
-# Dependencies which should be installed for this plugin via the
-# dependencyInstaller, can be used multiple times. (optional)
-#
-# Useful values for Hikvision are:
-#   wine-hikvision-installer
-#
 dependency          = wine-hikvision-installer

@@ -1,60 +1,10 @@
-#
-# Path to the wine directory or the wine executable. When you
-# specify a directory it should contain /bin/wine.
-#
 winePath            = $share/wine
-
-#
-# Path to the wine prefix containing Roblox
-#
 winePrefix          = $HOME/.wine-pipelight
-
-#
-# The wine architecture for the wine prefix containing Roblox
-#
 wineArch            = win32
-
-#
-# Path to the plugin loader executable
-# (Should be set correctly by the make script)
-#
 pluginLoaderPath    = $share/pluginloader.exe
-
-#
-# Path and name to the Roblox library
-# You should prefer using regKey and consider this option only if you have
-# multiple versions of the Roblox plugin installed inside the Wineprefix.
-#
 # dllPath           = C:\users\$wineuser\Local Settings\Application Data\RobloxVersions\version-afc74353f06542bd\
 # dllName           = NPRobloxProxy.dll
-
-#
-# Name of the registry key at HKCU\Software\MozillaPlugins\ or
-# HKLM\Software\MozillaPlugins\ where to search for the plugin path.
-#
-# You should use this option instead of dllPath/dllName in most cases
-# since you do not need to alter dllPath on a Roblox update.
-#
 regKey              = @nsroblox.roblox.com/launcher
-
-#
-# fakeVersion allows to fake the version string of Roblox
-# We don't know any reason why it would be necessary for Roblox
-#
-# fakeVersion       = 
-
-#
-# Path to the dependency installer script provided by the compholio
-# package. (optional)
-#
 dependencyInstaller = $share/install-dependency
-
-#
-# Dependencies which should be installed for this plugin via the
-# dependencyInstaller, can be used multiple times. (optional)
-#
-# Useful values for Roblox are:
-#   wine-Roblox-installer
-#
 dependency          = wine-roblox-installer
 dependency          = wine-wininet-installer
