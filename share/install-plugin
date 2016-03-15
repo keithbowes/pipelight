@@ -893,6 +893,9 @@ fi
 # Set default return value
 RET=0
 
+echo "[$PRG] FIXME: Load config file from $1" >&2
+shift
+
 while [ $# -gt 0 ] ; do
 	DEP="$1"; INS=(); URL=""; SHA=""; EXT=""; DOWNLOADFILE=""; shift
 	case "$DEP" in

@@ -266,6 +266,7 @@ static bool checkPluginInstallation(){
 		std::vector<const char*> argv;
 
 		argv.push_back(dependencyInstaller.c_str());
+		argv.push_back(config.configPath.c_str());
 
 		for (std::vector<std::string>::iterator it = config.dependencies.begin(); it != config.dependencies.end(); it++)
 			argv.push_back( it->c_str());

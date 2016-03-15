@@ -273,7 +273,7 @@ install_plugin()
 	fi
 
 	WINE="$WINE" WINEPREFIX="$WINEPREFIX" WINEARCH="$WINEARCH" WINEDLLOVERRIDES="$WINEDLLOVERRIDES" \
-	QUIETINSTALLATION=1 "$PIPELIGHT_SHARE_PATH/install-plugin" $dependencies
+	QUIETINSTALLATION=1 "$PIPELIGHT_SHARE_PATH/install-plugin" "$PIPELIGHT_SHARE_PATH/configs/pipelight-$PLUGIN" $dependencies
 	return $?
 }
 
