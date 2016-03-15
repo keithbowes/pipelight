@@ -42,9 +42,8 @@ usage()
 	echo "Usage: ./configure [--prefix=PREFIX] [--bindir=PATH] [--datadir=PATH]"
 	echo "                   [--libdir=PATH] [--mandir=PATH] [--bash-interp=PATH]"
 	echo "                   [--moz-plugin-path=PATH] [--gpg-exec=PATH]"
-	echo "                   [--so-mode=OCTAL] [--no-gpu-accel] [--debug]"
-	echo "                   [--cxx=COMPILER] [--cxxflags=FLAGS]"
-	echo "                   [--mingw-cxxflags=FLAGS]"
+	echo "                   [--so-mode=OCTAL] [--debug] [--cxx=COMPILER]"
+	echo "                   [--cxxflags=FLAGS] [--mingw-cxxflags=FLAGS]"
 	echo ""
 	echo " prebuilt options: [--git-commit=TAG/SHA1] [--downloader=CMDLINE]"
 	echo ""
@@ -74,7 +73,6 @@ else
 fi
 moz_plugin_path=""
 so_mode="0644"
-no_gpu_accel="false"
 debug="false"
 
 cxx=""
@@ -162,10 +160,6 @@ while [[ $# > 0 ]] ; do
 			;;
 		--so-mode)
 			so_mode="$1"; shift
-			;;
-
-		--no-gpu-accel)
-			no_gpu_accel="true"
 			;;
 
 		--debug)
@@ -415,7 +409,6 @@ wine64_path=$(resolvepath "$wine64_path")
 	echo "gpg_exec=$gpg_exec"
 	echo "moz_plugin_path=$moz_plugin_path"
 	echo "so_mode=$so_mode"
-	echo "no_gpu_accel=$no_gpu_accel"
 	echo "debug=$debug"
 	echo "cxx=$cxx"
 	echo "cxxflags=$cxxflags"

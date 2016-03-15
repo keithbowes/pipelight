@@ -8,7 +8,6 @@
 # # regKey            = @Microsoft.com/NpCtrl,version=1.0
 # fakeVersion         = 5.1.30214.0
 # overwriteArg        = minRuntimeVersion=5.0.61118.0
-# @@SILVERLIGHT_GPU_ACCEL@@
 # # overwriteArg      = enableGPUAcceleration=true
 # dependencyInstaller = $share/install-dependency
 # dependency          = wine-silverlight5.0-installer
