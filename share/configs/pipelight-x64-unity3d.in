@@ -1,9 +1,11 @@
-winePath            = $share/wine64
-winePrefix          = $HOME/.wine-pipelight64
-wineArch            = win64
-pluginLoaderPath    = $share/pluginloader64.exe
-dllPath             = C:\Program Files\Unity\WebPlayer64\loader-x64
-dllName             = npUnity3D64.dll
-# regKey            = @unity3d.com/UnityPlayer,version=1.0
-dependencyInstaller = $share/install-dependency
-dependency          = wine-x64-unity3d-installer
+# ---BEGIN CONFIG---
+# winePath            = $share/wine64
+# winePrefix          = $HOME/.wine-pipelight64
+# wineArch            = win64
+# pluginLoaderPath    = $share/pluginloader64.exe
+# dllPath             = C:\Program Files\Unity\WebPlayer64\loader-x64
+# dllName             = npUnity3D64.dll
+# # regKey            = @unity3d.com/UnityPlayer,version=1.0
+# dependencyInstaller = $share/install-dependency
+# dependency          = wine-x64-unity3d-installer
+# ---END CONFIG---

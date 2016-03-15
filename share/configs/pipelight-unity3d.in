@@ -1,11 +1,13 @@
-winePath            = $share/wine
-winePrefix          = $HOME/.wine-pipelight
-wineArch            = win32
-wineDLLOverrides    = mscoree,mshtml,winegstreamer,d3d11,winemenubuilder.exe=
-pluginLoaderPath    = $share/pluginloader.exe
-# dllPath           = C:\Program Files\Unity\WebPlayer\loader
-# dllName           = npUnity3D32.dll
-regKey              = @unity3d.com/UnityPlayer,version=1.0
-# fakeVersion       = Unity Player 4.2.2f1
-dependencyInstaller = $share/install-dependency
-dependency          = wine-unity3d-installer
+# ---BEGIN CONFIG---
+# winePath            = $share/wine
+# winePrefix          = $HOME/.wine-pipelight
+# wineArch            = win32
+# wineDLLOverrides    = mscoree,mshtml,winegstreamer,d3d11,winemenubuilder.exe=
+# pluginLoaderPath    = $share/pluginloader.exe
+# # dllPath           = C:\Program Files\Unity\WebPlayer\loader
+# # dllName           = npUnity3D32.dll
+# regKey              = @unity3d.com/UnityPlayer,version=1.0
+# # fakeVersion       = Unity Player 4.2.2f1
+# dependencyInstaller = $share/install-dependency
+# dependency          = wine-unity3d-installer
+# ---END CONFIG---

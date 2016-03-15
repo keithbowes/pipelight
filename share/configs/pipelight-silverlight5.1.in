@@ -1,23 +1,25 @@
-winePath            = $share/wine
-winePrefix          = $HOME/.wine-pipelight
-wineArch            = win32
-pluginLoaderPath    = $share/pluginloader.exe
-dllPath             = c:\Program Files\Silverlight\latest\
-dllName             = npctrl.dll
-# regKey            = @Microsoft.com/NpCtrl,version=1.0
-# fakeVersion       = 5.1.30214.0
-# overwriteArg      = minRuntimeVersion=5.0.61118.0
-@@SILVERLIGHT_GPU_ACCEL@@
-# overwriteArg      = enableGPUAcceleration=true
-linuxWindowlessMode = false
-dependencyInstaller = $share/install-dependency
-dependency          = wine-silverlight5.1-installer
-dependency          = wine-mpg2splt-installer
-
-executeJavascript = var __pipelight_navigator = new Object();
-executeJavascript = for (var __i in window.navigator) { __pipelight_navigator[__i] =  window.navigator[__i]; }
-executeJavascript = __pipelight_navigator.userAgent = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:15.0) Gecko/20120427 Firefox/15.0a1';
-replaceJavascript = window.navigator = __pipelight_navigator
-
-silverlightGraphicDriverCheck  = true
-experimental-windowClassHook = true
+# ---BEGIN CONFIG---
+# winePath            = $share/wine
+# winePrefix          = $HOME/.wine-pipelight
+# wineArch            = win32
+# pluginLoaderPath    = $share/pluginloader.exe
+# dllPath             = c:\Program Files\Silverlight\latest\
+# dllName             = npctrl.dll
+# # regKey            = @Microsoft.com/NpCtrl,version=1.0
+# # fakeVersion       = 5.1.30214.0
+# # overwriteArg      = minRuntimeVersion=5.0.61118.0
+# @@SILVERLIGHT_GPU_ACCEL@@
+# # overwriteArg      = enableGPUAcceleration=true
+# linuxWindowlessMode = false
+# dependencyInstaller = $share/install-dependency
+# dependency          = wine-silverlight5.1-installer
+# dependency          = wine-mpg2splt-installer
+#
+# executeJavascript = var __pipelight_navigator = new Object();
+# executeJavascript = for (var __i in window.navigator) { __pipelight_navigator[__i] =  window.navigator[__i]; }
+# executeJavascript = __pipelight_navigator.userAgent = 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:15.0) Gecko/20120427 Firefox/15.0a1';
+# replaceJavascript = window.navigator = __pipelight_navigator
+#
+# silverlightGraphicDriverCheck  = true
+# experimental-windowClassHook = true
+# ---END CONFIG---

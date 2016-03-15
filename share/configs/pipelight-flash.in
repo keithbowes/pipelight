@@ -1,13 +1,15 @@
-winePath            = $share/wine
-winePrefix          = $HOME/.wine-pipelight
-wineArch            = win32
-pluginLoaderPath    = $share/pluginloader.exe
-# dllPath           = C:\windows\system32\Macromed\Flash\
-# dllName           = NPSWF32_11_8_800_168.dll
-regKey              = @adobe.com/FlashPlayer
-windowlessMode      = false
-windowlessOverwriteArg = wmode=opaque
-linuxWindowlessMode = false
-dependencyInstaller = $share/install-dependency
-dependency          = wine-flash-installer
-experimental-windowClassHook = true
+# ---BEGIN CONFIG---
+# winePath            = $share/wine
+# winePrefix          = $HOME/.wine-pipelight
+# wineArch            = win32
+# pluginLoaderPath    = $share/pluginloader.exe
+# # dllPath           = C:\windows\system32\Macromed\Flash\
+# # dllName           = NPSWF32_11_8_800_168.dll
+# regKey              = @adobe.com/FlashPlayer
+# windowlessMode      = false
+# windowlessOverwriteArg = wmode=opaque
+# linuxWindowlessMode = false
+# dependencyInstaller = $share/install-dependency
+# dependency          = wine-flash-installer
+# experimental-windowClassHook = true
+# ---END CONFIG---

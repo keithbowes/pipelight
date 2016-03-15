@@ -155,7 +155,8 @@ get_config_key()
 	local KEY="$2"
 
 	local configpath="$PIPELIGHT_SHARE_PATH/configs"
-	sed -n "s|^[ \t]*$KEY[ \t]*=[ \t]*\(.*\)[ \t]*$|\1|p" "$configpath/pipelight-$PLUGIN"
+	sed -n '/^#[ \t]*---BEGIN CONFIG---[ \t]*$/,/#[ \t]*---END CONFIG---[ \t]*$/p' "$configpath/pipelight-$PLUGIN" | \
+	sed -n "s|^#[ \t]*$KEY[ \t]*=[ \t]*\(.*\)[ \t]*\$|\1|p"
 }
 
 # > Shows the license agreement of a specific plugin and asks the user

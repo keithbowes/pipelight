@@ -315,6 +315,8 @@ bool loadConfig(PluginConfig &config){
 		return false;
 	}
 
+	bool config_section = false;
+
 	while (configFile.good()){
 		std::string line;
 		getline(configFile, line);
@@ -325,7 +327,24 @@ bool loadConfig(PluginConfig &config){
 		if (line.length() == 0)
 			continue;
 
-		/* strip comments */
+		/* only read commented out lines */
+		if (line[0] != '#')
+			continue;
+
+		line = trim(line.substr(1));
+
+		if (line == "---BEGIN CONFIG---"){
+			config_section = true;
+			continue;
+		} else if (line == "---END CONFIG---"){
+			config_section = false;
+			continue;
+		}
+
+		if (!config_section)
+			continue;
+
+		/* strip double comments */
 		size_t pos;
 		if ((pos = line.find_first_of("#")) != std::string::npos){
 			if (pos == 0)

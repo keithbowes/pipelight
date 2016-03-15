@@ -1,15 +1,17 @@
-winePath            = $share/wine
-winePrefix          = $HOME/.wine-pipelight
-wineArch            = win32
-pluginLoaderPath    = $share/pluginloader.exe
-# dllPath           = C:\Program Files\WebControl\
-# dllName           = npGS_Plugins.dll
-regKey              = FireFoxWebPlugin
-
-# fakeMimeType = fakedMimeType : fakedExtension : fakedDescription = realMimetype
-fakeMimeType = application/x-vnd-npgs_plugins-plugin:rts:nprt = application/x-vnd-npGS_Plugins-plugin
-fakeMimeType = application/x-vnd-npgs_chromeplugins-plugin:rts:nprt = application/x-vnd-npGS_Plugins-plugin
-fakeMimeType = application/x-vnd-npGS_ChromePlugins-plugin:rts:nprt = application/x-vnd-npGS_Plugins-plugin
-
-dependencyInstaller = $share/install-dependency
-dependency          = wine-grandstream-installer
+# ---BEGIN CONFIG---
+# winePath            = $share/wine
+# winePrefix          = $HOME/.wine-pipelight
+# wineArch            = win32
+# pluginLoaderPath    = $share/pluginloader.exe
+# # dllPath           = C:\Program Files\WebControl\
+# # dllName           = npGS_Plugins.dll
+# regKey              = FireFoxWebPlugin
+#
+# # fakeMimeType = fakedMimeType : fakedExtension : fakedDescription = realMimetype
+# fakeMimeType = application/x-vnd-npgs_plugins-plugin:rts:nprt = application/x-vnd-npGS_Plugins-plugin
+# fakeMimeType = application/x-vnd-npgs_chromeplugins-plugin:rts:nprt = application/x-vnd-npGS_Plugins-plugin
+# fakeMimeType = application/x-vnd-npGS_ChromePlugins-plugin:rts:nprt = application/x-vnd-npGS_Plugins-plugin
+#
+# dependencyInstaller = $share/install-dependency
+# dependency          = wine-grandstream-installer
+# ---END CONFIG---

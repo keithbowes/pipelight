@@ -1,9 +1,11 @@
-winePath            = $share/wine
-winePrefix          = $HOME/.wine-pipelight
-wineArch            = win32
-pluginLoaderPath    = $share/pluginloader.exe
-# dllPath           = C:\windows\system32\Adobe\Director\
-# dllName           = np32dsw_1204144.dll
-regKey              = @adobe.com/ShockwavePlayer
-dependencyInstaller = $share/install-dependency
-dependency          = wine-shockwave-installer
+# ---BEGIN CONFIG---
+# winePath            = $share/wine
+# winePrefix          = $HOME/.wine-pipelight
+# wineArch            = win32
+# pluginLoaderPath    = $share/pluginloader.exe
+# # dllPath           = C:\windows\system32\Adobe\Director\
+# # dllName           = np32dsw_1204144.dll
+# regKey              = @adobe.com/ShockwavePlayer
+# dependencyInstaller = $share/install-dependency
+# dependency          = wine-shockwave-installer
+# ---END CONFIG---

@@ -1,10 +1,12 @@
-winePath            = $share/wine
-winePrefix          = $HOME/.wine-pipelight
-wineArch            = win32
-pluginLoaderPath    = $share/pluginloader.exe
-# dllPath           = C:\users\$wineuser\Local Settings\Application Data\RobloxVersions\version-afc74353f06542bd\
-# dllName           = NPRobloxProxy.dll
-regKey              = @nsroblox.roblox.com/launcher
-dependencyInstaller = $share/install-dependency
-dependency          = wine-roblox-installer
-dependency          = wine-wininet-installer
+# ---BEGIN CONFIG---
+# winePath            = $share/wine
+# winePrefix          = $HOME/.wine-pipelight
+# wineArch            = win32
+# pluginLoaderPath    = $share/pluginloader.exe
+# # dllPath           = C:\users\$wineuser\Local Settings\Application Data\RobloxVersions\version-afc74353f06542bd\
+# # dllName           = NPRobloxProxy.dll
+# regKey              = @nsroblox.roblox.com/launcher
+# dependencyInstaller = $share/install-dependency
+# dependency          = wine-roblox-installer
+# dependency          = wine-wininet-installer
+# ---END CONFIG---

@@ -1,9 +1,11 @@
-winePath            = $share/wine
-winePrefix          = $HOME/.wine-pipelight
-wineArch            = win32
-pluginLoaderPath    = $share/pluginloader.exe
-# dllPath           = C:\Program Files\Vizzed\Vizzed Retro Game Room
-# dllName           = NpVizzedRgr.dll
-regKey              = @vizzed.com/VizzedRGR
-dependencyInstaller = $share/install-dependency
-dependency          = wine-vizzedrgr-installer
+# ---BEGIN CONFIG---
+# winePath            = $share/wine
+# winePrefix          = $HOME/.wine-pipelight
+# wineArch            = win32
+# pluginLoaderPath    = $share/pluginloader.exe
+# # dllPath           = C:\Program Files\Vizzed\Vizzed Retro Game Room
+# # dllName           = NpVizzedRgr.dll
+# regKey              = @vizzed.com/VizzedRGR
+# dependencyInstaller = $share/install-dependency
+# dependency          = wine-vizzedrgr-installer
+# ---END CONFIG---
