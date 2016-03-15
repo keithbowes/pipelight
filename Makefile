@@ -1,6 +1,6 @@
 -include config.make
 
-PLUGIN_CONFIGS=$(wildcard share/configs/*.in)
+PLUGIN_CONFIGS=$(wildcard share/configs/*)
 PLUGIN_SCRIPTS=$(wildcard share/scripts/*.in)
 PLUGIN_LICENSES=$(wildcard share/licenses/*.in)
 
@@ -123,10 +123,7 @@ install: config.make all
 	done
 
 	for config in $(notdir $(PLUGIN_CONFIGS)); do \
-		sed $(SED_OPTS) share/configs/$${config} > pipelight-config.tmp; \
-		touch -r share/configs/$${config} pipelight-config.tmp; \
-		install -pm 0644 pipelight-config.tmp "$(DESTDIR)$(datadir)/pipelight/configs/$${config%.*}" || exit 1; \
-		rm pipelight-config.tmp; \
+		install -pm 0644 share/configs/$${config} "$(DESTDIR)$(datadir)/pipelight/configs/$${config}" || exit 1; \
 	done
 
 	for license in $(notdir $(PLUGIN_LICENSES)); do \
