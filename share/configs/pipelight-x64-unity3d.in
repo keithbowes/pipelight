@@ -6,6 +6,5 @@
 # dllPath             = C:\Program Files\Unity\WebPlayer64\loader-x64
 # dllName             = npUnity3D64.dll
 # # regKey            = @unity3d.com/UnityPlayer,version=1.0
-# dependencyInstaller = $share/install-dependency
 # dependency          = wine-x64-unity3d-installer
 # ---END CONFIG---

@@ -8,6 +8,5 @@
 # # dllName           = npUnity3D32.dll
 # regKey              = @unity3d.com/UnityPlayer,version=1.0
 # # fakeVersion       = Unity Player 4.2.2f1
-# dependencyInstaller = $share/install-dependency
 # dependency          = wine-unity3d-installer
 # ---END CONFIG---

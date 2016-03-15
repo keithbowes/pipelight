@@ -6,6 +6,5 @@
 # # dllPath           = C:\Program Files\Web Components\
 # # dllName           = npWebVideoPlugin.dll
 # regKey              = Web Components
-# dependencyInstaller = $share/install-dependency
 # dependency          = wine-hikvision-installer
 # ---END CONFIG---

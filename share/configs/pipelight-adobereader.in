@@ -6,7 +6,6 @@
 # # dllPath           = C:\Program Files\Adobe\Reader 11.0\Reader\AIR
 # # dllName           = nppdf32.dll
 # regKey              = Adobe Reader
-# dependencyInstaller = $share/install-dependency
 # dependency          = wine-mspatcha-installer
 # dependency          = wine-adobereader-installer
 # ---END CONFIG---

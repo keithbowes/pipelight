@@ -8,7 +8,6 @@
 # regKey              = @adobe.com/FlashPlayer
 # windowlessMode      = false
 # windowlessOverwriteArg = wmode=opaque
-# dependencyInstaller = $share/install-dependency
 # dependency          = wine-flash-installer
 # experimental-windowClassHook = true
 # ---END CONFIG---

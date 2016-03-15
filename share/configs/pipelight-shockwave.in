@@ -6,6 +6,5 @@
 # # dllPath           = C:\windows\system32\Adobe\Director\
 # # dllName           = np32dsw_1204144.dll
 # regKey              = @adobe.com/ShockwavePlayer
-# dependencyInstaller = $share/install-dependency
 # dependency          = wine-shockwave-installer
 # ---END CONFIG---

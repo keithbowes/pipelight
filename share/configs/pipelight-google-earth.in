@@ -6,6 +6,5 @@
 # # dllPath           = C:\Program Files\Google\Google Earth\plugin
 # # dllName           = npgeplugin.dll
 # regKey              = @Google.com/GoogleEarthPlugin
-# dependencyInstaller = $share/install-dependency
 # dependency          = wine-google-earth-installer
 # ---END CONFIG---

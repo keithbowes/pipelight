@@ -9,7 +9,6 @@
 # # fakeVersion       = 5.1.20513.0
 # # overwriteArg      = minRuntimeVersion=5.0.61118.0
 # # overwriteArg      = enableGPUAcceleration=true
-# dependencyInstaller = $share/install-dependency
 # dependency          = wine-silverlight4-installer
 # dependency          = wine-mpg2splt-installer
 # silverlightGraphicDriverCheck  = true

@@ -292,7 +292,7 @@ bool loadConfig(PluginConfig &config){
 	config.overwriteArgs.clear();
 	config.windowlessOverwriteArgs.clear();
 
-	config.dependencyInstaller	= "";
+	config.dependencyInstaller	= PIPELIGHT_SHARE_PATH "/install-dependency";
 	config.dependencies.clear();
 	config.quietInstallation	= true;
 

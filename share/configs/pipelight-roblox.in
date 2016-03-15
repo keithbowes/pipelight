@@ -6,7 +6,6 @@
 # # dllPath           = C:\users\$wineuser\Local Settings\Application Data\RobloxVersions\version-afc74353f06542bd\
 # # dllName           = NPRobloxProxy.dll
 # regKey              = @nsroblox.roblox.com/launcher
-# dependencyInstaller = $share/install-dependency
 # dependency          = wine-roblox-installer
 # dependency          = wine-wininet-installer
 # ---END CONFIG---

@@ -5,7 +5,6 @@
 # pluginLoaderPath    = $share/pluginloader.exe
 # dllPath             = C:\windows\system32
 # dllName             = npactivex.dll
-# dependencyInstaller = $share/install-dependency
 # dependency          = wine-npactivex-installer
 # experimental-windowClassHook = true
 # ---END CONFIG---
