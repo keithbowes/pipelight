@@ -418,18 +418,6 @@ static void sendXembedMessage(Display* display, Window win, long message, long d
 	XSendEvent(display, win, False, NoEventMask, &ev);
 	XSync(display, False);
 }
-
-/* setXembedWindowInfo */
-static void setXembedWindowInfo(Display* display, Window win, int flags){
-	CARD32 list[2];
-	Atom xembedInfo = XInternAtom(display, "_XEMBED_INFO", False);
-
-	list[0] = 0;
-	list[1] = flags;
-
-	XChangeProperty(display, win, xembedInfo, xembedInfo, 32, PropModeReplace, (unsigned char *)list, 2);
-	XSync(display, False);
-}
 #endif
 
 /* dispatcher */
