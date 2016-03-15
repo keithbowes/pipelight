@@ -110,10 +110,10 @@ install: config.make all
 		ln -s "$(wine64_path)" "$(DESTDIR)$(datadir)/pipelight/wine64"; \
 	fi
 
-	sed $(SED_OPTS) share/install-dependency > install-dependency.tmp
-	touch -r share/install-dependency install-dependency.tmp
-	install -pm 0755 install-dependency.tmp "$(DESTDIR)$(datadir)/pipelight/install-dependency"
-	rm install-dependency.tmp
+	sed $(SED_OPTS) share/install-plugin > install-plugin.tmp
+	touch -r share/install-plugin install-plugin.tmp
+	install -pm 0755 install-plugin.tmp "$(DESTDIR)$(datadir)/pipelight/install-plugin"
+	rm install-plugin.tmp
 
 	for script in $(notdir $(PLUGIN_SCRIPTS)); do \
 		sed $(SED_OPTS) share/scripts/$${script} > pipelight-script.tmp; \
@@ -149,7 +149,7 @@ install: config.make all
 uninstall: config.make
 	rm -f	"$(DESTDIR)$(bindir)/pipelight-plugin" \
 			 $(DESTDIR)$(datadir)/pipelight/configs/pipelight-* \
-			"$(DESTDIR)$(datadir)/pipelight/install-dependency" \
+			"$(DESTDIR)$(datadir)/pipelight/install-plugin" \
 			 $(DESTDIR)$(datadir)/pipelight/licenses/license-* \
 			"$(DESTDIR)$(datadir)/pipelight/pluginloader.exe" \
 			"$(DESTDIR)$(datadir)/pipelight/pluginloader64.exe" \

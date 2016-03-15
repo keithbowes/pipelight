@@ -273,7 +273,7 @@ install_plugin()
 	fi
 
 	WINE="$WINE" WINEPREFIX="$WINEPREFIX" WINEARCH="$WINEARCH" WINEDLLOVERRIDES="$WINEDLLOVERRIDES" \
-	QUIETINSTALLATION=1 "$PIPELIGHT_SHARE_PATH/install-dependency" $dependencies
+	QUIETINSTALLATION=1 "$PIPELIGHT_SHARE_PATH/install-plugin" $dependencies
 	return $?
 }
 
@@ -827,7 +827,9 @@ while [[ $# > 0 ]] ; do
 			;;
 
 		--update)
-			if ! update_dependency_installer; then RET=1; fi
+			echo "FIXME: Update functionality is currently disabled." >&2
+			RET=1
+			# if ! update_dependency_installer; then RET=1; fi
 			;;
 
 		--help)

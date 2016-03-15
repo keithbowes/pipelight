@@ -230,7 +230,7 @@ static void checkPermissions(){
 
 /* checkPluginInstallation */
 static bool checkPluginInstallation(){
-	std::string dependencyInstaller = PIPELIGHT_SHARE_PATH "/install-dependency";
+	std::string dependencyInstaller = PIPELIGHT_SHARE_PATH "/install-plugin";
 
 	/* Output wine prefix */
 	DBG_INFO("using wine prefix directory %s.", config.winePrefix.c_str());
