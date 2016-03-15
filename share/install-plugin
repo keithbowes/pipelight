@@ -1,43 +1,5 @@
 #!/usr/bin/env bash
 
-usage()
-{
-	echo ""
-	echo "Usage: ./install-plugin DEPENDENCY1 [DEPENDENCY2 ...]"
-	echo ""
-	echo "Environment variables:"
-	echo "  WINE                  path to the wine executable"
-	echo "  WINEPREFIX            usually \$HOME/.wine-pipelight"
-	echo "  WINEARCH              usually win32"
-	echo "  QUIETINSTALLATION=1   don't show the original installation dialogs"
-	echo ""
-	echo "Package dependencies:"
-	echo "	wine-silverlight4-installer"
-	echo "	wine-silverlight5.0-installer"
-	echo "	wine-silverlight5.1-installer"
-	echo "	wine-flash-installer"
-	echo "	wine-flash-debug-installer"
-	echo "	wine-widevine-installer"
-	echo "	wine-unity3d-installer"
-	echo "	wine-x64-unity3d-installer"
-	echo "	wine-adobereader-installer"
-	echo "	wine-foxitpdf-installer"
-	echo "	wine-shockwave-installer"
-	echo "	wine-grandstream-installer"
-	echo "	wine-hikvision-installer"
-	echo "	wine-npactivex-installer"
-	echo "	wine-roblox-installer"
-	echo "	wine-vizzedrgr-installer"
-	echo "	wine-viewright-caiway-installer"
-	echo "	wine-google-earth-installer"
-	echo ""
-	echo "Library dependencies:"
-	echo "	wine-mpg2splt-installer"
-	echo "	wine-wininet-installer"
-	echo "	wine-mspatcha-installer"
-	echo ""
-}
-
 PRG=$(basename "$0")
 
 # > Marks a file in order to delete it at program termination
@@ -801,10 +763,10 @@ else
 	}
 fi
 
-# Print usage message when no arguments are given at all
+# Abort if no arguments were given
 if [ $# -eq 0 ]; then
-	usage
-	exit 0
+	echo "[$PRG] ERROR: Please provide a path to a plugin config." >&1
+	exit 1
 fi
 
 # Check for environment variables
