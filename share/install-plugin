@@ -106,13 +106,6 @@ download()
 		EXT=$(echo "$URL" | sed 's/.*\.//')
 	fi
 
-	# Reuse files from the netflix-desktop package if available
-	local dlfile="/var/lib/wine-browser-installer/$DEP.$EXT"
-	if [ -f "$dlfile" ] && [ "$SHA" == "$(sha256sum "$dlfile" | cut -d' ' -f1)" ]; then
-		DOWNLOADFILE="$dlfile"
-		return 0
-	fi
-
 	# Reuse existing download
 	local dlfile="/tmp/pipelight-$DEP.$EXT"
 	if [ -f "$dlfile" ] && [ "$SHA" == "$(sha256sum "$dlfile" | cut -d' ' -f1)" ]; then
