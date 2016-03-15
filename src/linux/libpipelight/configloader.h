@@ -85,7 +85,6 @@ struct PluginConfig{
 	std::map<std::string, std::string, stringInsensitiveCompare> overwriteArgs;
 	std::map<std::string, std::string, stringInsensitiveCompare> windowlessOverwriteArgs;
 
-	std::string		dependencyInstaller;
 	std::vector<std::string> dependencies;
 	bool			quietInstallation;
 

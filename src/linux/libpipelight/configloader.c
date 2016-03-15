@@ -292,7 +292,6 @@ bool loadConfig(PluginConfig &config){
 	config.overwriteArgs.clear();
 	config.windowlessOverwriteArgs.clear();
 
-	config.dependencyInstaller	= PIPELIGHT_SHARE_PATH "/install-dependency";
 	config.dependencies.clear();
 	config.quietInstallation	= true;
 
@@ -432,9 +431,6 @@ bool loadConfig(PluginConfig &config){
 			if (!splitConfigValue(value, argKey, argValue))
 				continue;
 			config.windowlessOverwriteArgs[argKey] = argValue;
-
-		}else if (key == "dependencyinstaller"){
-			config.dependencyInstaller = value;
 
 		}else if (key == "silverlightversion"){
 			DBG_WARN("the configuration parameter silverlightVersion is deprecated.");

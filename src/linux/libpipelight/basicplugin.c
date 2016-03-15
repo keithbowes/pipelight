@@ -230,12 +230,13 @@ static void checkPermissions(){
 
 /* checkPluginInstallation */
 static bool checkPluginInstallation(){
+	std::string dependencyInstaller = PIPELIGHT_SHARE_PATH "/install-dependency";
 
 	/* Output wine prefix */
 	DBG_INFO("using wine prefix directory %s.", config.winePrefix.c_str());
 
 	/* If there is no installer provided we cannot check the installation */
-	if (config.dependencyInstaller == "" || config.dependencies.empty() || !checkIfExists(config.dependencyInstaller) )
+	if (config.dependencies.empty() || !checkIfExists(dependencyInstaller))
 		return checkIfExists(config.winePrefix);
 
 	/* Run the installer ... */
@@ -264,7 +265,7 @@ static bool checkPluginInstallation(){
 		/* Generate argv array */
 		std::vector<const char*> argv;
 
-		argv.push_back( config.dependencyInstaller.c_str());
+		argv.push_back(dependencyInstaller.c_str());
 
 		for (std::vector<std::string>::iterator it = config.dependencies.begin(); it != config.dependencies.end(); it++)
 			argv.push_back( it->c_str());
