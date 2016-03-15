@@ -163,36 +163,6 @@ download()
 	return 0
 }
 
-# > Sets a registry key
-# arguments:
-# $1	- key
-# $2	- path
-register_mozilla_plugin()
-{
-	local KEY="$1"; local VAL="$2"
-
-	local tmpfile=$(mktemp)
-	[ -f "$tmpfile" ] || return 1
-
-	local valfile=$("$WINE" winepath --windows "$VAL" | sed 's/\\/\\\\/g')
-
-	(
-		echo "REGEDIT4"
-		echo ""
-		echo "[HKEY_LOCAL_MACHINE\\Software\\MozillaPlugins\\$KEY]"
-		echo "\"Path\"=\"$valfile\""
-	) > "$tmpfile"
-
-	"$WINE" regedit "$tmpfile"
-	local res=$?
-
-	# Cleanup
-	rm "$tmpfile"
-
-	# Successful
-	return "$res"
-}
-
 # > Installer for Silverlight
 # arguments:
 # $1	- version
