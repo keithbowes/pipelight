@@ -10,7 +10,6 @@
 # # overwriteArg      = minRuntimeVersion=5.0.61118.0
 # @@SILVERLIGHT_GPU_ACCEL@@
 # # overwriteArg      = enableGPUAcceleration=true
-# linuxWindowlessMode = false
 # dependencyInstaller = $share/install-dependency
 # dependency          = wine-silverlight5.1-installer
 # dependency          = wine-mpg2splt-installer
