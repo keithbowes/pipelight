@@ -936,12 +936,12 @@ while [ $# -gt 0 ] ; do
 		wine-unity3d-installer)
 			INS=(install_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayer.exe"
-			SHA="2064ad064d20beb863357bcb9b5002933d1eb75dfa8d819333aaf3ad99e997ed"
+			SHA="44370e430da87a36703bf02ac8f86d10e770c639696232497823228511962fc3"
 			;;
 		wine-x64-unity3d-installer)
 			INS=(install_x64_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayerFull64.exe"
-			SHA="a7aec1d51ec8c906c642d4b7575a68ef7c92b4e00449c26416d6b8de75a8baa2"
+			SHA="d435d209bb08ef7716ae93afad9aa2eb7836c1c805f037cffa6bee4901ce3282"
 			;;
 		wine-adobereader-installer) # http://get.adobe.com/de/reader/otherversions/
 			INS=(install_adobereader)
@@ -1046,17 +1046,17 @@ exit "$RET"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBCAAGBQJW4yCBAAoJEIPHP7IUNPxz8bYP/iIBaL7qJ8cQu4eRQs6LtYTG
-uBhtE4DNpcH10D21WFCgnc0EO/ySBez/NZsgvagUFKb8YgV96gMEGkMcHC2lv6Ko
-NKNAT3+yR2FY8iDjH+UfYFX1kmiHtbxD6UTCtjUW3xFr9MQGhuQMUZ6sviXrNhY/
-0Wf80fZiHldHbNOX3HgfNfm/rykXpUWVbaazbJeLDmSqOGmWtX5riFvkPsY879wu
-ApeZmW+p4oXlZTwKis5D9BhaEJSR+8lQLHSLGJI+TbBQfpQ2Wh+i98reSp5sdT2g
-9Bl5JELS6EzBBJVafrAAot0wDWWwyxWUUMcXr8VRaUVLO5ZXZQr+NGu7BHpqHVfx
-FnTa4txtQgYijYG7VDJGJ7gi0TmyiMTuSMehu7J0/hk2T0JluZetTPfeA7gMrQY5
-57CxVeDJUeLtbN4JhhG5AOQYVL93oF3wY1z7GFtnyz5MCFjlqMs7Fui05riw86ud
-2lU/7e6U0DIukqFh1rYXzV2f7bAnVhAnECrpCcgwnNEmXC5AaVcnsDIJYHRFbMcX
-IZK/8T4rjqr0N1VkKorQQ+P/sAWHA3MPwlMxZ4BKa8IAiCtA9YXIZ7g6p/5hERvx
-Tc/vCnoxYkfduBL7q8gmb3v5bNe4PUB6cBo7S/qHxaWCWw4R8dzKAxCJchVYxz78
-rscJVBZtijH9EwMMBgQN
-=o+Go
+iQIcBAEBCAAGBQJW6eH3AAoJEIPHP7IUNPxzP84P/1elpiBRVxvUuOTcDtnY+NXQ
+b6k+qKDSy08WMeeDs2a3lki89ikef6nAVocIWMbufln3ge2bIngiKlxHVa6hIle+
+vqCOZkuPq4jNRRy7KI7FEndIdW1JRqj2/+UQWfA5bc8VxpvgQ3Q2ShGViq/YSYG3
+YkHsJVCOuH+xrdfgdJWXFT32K9qNaff+9bi0mrgzYQmeK2sGcIyQL0EmMI9zwgay
+7s2OPUqbBBziuliR8hdwNexDPAH/zYCZNN7Fc3li5eWmpUs5FPSwCkTzYgzoTnA/
+n3kKbJgf2pI8fiqAkO4LiyjeEa4Ua+nGOvl3BcBnfkhCxy/LkmfVd4drBqT3gdIB
+ZY6CX+/zwElf/Giegg+9BD9uwijUvhlTpInmFLf6AOHU4eIHXtOO00JDiJV5FNcu
+w/IuIdCudKO/9N6At6/yhLH7JN23n7keDe/eWMVYLz+svM9qva7OaAZlixSk8PI8
+shM2mRpHOsBiZCNm5FRoKjKg68SJal+pR8GeJGo2jNzJvIKRIkj45QLUhehmdVV7
+23qLvu7Fz07CIr+faI/jm73MoLptKwegLYqIp6+q55RRpW3pinqrVx5SJF0dAyeM
+rlsjMIqTSarDYegMeRRIzWyXEllEKkhMLaLQKBJJJ8Im67CQY+JN3Y5lVXPs4y47
+pSdqoCvzbYFKBpiFPc7b
+=0axp
 -----END PGP SIGNATURE-----
