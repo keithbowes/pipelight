@@ -966,9 +966,8 @@ while [ $# -gt 0 ] ; do
 			SHA="984ed15e23a00a33113f0012277e1e680c95782ce2c44f414e7af14e28e3f1a2"
 			;;
 		wine-wininet-installer)
-			INS=(install_wininet)
-			URL="http://download.microsoft.com/download/6/f/c/6fcc07f8-62e1-459e-aab3-06faa3adacff/IE-KB884931-v2-x86-enu.exe"
-			SHA="b3f31b0d523f03123e8def4f91ba2e64aaceb31d9bfe851516ad7f61b0268d4a"
+			echo "[$PRG] Ignoring deprecated $DEP."
+			continue
 			;;
 		wine-mspatcha-installer)
 			INS=(install_mspatcha)

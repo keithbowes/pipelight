@@ -969,9 +969,8 @@ while [ $# -gt 0 ] ; do
 			SHA="984ed15e23a00a33113f0012277e1e680c95782ce2c44f414e7af14e28e3f1a2"
 			;;
 		wine-wininet-installer)
-			INS=(install_wininet)
-			URL="http://download.microsoft.com/download/6/f/c/6fcc07f8-62e1-459e-aab3-06faa3adacff/IE-KB884931-v2-x86-enu.exe"
-			SHA="b3f31b0d523f03123e8def4f91ba2e64aaceb31d9bfe851516ad7f61b0268d4a"
+			echo "[$PRG] Ignoring deprecated $DEP."
+			continue
 			;;
 		wine-mspatcha-installer)
 			INS=(install_mspatcha)
@@ -1046,17 +1045,17 @@ exit "$RET"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBCAAGBQJW6eH3AAoJEIPHP7IUNPxzP84P/1elpiBRVxvUuOTcDtnY+NXQ
-b6k+qKDSy08WMeeDs2a3lki89ikef6nAVocIWMbufln3ge2bIngiKlxHVa6hIle+
-vqCOZkuPq4jNRRy7KI7FEndIdW1JRqj2/+UQWfA5bc8VxpvgQ3Q2ShGViq/YSYG3
-YkHsJVCOuH+xrdfgdJWXFT32K9qNaff+9bi0mrgzYQmeK2sGcIyQL0EmMI9zwgay
-7s2OPUqbBBziuliR8hdwNexDPAH/zYCZNN7Fc3li5eWmpUs5FPSwCkTzYgzoTnA/
-n3kKbJgf2pI8fiqAkO4LiyjeEa4Ua+nGOvl3BcBnfkhCxy/LkmfVd4drBqT3gdIB
-ZY6CX+/zwElf/Giegg+9BD9uwijUvhlTpInmFLf6AOHU4eIHXtOO00JDiJV5FNcu
-w/IuIdCudKO/9N6At6/yhLH7JN23n7keDe/eWMVYLz+svM9qva7OaAZlixSk8PI8
-shM2mRpHOsBiZCNm5FRoKjKg68SJal+pR8GeJGo2jNzJvIKRIkj45QLUhehmdVV7
-23qLvu7Fz07CIr+faI/jm73MoLptKwegLYqIp6+q55RRpW3pinqrVx5SJF0dAyeM
-rlsjMIqTSarDYegMeRRIzWyXEllEKkhMLaLQKBJJJ8Im67CQY+JN3Y5lVXPs4y47
-pSdqoCvzbYFKBpiFPc7b
-=0axp
+iQIcBAEBCAAGBQJXBSIMAAoJEIPHP7IUNPxzrjgP/ApqoEc/LCK5M81muGQ/ObEh
+Qmvk89v6hPy5mvp5YbKmmbsjVF3B8gZyIuOUsKuozhBuXA52nrR2QFiQBu0/VJEM
+gwyVUCvOMJ965iWPbP0H/1QFl6vFqSodfFNItT/tareBbMrCWxeEy7tm9iNaDtmq
++v9EOwEYQMy/96zm+LsvW6y4ao2kZ+byxIQ9tjdvLfHYpbdrEy9yW6cgWUDz0ZzG
+EKKC51nysfBzC9tFc41dtHNbH+qc/SChEz82axbx6fhvOj98WbVMPcZu2HXqbeJm
+5euwqpSKXXXLincBtZkdTc3EuE0DRdwi30K+BN3lPEc1S2R41JkPc2MOpTdHw9Yp
+oIv7sISoBgGdqrfj4kjFw/9UQs16P7c+HPL0JgdHrCt2Hcd/IXeskSXiEW7YUO5k
+w+gfv5unjJIBkvIidVBs9tWo8DEEfxVEPwor8UKQELrJ/ejTReXTshoGXyqSFkAr
+8KQQZhKwX1C3c5dvfPwie7d/jXetUq4dDl8f4h1SVOW2fwEcuz5vtYkAhoW1aMED
+2dmI552fscM8dKFdbk6fR7xMgMDuG0xqscVWe6q79eZ5iqFfsxbmKCeQii+MAn0N
+eNFbohW/fC0ou15lQmL+H/sw/YXmd+Zlc+X67Hhy7JfHf6zt3oc/qbctS8MfAb6W
+zqUKzVI6lNprFM+/oneu
+=YlNk
 -----END PGP SIGNATURE-----
