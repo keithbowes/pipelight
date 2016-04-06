@@ -918,14 +918,14 @@ while [ $# -gt 0 ] ; do
 			SHA="84b5fcfab16a8f276e314f6a8077bfa0e0e15dab09b292445427a98cd42e4509"
 			;;
 		wine-flash-installer) # http://www.adobe.com/de/software/flash/about/
-			INS=(install_flash "21_0_0_182")
-			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/21.0.0.182/install_flash_player.exe"
-			SHA="813f53e4cb8101362b862c33fa0b2d7884e1f7cb4cc6052bd6200d97df39208d"
+			INS=(install_flash "21_0_0_197")
+			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/21.0.0.197/install_flash_player.exe"
+			SHA="a36bf170ff167eb5f6cd5cf4f167596ba7989b6830195faca9c5d11f37823902"
 			;;
 		wine-flash-debug-installer)
-			INS=(install_flash "21_0_0_182")
+			INS=(install_flash "21_0_0_197")
 			URL="http://download.macromedia.com/pub/flashplayer/updaters/21/flashplayer_21_plugin_debug.exe"
-			SHA="abf23500c22e2bef6402b717d107e238b1c512d6e4703c95fff6a8e05786a4c5"
+			SHA="58c47716b1332b677bc83b58dfd61dd1523d892c48c7e43c2c1f61be37b82347"
 			;;
 		wine-widevine-installer) # http://www.widevine.com/download/videooptimizer/index.html
 			INS=(install_widevine)
@@ -1045,17 +1045,17 @@ exit "$RET"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBCAAGBQJXBSIMAAoJEIPHP7IUNPxzrjgP/ApqoEc/LCK5M81muGQ/ObEh
-Qmvk89v6hPy5mvp5YbKmmbsjVF3B8gZyIuOUsKuozhBuXA52nrR2QFiQBu0/VJEM
-gwyVUCvOMJ965iWPbP0H/1QFl6vFqSodfFNItT/tareBbMrCWxeEy7tm9iNaDtmq
-+v9EOwEYQMy/96zm+LsvW6y4ao2kZ+byxIQ9tjdvLfHYpbdrEy9yW6cgWUDz0ZzG
-EKKC51nysfBzC9tFc41dtHNbH+qc/SChEz82axbx6fhvOj98WbVMPcZu2HXqbeJm
-5euwqpSKXXXLincBtZkdTc3EuE0DRdwi30K+BN3lPEc1S2R41JkPc2MOpTdHw9Yp
-oIv7sISoBgGdqrfj4kjFw/9UQs16P7c+HPL0JgdHrCt2Hcd/IXeskSXiEW7YUO5k
-w+gfv5unjJIBkvIidVBs9tWo8DEEfxVEPwor8UKQELrJ/ejTReXTshoGXyqSFkAr
-8KQQZhKwX1C3c5dvfPwie7d/jXetUq4dDl8f4h1SVOW2fwEcuz5vtYkAhoW1aMED
-2dmI552fscM8dKFdbk6fR7xMgMDuG0xqscVWe6q79eZ5iqFfsxbmKCeQii+MAn0N
-eNFbohW/fC0ou15lQmL+H/sw/YXmd+Zlc+X67Hhy7JfHf6zt3oc/qbctS8MfAb6W
-zqUKzVI6lNprFM+/oneu
-=YlNk
+iQIcBAEBCAAGBQJXBSQ5AAoJEIPHP7IUNPxzi84P/j425y8gvwnEYYcNfSGIkW5i
+yTDJeNjDpBPIYqDOuyIYnvU2XANZTmXxsUzbPFzNykEXSQaVCnU4V2cpyv3QTjmO
+NhnnU9FosEUgboqGru+iFKt2leeIO3JwN1ZCubFkn1CQIqAIccaF4FsYeW//qqr/
+1l2tz4KDmwV0psycULsnG4uESkl/VrMP8AgdLP+fhuY6LGai4AV9ey0NF5Ldi1KF
+fWHjSCW10NassmYFuej7hFYsVgXKaygG/5VDBBtTn2PQTpWEozVwtBM2AQyJjr03
+R+zUsaJqLjG2aSUKzWfu4gHPIqAR1++L1dVe6R2VHjyz49sm9xSXjwzO+Aradlu4
+GT6iPOTi0m9jL0DJG/jwT1NJ7J4mHBES8N20w0kGI7fQdB/a3iJWYAzP3p3rx3e9
+oNcGHidpVwE2sLVpEg43NXFHixjfE3o3IyYAI4G0nFD6Um6Drq5r3LnSz/PVjuyU
+hJUdEmEHCEY88OZHqBx59r/3svETnDdyoCFVxmmahyw5vypm8Bw2NLqyvKN8B6F6
+5PpWH4mOq4jA00OtMKKsPbAsNwd9wkOYuD7/gcqfBX9TAMdxX6oFIhX2BVOwmVA8
+wtjmokavgtRdpMJoNr2/tJGKZ/4qK1+VkRe7smdxNrRPFYkRmne8tPudXVD4eP27
+HPnYGEDsjHZ+ZYemTyD1
+=fJDd
 -----END PGP SIGNATURE-----
