@@ -76,7 +76,7 @@ typedef void (* wined3d_strictdrawing_setPtr)(int value);
 
 /* BEGIN GLOBAL VARIABLES */
 
-char clsName[] = "VirtualBrowser";
+static const WCHAR clsName[] = {'V','i','r','t','u','a','l','B','r','o','w','s','e','r',0};
 
 std::map<HWND, NPP> hwndToInstance;
 std::set<NPP> instanceList;
@@ -297,7 +297,7 @@ LRESULT CALLBACK wndProcedure(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 		return 0;
 
 	}else{
-		return DefWindowProcA(hWnd, Msg, wParam, lParam);
+		return DefWindowProcW(hWnd, Msg, wParam, lParam);
 	}
 }
 
@@ -490,6 +490,7 @@ std::string readPathFromRegistry(HKEY hKey, std::string regKey){
 }
 
 bool silverlightCheckGraphicDriver(){
+	static const WCHAR windowNameW[] = {'O','p','e','n','G','L',' ','T','e','s','t',0};
 	HWND hWnd = 0;
 	HDC hDC = 0;
 	HGLRC context = NULL;
@@ -539,7 +540,7 @@ bool silverlightCheckGraphicDriver(){
 		0, 0, 0
 	};
 
-	hWnd = CreateWindowExA(0, clsName, "OpenGL Test", WS_TILEDWINDOW, 0, 0, 100, 100, 0, 0, 0, 0);
+	hWnd = CreateWindowExW(0, clsName, windowNameW, WS_TILEDWINDOW, 0, 0, 100, 100, 0, 0, 0, 0);
 	if (!hWnd)
 		return false;
 
@@ -753,7 +754,7 @@ int main(int argc, char *argv[]){
 	SetStdHandle(STD_OUTPUT_HANDLE, GetStdHandle(STD_ERROR_HANDLE));
 
 	/* Create the application window */
-	WNDCLASSEXA WndClsEx;
+	WNDCLASSEXW WndClsEx;
 	WndClsEx.cbSize        = sizeof(WndClsEx);
 	WndClsEx.style         = CS_HREDRAW | CS_VREDRAW;
 	WndClsEx.lpfnWndProc   = &wndProcedure;
@@ -767,7 +768,7 @@ int main(int argc, char *argv[]){
 	WndClsEx.hInstance     = GetModuleHandleA(NULL);
 	WndClsEx.hIconSm       = LoadIconA(NULL, (LPCSTR)IDI_APPLICATION);
 
-	ATOM classAtom = RegisterClassExA(&WndClsEx);
+	ATOM classAtom = RegisterClassExW(&WndClsEx);
 	if (!classAtom){
 		DBG_ERROR("failed to register class.");
 		return 1;
@@ -915,9 +916,9 @@ void dispatcher(int functionid, Stack &stack){
 
 				DWORD abortTime = GetTickCount() + 80;
 				while (GetTickCount() < abortTime){
-					if (PeekMessageA(&msg, NULL, 0, 0, PM_REMOVE)){
+					if (PeekMessageW(&msg, NULL, 0, 0, PM_REMOVE)){
 						TranslateMessage(&msg);
-						DispatchMessageA(&msg);
+						DispatchMessageW(&msg);
 					}else
 						break;
 				}
@@ -1531,6 +1532,7 @@ void dispatcher(int functionid, Stack &stack){
 
 		case FUNCTION_NPP_SET_WINDOW:
 			{
+				static const WCHAR windowNameW[] = {'P','l','u','g','i','n',0};
 				RECT browser;
 				NPP instance		= readHandleInstance(stack);
 				int gotWindow		= readInt32(stack);
@@ -1579,7 +1581,7 @@ void dispatcher(int functionid, Stack &stack){
 						if (!ndata->hWnd){
 
 							/* Create the actual window */
-							ndata->hWnd = CreateWindowExA(extStyle, clsName, "Plugin", style, posX, posY, rect.right - rect.left, rect.bottom - rect.top, 0, 0, 0, 0);
+							ndata->hWnd = CreateWindowExW(extStyle, clsName, windowNameW, style, posX, posY, rect.right - rect.left, rect.bottom - rect.top, 0, 0, 0, 0);
 							if (ndata->hWnd){
 								hwndToInstance.insert( std::pair<HWND, NPP>(ndata->hWnd, instance) );
 
