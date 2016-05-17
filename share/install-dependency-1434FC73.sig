@@ -1,5 +1,5 @@
 -----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA256
+Hash: SHA1
 
 #!/usr/bin/env bash
 
@@ -918,14 +918,14 @@ while [ $# -gt 0 ] ; do
 			SHA="84b5fcfab16a8f276e314f6a8077bfa0e0e15dab09b292445427a98cd42e4509"
 			;;
 		wine-flash-installer) # http://www.adobe.com/de/software/flash/about/
-			INS=(install_flash "21_0_0_197")
-			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/21.0.0.197/install_flash_player.exe"
-			SHA="a36bf170ff167eb5f6cd5cf4f167596ba7989b6830195faca9c5d11f37823902"
+			INS=(install_flash "21_0_0_242")
+			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/21.0.0.242/install_flash_player.exe"
+			SHA="66480e869abc7a304bcc1556ec30714a26c99aaa273289d81b5ab6596deeffa8"
 			;;
 		wine-flash-debug-installer)
-			INS=(install_flash "21_0_0_197")
+			INS=(install_flash "21_0_0_242")
 			URL="http://download.macromedia.com/pub/flashplayer/updaters/21/flashplayer_21_plugin_debug.exe"
-			SHA="58c47716b1332b677bc83b58dfd61dd1523d892c48c7e43c2c1f61be37b82347"
+			SHA="79dfeed9a16cec9bb8650b47cbc5dd89a4dbcdc70a28e409acb647cadc79a8ad"
 			;;
 		wine-widevine-installer) # http://www.widevine.com/download/videooptimizer/index.html
 			INS=(install_widevine)
@@ -1043,19 +1043,19 @@ done
 
 exit "$RET"
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Version: GnuPG v1
 
-iQIcBAEBCAAGBQJXBSQ5AAoJEIPHP7IUNPxzi84P/j425y8gvwnEYYcNfSGIkW5i
-yTDJeNjDpBPIYqDOuyIYnvU2XANZTmXxsUzbPFzNykEXSQaVCnU4V2cpyv3QTjmO
-NhnnU9FosEUgboqGru+iFKt2leeIO3JwN1ZCubFkn1CQIqAIccaF4FsYeW//qqr/
-1l2tz4KDmwV0psycULsnG4uESkl/VrMP8AgdLP+fhuY6LGai4AV9ey0NF5Ldi1KF
-fWHjSCW10NassmYFuej7hFYsVgXKaygG/5VDBBtTn2PQTpWEozVwtBM2AQyJjr03
-R+zUsaJqLjG2aSUKzWfu4gHPIqAR1++L1dVe6R2VHjyz49sm9xSXjwzO+Aradlu4
-GT6iPOTi0m9jL0DJG/jwT1NJ7J4mHBES8N20w0kGI7fQdB/a3iJWYAzP3p3rx3e9
-oNcGHidpVwE2sLVpEg43NXFHixjfE3o3IyYAI4G0nFD6Um6Drq5r3LnSz/PVjuyU
-hJUdEmEHCEY88OZHqBx59r/3svETnDdyoCFVxmmahyw5vypm8Bw2NLqyvKN8B6F6
-5PpWH4mOq4jA00OtMKKsPbAsNwd9wkOYuD7/gcqfBX9TAMdxX6oFIhX2BVOwmVA8
-wtjmokavgtRdpMJoNr2/tJGKZ/4qK1+VkRe7smdxNrRPFYkRmne8tPudXVD4eP27
-HPnYGEDsjHZ+ZYemTyD1
-=fJDd
+iQIcBAEBAgAGBQJXO5G2AAoJEIPHP7IUNPxz7zIP/R72LMTkup3u4hDnaDYTLPMm
+4ZsL48D85SBUocMDfeESN0CrxDqH8uuQ29Au2yq/r15SEUnONNiapUTaybftejLe
+UxjH7exj0sDV8kPD2gfMrsjlAqaxngwlmBGFAMI+4krba9bdEX41tjR8OCvM/3zo
+JG436asyThzxAOLcC53V8w4NaUCTPoxGvhy3LjZow3ovsuOm7zmlwmFYsapU6ESR
+CZapXrLSYG0cb/qbX0hB+OyCqdrfntqf2/JL/Cbr09eYVw014fa6YNfqB4E1Tnwm
+7JbmAmbmUfAMGQd0knIqNYMM5zkbWL+8O7MNjf/RgcIKx6Wul7Rqv4UrhKW46+i8
+CVfjoOuu4yxzOo7e8qOUfDafuCsBCiVYcg/Enfq5IaxNeRfn1xcaEFriAe5CCQuB
+dMF+29ZEMmZU8RcpVX1R3mG6Or9yAUIPjAAaq1pTbi57zEMrd7aWiFLILtwSWJ80
+ABWSn8C3FpUsJ7rGMJTHXNOglKcwDb/HbuRIIkgw5wj0B3biUt9VxpH+NuxuCBlS
+M3Ab3zJU53BlvRdfz2RtMz5MMcH+A2GpzMnKLztkUrmKLm4SpxpPrwFuPWE9zSCm
+34Ty9jDKLlLdLqboqw5bbVp5o0u/y9baYlAQ3ZSxHntiXAo1/zaBtDDa05UyJIuh
+aaglVz+N5xUiLGNBfMVw
+=9Uxf
 -----END PGP SIGNATURE-----
