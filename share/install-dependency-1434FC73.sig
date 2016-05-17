@@ -913,9 +913,9 @@ while [ $# -gt 0 ] ; do
 			SHA="dd45a55419026c592f8b6fc848dceface7e1ce98720bf13848a2e8ae366b29e8"
 			;;
 		wine-silverlight5.1-installer) # http://www.microsoft.com/getsilverlight/locale/en-us/html/Microsoft%20Silverlight%20Release%20History.htm
-			INS=(install_silverlight "5.1.40416.0" "latest")
-			URL="http://silverlight.dlservice.microsoft.com/download/B/D/C/BDCE18B1-73C1-47BA-9B11-46A4C14CF7B0/40416.00/Silverlight.exe"
-			SHA="84b5fcfab16a8f276e314f6a8077bfa0e0e15dab09b292445427a98cd42e4509"
+			INS=(install_silverlight "5.1.41212.0" "latest")
+			URL="http://download.microsoft.com/download/5/3/D/53D3880B-25F8-4714-A4AC-E463A492F96E/41212.00/Silverlight.exe"
+			SHA="af2d435a034e03c2940a648291013ebd9de20d855447dbdb93416e7e03c3e91b"
 			;;
 		wine-flash-installer) # http://www.adobe.com/de/software/flash/about/
 			INS=(install_flash "21_0_0_242")
@@ -1045,17 +1045,17 @@ exit "$RET"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXO5G2AAoJEIPHP7IUNPxz7zIP/R72LMTkup3u4hDnaDYTLPMm
-4ZsL48D85SBUocMDfeESN0CrxDqH8uuQ29Au2yq/r15SEUnONNiapUTaybftejLe
-UxjH7exj0sDV8kPD2gfMrsjlAqaxngwlmBGFAMI+4krba9bdEX41tjR8OCvM/3zo
-JG436asyThzxAOLcC53V8w4NaUCTPoxGvhy3LjZow3ovsuOm7zmlwmFYsapU6ESR
-CZapXrLSYG0cb/qbX0hB+OyCqdrfntqf2/JL/Cbr09eYVw014fa6YNfqB4E1Tnwm
-7JbmAmbmUfAMGQd0knIqNYMM5zkbWL+8O7MNjf/RgcIKx6Wul7Rqv4UrhKW46+i8
-CVfjoOuu4yxzOo7e8qOUfDafuCsBCiVYcg/Enfq5IaxNeRfn1xcaEFriAe5CCQuB
-dMF+29ZEMmZU8RcpVX1R3mG6Or9yAUIPjAAaq1pTbi57zEMrd7aWiFLILtwSWJ80
-ABWSn8C3FpUsJ7rGMJTHXNOglKcwDb/HbuRIIkgw5wj0B3biUt9VxpH+NuxuCBlS
-M3Ab3zJU53BlvRdfz2RtMz5MMcH+A2GpzMnKLztkUrmKLm4SpxpPrwFuPWE9zSCm
-34Ty9jDKLlLdLqboqw5bbVp5o0u/y9baYlAQ3ZSxHntiXAo1/zaBtDDa05UyJIuh
-aaglVz+N5xUiLGNBfMVw
-=9Uxf
+iQIcBAEBAgAGBQJXO5NjAAoJEIPHP7IUNPxzMqcP/jUWgKWrIWUNZ0reKatz62en
+yk4PtU/GPRfkC/3fD/mg2bQc7PlKCWOEVD5gxy1WkuhLV/9INxChdGzk0L4D3nF9
+siRJKx1M04qPB+fWUck1okUuywlP6+WXf8dhbrHYSMXyhjHs5c/Yi6zc26HXOjUN
+WyGyQ7IDCa94pGwIW0GQXV3ohncqRU4ufIzh/f71eXxlJjgqDC7JncyyAXDmYfke
+UcQpa6I7HkNTxZK0hYibn/nqqIU+3LjTdY7f/ieoSDNtn2K3M/J5p3u3wF0SAV2G
+wpfghdSHd1SZFOjNWfFChh0truvt3QRjr7hBElZKH1er4UhdXO1Fcof572vBvOsk
+Du1U532dUy7hbGFmvbmNi8Thq3s10QY5PjrbLhaQE/OfgYw+mOlPhlmeCJQ/056Y
+4LzJs+hdSbcg9wvD3CTwOQVJ4BocQpmwNeShsCOZuDkDYvhEniljwyPf2cN/mqDl
+OgxWM8qCFKiEBQuJcDYUVizrAVG8xQU9TR5HToelrtZBOBvjHHzqzUlLbWKtBhiH
+RXPd9ZoWqf/zhy0Y0QL02cLihXkhyXuRY8FHF+wYGEWV8Rqq7h9NP5tOiHwjpEGn
+dhHQMCDKknmaiG9tBkcExi5b1WB7aTJcDYfuty0oWr/u355mCynIf6c3x9O99GDM
+o8nGBfGzxgmbxqu3Adrq
+=q10j
 -----END PGP SIGNATURE-----
