@@ -918,14 +918,14 @@ while [ $# -gt 0 ] ; do
 			SHA="af2d435a034e03c2940a648291013ebd9de20d855447dbdb93416e7e03c3e91b"
 			;;
 		wine-flash-installer) # http://www.adobe.com/de/software/flash/about/
-			INS=(install_flash "21_0_0_242")
-			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/21.0.0.242/install_flash_player.exe"
-			SHA="66480e869abc7a304bcc1556ec30714a26c99aaa273289d81b5ab6596deeffa8"
+			INS=(install_flash "22_0_0_192")
+			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/22.0.0.192/install_flash_player.exe"
+			SHA="f788a1ad1d9c2321d1901bf5a73e01532b238c55d680d7c301112cdf505a1ec2"
 			;;
 		wine-flash-debug-installer)
-			INS=(install_flash "21_0_0_242")
-			URL="http://download.macromedia.com/pub/flashplayer/updaters/21/flashplayer_21_plugin_debug.exe"
-			SHA="79dfeed9a16cec9bb8650b47cbc5dd89a4dbcdc70a28e409acb647cadc79a8ad"
+			INS=(install_flash "22_0_0_192")
+			URL="http://download.macromedia.com/pub/flashplayer/updaters/22/flashplayer_22_plugin_debug.exe"
+			SHA="9d4d23bdd830a61c64383b84bbc0388f5588fb44c1a49ce0ea4d0960b302f400"
 			;;
 		wine-widevine-installer) # http://www.widevine.com/download/videooptimizer/index.html
 			INS=(install_widevine)
@@ -1045,17 +1045,17 @@ exit "$RET"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v2
 
-iQIcBAEBCAAGBQJXSzFUAAoJEIPHP7IUNPxz2F0QANRDhMlLH8407j2LZ+S9pNN8
-kMJjRNfMRfH6o2qCXmf7jnhow9LSpXnraq7AUnyTAUI5vvW20hnXK4JU2Wed35Ba
-tBJnLqpYAVtCQpLQd7AjyLEDN7IxYh9WfEjRGrpgHv85NrQTEEnvWHDER4hKy8j0
-Uv3NWu8yGrvguA4TI1wdJgw44qIPjkpF3gsMrj15eetGotsNPFv+QR7+rLyxTmGk
-LN55px4FoJPfixqn4Jbg6BiuzkyLVhrtdVeDZu7Pu+tMjWJbCPFP1i0YA0wMp6fu
-VNjaEHrObZ78ljvFXrM0i2OFxof9OgcID9z1FoHVUWMKRACUADqxRjFA010W76A2
-By9VWUrk8yqgwAIM596KNCPRX3Y1BZ/+juqG88Ratc1SrspFc96qHDdk/vApg3wE
-KKTUtix+gMlXGUwKYY+9GrKd3pFD4CmMhQgnvEzbnmFu91JINVFA/AHgWast3GJa
-bwdPyt/h6OvHmh7By5rWbmeEXTwlzqQRjRBD2d6c4EHlux2Mn9yiMeNwPL4/w9vj
-fXv1OAOgsfbo/oh8K1ekPaHfr5Q6gm2NzyWV9Vm9QulubltbJrsnaEfJvcAbim/j
-D7Mwyvf3tLdnUhLYxb3aXZDU6S1X9TQcpyJy0EQIbCxMYtWlSRY2n3MfEnIOfTJ5
-f2aN9chQGiv1mL/Imuwl
-=7/5R
+iQIcBAEBCAAGBQJXZWGKAAoJEIPHP7IUNPxzDVYQAMr5a2oId3mEnH8Xm/+gPe4y
+YbqHnPj58sFP1cJxy5UOhVCDFRDpxLETdvPpcNiXV6MhpnOo+TGhu5/isrTgo9TQ
+fqqY2kL9PlsXx+vbHbDgLmyyjzWkP1THnhOVwaDTw4sKIlRVFYCMaACsMD0AQzDG
+elEc+kZFNUb7z+LekmMJxmIAy9VY64b8ikt7kieqW0K5WLIhCKK1S+SJc0ZWg0V/
+jLZJsPimpULufSUeVNmdgxvBJ5tKFcK4vouFO+IJby43JVV67lLgbbSkespck2bM
+Tnc9QF5GDoKdle4tpC2gvVXAZUWlp0nbesD0uza0nY7oFqeibAYRgSoJfwKEj/bZ
+cMHLygaeIDHWZ1Yr/nUatl4MgLNJ6tfx3RSk4nrTmuqPUD9FyOXqsErXKStIFMSq
+PReiZeB7QPanJQ7NhX/IRg/MV8VwOCraSCABE+9g1F7xWO7lSD/sjneJCML5cxmn
+ENxa1UhAFrQbL2PobnYHLVybLhkcQ0o5rgiPr+8H8zQy0OUS2T8KUXYm4NLeBSAI
+MQu0VqDwQDXi+RyCbYDDHyG2UhmN3yCg+usKBt2V0meSDtB/qFGaSzTR/dk0W21D
+AKKN9t0ptD+mNeUNeMJ/hgbOPe26oSqjEUL83J463grT0u/lYyhE0jg4gpTeD4NG
+iOsiMKpS8kRPFQXlllhd
+=LPgN
 -----END PGP SIGNATURE-----
