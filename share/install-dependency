@@ -915,14 +915,14 @@ while [ $# -gt 0 ] ; do
 			SHA="af2d435a034e03c2940a648291013ebd9de20d855447dbdb93416e7e03c3e91b"
 			;;
 		wine-flash-installer) # http://www.adobe.com/de/software/flash/about/
-			INS=(install_flash "22_0_0_192")
-			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/22.0.0.192/install_flash_player.exe"
-			SHA="f788a1ad1d9c2321d1901bf5a73e01532b238c55d680d7c301112cdf505a1ec2"
+			INS=(install_flash "22_0_0_209")
+			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/22.0.0.209/install_flash_player.exe"
+			SHA="05596c66d6f96a35adbaab2d55e95acb64f83225a399e0353d66219ba785c977"
 			;;
 		wine-flash-debug-installer)
-			INS=(install_flash "22_0_0_192")
+			INS=(install_flash "22_0_0_209")
 			URL="http://download.macromedia.com/pub/flashplayer/updaters/22/flashplayer_22_plugin_debug.exe"
-			SHA="9d4d23bdd830a61c64383b84bbc0388f5588fb44c1a49ce0ea4d0960b302f400"
+			SHA="1581c9389be3572abeed04a7153e71c5e4daf8c72f15de7f93290eb7f32a1063"
 			;;
 		wine-widevine-installer) # http://www.widevine.com/download/videooptimizer/index.html
 			INS=(install_widevine)
@@ -933,7 +933,7 @@ while [ $# -gt 0 ] ; do
 		wine-unity3d-installer)
 			INS=(install_unity3d)
 			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayer.exe"
-			SHA="8931b9391f8a6dabe83284fc9eb01f20fecf8c8a216fc58689c53fb363001a99"
+			SHA="9a5bcbe13bb74590e97ea4ee4fe76c24a5ac0b9cc99948e1be33ed3394d8c245"
 			;;
 		wine-x64-unity3d-installer)
 			INS=(install_x64_unity3d)
