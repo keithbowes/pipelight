@@ -918,9 +918,9 @@ while [ $# -gt 0 ] ; do
 			SHA="af2d435a034e03c2940a648291013ebd9de20d855447dbdb93416e7e03c3e91b"
 			;;
 		wine-flash-installer) # http://www.adobe.com/de/software/flash/about/
-			INS=(install_flash "22_0_0_209")
-			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/22.0.0.209/install_flash_player.exe"
-			SHA="05596c66d6f96a35adbaab2d55e95acb64f83225a399e0353d66219ba785c977"
+			INS=(install_flash "23_0_0_162")
+			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/23.0.0.162/install_flash_player.exe"
+			SHA="9d4d355a2715c7b9ec1b156f337ba8a1fc9469b60073a54aaae81afae677d727"
 			;;
 		wine-flash-debug-installer)
 			INS=(install_flash "22_0_0_209")
@@ -1045,17 +1045,17 @@ exit "$RET"
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJXnj91AAoJEIPHP7IUNPxzISoQAMxvPwgXw3s8hF33UqrUuHH3
-5nhbJteUWKq9nGCWBkP+dkQ/nwT2iJivuJteLbnwkeAZHRh4UFtt+5/R+acJM4/n
-SXzgkjukWnnLTEWRJYpAaBWhLcoKOthCBd99tUpv9/Y5tKrWXyNS/prjMjXpvIu1
-nEafJ1M4dUkcR2EVJo8oBugIQ05c6V27P49W3pjaorFxsAehirMRC9S43+KttudZ
-ztRzKNwfjtrkCUwFpYmttnfMmOyigfmUUsV90Kl2NB8p7lMsfYRbaEHfR0YF7WyE
-0XLkZhumKok66CAgkPvypjugn6eruRomNzGjiDIEFSMFqojDFGSKBLfNB96/jTMN
-7m1qHmtSRlHC0xKeHHD2OOYoORz5f27At9Rfpb8WFtPlvODZo1XPUfyjvx3Cogp7
-WKBjvewDE6QqevAY7xlXOds2tiziSMLi1YW0EMj9rhK7mxmjD3rkVTbfE9Zi7Wbr
-/GzGbUSNsv3/xVRKXDbLYzyq2w+xKmmwqITO+snj3phxVXbRJ5e/vQippsP9lG3J
-aJY5HqGh6sudUkdGyu5TAHv/up0g+cArp/m2Vil7qZZaU5FXiUwY6s4cv2Wk5Zka
-SjI3baZB3mSCZzDOmiANgR4cvmIPtx0exl1ivzjiHUji549iJZXy86JNoLl1CsZH
-K28uy+sS0HumHqudcFTL
-=InrJ
+iQIcBAEBAgAGBQJX6+3YAAoJEIPHP7IUNPxzEzQP/jDkfBEGmLMQKpkiR/lQiaBC
+LesTzcVJ0bMaOkY9liPO1d0EhlNLB4jlmEsoVm/vIW54o4kFKhg/smUXJRrc5gbm
+DFODxShb/dJYKsweWKDFJ89zhRI2aHCwJALk82GLS2C1cf13qkhyyzxTapIeGELb
+JaC2ScS6pnfRn2QOVxgK+MIEEuvfFbUbOc1YbVDd1tjXII7tWB5oEgJSJoeCq3Uv
+PcxBklufKFnfbsSSJ0sXo1u1smkFpeDzmCK0pkhF6C/InPD8lx5Xix8UHXUFNMkM
+qkxXPtRzDWNrkinhLVYKy9cmfXnZFTHw3frhT83YxyHVTztNjupnDPPDfjkj2ASb
+UGUXfp7lfMMBvWiSJpv4u/zA9NMTdplKUlckbG3fQubMjO5vM1ZNbROI6Tvho/a7
+smWbvPkGOHl03XKV6QeNePcU+diBCWBLVKPja4Cz6+w+T3A9tQCmDB81v0efdooj
+yLsiKcSg4vK8kd7tXC+FUHsWCl/bFTPR1KyiQ91MkOQG5q8vgLm8aqNUdIxdSBzE
+aPJCFrOwZfL35nOHryhhB6whYPWHPG1XWAa6ulb4nZw3F7DSMeV9KHTfWVQoxku+
+H+V3jfMPaxlQ/jjV7w+WJKFn6lQ7p40GAKID4jqpvCIJfp7cRULkxqmY8CKeyxVT
+T7GS56rNNRfarOaLz4Z9
+=JWU3
 -----END PGP SIGNATURE-----
