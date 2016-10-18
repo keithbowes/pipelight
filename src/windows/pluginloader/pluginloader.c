@@ -841,7 +841,7 @@ void changeEmbeddedMode(bool newEmbed){
 }
 
 /* dispatcher */
-void dispatcher(int functionid, Stack &stack){
+void Context::dispatcher(int functionid, Stack &stack){
 	switch (functionid){
 
 		case INIT_OKAY:

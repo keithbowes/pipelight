@@ -423,7 +423,7 @@ static void sendXembedMessage(Display* display, Window win, long message, long d
 #endif
 
 /* dispatcher */
-void dispatcher(int functionid, Stack &stack){
+void Context::dispatcher(int functionid, Stack &stack){
 	DBG_ASSERT(sBrowserFuncs, "browser didn't correctly initialize the plugin!");
 
 	switch (functionid){

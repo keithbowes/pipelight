@@ -456,6 +456,11 @@ class Context
 		bool __writeString(const char* data, size_t length);
 		bool readCommands(Stack &stack, bool allowReturn = true, int abortTimeout = 0);
 
+		void writeVariantReleaseDecRef(NPVariant &variant);
+		void writeVariantConst(const NPVariant &variant, bool deleteFromRemoteHandleManager = false);
+
+		void dispatcher(int function, Stack &stack);
+
 		/* Reads an int32 */
 		inline int32_t readResultInt32(){
 			Stack stack;
@@ -482,10 +487,6 @@ class Context
 			Stack stack;
 			readCommands(stack);
 		}
-
-
-		void writeVariantReleaseDecRef(NPVariant &variant);
-		void writeVariantConst(const NPVariant &variant, bool deleteFromRemoteHandleManager = false);
 
 		/* Call a function */
 		inline void callFunction(uint32_t function){
@@ -892,7 +893,6 @@ inline bool pluginInitOkay(){
 
 /* external */
 
-extern void dispatcher(int function, Stack &stack);
 extern NPClass myClass;
 
 /* misc */
