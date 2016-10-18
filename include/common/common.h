@@ -197,7 +197,7 @@ enum HMGR_EXISTS{
 	HMGR_SHOULD_EXIST		= 1
 };
 
-struct ParameterInfo{
+class ParameterInfo{
 	public:
 		char command;
 		std::shared_ptr<char> data;
