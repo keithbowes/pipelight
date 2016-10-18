@@ -183,16 +183,10 @@ void NP_LOADDS NPN_Status(NPP instance, const char* message){
 
 	shockwaveInstanceWorkaround();
 
-#if 1 /*def PIPELIGHT_SYNC*/
 	ctx->writeString(message);
 	ctx->writeHandleInstance(instance);
 	ctx->callFunction(FUNCTION_NPN_STATUS);
 	ctx->readResultVoid();
-#else
-	ctx->writeString(message);
-	ctx->writeHandleInstance(instance);
-	ctx->callFunction(FUNCTION_NPN_STATUS_ASYNC);
-#endif
 
 	DBG_TRACE(" -> void");
 }
@@ -670,16 +664,10 @@ NPObject* NP_LOADDS NPN_RetainObject(NPObject *obj){
 	if (obj){
 		obj->referenceCount++;
 
-	#if 1 /*def PIPELIGHT_SYNC*/
 		ctx->writeInt32(obj->referenceCount);
 		ctx->writeHandleObj(obj, HMGR_SHOULD_EXIST);
 		ctx->callFunction(FUNCTION_NPN_RETAINOBJECT);
 		ctx->readResultVoid();
-	#else
-		ctx->writeInt32(obj->referenceCount);
-		ctx->writeHandleObj(obj, HMGR_SHOULD_EXIST);
-		ctx->callFunction(FUNCTION_NPN_RETAINOBJECT_ASYNC);
-	#endif
 	}
 
 	DBG_TRACE(" -> obj=%p", obj);
@@ -692,26 +680,10 @@ void NP_LOADDS NPN_ReleaseObject(NPObject *obj){
 	DBG_CHECKTHREAD();
 
 	if (obj){
-	#if 1 /*def PIPELIGHT_SYNC*/
 		ctx->writeInt32(obj->referenceCount);
 		ctx->writeHandleObjDecRef(obj, HMGR_SHOULD_EXIST);
 		ctx->callFunction(FUNCTION_NPN_RELEASEOBJECT);
 		ctx->readResultVoid();
-
-	#else
-		/* even without PIPELIGHT_SYNC we need a synchronized call in some cases (when a callback might happen) */
-		if ((obj->referenceCount & REFCOUNT_MASK) == 1){
-			ctx->writeInt32(obj->referenceCount);
-			ctx->writeHandleObjDecRef(obj, HMGR_SHOULD_EXIST);
-			ctx->callFunction(FUNCTION_NPN_RELEASEOBJECT);
-			ctx->readResultVoid();
-
-		}else{
-			ctx->writeInt32(obj->referenceCount);
-			ctx->writeHandleObjDecRef(obj, HMGR_SHOULD_EXIST);
-			ctx->callFunction(FUNCTION_NPN_RELEASEOBJECT_ASYNC);
-		}
-	#endif
 	}
 
 	DBG_TRACE(" -> void");
@@ -938,16 +910,10 @@ void NP_LOADDS NPN_SetException(NPObject *obj, const NPUTF8 *message){
 	DBG_TRACE("( obj=%p, message='%s' )", obj, message);
 	DBG_CHECKTHREAD();
 
-#if 1 /*def PIPELIGHT_SYNC*/
 	ctx->writeString(message);
 	ctx->writeHandleObj(obj);
 	ctx->callFunction(FUNCTION_NPN_SET_EXCEPTION);
 	ctx->readResultVoid();
-#else
-	ctx->writeString(message);
-	ctx->writeHandleObj(obj);
-	ctx->callFunction(FUNCTION_NPN_SET_EXCEPTION_ASYNC);
-#endif
 
 	DBG_TRACE(" -> void");
 }
@@ -959,16 +925,10 @@ void NP_LOADDS NPN_PushPopupsEnabledState(NPP instance, NPBool enabled){
 
 	shockwaveInstanceWorkaround();
 
-#if 1 /*def PIPELIGHT_SYNC*/
 	ctx->writeInt32(enabled);
 	ctx->writeHandleInstance(instance);
 	ctx->callFunction(FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE);
 	ctx->readResultVoid();
-#else
-	ctx->writeInt32(enabled);
-	ctx->writeHandleInstance(instance);
-	ctx->callFunction(FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE_ASYNC);
-#endif
 
 	DBG_TRACE(" -> void");
 }
@@ -980,14 +940,9 @@ void NP_LOADDS NPN_PopPopupsEnabledState(NPP instance){
 
 	shockwaveInstanceWorkaround();
 
-#if 1 /*def PIPELIGHT_SYNC*/
 	ctx->writeHandleInstance(instance);
 	ctx->callFunction(FUNCTION_NPN_POP_POPUPS_ENABLED_STATE);
 	ctx->readResultVoid();
-#else
-	ctx->writeHandleInstance(instance);
-	ctx->callFunction(FUNCTION_NPN_POP_POPUPS_ENABLED_STATE_ASYNC);
-#endif
 
 	DBG_TRACE(" -> void");
 }
