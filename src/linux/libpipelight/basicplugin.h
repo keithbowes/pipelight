@@ -85,22 +85,6 @@ void    NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* noti
 NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value);
 NPError NPP_SetValue(NPP instance, NPNVariable variable, void *value);
 
-/*
-	NP Class
-*/
-void NPInvalidateFunction(NPObject *npobj);
-bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name);
-bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args, uint32_t argCount, NPVariant *result);
-bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result);
-bool NPHasPropertyFunction(NPObject *npobj, NPIdentifier name);
-bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result);
-bool NPSetPropertyFunction(NPObject *npobj, NPIdentifier name, const NPVariant *value);
-bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name);
-bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *count);
-bool NPConstructFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result);
-NPObject * NPAllocateFunction(NPP npp, NPClass *aClass);
-void NPDeallocateFunction(NPObject *npobj);
-
 /* XEMBED messages */
 #define XEMBED_EMBEDDED_NOTIFY			0
 #define XEMBED_WINDOW_ACTIVATE			1
