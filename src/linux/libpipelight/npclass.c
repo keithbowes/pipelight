@@ -148,7 +148,7 @@ static bool NPHasPropertyFunction(NPObject *npobj, NPIdentifier name)
 	ctx->callFunction(FUNCTION_NP_HAS_PROPERTY);
 
 	bool resultBool = (bool)ctx->readResultInt32();
-	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
+	DBG_TRACE(" -> result=%d", resultBool);
 	return resultBool;
 }
 
@@ -193,7 +193,7 @@ static bool NPSetPropertyFunction(NPObject *npobj, NPIdentifier name, const NPVa
 	ctx->callFunction(FUNCTION_NP_SET_PROPERTY);
 
 	bool resultBool = (bool)ctx->readResultInt32();
-	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
+	DBG_TRACE(" -> result=%d", resultBool);
 	return resultBool;
 }
 
@@ -209,7 +209,7 @@ static bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name)
 	ctx->callFunction(FUNCTION_NP_REMOVE_PROPERTY);
 
 	bool resultBool = (bool)ctx->readResultInt32();
-	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
+	DBG_TRACE(" -> result=%d", resultBool);
 	return resultBool;
 }
 
