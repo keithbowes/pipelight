@@ -748,7 +748,7 @@ int main(int argc, char *argv[]){
 	DBG_INFO("window class hook     is %s.", (windowClassHook ? "on" : "off"));
 	DBG_INFO("strict draw ordering  is %s.", (strictDrawOrdering ? "on" : "off"));
 
-	DBG_ASSERT(initCommIO(), "unable to initialize communication channel.");
+	DBG_ASSERT(ctx->initCommIO(), "unable to initialize communication channel.");
 
 	/* Redirect STDOUT to STDERR */
 	SetStdHandle(STD_OUTPUT_HANDLE, GetStdHandle(STD_ERROR_HANDLE));
@@ -790,7 +790,7 @@ int main(int argc, char *argv[]){
 	DBG_INFO("init successful!");
 
 	Stack stack;
-	readCommands(stack, false);
+	ctx->readCommands(stack, false);
 
 	return 0;
 }
@@ -805,11 +805,11 @@ bool makeWindowEmbedded(NPP instance, HWND hWnd, bool embed = true){
 	}
 
 	/* Request change of embedded mode */
-	writeInt32(embed);
-	writeInt32(windowIDX11);
-	writeHandleInstance(instance);
+	ctx->writeInt32(embed);
+	ctx->writeInt32(windowIDX11);
+	ctx->writeHandleInstance(instance);
 
-	callFunction(CHANGE_EMBEDDED_MODE);
+	ctx->callFunction(CHANGE_EMBEDDED_MODE);
 	readResultVoid();
 
 	return true;
@@ -848,10 +848,10 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				DBG_TRACE("INIT_OKAY()");
 
-				writeInt32(PIPELIGHT_PROTOCOL_VERSION);
+				ctx->writeInt32(PIPELIGHT_PROTOCOL_VERSION);
 
 				DBG_TRACE("INIT_OKAY -> %x", PIPELIGHT_PROTOCOL_VERSION);
-				returnCommand();
+				ctx->returnCommand();
 			}
 			break;
 
@@ -866,10 +866,10 @@ void dispatcher(int functionid, Stack &stack){
 				if(!setStrictDrawing(strictDrawOrdering))
 					DBG_ERROR("failed to set/unset strict draw ordering!");
 
-				writeInt32(supported);
+				ctx->writeInt32(supported);
 
 				DBG_TRACE("SILVERLIGHT_IS_GRAPHIC_DRIVER_SUPPORTED -> %d\n", supported);
-				returnCommand();
+				ctx->returnCommand();
 			}
 			break;
 
@@ -878,7 +878,7 @@ void dispatcher(int functionid, Stack &stack){
 				void *notifyData = readHandleNotify(stack, HMGR_SHOULD_EXIST);
 				DBG_TRACE("WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA( notifyData=%p )", notifyData);
 				DBG_TRACE("WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA -> void");
-				returnCommand();
+				ctx->returnCommand();
 
 				/* ASYNC */
 				handleManager_removeByPtr(HMGR_TYPE_NotifyData, notifyData);
@@ -901,7 +901,7 @@ void dispatcher(int functionid, Stack &stack){
 				objectKill(obj);
 
 				DBG_TRACE("WIN_HANDLE_MANAGER_FREE_OBJECT -> void");
-				returnCommand();
+				ctx->returnCommand();
 			}
 			break;
 
@@ -974,9 +974,9 @@ void dispatcher(int functionid, Stack &stack){
 							if (!ndata || !ndata->invalidate) continue;
 
 							if (ndata->invalidate == INVALIDATE_RECT)
-								writeNPRect(ndata->invalidateRect);
-							writeInt32(ndata->invalidate);
-							writeHandleInstance(instance);
+								ctx->writeNPRect(ndata->invalidateRect);
+							ctx->writeInt32(ndata->invalidate);
+							ctx->writeHandleInstance(instance);
 
 							ndata->invalidate = INVALIDATE_NOTHING;
 							invalidateCount++;
@@ -985,11 +985,11 @@ void dispatcher(int functionid, Stack &stack){
 						pendingInvalidateLinuxWindowless = false;
 					}
 
-					writeInt32(invalidateCount);
+					ctx->writeInt32(invalidateCount);
 				}
 
 				/* DBG_TRACE("PROCESS_WINDOW_EVENTS -> void"); */
-				returnCommand();
+				ctx->returnCommand();
 			}
 			break;
 
@@ -1042,7 +1042,7 @@ void dispatcher(int functionid, Stack &stack){
 				}
 
 				DBG_TRACE("WINDOWLESS_EVENT_PAINT -> void");
-				returnCommand();
+				ctx->returnCommand();
 			}
 			break;
 
@@ -1070,7 +1070,7 @@ void dispatcher(int functionid, Stack &stack){
 				}
 
 				DBG_TRACE("WINDOWLESS_EVENT_MOUSEMOVE -> void");
-				returnCommand();
+				ctx->returnCommand();
 			}
 			break;
 
@@ -1119,7 +1119,7 @@ void dispatcher(int functionid, Stack &stack){
 				}
 
 				DBG_TRACE("WINDOWLESS_EVENT_MOUSEBUTTON -> void");
-				returnCommand();
+				ctx->returnCommand();
 			}
 			break;
 
@@ -1137,7 +1137,7 @@ void dispatcher(int functionid, Stack &stack){
 					NOTIMPLEMENTED("ignoring keyboard input (pressed=%d, state=%d, keycode=%d)", pressed, state, keycode);
 
 				DBG_TRACE("WINDOWLESS_EVENT_KEYBOARD -> void");
-				returnCommand();
+				ctx->returnCommand();
 			}
 			break;
 
@@ -1145,17 +1145,17 @@ void dispatcher(int functionid, Stack &stack){
 			{
 				DBG_TRACE("FUNCTION_GET_PLUGIN_INFO()");
 
-				writeString(np_FileVersion);
-				writeString(np_FileDescription);
-				writeString(np_ProductName);
+				ctx->writeString(np_FileVersion);
+				ctx->writeString(np_FileDescription);
+				ctx->writeString(np_ProductName);
 
 				std::string mimeType = createLinuxCompatibleMimeType();
-				writeString(mimeType);
+				ctx->writeString(mimeType);
 
 
 				DBG_TRACE("FUNCTION_GET_PLUGIN_INFO -> mime='%s', name='%s', description='%s', version='%s'",
 					mimeType.c_str(), np_ProductName.c_str(), np_FileDescription.c_str(), np_FileVersion.c_str());
-				returnCommand();
+				ctx->returnCommand();
 			}
 			break;
 
@@ -1174,11 +1174,11 @@ void dispatcher(int functionid, Stack &stack){
 				freeVariantArrayDecRef(args);
 				objectDecRef(obj);
 				if (result)
-					writeVariantReleaseDecRef(resultVariant);
-				writeInt32(result);
+					ctx->writeVariantReleaseDecRef(resultVariant);
+				ctx->writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NP_INVOKE -> ( result=%d, ... )", result);
-				returnCommand();
+				ctx->returnCommand();
 			}
 			break;
 
@@ -1196,11 +1196,11 @@ void dispatcher(int functionid, Stack &stack){
 				freeVariantArrayDecRef(args);
 				objectDecRef(obj);
 				if (result)
-					writeVariantReleaseDecRef(resultVariant);
-				writeInt32(result);
+					ctx->writeVariantReleaseDecRef(resultVariant);
+				ctx->writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NP_INVOKE_DEFAULT -> ( result=%d, ... )", result);
-				returnCommand();
+				ctx->returnCommand();
 			}
 			break;
 
@@ -1212,10 +1212,10 @@ void dispatcher(int functionid, Stack &stack){
 
 				bool result = obj->_class->hasProperty(obj, name);
 				objectDecRef(obj);
-				writeInt32(result);
+				ctx->writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NP_HAS_PROPERTY -> result=%d", result);
-				returnCommand();
+				ctx->returnCommand();
 			}
 			break;
 
@@ -1227,10 +1227,10 @@ void dispatcher(int functionid, Stack &stack){
 
 				bool result = obj->_class->hasMethod(obj, name);
 				objectDecRef(obj);
-				writeInt32(result);
+				ctx->writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NP_HAS_METHOD -> result=%d", result);
-				returnCommand();
+				ctx->returnCommand();
 			}
 			break;
 
@@ -1246,11 +1246,11 @@ void dispatcher(int functionid, Stack &stack){
 				bool result = obj->_class->getProperty(obj, name, &resultVariant);
 				objectDecRef(obj);
 				if (result)
-					writeVariantReleaseDecRef(resultVariant);
-				writeInt32(result);
+					ctx->writeVariantReleaseDecRef(resultVariant);
+				ctx->writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NP_GET_PROPERTY -> ( result=%d, ... )", result);
-				returnCommand();
+				ctx->returnCommand();
 			}
 			break;
 
@@ -1265,10 +1265,10 @@ void dispatcher(int functionid, Stack &stack){
 				bool result = obj->_class->setProperty(obj, name, &variant);
 				freeVariantDecRef(variant);
 				objectDecRef(obj);
-				writeInt32(result);
+				ctx->writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NP_SET_PROPERTY -> result=%d", result);
-				returnCommand();
+				ctx->returnCommand();
 			}
 			break;
 
@@ -1280,10 +1280,10 @@ void dispatcher(int functionid, Stack &stack){
 
 				bool result = obj->_class->removeProperty(obj, name);
 				objectDecRef(obj);
-				writeInt32(result);
+				ctx->writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NP_REMOVE_PROPERTY -> result=%d", result);
-				returnCommand();
+				ctx->returnCommand();
 			}
 			break;
 
@@ -1298,13 +1298,13 @@ void dispatcher(int functionid, Stack &stack){
 				objectDecRef(obj);
 
 				if (result){
-					writeIdentifierArray(identifierTable, identifierCount);
-					writeInt32(identifierCount);
+					ctx->writeIdentifierArray(identifierTable, identifierCount);
+					ctx->writeInt32(identifierCount);
 				}
-				writeInt32(result);
+				ctx->writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NP_ENUMERATE -> ( result=%d, ... )", result);
-				returnCommand();
+				ctx->returnCommand();
 
 				/* ASYNC */
 				if (identifierTable)
@@ -1321,7 +1321,7 @@ void dispatcher(int functionid, Stack &stack){
 				objectDecRef(obj);
 
 				DBG_TRACE("FUNCTION_NP_INVALIDATE -> void");
-				returnCommand();
+				ctx->returnCommand();
 			}
 			break;
 
@@ -1400,10 +1400,10 @@ void dispatcher(int functionid, Stack &stack){
 					pluginFuncs.setwindow(instance, &ndata->window);
 				}
 
-				writeInt32(result);
+				ctx->writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPP_NEW -> result=%d", result);
-				returnCommand();
+				ctx->returnCommand();
 
 				/* ASYNC */
 				freeStringArray(argn);
@@ -1453,14 +1453,14 @@ void dispatcher(int functionid, Stack &stack){
 
 				if (result == NPERR_NO_ERROR){
 					if (saved)
-						writeMemory((char*)saved->buf, saved->len);
+						ctx->writeMemory((char*)saved->buf, saved->len);
 					else
-						writeMemory(NULL, 0);
+						ctx->writeMemory(NULL, 0);
 				}
-				writeInt32(result);
+				ctx->writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPP_DESTROY -> ( result=%d, ... )", result);
-				returnCommand();
+				ctx->returnCommand();
 
 				/* ASYNC */
 				if (ndata) free(ndata);
@@ -1493,11 +1493,11 @@ void dispatcher(int functionid, Stack &stack){
 					result = NPERR_GENERIC_ERROR;
 				}
 				if(result == NPERR_NO_ERROR)
-					writeInt32(boolValue);
-				writeInt32(result);
+					ctx->writeInt32(boolValue);
+				ctx->writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPP_GETVALUE_BOOL -> ( result=%d, ... )", result);
-				returnCommand();
+				ctx->returnCommand();
 			}
 			break;
 
@@ -1522,11 +1522,11 @@ void dispatcher(int functionid, Stack &stack){
 					result = NPERR_GENERIC_ERROR;
 				}
 				if (result == NPERR_NO_ERROR)
-					writeHandleObjDecRef(objectValue);
-				writeInt32(result);
+					ctx->writeHandleObjDecRef(objectValue);
+				ctx->writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPP_GETVALUE_OBJECT -> ( result=%d, ... )", result);
-				returnCommand();
+				ctx->returnCommand();
 			}
 			break;
 
@@ -1637,7 +1637,7 @@ void dispatcher(int functionid, Stack &stack){
 					DBG_ERROR("unable to allocate window because of missing ndata.");
 
 				DBG_TRACE("FUNCTION_NPP_SET_WINDOW -> void");
-				returnCommand();
+				ctx->returnCommand();
 
 				/* ASYNC */
 				if (ndata){
@@ -1668,13 +1668,13 @@ void dispatcher(int functionid, Stack &stack){
 				uint16_t stype = NP_NORMAL; /* Fix for silverlight.... */
 				NPError result = pluginFuncs.newstream(instance, type.get(), stream, seekable, &stype);
 				if (result == NPERR_NO_ERROR)
-					writeInt32(stype);
+					ctx->writeInt32(stype);
 				else /* Handle is now invalid because of this error */
 					handleManager_removeByPtr(HMGR_TYPE_NPStream, stream);
-				writeInt32(result);
+				ctx->writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPP_NEW_STREAM -> result=%d", result);
-				returnCommand();
+				ctx->returnCommand();
 			}
 			break;
 
@@ -1686,10 +1686,10 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPP_DESTROY_STREAM( instance=%p, stream=%p, reason=%d )", instance, stream, reason);
 
 				NPError result = pluginFuncs.destroystream(instance, stream, reason);
-				writeInt32(result);
+				ctx->writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPP_DESTROY_STREAM -> result=%d", result);
-				returnCommand();
+				ctx->returnCommand();
 
 				/* ASYNC */
 				if (stream){
@@ -1710,10 +1710,10 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPP_WRITE_READY( instance=%p, stream=%p )", instance, stream);
 
 				int32_t result = pluginFuncs.writeready(instance, stream);
-				writeInt32(result);
+				ctx->writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPP_WRITE_READY -> result=%d", result);
-				returnCommand();
+				ctx->returnCommand();
 			}
 			break;
 
@@ -1727,10 +1727,10 @@ void dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPP_WRITE( instance=%p, stream=%p, offset=%d, length=%Id, data=%p )", instance, stream, offset, length, data.get());
 
 				int32_t result = pluginFuncs.write(instance, stream, offset, length, data.get());
-				writeInt32(result);
+				ctx->writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPP_WRITE -> result=%d", result);
-				returnCommand();
+				ctx->returnCommand();
 			}
 			break;
 
@@ -1745,7 +1745,7 @@ void dispatcher(int functionid, Stack &stack){
 				pluginFuncs.urlnotify(instance, url.get(), reason, notifyData);
 
 				DBG_TRACE("FUNCTION_NPP_URL_NOTIFY -> void");
-				returnCommand();
+				ctx->returnCommand();
 			}
 			break;
 
@@ -1766,7 +1766,7 @@ void dispatcher(int functionid, Stack &stack){
 					DBG_ERROR("unable to access linux stream '%s' as file.", fname_lin.c_str());
 
 				DBG_TRACE("FUNCTION_NPP_STREAM_AS_FILE -> void");
-				returnCommand();
+				ctx->returnCommand();
 			}
 			break;
 
@@ -1777,7 +1777,7 @@ void dispatcher(int functionid, Stack &stack){
 				/* TODO: Implement deinitialization! We dont call Shutdown, as otherwise we would have to call Initialize again! */
 
 				DBG_TRACE("NP_SHUTDOWN -> void");
-				returnCommand();
+				ctx->returnCommand();
 			}
 			break;
 

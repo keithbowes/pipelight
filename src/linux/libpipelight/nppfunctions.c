@@ -220,7 +220,7 @@ NP_EXPORT(NPError) NP_Shutdown(){
 	DBG_TRACE("NP_Shutdown()");
 
 	if (initOkay){
-		callFunction(NP_SHUTDOWN);
+		ctx->callFunction(NP_SHUTDOWN);
 		readResultVoid();
 	}
 
@@ -231,12 +231,12 @@ NP_EXPORT(NPError) NP_Shutdown(){
 inline void timerFunc(NPP __instance, uint32_t __timerID){
 	/* Update the window */
 #if 0
-	writeInt64( handleManager_count() );
+	ctx->writeInt64( handleManager_count() );
 #endif
-	callFunction(PROCESS_WINDOW_EVENTS);
+	ctx->callFunction(PROCESS_WINDOW_EVENTS);
 
 	Stack stack;
-	readCommands(stack);
+	ctx->readCommands(stack);
 
 	if (!config.linuxWindowlessMode)
 		return;
@@ -402,8 +402,8 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 
 	/*
 	We can't use this function as we may need to fake some values
-	writeStringArray(argv, argc);
-	writeStringArray(argn, argc);
+	ctx->writeStringArray(argv, argc);
+	ctx->writeStringArray(argn, argc);
 	*/
 
 	std::map<std::string, std::string, stringInsensitiveCompare> tempArgs;
@@ -422,20 +422,20 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	}
 
 	if (saved)
-		writeMemory((char*)saved->buf, saved->len);
+		ctx->writeMemory((char*)saved->buf, saved->len);
 	else
-		writeMemory(NULL, 0);
+		ctx->writeMemory(NULL, 0);
 
 	for (it = tempArgs.begin(); it != tempArgs.end(); it++)
-		writeString(it->second);
+		ctx->writeString(it->second);
 	for (it = tempArgs.begin(); it != tempArgs.end(); it++)
-		writeString(it->first);
-	writeInt32(tempArgs.size());
+		ctx->writeString(it->first);
+	ctx->writeInt32(tempArgs.size());
 
-	writeInt32(mode);
-	writeHandleInstance(instance);
-	writeString(mimeType);
-	callFunction(FUNCTION_NPP_NEW);
+	ctx->writeInt32(mode);
+	ctx->writeHandleInstance(instance);
+	ctx->writeString(mimeType);
+	ctx->callFunction(FUNCTION_NPP_NEW);
 	NPError result = readResultInt32();
 
 	/* The plugin is responsible for freeing *saved. The other side has its own copy of this memory. */
@@ -501,11 +501,11 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save){
 		}
 	}
 
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPP_DESTROY);
+	ctx->writeHandleInstance(instance);
+	ctx->callFunction(FUNCTION_NPP_DESTROY);
 
 	Stack stack;
-	if (!readCommands(stack, true, 5000)){ /* wait maximum 5sec for result */
+	if (!ctx->readCommands(stack, true, 5000)){ /* wait maximum 5sec for result */
 		int status;
 		DBG_ERROR("plugin did not deinitialize properly, killing it!");
 		if (pidPluginloader > 0 && !waitpid(pidPluginloader, &status, WNOHANG))
@@ -601,10 +601,10 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window){
 			pdata->container		= window->window;
 		}
 
-		writeRectXYWH(window->x, window->y, window->width, window->height);
-		writeInt32((window->type == NPWindowTypeWindow && window->window) ? 1 : 0);
-		writeHandleInstance(instance);
-		callFunction(FUNCTION_NPP_SET_WINDOW);
+		ctx->writeRectXYWH(window->x, window->y, window->width, window->height);
+		ctx->writeInt32((window->type == NPWindowTypeWindow && window->window) ? 1 : 0);
+		ctx->writeHandleInstance(instance);
+		ctx->callFunction(FUNCTION_NPP_SET_WINDOW);
 		readResultVoid();
 	}
 
@@ -621,14 +621,14 @@ NPError NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool se
 		NPP_DestroyStream(instance, stream, NPRES_DONE);
 	}
 
-	writeInt32(seekable);
-	writeHandleStream(stream);
-	writeString(type);
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPP_NEW_STREAM);
+	ctx->writeInt32(seekable);
+	ctx->writeHandleStream(stream);
+	ctx->writeString(type);
+	ctx->writeHandleInstance(instance);
+	ctx->callFunction(FUNCTION_NPP_NEW_STREAM);
 
 	Stack stack;
-	readCommands(stack);
+	ctx->readCommands(stack);
 	NPError result	= readInt32(stack);
 
 	if (result == NPERR_NO_ERROR)
@@ -650,10 +650,10 @@ NPError NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason){
 		return NPERR_NO_ERROR;
 	}
 
-	writeInt32(reason);
-	writeHandleStream(stream, HMGR_SHOULD_EXIST);
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPP_DESTROY_STREAM);
+	ctx->writeInt32(reason);
+	ctx->writeHandleStream(stream, HMGR_SHOULD_EXIST);
+	ctx->writeHandleInstance(instance);
+	ctx->callFunction(FUNCTION_NPP_DESTROY_STREAM);
 	NPError result = readResultInt32();
 
 	/* remove the handle by the corresponding stream real object */
@@ -674,9 +674,9 @@ int32_t NPP_WriteReady(NPP instance, NPStream* stream){
 		result = 0x7FFFFFFF;
 
 	}else{
-		writeHandleStream(stream, HMGR_SHOULD_EXIST);
-		writeHandleInstance(instance);
-		callFunction(FUNCTION_NPP_WRITE_READY);
+		ctx->writeHandleStream(stream, HMGR_SHOULD_EXIST);
+		ctx->writeHandleInstance(instance);
+		ctx->callFunction(FUNCTION_NPP_WRITE_READY);
 		result = readResultInt32();
 
 		/* ensure that the program doesn't want too much data at once - this might cause communication errors */
@@ -696,11 +696,11 @@ int32_t NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, v
 		DBG_TRACE("Chrome use-after-free bug!");
 
 	else{
-		writeMemory((char*)buffer, len);
-		writeInt32(offset);
-		writeHandleStream(stream, HMGR_SHOULD_EXIST);
-		writeHandleInstance(instance);
-		callFunction(FUNCTION_NPP_WRITE);
+		ctx->writeMemory((char*)buffer, len);
+		ctx->writeInt32(offset);
+		ctx->writeHandleStream(stream, HMGR_SHOULD_EXIST);
+		ctx->writeHandleInstance(instance);
+		ctx->callFunction(FUNCTION_NPP_WRITE);
 
 		len = readResultInt32();
 	}
@@ -713,10 +713,10 @@ int32_t NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, v
 void NPP_StreamAsFile(NPP instance, NPStream* stream, const char* fname){
 	DBG_TRACE("( instance=%p, stream=%p, fname=%p )", instance, stream, fname);
 
-	writeString(fname);
-	writeHandleStream(stream, HMGR_SHOULD_EXIST);
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPP_STREAM_AS_FILE);
+	ctx->writeString(fname);
+	ctx->writeHandleStream(stream, HMGR_SHOULD_EXIST);
+	ctx->writeHandleInstance(instance);
+	ctx->callFunction(FUNCTION_NPP_STREAM_AS_FILE);
 	readResultVoid();
 
 	DBG_TRACE(" -> void");
@@ -743,38 +743,38 @@ int16_t NPP_HandleEvent(NPP instance, void* event){
 		PluginData *pdata = (PluginData*)instance->pdata;
 		if (pdata){
 			if (xevent->type == GraphicsExpose){
-				writeRectXYWH(xevent->xgraphicsexpose.x, xevent->xgraphicsexpose.y,
+				ctx->writeRectXYWH(xevent->xgraphicsexpose.x, xevent->xgraphicsexpose.y,
 					xevent->xgraphicsexpose.width, xevent->xgraphicsexpose.height);
-				writeInt32(xevent->xgraphicsexpose.drawable);
-				writeHandleInstance(instance);
-				callFunction(WINDOWLESS_EVENT_PAINT);
+				ctx->writeInt32(xevent->xgraphicsexpose.drawable);
+				ctx->writeHandleInstance(instance);
+				ctx->callFunction(WINDOWLESS_EVENT_PAINT);
 				readResultVoid();
 				res = kNPEventHandled;
 
 			}else if (xevent->type == MotionNotify){
-				writePointXY(xevent->xmotion.x, xevent->xmotion.y);
-				writeInt32(xevent->xmotion.state);
-				writeHandleInstance(instance);
-				callFunction(WINDOWLESS_EVENT_MOUSEMOVE);
+				ctx->writePointXY(xevent->xmotion.x, xevent->xmotion.y);
+				ctx->writeInt32(xevent->xmotion.state);
+				ctx->writeHandleInstance(instance);
+				ctx->callFunction(WINDOWLESS_EVENT_MOUSEMOVE);
 				readResultVoid();
 				res = kNPEventHandled;
 
 			}else if (xevent->type == ButtonPress || xevent->type == ButtonRelease){
-				writePointXY(xevent->xbutton.x, xevent->xbutton.y);
-				writeInt32(xevent->xbutton.button);
-				writeInt32(xevent->xbutton.state);
-				writeInt32((xevent->type == ButtonPress));
-				writeHandleInstance(instance);
-				callFunction(WINDOWLESS_EVENT_MOUSEBUTTON);
+				ctx->writePointXY(xevent->xbutton.x, xevent->xbutton.y);
+				ctx->writeInt32(xevent->xbutton.button);
+				ctx->writeInt32(xevent->xbutton.state);
+				ctx->writeInt32((xevent->type == ButtonPress));
+				ctx->writeHandleInstance(instance);
+				ctx->callFunction(WINDOWLESS_EVENT_MOUSEBUTTON);
 				readResultVoid();
 				res = kNPEventHandled;
 
 			}else if (xevent->type == KeyPress || xevent->type == KeyRelease){
-				writeInt32(xevent->xkey.keycode);
-				writeInt32(xevent->xkey.state);
-				writeInt32((xevent->type == KeyPress));
-				writeHandleInstance(instance);
-				callFunction(WINDOWLESS_EVENT_KEYBOARD);
+				ctx->writeInt32(xevent->xkey.keycode);
+				ctx->writeInt32(xevent->xkey.state);
+				ctx->writeInt32((xevent->type == KeyPress));
+				ctx->writeHandleInstance(instance);
+				ctx->callFunction(WINDOWLESS_EVENT_KEYBOARD);
 				readResultVoid();
 				res = kNPEventHandled;
 
@@ -793,11 +793,11 @@ int16_t NPP_HandleEvent(NPP instance, void* event){
 void NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyData){
 	DBG_TRACE("( instance=%p, URL='%s', reason=%d, notifyData=%p )", instance, URL, reason, notifyData);
 
-	writeHandleNotify(notifyData, HMGR_SHOULD_EXIST);
-	writeInt32(reason);
-	writeString(URL);
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPP_URL_NOTIFY);
+	ctx->writeHandleNotify(notifyData, HMGR_SHOULD_EXIST);
+	ctx->writeInt32(reason);
+	ctx->writeString(URL);
+	ctx->writeHandleInstance(instance);
+	ctx->callFunction(FUNCTION_NPP_URL_NOTIFY);
 	readResultVoid();
 
 	/* free all the notifydata stuff */
@@ -808,12 +808,12 @@ void NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyD
 		/* decrement refcount */
 		if (--myNotifyData->referenceCount == 0){
 		#ifdef PIPELIGHT_SYNC
-			writeHandleNotify(myNotifyData);
-			callFunction(WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA);
+			ctx->writeHandleNotify(myNotifyData);
+			ctx->callFunction(WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA);
 			readResultVoid();
 		#else
-			writeHandleNotify(myNotifyData);
-			callFunction(WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA_ASYNC);
+			ctx->writeHandleNotify(myNotifyData);
+			ctx->callFunction(WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA_ASYNC);
 		#endif
 
 			handleManager_removeByPtr(HMGR_TYPE_NotifyData, myNotifyData);
@@ -847,10 +847,10 @@ NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value){
 
 		/* Boolean return value */
 		/*
-			writeInt32(variable);
-			writeHandleInstance(instance);
-			callFunction(FUNCTION_NPP_GETVALUE_BOOL);
-			readCommands(stack);
+			ctx->writeInt32(variable);
+			ctx->writeHandleInstance(instance);
+			ctx->callFunction(FUNCTION_NPP_GETVALUE_BOOL);
+			ctx->readCommands(stack);
 			result = (NPError)readInt32(stack);
 			if(result == NPERR_NO_ERROR)
 				*((PRBool *)value) = (PRBool)readInt32(stack);
@@ -858,10 +858,10 @@ NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value){
 
 		/* Object return value */
 		case NPPVpluginScriptableNPObject:
-			writeInt32(variable);
-			writeHandleInstance(instance);
-			callFunction(FUNCTION_NPP_GETVALUE_OBJECT);
-			readCommands(stack);
+			ctx->writeInt32(variable);
+			ctx->writeHandleInstance(instance);
+			ctx->callFunction(FUNCTION_NPP_GETVALUE_OBJECT);
+			ctx->readCommands(stack);
 			result = readInt32(stack);
 			if (result == NPERR_NO_ERROR)
 				*((NPObject**)value) = readHandleObj(stack);

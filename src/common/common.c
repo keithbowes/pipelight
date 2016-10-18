@@ -11,8 +11,8 @@
 	#include <sys/types.h>
 #endif
 
-FILE *commPipeOut	= NULL;
-FILE *commPipeIn	= NULL;
+Context _ctx;
+Context *ctx = &_ctx;
 
 char strMultiPluginName[64] = "unknown";
 
@@ -65,7 +65,7 @@ ParameterInfo::~ParameterInfo(){
 /*
 	Initializes the communication pipes
 */
-bool initCommPipes(int out, int in){
+bool Context::initCommPipes(int out, int in){
 	if (commPipeOut)	fclose(commPipeOut);
 	if (commPipeIn)		fclose(commPipeIn);
 
@@ -94,7 +94,7 @@ bool initCommPipes(int out, int in){
 	return true;
 }
 
-bool initCommIO(){
+bool Context::initCommIO(){
 	#if defined(__WINE__) || !defined(PLUGINLOADER)
 		return initCommPipes(dup(1), dup(0));
 	#else
@@ -116,7 +116,7 @@ void setMultiPluginName(const char *str){
 /*
 	Transmits the buffer and returns
 */
-inline bool transmitData(const char *data, size_t length){
+bool Context::transmitData(const char *data, size_t length){
 	size_t pos;
 
 	/* transmit the whole buffer */
@@ -135,7 +135,7 @@ inline bool transmitData(const char *data, size_t length){
 /*
 	Receive data
 */
-inline void receiveData(char *data, size_t length){
+void Context::receiveData(char *data, size_t length){
 	size_t pos;
 
 	for (; length; data += pos, length -= pos){
@@ -145,7 +145,7 @@ inline void receiveData(char *data, size_t length){
 	}
 }
 
-inline bool receiveCommand(char *data, size_t length, int abortTimeout){
+bool Context::receiveCommand(char *data, size_t length, int abortTimeout){
 	size_t pos;
 
 	#ifndef PLUGINLOADER
@@ -190,7 +190,7 @@ inline bool receiveCommand(char *data, size_t length, int abortTimeout){
 /*
 	Writes a command to the pipe
 */
-bool writeCommand(uint8_t command, const char* data, size_t length){
+bool Context::writeCommand(uint8_t command, const char* data, size_t length){
 	uint32_t blockInfo;
 
 	/* no data given -> length = 0 */
@@ -220,7 +220,7 @@ bool writeCommand(uint8_t command, const char* data, size_t length){
 /*
 	(Internal) writes a string
 */
-bool __writeString(const char* data, size_t length){
+bool Context::__writeString(const char* data, size_t length){
 	uint32_t blockInfo;
 	char eos;
 
@@ -254,7 +254,7 @@ bool __writeString(const char* data, size_t length){
 /*
 	Read commands from a pipe
 */
-bool readCommands(Stack &stack, bool allowReturn, int abortTimeout){
+bool Context::readCommands(Stack &stack, bool allowReturn, int abortTimeout){
 	uint32_t	blockInfo;
 	uint8_t		blockCommand;
 	uint32_t	blockLength;
@@ -676,10 +676,10 @@ NPStream* createNPStream(HMGR_HANDLE id){
 	DBG_ASSERT(stream != NULL, "could not create stream.");
 
 	/* we cannot use writeHandle, as the handle manager hasn't finished adding this yet. */
-	writeHandleId(id);
-	writeInt32(HMGR_TYPE_NPStream);
-	callFunction(LIN_HANDLE_MANAGER_REQUEST_STREAM_INFO);
-	readCommands(stack);
+	ctx->writeHandleId(id);
+	ctx->writeInt32(HMGR_TYPE_NPStream);
+	ctx->callFunction(LIN_HANDLE_MANAGER_REQUEST_STREAM_INFO);
+	ctx->readCommands(stack);
 
 	/* initialize memory */
 	stream->pdata			= NULL;
@@ -944,12 +944,12 @@ void objectDecRef(NPObject *obj, bool deleteFromRemoteHandleManager){
 
 		if (deleteFromRemoteHandleManager){
 		#ifdef PIPELIGHT_SYNC
-			writeHandleObj(obj, HMGR_SHOULD_EXIST);
-			callFunction(LIN_HANDLE_MANAGER_FREE_OBJECT);
+			ctx->writeHandleObj(obj, HMGR_SHOULD_EXIST);
+			ctx->callFunction(LIN_HANDLE_MANAGER_FREE_OBJECT);
 			readResultVoid();
 		#else
-			writeHandleObj(obj, HMGR_SHOULD_EXIST);
-			callFunction(LIN_HANDLE_MANAGER_FREE_OBJECT_ASYNC);
+			ctx->writeHandleObj(obj, HMGR_SHOULD_EXIST);
+			ctx->callFunction(LIN_HANDLE_MANAGER_FREE_OBJECT_ASYNC);
 		#endif
 		}
 
@@ -991,7 +991,7 @@ void freeVariantDecRef(NPVariant &variant, bool deleteFromRemoteHandleManager){
 }
 
 /* writeVariantReleaseDecRef */
-void writeVariantReleaseDecRef(NPVariant &variant){
+void Context::writeVariantReleaseDecRef(NPVariant &variant){
 	bool deleteFromRemoteHandleManager = false;
 	NPObject* obj = NULL;
 
@@ -1110,7 +1110,7 @@ void freeVariant(NPVariant &variant){
 #endif
 
 /* writeVariantConst */
-void writeVariantConst(const NPVariant &variant, bool deleteFromRemoteHandleManager){
+void Context::writeVariantConst(const NPVariant &variant, bool deleteFromRemoteHandleManager){
 	#ifndef PLUGINLOADER
 		DBG_ASSERT(!deleteFromRemoteHandleManager, "deleteFromRemoteHandleManager set on Linux side.");
 	#endif

@@ -61,10 +61,10 @@ NPError NP_LOADDS NPN_GetURL(NPP instance, const char* url, const char* window){
 
 	shockwaveInstanceWorkaround();
 
-	writeString(window);
-	writeString(url);
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPN_GET_URL);
+	ctx->writeString(window);
+	ctx->writeString(url);
+	ctx->writeHandleInstance(instance);
+	ctx->callFunction(FUNCTION_NPN_GET_URL);
 	NPError result = readResultInt32();
 
 	DBG_TRACE(" -> result=%d", result);
@@ -86,12 +86,12 @@ NPError NP_LOADDS NPN_PostURL(NPP instance, const char* url, const char* window,
 		result = NPERR_FILE_NOT_FOUND;
 
 	}else{
-		writeInt32(file);
-		writeMemory(buf, len);
-		writeString(window);
-		writeString(url);
-		writeHandleInstance(instance);
-		callFunction(FUNCTION_NPN_POST_URL);
+		ctx->writeInt32(file);
+		ctx->writeMemory(buf, len);
+		ctx->writeString(window);
+		ctx->writeString(url);
+		ctx->writeHandleInstance(instance);
+		ctx->callFunction(FUNCTION_NPN_POST_URL);
 		result = readResultInt32();
 	}
 
@@ -107,13 +107,13 @@ NPError NP_LOADDS NPN_RequestRead(NPStream* stream, NPByteRange* rangeList){
 	uint32_t rangeCount = 0;
 
 	for (; rangeList; rangeList = rangeList->next, rangeCount++){
-		writeInt32(rangeList->length);
-		writeInt32(rangeList->offset);
+		ctx->writeInt32(rangeList->length);
+		ctx->writeInt32(rangeList->offset);
 	}
 
-	writeInt32(rangeCount);
-	writeHandleStream(stream, HMGR_SHOULD_EXIST);
-	callFunction(FUNCTION_NPN_REQUEST_READ);
+	ctx->writeInt32(rangeCount);
+	ctx->writeHandleStream(stream, HMGR_SHOULD_EXIST);
+	ctx->callFunction(FUNCTION_NPN_REQUEST_READ);
 	NPError result = readResultInt32();
 
 	DBG_TRACE(" -> result=%d", result);
@@ -127,13 +127,13 @@ NPError NP_LOADDS NPN_NewStream(NPP instance, NPMIMEType type, const char* windo
 
 	shockwaveInstanceWorkaround();
 
-	writeString(window);
-	writeString(type);
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPN_NEW_STREAM);
+	ctx->writeString(window);
+	ctx->writeString(type);
+	ctx->writeHandleInstance(instance);
+	ctx->callFunction(FUNCTION_NPN_NEW_STREAM);
 
 	Stack stack;
-	readCommands(stack);
+	ctx->readCommands(stack);
 	NPError result = readInt32(stack);
 	if (result == NPERR_NO_ERROR)
 		*stream		= readHandleStream(stack);
@@ -149,10 +149,10 @@ int32_t NP_LOADDS NPN_Write(NPP instance, NPStream* stream, int32_t len, void* b
 
 	shockwaveInstanceWorkaround();
 
-	writeMemory((char*)buffer, len);
-	writeHandleStream(stream, HMGR_SHOULD_EXIST);
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPN_WRITE);
+	ctx->writeMemory((char*)buffer, len);
+	ctx->writeHandleStream(stream, HMGR_SHOULD_EXIST);
+	ctx->writeHandleInstance(instance);
+	ctx->callFunction(FUNCTION_NPN_WRITE);
 	NPError result = readResultInt32();
 
 	DBG_TRACE(" -> result=%d", result);
@@ -166,10 +166,10 @@ NPError NP_LOADDS NPN_DestroyStream(NPP instance, NPStream* stream, NPReason rea
 
 	shockwaveInstanceWorkaround();
 
-	writeInt32(reason);
-	writeHandleStream(stream, HMGR_SHOULD_EXIST);
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPN_DESTROY_STREAM);
+	ctx->writeInt32(reason);
+	ctx->writeHandleStream(stream, HMGR_SHOULD_EXIST);
+	ctx->writeHandleInstance(instance);
+	ctx->callFunction(FUNCTION_NPN_DESTROY_STREAM);
 	NPError result = readResultInt32();
 
 	DBG_TRACE(" -> result=%d", result);
@@ -184,14 +184,14 @@ void NP_LOADDS NPN_Status(NPP instance, const char* message){
 	shockwaveInstanceWorkaround();
 
 #if 1 /*def PIPELIGHT_SYNC*/
-	writeString(message);
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPN_STATUS);
+	ctx->writeString(message);
+	ctx->writeHandleInstance(instance);
+	ctx->callFunction(FUNCTION_NPN_STATUS);
 	readResultVoid();
 #else
-	writeString(message);
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPN_STATUS_ASYNC);
+	ctx->writeString(message);
+	ctx->writeHandleInstance(instance);
+	ctx->callFunction(FUNCTION_NPN_STATUS_ASYNC);
 #endif
 
 	DBG_TRACE(" -> void");
@@ -208,8 +208,8 @@ const char*  NP_LOADDS NPN_UserAgent(NPP instance){
 		internal error checking mechanism to think something wents wrong and terminate
 		our process, so just keep it commented out till we allow NULL instances.
 
-		writeHandleInstance(instance);
-		callFunction(FUNCTION_NPN_USERAGENT);
+		ctx->writeHandleInstance(instance);
+		ctx->callFunction(FUNCTION_NPN_USERAGENT);
 
 		std::string result = readResultString();
 	*/
@@ -284,11 +284,11 @@ NPError NP_LOADDS NPN_GetURLNotify(NPP instance, const  char* url, const char* t
 
 	shockwaveInstanceWorkaround();
 
-	writeHandleNotify(notifyData);
-	writeString(target);
-	writeString(url);
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPN_GET_URL_NOTIFY);
+	ctx->writeHandleNotify(notifyData);
+	ctx->writeString(target);
+	ctx->writeString(url);
+	ctx->writeHandleInstance(instance);
+	ctx->callFunction(FUNCTION_NPN_GET_URL_NOTIFY);
 	NPError result = readResultInt32();
 
 	DBG_TRACE(" -> result=%d", result);
@@ -310,13 +310,13 @@ NPError NP_LOADDS NPN_PostURLNotify(NPP instance, const char* url, const char* t
 		result = NPERR_FILE_NOT_FOUND;
 
 	}else{
-		writeHandleNotify(notifyData);
-		writeInt32(file);
-		writeMemory(buf, len);
-		writeString(target);
-		writeString(url);
-		writeHandleInstance(instance);
-		callFunction(FUNCTION_NPN_POST_URL_NOTIFY);
+		ctx->writeHandleNotify(notifyData);
+		ctx->writeInt32(file);
+		ctx->writeMemory(buf, len);
+		ctx->writeString(target);
+		ctx->writeString(url);
+		ctx->writeHandleInstance(instance);
+		ctx->callFunction(FUNCTION_NPN_POST_URL_NOTIFY);
 		result = readResultInt32();
 	}
 
@@ -338,10 +338,10 @@ NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 
 		case NPNVPluginElementNPObject:
 		case NPNVWindowNPObject:
-			writeInt32(variable);
-			writeHandleInstance(instance);
-			callFunction(FUNCTION_NPN_GETVALUE_OBJECT);
-			readCommands(stack);
+			ctx->writeInt32(variable);
+			ctx->writeHandleInstance(instance);
+			ctx->callFunction(FUNCTION_NPN_GETVALUE_OBJECT);
+			ctx->readCommands(stack);
 			result = readInt32(stack);
 			if (result == NPERR_NO_ERROR)
 				*((NPObject**)value)	= readHandleObjIncRef(stack);
@@ -349,10 +349,10 @@ NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 			break;
 
 		case NPNVprivateModeBool:
-			writeInt32(variable);
-			writeHandleInstance(instance);
-			callFunction(FUNCTION_NPN_GETVALUE_BOOL);
-			readCommands(stack);
+			ctx->writeInt32(variable);
+			ctx->writeHandleInstance(instance);
+			ctx->callFunction(FUNCTION_NPN_GETVALUE_BOOL);
+			ctx->readCommands(stack);
 			result = readInt32(stack);
 			if (result == NPERR_NO_ERROR)
 				*((NPBool*)value)	= (NPBool)readInt32(stack);
@@ -360,10 +360,10 @@ NPError NP_LOADDS NPN_GetValue(NPP instance, NPNVariable variable, void *value){
 			break;
 
 		case NPNVdocumentOrigin:
-			writeInt32(variable);
-			writeHandleInstance(instance);
-			callFunction(FUNCTION_NPN_GETVALUE_STRING);
-			readCommands(stack);
+			ctx->writeInt32(variable);
+			ctx->writeHandleInstance(instance);
+			ctx->callFunction(FUNCTION_NPN_GETVALUE_STRING);
+			ctx->readCommands(stack);
 			result = readInt32(stack);
 			if (result == NPERR_NO_ERROR)
 				*((char**)value)	= readStringMalloc(stack);
@@ -546,11 +546,11 @@ NPIdentifier NP_LOADDS NPN_GetStringIdentifier(const NPUTF8* name){
 	NPIdentifier identifier;
 
 #ifdef PIPELIGHT_NOCACHE
-	writeString(name);
-	callFunction(FUNCTION_NPN_GET_STRINGIDENTIFIER);
+	ctx->writeString(name);
+	ctx->callFunction(FUNCTION_NPN_GET_STRINGIDENTIFIER);
 
 	Stack stack;
-	readCommands(stack);
+	ctx->readCommands(stack);
 	identifier = readHandleIdentifierCreate(stack);
 
 #else
@@ -592,11 +592,11 @@ NPIdentifier NP_LOADDS NPN_GetIntIdentifier(int32_t intid){
 	NPIdentifier identifier;
 
 #ifdef PIPELIGHT_NOCACHE
-	writeInt32(intid);
-	callFunction(FUNCTION_NPN_GET_INTIDENTIFIER);
+	ctx->writeInt32(intid);
+	ctx->callFunction(FUNCTION_NPN_GET_INTIDENTIFIER);
 
 	Stack stack;
-	readCommands(stack);
+	ctx->readCommands(stack);
 	identifier = readHandleIdentifierCreate(stack);
 
 #else
@@ -626,8 +626,8 @@ bool NP_LOADDS NPN_IdentifierIsString(NPIdentifier identifier){
 	bool result;
 
 #ifdef PIPELIGHT_NOCACHE
-	writeHandleIdentifier(identifier);
-	callFunction(FUNCTION_NPN_IDENTIFIER_IS_STRING);
+	ctx->writeHandleIdentifier(identifier);
+	ctx->callFunction(FUNCTION_NPN_IDENTIFIER_IS_STRING);
 	result = (bool)readResultInt32();
 
 #else
@@ -648,11 +648,11 @@ NPUTF8* NP_LOADDS NPN_UTF8FromIdentifier(NPIdentifier identifier){
 	NPUTF8 *str;
 
 #ifdef PIPELIGHT_NOCACHE
-	writeHandleIdentifier(identifier);
-	callFunction(FUNCTION_NPN_UTF8_FROM_IDENTIFIER);
+	ctx->writeHandleIdentifier(identifier);
+	ctx->callFunction(FUNCTION_NPN_UTF8_FROM_IDENTIFIER);
 
 	Stack stack;
-	readCommands(stack);
+	ctx->readCommands(stack);
 	str = readStringMalloc(stack);
 
 #else
@@ -673,8 +673,8 @@ int32_t NP_LOADDS NPN_IntFromIdentifier(NPIdentifier identifier){
 	int32_t result;
 
 #ifdef PIPELIGHT_NOCACHE
-	writeHandleIdentifier(identifier);
-	callFunction(FUNCTION_NPN_INT_FROM_IDENTIFIER);
+	ctx->writeHandleIdentifier(identifier);
+	ctx->callFunction(FUNCTION_NPN_INT_FROM_IDENTIFIER);
 	result = readResultInt32();
 
 #else
@@ -695,11 +695,11 @@ NPObject* NP_LOADDS NPN_CreateObject(NPP instance, NPClass *aClass){
 	shockwaveInstanceWorkaround();
 
 	/* the other side doesnt need to know aClass */
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPN_CREATE_OBJECT);
+	ctx->writeHandleInstance(instance);
+	ctx->callFunction(FUNCTION_NPN_CREATE_OBJECT);
 
 	Stack stack;
-	readCommands(stack);
+	ctx->readCommands(stack);
 	NPObject *result = readHandleObjIncRefCreate(stack, instance, aClass);
 
 	DBG_TRACE(" -> obj=%p", result);
@@ -715,14 +715,14 @@ NPObject* NP_LOADDS NPN_RetainObject(NPObject *obj){
 		obj->referenceCount++;
 
 	#if 1 /*def PIPELIGHT_SYNC*/
-		writeInt32(obj->referenceCount);
-		writeHandleObj(obj, HMGR_SHOULD_EXIST);
-		callFunction(FUNCTION_NPN_RETAINOBJECT);
+		ctx->writeInt32(obj->referenceCount);
+		ctx->writeHandleObj(obj, HMGR_SHOULD_EXIST);
+		ctx->callFunction(FUNCTION_NPN_RETAINOBJECT);
 		readResultVoid();
 	#else
-		writeInt32(obj->referenceCount);
-		writeHandleObj(obj, HMGR_SHOULD_EXIST);
-		callFunction(FUNCTION_NPN_RETAINOBJECT_ASYNC);
+		ctx->writeInt32(obj->referenceCount);
+		ctx->writeHandleObj(obj, HMGR_SHOULD_EXIST);
+		ctx->callFunction(FUNCTION_NPN_RETAINOBJECT_ASYNC);
 	#endif
 	}
 
@@ -737,23 +737,23 @@ void NP_LOADDS NPN_ReleaseObject(NPObject *obj){
 
 	if (obj){
 	#if 1 /*def PIPELIGHT_SYNC*/
-		writeInt32(obj->referenceCount);
-		writeHandleObjDecRef(obj, HMGR_SHOULD_EXIST);
-		callFunction(FUNCTION_NPN_RELEASEOBJECT);
+		ctx->writeInt32(obj->referenceCount);
+		ctx->writeHandleObjDecRef(obj, HMGR_SHOULD_EXIST);
+		ctx->callFunction(FUNCTION_NPN_RELEASEOBJECT);
 		readResultVoid();
 
 	#else
 		/* even without PIPELIGHT_SYNC we need a synchronized call in some cases (when a callback might happen) */
 		if ((obj->referenceCount & REFCOUNT_MASK) == 1){
-			writeInt32(obj->referenceCount);
-			writeHandleObjDecRef(obj, HMGR_SHOULD_EXIST);
-			callFunction(FUNCTION_NPN_RELEASEOBJECT);
+			ctx->writeInt32(obj->referenceCount);
+			ctx->writeHandleObjDecRef(obj, HMGR_SHOULD_EXIST);
+			ctx->callFunction(FUNCTION_NPN_RELEASEOBJECT);
 			readResultVoid();
 
 		}else{
-			writeInt32(obj->referenceCount);
-			writeHandleObjDecRef(obj, HMGR_SHOULD_EXIST);
-			callFunction(FUNCTION_NPN_RELEASEOBJECT_ASYNC);
+			ctx->writeInt32(obj->referenceCount);
+			ctx->writeHandleObjDecRef(obj, HMGR_SHOULD_EXIST);
+			ctx->callFunction(FUNCTION_NPN_RELEASEOBJECT_ASYNC);
 		}
 	#endif
 	}
@@ -768,15 +768,15 @@ bool NP_LOADDS NPN_Invoke(NPP instance, NPObject* obj, NPIdentifier methodName, 
 
 	shockwaveInstanceWorkaround();
 
-	writeVariantArrayConst(args, argCount);
-	writeInt32(argCount);
-	writeHandleIdentifier(methodName);
-	writeHandleObj(obj);
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPN_INVOKE);
+	ctx->writeVariantArrayConst(args, argCount);
+	ctx->writeInt32(argCount);
+	ctx->writeHandleIdentifier(methodName);
+	ctx->writeHandleObj(obj);
+	ctx->writeHandleInstance(instance);
+	ctx->callFunction(FUNCTION_NPN_INVOKE);
 
 	Stack stack;
-	readCommands(stack);
+	ctx->readCommands(stack);
 	bool resultBool = readInt32(stack);
 	if (resultBool)
 		readVariantIncRef(stack, *result);
@@ -796,14 +796,14 @@ bool NP_LOADDS NPN_InvokeDefault(NPP instance, NPObject* obj, const NPVariant *a
 
 	shockwaveInstanceWorkaround();
 
-	writeVariantArrayConst(args, argCount);
-	writeInt32(argCount);
-	writeHandleObj(obj);
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPN_INVOKE_DEFAULT);
+	ctx->writeVariantArrayConst(args, argCount);
+	ctx->writeInt32(argCount);
+	ctx->writeHandleObj(obj);
+	ctx->writeHandleInstance(instance);
+	ctx->callFunction(FUNCTION_NPN_INVOKE_DEFAULT);
 
 	Stack stack;
-	readCommands(stack);
+	ctx->readCommands(stack);
 	bool resultBool = readInt32(stack);
 	if (resultBool)
 		readVariantIncRef(stack, *result);
@@ -823,13 +823,13 @@ bool NP_LOADDS NPN_Evaluate(NPP instance, NPObject *obj, NPString *script, NPVar
 
 	shockwaveInstanceWorkaround();
 
-	writeNPString(script);
-	writeHandleObj(obj);
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPN_EVALUATE);
+	ctx->writeNPString(script);
+	ctx->writeHandleObj(obj);
+	ctx->writeHandleInstance(instance);
+	ctx->callFunction(FUNCTION_NPN_EVALUATE);
 
 	Stack stack;
-	readCommands(stack);
+	ctx->readCommands(stack);
 	bool resultBool = readInt32(stack);
 	if (resultBool)
 		readVariantIncRef(stack, *result);
@@ -863,13 +863,13 @@ bool NP_LOADDS NPN_GetProperty(NPP instance, NPObject *obj, NPIdentifier propert
 		}
 	}
 
-	writeHandleIdentifier(propertyName);
-	writeHandleObj(obj);
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPN_GET_PROPERTY);
+	ctx->writeHandleIdentifier(propertyName);
+	ctx->writeHandleObj(obj);
+	ctx->writeHandleInstance(instance);
+	ctx->callFunction(FUNCTION_NPN_GET_PROPERTY);
 
 	Stack stack;
-	readCommands(stack);
+	ctx->readCommands(stack);
 	bool resultBool = readInt32(stack);
 	if (resultBool)
 		readVariantIncRef(stack, *result);
@@ -889,11 +889,11 @@ bool NP_LOADDS NPN_SetProperty(NPP instance, NPObject *obj, NPIdentifier propert
 
 	shockwaveInstanceWorkaround();
 
-	writeVariantConst(*value);
-	writeHandleIdentifier(propertyName);
-	writeHandleObj(obj);
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPN_SET_PROPERTY);
+	ctx->writeVariantConst(*value);
+	ctx->writeHandleIdentifier(propertyName);
+	ctx->writeHandleObj(obj);
+	ctx->writeHandleInstance(instance);
+	ctx->callFunction(FUNCTION_NPN_SET_PROPERTY);
 	bool result = (bool)readResultInt32();
 
 	DBG_TRACE(" -> result=%d", result);
@@ -907,10 +907,10 @@ bool NP_LOADDS NPN_RemoveProperty(NPP instance, NPObject *obj, NPIdentifier prop
 
 	shockwaveInstanceWorkaround();
 
-	writeHandleIdentifier(propertyName);
-	writeHandleObj(obj);
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPN_REMOVE_PROPERTY);
+	ctx->writeHandleIdentifier(propertyName);
+	ctx->writeHandleObj(obj);
+	ctx->writeHandleInstance(instance);
+	ctx->callFunction(FUNCTION_NPN_REMOVE_PROPERTY);
 	bool result = (bool)readResultInt32();
 
 	DBG_TRACE(" -> result=%d", result);
@@ -924,10 +924,10 @@ bool NP_LOADDS NPN_HasProperty(NPP instance, NPObject *obj, NPIdentifier propert
 
 	shockwaveInstanceWorkaround();
 
-	writeHandleIdentifier(propertyName);
-	writeHandleObj(obj);
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPN_HAS_PROPERTY);
+	ctx->writeHandleIdentifier(propertyName);
+	ctx->writeHandleObj(obj);
+	ctx->writeHandleInstance(instance);
+	ctx->callFunction(FUNCTION_NPN_HAS_PROPERTY);
 	bool result = (bool)readResultInt32();
 
 	DBG_TRACE(" -> result=%d", result);
@@ -941,10 +941,10 @@ bool NP_LOADDS NPN_HasMethod(NPP instance, NPObject *obj, NPIdentifier propertyN
 
 	shockwaveInstanceWorkaround();
 
-	writeHandleIdentifier(propertyName);
-	writeHandleObj(obj);
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPN_HAS_METHOD);
+	ctx->writeHandleIdentifier(propertyName);
+	ctx->writeHandleObj(obj);
+	ctx->writeHandleInstance(instance);
+	ctx->callFunction(FUNCTION_NPN_HAS_METHOD);
 	bool result = (bool)readResultInt32();
 
 	DBG_TRACE(" -> result=%d", result);
@@ -983,14 +983,14 @@ void NP_LOADDS NPN_SetException(NPObject *obj, const NPUTF8 *message){
 	DBG_CHECKTHREAD();
 
 #if 1 /*def PIPELIGHT_SYNC*/
-	writeString(message);
-	writeHandleObj(obj);
-	callFunction(FUNCTION_NPN_SET_EXCEPTION);
+	ctx->writeString(message);
+	ctx->writeHandleObj(obj);
+	ctx->callFunction(FUNCTION_NPN_SET_EXCEPTION);
 	readResultVoid();
 #else
-	writeString(message);
-	writeHandleObj(obj);
-	callFunction(FUNCTION_NPN_SET_EXCEPTION_ASYNC);
+	ctx->writeString(message);
+	ctx->writeHandleObj(obj);
+	ctx->callFunction(FUNCTION_NPN_SET_EXCEPTION_ASYNC);
 #endif
 
 	DBG_TRACE(" -> void");
@@ -1004,14 +1004,14 @@ void NP_LOADDS NPN_PushPopupsEnabledState(NPP instance, NPBool enabled){
 	shockwaveInstanceWorkaround();
 
 #if 1 /*def PIPELIGHT_SYNC*/
-	writeInt32(enabled);
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE);
+	ctx->writeInt32(enabled);
+	ctx->writeHandleInstance(instance);
+	ctx->callFunction(FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE);
 	readResultVoid();
 #else
-	writeInt32(enabled);
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE_ASYNC);
+	ctx->writeInt32(enabled);
+	ctx->writeHandleInstance(instance);
+	ctx->callFunction(FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE_ASYNC);
 #endif
 
 	DBG_TRACE(" -> void");
@@ -1025,12 +1025,12 @@ void NP_LOADDS NPN_PopPopupsEnabledState(NPP instance){
 	shockwaveInstanceWorkaround();
 
 #if 1 /*def PIPELIGHT_SYNC*/
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPN_POP_POPUPS_ENABLED_STATE);
+	ctx->writeHandleInstance(instance);
+	ctx->callFunction(FUNCTION_NPN_POP_POPUPS_ENABLED_STATE);
 	readResultVoid();
 #else
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPN_POP_POPUPS_ENABLED_STATE_ASYNC);
+	ctx->writeHandleInstance(instance);
+	ctx->callFunction(FUNCTION_NPN_POP_POPUPS_ENABLED_STATE_ASYNC);
 #endif
 
 	DBG_TRACE(" -> void");
@@ -1043,12 +1043,12 @@ bool NP_LOADDS NPN_Enumerate(NPP instance, NPObject *obj, NPIdentifier **identif
 
 	shockwaveInstanceWorkaround();
 
-	writeHandleObj(obj);
-	writeHandleInstance(instance);
-	callFunction(FUNCTION_NPN_ENUMERATE);
+	ctx->writeHandleObj(obj);
+	ctx->writeHandleInstance(instance);
+	ctx->callFunction(FUNCTION_NPN_ENUMERATE);
 
 	Stack stack;
-	readCommands(stack);
+	ctx->readCommands(stack);
 	bool result = (bool)readInt32(stack);
 	if (result){
 		uint32_t identifierCount = readInt32(stack);

@@ -43,8 +43,8 @@
 void NPInvalidateFunction(NPObject *npobj){
 	DBG_TRACE("( npobj=%p )", npobj);
 
-	writeHandleObj(npobj);
-	callFunction(FUNCTION_NP_INVALIDATE);
+	ctx->writeHandleObj(npobj);
+	ctx->callFunction(FUNCTION_NP_INVALIDATE);
 	readResultVoid();
 
 	DBG_TRACE(" -> void");
@@ -53,9 +53,9 @@ void NPInvalidateFunction(NPObject *npobj){
 bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name){
 	DBG_TRACE("( npobj=%p, name=%p )", npobj, name);
 
-	writeHandleIdentifier(name);
-	writeHandleObj(npobj);
-	callFunction(FUNCTION_NP_HAS_METHOD);
+	ctx->writeHandleIdentifier(name);
+	ctx->writeHandleObj(npobj);
+	ctx->callFunction(FUNCTION_NP_HAS_METHOD);
 
 	bool resultBool = (bool)readResultInt32();
 	DBG_TRACE(" -> result=%d", resultBool);
@@ -66,14 +66,14 @@ bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args,
 	DBG_TRACE("( npobj=%p, name=%p, args[]=%p, argCount=%d, result=%p )", npobj, name, args, argCount, result);
 
 	/* warning: parameter order swapped! */
-	writeVariantArrayConst(args, argCount);
-	writeInt32(argCount);
-	writeHandleIdentifier(name);
-	writeHandleObj(npobj);
-	callFunction(FUNCTION_NP_INVOKE);
+	ctx->writeVariantArrayConst(args, argCount);
+	ctx->writeInt32(argCount);
+	ctx->writeHandleIdentifier(name);
+	ctx->writeHandleObj(npobj);
+	ctx->callFunction(FUNCTION_NP_INVOKE);
 
 	Stack stack;
-	readCommands(stack);
+	ctx->readCommands(stack);
 
 	bool resultBool = (bool)readInt32(stack);
 
@@ -91,13 +91,13 @@ bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args,
 bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result){
 	DBG_TRACE("( npobj=%p, args=%p, argCount=%d, result=%p )", npobj, args, argCount, result);
 
-	writeVariantArrayConst(args, argCount);
-	writeInt32(argCount);
-	writeHandleObj(npobj);
-	callFunction(FUNCTION_NP_INVOKE_DEFAULT);
+	ctx->writeVariantArrayConst(args, argCount);
+	ctx->writeInt32(argCount);
+	ctx->writeHandleObj(npobj);
+	ctx->callFunction(FUNCTION_NP_INVOKE_DEFAULT);
 
 	Stack stack;
-	readCommands(stack);
+	ctx->readCommands(stack);
 
 	bool resultBool = (bool)readInt32(stack);
 
@@ -115,9 +115,9 @@ bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t ar
 bool NPHasPropertyFunction(NPObject *npobj, NPIdentifier name){
 	DBG_TRACE("( npobj=%p, name=%p )", npobj, name);
 
-	writeHandleIdentifier(name);
-	writeHandleObj(npobj);
-	callFunction(FUNCTION_NP_HAS_PROPERTY);
+	ctx->writeHandleIdentifier(name);
+	ctx->writeHandleObj(npobj);
+	ctx->callFunction(FUNCTION_NP_HAS_PROPERTY);
 
 	bool resultBool = (bool)readResultInt32();
 	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
@@ -127,12 +127,12 @@ bool NPHasPropertyFunction(NPObject *npobj, NPIdentifier name){
 bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result){
 	DBG_TRACE("( npobj=%p, name=%p, result=%p )", npobj, name, result);
 
-	writeHandleIdentifier(name);
-	writeHandleObj(npobj);
-	callFunction(FUNCTION_NP_GET_PROPERTY);
+	ctx->writeHandleIdentifier(name);
+	ctx->writeHandleObj(npobj);
+	ctx->callFunction(FUNCTION_NP_GET_PROPERTY);
 
 	Stack stack;
-	readCommands(stack);
+	ctx->readCommands(stack);
 
 	bool resultBool = readInt32(stack); /* refcount already incremented by getProperty() */
 
@@ -150,10 +150,10 @@ bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result
 bool NPSetPropertyFunction(NPObject *npobj, NPIdentifier name, const NPVariant *value){
 	DBG_TRACE("( npobj=%p, name=%p, value=%p )", npobj, name, value);
 
-	writeVariantConst(*value);
-	writeHandleIdentifier(name);
-	writeHandleObj(npobj);
-	callFunction(FUNCTION_NP_SET_PROPERTY);
+	ctx->writeVariantConst(*value);
+	ctx->writeHandleIdentifier(name);
+	ctx->writeHandleObj(npobj);
+	ctx->callFunction(FUNCTION_NP_SET_PROPERTY);
 
 	bool resultBool = (bool)readResultInt32();
 	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
@@ -163,9 +163,9 @@ bool NPSetPropertyFunction(NPObject *npobj, NPIdentifier name, const NPVariant *
 bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name){
 	DBG_TRACE("( npobj=%p, name=%p )", npobj, name);
 
-	writeHandleIdentifier(name);
-	writeHandleObj(npobj);
-	callFunction(FUNCTION_NP_REMOVE_PROPERTY);
+	ctx->writeHandleIdentifier(name);
+	ctx->writeHandleObj(npobj);
+	ctx->callFunction(FUNCTION_NP_REMOVE_PROPERTY);
 
 	bool resultBool = (bool)readResultInt32();
 	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
@@ -175,11 +175,11 @@ bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name){
 bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *count){
 	DBG_TRACE("( npobj=%p, value=%p, count=%p )", npobj, value, count);
 
-	writeHandleObj(npobj);
-	callFunction(FUNCTION_NP_ENUMERATE);
+	ctx->writeHandleObj(npobj);
+	ctx->callFunction(FUNCTION_NP_ENUMERATE);
 
 	Stack stack;
-	readCommands(stack);
+	ctx->readCommands(stack);
 
 	bool result = (bool)readInt32(stack);
 	if (result){
@@ -237,8 +237,8 @@ void NPDeallocateFunction(NPObject *npobj){
 			DBG_TRACE("seems to be a user created handle, calling WIN_HANDLE_MANAGER_FREE_OBJECT( obj=%p ).", npobj);
 
 			/* kill the object on the other side */
-			writeHandleObj(npobj);
-			callFunction(WIN_HANDLE_MANAGER_FREE_OBJECT);
+			ctx->writeHandleObj(npobj);
+			ctx->callFunction(WIN_HANDLE_MANAGER_FREE_OBJECT);
 			readResultVoid();
 
 			/* remove it in the handle manager */

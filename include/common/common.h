@@ -65,6 +65,8 @@
 	NPIdentifier NP_LOADDS NPN_GetStringIdentifier(const NPUTF8* name);
 #endif
 
+class Context;
+extern Context *ctx;
 extern char strMultiPluginName[64];
 
 #ifdef PLUGINLOADER
@@ -379,15 +381,8 @@ struct RECT2{
 		(pt).y += (cy); \
 	}while(0)
 
-extern bool initCommPipes(int out, int in);
-extern bool initCommIO();
-
 extern void setMultiPluginName(const std::string str);
 extern void setMultiPluginName(const char *str);
-
-extern bool writeCommand(uint8_t command, const char *data = NULL, size_t length = 0);
-extern bool __writeString(const char *data, size_t length);
-extern bool readCommands(Stack &stack, bool allowReturn = true, int abortTimeout = 0);
 
 extern int32_t readInt32(Stack &stack);
 extern int64_t readInt64(Stack &stack);
@@ -435,7 +430,6 @@ extern void handleManager_updateIdentifier(NPIdentifier identifier);
 extern void objectDecRef(NPObject *obj, bool deleteFromRemoteHandleManager = true);
 extern void objectKill(NPObject *obj);
 extern void freeVariantDecRef(NPVariant &variant, bool deleteFromRemoteHandleManager = true);
-extern void writeVariantReleaseDecRef(NPVariant &variant);
 extern void readVariantIncRef(Stack &stack, NPVariant &variant);
 #endif
 
@@ -444,200 +438,272 @@ extern void readVariant(Stack &stack, NPVariant &variant);
 extern void freeVariant(NPVariant &variant);
 #endif
 
-extern void writeVariantConst(const NPVariant &variant, bool deleteFromRemoteHandleManager = false);
+
+class Context
+{
+	public:
+		FILE *commPipeOut = NULL;
+		FILE *commPipeIn  = NULL;
+
+		bool initCommPipes(int out, int in);
+		bool initCommIO();
+
+		bool transmitData(const char *data, size_t length);
+		void receiveData(char *data, size_t length);
+		bool receiveCommand(char *data, size_t length, int abortTimeout);
+
+		bool writeCommand(uint8_t command, const char* data = NULL, size_t length = 0);
+		bool __writeString(const char* data, size_t length);
+		bool readCommands(Stack &stack, bool allowReturn = true, int abortTimeout = 0);
+
+		void writeVariantReleaseDecRef(NPVariant &variant);
+		void writeVariantConst(const NPVariant &variant, bool deleteFromRemoteHandleManager = false);
+
+		/* Call a function */
+		inline void callFunction(uint32_t function){
+			DBG_ASSERT(writeCommand(BLOCKCMD_CALL_DIRECT, (char*)&function, sizeof(uint32_t)),
+				"Unable to send BLOCKCMD_CALL_DIRECT.");
+		}
+
+		/* Return from a function */
+		inline void returnCommand(){
+			DBG_ASSERT(writeCommand(BLOCKCMD_RETURN),
+				"Unable to send BLOCKCMD_RETURN.");
+		}
+
+		/* Writes an int32 */
+		inline void writeInt32(int32_t value){
+			DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_INT32, (char*)&value, sizeof(int32_t)),
+				"Unable to send BLOCKCMD_PUSH_INT32.");
+		}
+
+		/* Writes an int64 */
+		inline void writeInt64(int64_t value){
+			DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_INT64, (char*)&value, sizeof(int64_t)),
+				"Unable to send BLOCKCMD_PUSH_INT64.");
+		}
+
+		/* Writes a double */
+		inline void writeDouble(double value){
+			DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_DOUBLE, (char*)&value, sizeof(double)),
+				"Unable to send BLOCKCMD_PUSH_DOUBLE.");
+		}
+
+		/* Writes a C++-string */
+		inline void writeString(const std::string str){
+			DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_STRING, str.c_str(), str.length()+1),
+				"Unable to send BLOCKCMD_PUSH_STRING.");
+		}
+
+		/* Writes a char* string */
+		inline void writeString(const char *str){
+			DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_STRING, str, str ? (strlen(str)+1) : 0 ),
+				"Unable to send BLOCKCMD_PUSH_STRING.");
+		}
+
+		/* Writes a string with a specific length */
+		inline void writeString(const char *str, size_t length){
+			DBG_ASSERT(__writeString(str, length),
+				"Unable to send BLOCKCMD_PUSH_STRING.");
+		}
+
+		/* Writes a memory block (also works for NULL ptr) */
+		inline void writeMemory(const char *memory, size_t length){
+			DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_MEMORY, memory, length),
+				"Unable to send BLOCKCMD_PUSH_MEMORY.");
+		}
+
+		/* Writes a POINT */
+		inline void writePOINT(const POINT &pt){
+			DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_POINT, (char*)&pt, sizeof(pt)),
+				"Unable to send BLOCKCMD_PUSH_POINT.");
+		}
+
+		inline void writePointXY(int32_t x, int32_t y){
+			POINT tmp;
+			tmp.x = x;
+			tmp.y = y;
+			writePOINT(tmp);
+		}
+
+		/* Writes a RECT */
+		inline void writeRECT(const RECT &rect){
+			DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_RECT, (char*)&rect, sizeof(rect)),
+				"Unable to send BLOCKCMD_PUSH_RECT.");
+		}
+
+		inline void writeRECT2(const RECT2 &rect){
+			RECT tmp;
+			tmp.left   = rect.x;
+			tmp.top    = rect.y;
+			tmp.right  = rect.x + rect.width;
+			tmp.bottom = rect.y + rect.height;
+			writeRECT(tmp);
+		}
+
+		inline void writeNPRect(const NPRect &rect){
+			RECT tmp;
+			tmp.left	= rect.left;
+			tmp.top		= rect.top;
+			tmp.right	= rect.right;
+			tmp.bottom	= rect.bottom;
+			writeRECT(tmp);
+		}
+
+		inline void writeRectXYWH(int32_t x, int32_t y, uint32_t width, uint32_t height){
+			RECT tmp;
+			tmp.left	= x;
+			tmp.top		= y;
+			tmp.right	= x + width;
+			tmp.bottom	= y + height;
+			writeRECT(tmp);
+		}
+
+		/* Writes a handle */
+		inline void writeHandle(HMGR_TYPE type, void *ptr, HMGR_EXISTS exists = HMGR_CAN_EXIST){
+			writeHandleId(handleManager_ptrToId(type, ptr, exists));
+			writeInt32(type);
+		}
+
+		inline void writeHandleObj(NPObject *obj, HMGR_EXISTS exists = HMGR_CAN_EXIST, bool deleteFromRemoteHandleManager = false){
+			#ifndef PLUGINLOADER
+				DBG_ASSERT(!deleteFromRemoteHandleManager, "deleteFromRemoteHandleManager set on Linux side.");
+			#endif
+
+			writeInt32(deleteFromRemoteHandleManager);
+			writeHandle(HMGR_TYPE_NPObject, (void *)obj, exists);
+		}
+
+		inline void writeHandleIdentifier(NPIdentifier name, HMGR_EXISTS exists = HMGR_CAN_EXIST){
+		#ifdef PIPELIGHT_NOCACHE
+			writeHandle(HMGR_TYPE_NPIdentifier, name, exists);
+
+		#elif defined(PLUGINLOADER)
+			NPIdentifierDescription *ident = (NPIdentifierDescription *)name;
+			DBG_ASSERT(ident != NULL, "got NULL identifier.");
+
+			switch(ident->type){
+				case IDENT_TYPE_Integer:
+					writeInt32(ident->value.intid);
+					break;
+
+				case IDENT_TYPE_String:
+					writeString(ident->value.name);
+					break;
+
+				default:
+					DBG_ABORT("unsupported identifier type.");
+					break;
+			}
+
+			writeInt32(ident->type);
+
+		#else
+			if (sBrowserFuncs->identifierisstring(name)){
+				NPUTF8 *str = sBrowserFuncs->utf8fromidentifier(name);
+				writeString((char *)str);
+				if (str) sBrowserFuncs->memfree(str);
+				writeInt32(IDENT_TYPE_String);
+
+			}else{
+				writeInt32(sBrowserFuncs->intfromidentifier(name));
+				writeInt32(IDENT_TYPE_Integer);
+			}
+		#endif
+		}
+
+		inline void writeHandleInstance(NPP instance, HMGR_EXISTS exists = HMGR_CAN_EXIST){
+			writeHandle(HMGR_TYPE_NPPInstance, (void*)instance, exists);
+		}
+
+		inline void writeHandleStream(NPStream *stream, HMGR_EXISTS exists = HMGR_CAN_EXIST){
+			writeHandle(HMGR_TYPE_NPStream, (void*)stream, exists);
+		}
+
+		inline void writeHandleNotify(void* notifyData, HMGR_EXISTS exists = HMGR_CAN_EXIST){
+			writeHandle(HMGR_TYPE_NotifyData, notifyData, exists);
+		}
+
+
+	#ifdef PLUGINLOADER
+		inline void writeHandleObjDecRef(NPObject *obj, HMGR_EXISTS exists = HMGR_CAN_EXIST){
+			writeHandleObj(obj, exists, (obj->referenceCount == 1));
+			objectDecRef(obj, false);
+		}
+
+		inline void writeVariantArrayReleaseDecRef(NPVariant *variant, size_t count){
+			for (int i = count - 1; i >= 0; i--)
+				writeVariantReleaseDecRef(variant[i]);
+		}
+	#endif
+
+	#ifndef PLUGINLOADER
+		inline void writeVariantRelease(NPVariant &variant){
+			writeVariantConst(variant);
+
+			if (variant.type == NPVariantType_Object){
+				if (variant.value.objectValue)
+					sBrowserFuncs->retainobject(variant.value.objectValue);
+			}
+
+			sBrowserFuncs->releasevariantvalue(&variant);
+		}
+
+		inline void writeVariantArrayRelease(NPVariant *variant, size_t count){
+			for (int i = count - 1; i >= 0; i--)
+				writeVariantRelease(variant[i]);
+		}
+	#endif
+
+		inline void writeVariantArrayConst(const NPVariant *variant, size_t count){
+			for (int i = count - 1; i >= 0; i--)
+				writeVariantConst(variant[i]);
+		}
+
+		inline void writeNPString(NPString *string){
+			DBG_ASSERT(string, "invalid string pointer.");
+			writeString((char*)string->UTF8Characters, string->UTF8Length);
+		}
+
+		inline void writeStringArray(char* str[], int count){
+			for (int i = count - 1; i >= 0; i--)
+				writeString(str[i]);
+		}
+
+		inline void writeIdentifierArray(NPIdentifier *identifiers, int count){
+			for (int i = count - 1; i >= 0; i--)
+				writeHandleIdentifier(identifiers[i]);
+		}
+
+};
 
 /* inline functions */
-
-/* Call a function */
-inline void callFunction(uint32_t function){
-	DBG_ASSERT(writeCommand(BLOCKCMD_CALL_DIRECT, (char*)&function, sizeof(uint32_t)),
-		"Unable to send BLOCKCMD_CALL_DIRECT.");
-}
-
-/* Return from a function */
-inline void returnCommand(){
-	DBG_ASSERT(writeCommand(BLOCKCMD_RETURN),
-		"Unable to send BLOCKCMD_RETURN.");
-}
-
-/* Writes an int32 */
-inline void writeInt32(int32_t value){
-	DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_INT32, (char*)&value, sizeof(int32_t)),
-		"Unable to send BLOCKCMD_PUSH_INT32.");
-}
-
-/* Writes an int64 */
-inline void writeInt64(int64_t value){
-	DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_INT64, (char*)&value, sizeof(int64_t)),
-		"Unable to send BLOCKCMD_PUSH_INT64.");
-}
-
-/* Writes a double */
-inline void writeDouble(double value){
-	DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_DOUBLE, (char*)&value, sizeof(double)),
-		"Unable to send BLOCKCMD_PUSH_DOUBLE.");
-}
-
-/* Writes a C++-string */
-inline void writeString(const std::string str){
-	DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_STRING, str.c_str(), str.length()+1),
-		"Unable to send BLOCKCMD_PUSH_STRING.");
-}
-
-/* Writes a char* string */
-inline void writeString(const char *str){
-	DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_STRING, str, str ? (strlen(str)+1) : 0 ),
-		"Unable to send BLOCKCMD_PUSH_STRING.");
-}
-
-/* Writes a string with a specific length */
-inline void writeString(const char *str, size_t length){
-	DBG_ASSERT(__writeString(str, length),
-		"Unable to send BLOCKCMD_PUSH_STRING.");
-}
-
-/* Writes a memory block (also works for NULL ptr) */
-inline void writeMemory(const char *memory, size_t length){
-	DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_MEMORY, memory, length),
-		"Unable to send BLOCKCMD_PUSH_MEMORY.");
-}
-
-/* Writes a POINT */
-inline void writePOINT(const POINT &pt){
-	DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_POINT, (char*)&pt, sizeof(pt)),
-		"Unable to send BLOCKCMD_PUSH_POINT.");
-}
-
-inline void writePointXY(int32_t x, int32_t y){
-	POINT tmp;
-	tmp.x = x;
-	tmp.y = y;
-	writePOINT(tmp);
-}
-
-/* Writes a RECT */
-inline void writeRECT(const RECT &rect){
-	DBG_ASSERT(writeCommand(BLOCKCMD_PUSH_RECT, (char*)&rect, sizeof(rect)),
-		"Unable to send BLOCKCMD_PUSH_RECT.");
-}
-
-inline void writeRECT2(const RECT2 &rect){
-	RECT tmp;
-	tmp.left   = rect.x;
-	tmp.top    = rect.y;
-	tmp.right  = rect.x + rect.width;
-	tmp.bottom = rect.y + rect.height;
-	writeRECT(tmp);
-}
-
-inline void writeNPRect(const NPRect &rect){
-	RECT tmp;
-	tmp.left	= rect.left;
-	tmp.top		= rect.top;
-	tmp.right	= rect.right;
-	tmp.bottom	= rect.bottom;
-	writeRECT(tmp);
-}
-
-inline void writeRectXYWH(int32_t x, int32_t y, uint32_t width, uint32_t height){
-	RECT tmp;
-	tmp.left	= x;
-	tmp.top		= y;
-	tmp.right	= x + width;
-	tmp.bottom	= y + height;
-	writeRECT(tmp);
-}
 
 /* Reads an int32 */
 inline int32_t readResultInt32(){
 	Stack stack;
-	readCommands(stack);
+	ctx->readCommands(stack);
 	return readInt32(stack);
 }
 
 /* Reads an int64 */
 inline int64_t readResultInt64(){
 	Stack stack;
-	readCommands(stack);
+	ctx->readCommands(stack);
 	return readInt64(stack);
 }
 
 /* Reads a string */
 inline std::string readResultString(){
 	Stack stack;
-	readCommands(stack);
+	ctx->readCommands(stack);
 	return readString(stack);
 }
 
 /* Waits until the function returns */
 inline void readResultVoid(){
 	Stack stack;
-	readCommands(stack);
-}
-
-/* Writes a handle */
-inline void writeHandle(HMGR_TYPE type, void *ptr, HMGR_EXISTS exists = HMGR_CAN_EXIST){
-	writeHandleId(handleManager_ptrToId(type, ptr, exists));
-	writeInt32(type);
-}
-
-inline void writeHandleObj(NPObject *obj, HMGR_EXISTS exists = HMGR_CAN_EXIST, bool deleteFromRemoteHandleManager = false){
-	#ifndef PLUGINLOADER
-		DBG_ASSERT(!deleteFromRemoteHandleManager, "deleteFromRemoteHandleManager set on Linux side.");
-	#endif
-
-	writeInt32(deleteFromRemoteHandleManager);
-	writeHandle(HMGR_TYPE_NPObject, (void *)obj, exists);
-}
-
-inline void writeHandleIdentifier(NPIdentifier name, HMGR_EXISTS exists = HMGR_CAN_EXIST){
-#ifdef PIPELIGHT_NOCACHE
-	writeHandle(HMGR_TYPE_NPIdentifier, name, exists);
-
-#elif defined(PLUGINLOADER)
-	NPIdentifierDescription *ident = (NPIdentifierDescription *)name;
-	DBG_ASSERT(ident != NULL, "got NULL identifier.");
-
-	switch(ident->type){
-		case IDENT_TYPE_Integer:
-			writeInt32(ident->value.intid);
-			break;
-
-		case IDENT_TYPE_String:
-			writeString(ident->value.name);
-			break;
-
-		default:
-			DBG_ABORT("unsupported identifier type.");
-			break;
-	}
-
-	writeInt32(ident->type);
-
-#else
-	if (sBrowserFuncs->identifierisstring(name)){
-		NPUTF8 *str = sBrowserFuncs->utf8fromidentifier(name);
-		writeString((char *)str);
-		if (str) sBrowserFuncs->memfree(str);
-		writeInt32(IDENT_TYPE_String);
-
-	}else{
-		writeInt32(sBrowserFuncs->intfromidentifier(name));
-		writeInt32(IDENT_TYPE_Integer);
-	}
-#endif
-}
-
-inline void writeHandleInstance(NPP instance, HMGR_EXISTS exists = HMGR_CAN_EXIST){
-	writeHandle(HMGR_TYPE_NPPInstance, (void*)instance, exists);
-}
-
-inline void writeHandleStream(NPStream *stream, HMGR_EXISTS exists = HMGR_CAN_EXIST){
-	writeHandle(HMGR_TYPE_NPStream, (void*)stream, exists);
-}
-
-inline void writeHandleNotify(void* notifyData, HMGR_EXISTS exists = HMGR_CAN_EXIST){
-	writeHandle(HMGR_TYPE_NotifyData, notifyData, exists);
+	ctx->readCommands(stack);
 }
 
 /* Reads a handle */
@@ -727,16 +793,6 @@ inline NPObject* readHandleObjIncRefCreate(Stack &stack, NPP instance = NULL, NP
 	return obj;
 }
 
-inline void writeHandleObjDecRef(NPObject *obj, HMGR_EXISTS exists = HMGR_CAN_EXIST){
-	writeHandleObj(obj, exists, (obj->referenceCount == 1));
-	objectDecRef(obj, false);
-}
-
-inline void writeVariantArrayReleaseDecRef(NPVariant *variant, size_t count){
-	for (int i = count - 1; i >= 0; i--)
-		writeVariantReleaseDecRef(variant[i]);
-}
-
 inline std::vector<NPVariant> readVariantArrayIncRef(Stack &stack, int count){
 	NPVariant variant;
 	std::vector<NPVariant> result;
@@ -758,22 +814,6 @@ inline void freeVariantArrayDecRef(std::vector<NPVariant> args){
 
 #ifndef PLUGINLOADER
 
-inline void writeVariantRelease(NPVariant &variant){
-	writeVariantConst(variant);
-
-	if (variant.type == NPVariantType_Object){
-		if (variant.value.objectValue)
-			sBrowserFuncs->retainobject(variant.value.objectValue);
-	}
-
-	sBrowserFuncs->releasevariantvalue(&variant);
-}
-
-inline void writeVariantArrayRelease(NPVariant *variant, size_t count){
-	for (int i = count - 1; i >= 0; i--)
-		writeVariantRelease(variant[i]);
-}
-
 inline std::vector<NPVariant> readVariantArray(Stack &stack, int count){
 	NPVariant variant;
 	std::vector<NPVariant> result;
@@ -793,22 +833,6 @@ inline void freeVariantArray(std::vector<NPVariant> args){
 
 #endif
 
-inline void writeVariantArrayConst(const NPVariant *variant, size_t count){
-	for (int i = count - 1; i >= 0; i--)
-		writeVariantConst(variant[i]);
-}
-
-inline void writeNPString(NPString *string){
-	DBG_ASSERT(string, "invalid string pointer.");
-	writeString((char*)string->UTF8Characters, string->UTF8Length);
-}
-
-inline void writeStringArray(char* str[], int count){
-	for (int i = count - 1; i >= 0; i--)
-		writeString(str[i]);
-}
-
-
 inline std::vector<char *> readStringArray(Stack &stack, int count){
 	std::vector<char *> result;
 
@@ -821,11 +845,6 @@ inline std::vector<char *> readStringArray(Stack &stack, int count){
 inline void freeStringArray(std::vector<char *> args){
 	for (std::vector<char*>::iterator it = args.begin(); it != args.end(); it++)
 		free(*it);
-}
-
-inline void writeIdentifierArray(NPIdentifier *identifiers, int count){
-	for (int i = count - 1; i >= 0; i--)
-		writeHandleIdentifier(identifiers[i]);
 }
 
 inline std::vector<NPIdentifier> readIdentifierArray(Stack &stack, int count){
@@ -853,10 +872,10 @@ inline bool pluginInitOkay(){
 	uint32_t function = INIT_OKAY;
 	Stack stack;
 
-	if (!writeCommand(BLOCKCMD_CALL_DIRECT, (char *)&function, sizeof(uint32_t)))
+	if (!ctx->writeCommand(BLOCKCMD_CALL_DIRECT, (char *)&function, sizeof(uint32_t)))
 		return false;
 
-	if (!readCommands(stack, true, 60000))
+	if (!ctx->readCommands(stack, true, 60000))
 		return false;
 
 	/* ensure that we're using the correct protocol version */
