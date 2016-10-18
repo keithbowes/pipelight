@@ -84,22 +84,6 @@ extern HMODULE module_kernel32;
 extern HMODULE module_ntdll;
 
 /*
-	NP Class functions
-*/
-void NPInvalidateFunction(NPObject *npobj);
-bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name);
-bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args, uint32_t argCount, NPVariant *result);
-bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result);
-bool NPHasPropertyFunction(NPObject *npobj, NPIdentifier name);
-bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result);
-bool NPSetPropertyFunction(NPObject *npobj, NPIdentifier name, const NPVariant *value);
-bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name);
-bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *count);
-bool NPConstructFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result);
-NPObject * NPAllocateFunction(NPP npp, NPClass *aClass);
-void NPDeallocateFunction(NPObject *npobj);
-
-/*
 	NPN Browser functions
 */
 NPError NP_LOADDS NPN_GetURL(NPP instance, const char* url, const char* window);
