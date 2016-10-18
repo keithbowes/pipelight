@@ -810,7 +810,7 @@ bool makeWindowEmbedded(NPP instance, HWND hWnd, bool embed = true){
 	ctx->writeHandleInstance(instance);
 
 	ctx->callFunction(CHANGE_EMBEDDED_MODE);
-	readResultVoid();
+	ctx->readResultVoid();
 
 	return true;
 }

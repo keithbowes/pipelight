@@ -946,7 +946,7 @@ void objectDecRef(NPObject *obj, bool deleteFromRemoteHandleManager){
 		#ifdef PIPELIGHT_SYNC
 			ctx->writeHandleObj(obj, HMGR_SHOULD_EXIST);
 			ctx->callFunction(LIN_HANDLE_MANAGER_FREE_OBJECT);
-			readResultVoid();
+			ctx->readResultVoid();
 		#else
 			ctx->writeHandleObj(obj, HMGR_SHOULD_EXIST);
 			ctx->callFunction(LIN_HANDLE_MANAGER_FREE_OBJECT_ASYNC);

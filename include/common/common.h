@@ -456,6 +456,34 @@ class Context
 		bool __writeString(const char* data, size_t length);
 		bool readCommands(Stack &stack, bool allowReturn = true, int abortTimeout = 0);
 
+		/* Reads an int32 */
+		inline int32_t readResultInt32(){
+			Stack stack;
+			readCommands(stack);
+			return readInt32(stack);
+		}
+
+		/* Reads an int64 */
+		inline int64_t readResultInt64(){
+			Stack stack;
+			readCommands(stack);
+			return readInt64(stack);
+		}
+
+		/* Reads a string */
+		inline std::string readResultString(){
+			Stack stack;
+			readCommands(stack);
+			return readString(stack);
+		}
+
+		/* Waits until the function returns */
+		inline void readResultVoid(){
+			Stack stack;
+			readCommands(stack);
+		}
+
+
 		void writeVariantReleaseDecRef(NPVariant &variant);
 		void writeVariantConst(const NPVariant &variant, bool deleteFromRemoteHandleManager = false);
 
@@ -678,33 +706,6 @@ class Context
 };
 
 /* inline functions */
-
-/* Reads an int32 */
-inline int32_t readResultInt32(){
-	Stack stack;
-	ctx->readCommands(stack);
-	return readInt32(stack);
-}
-
-/* Reads an int64 */
-inline int64_t readResultInt64(){
-	Stack stack;
-	ctx->readCommands(stack);
-	return readInt64(stack);
-}
-
-/* Reads a string */
-inline std::string readResultString(){
-	Stack stack;
-	ctx->readCommands(stack);
-	return readString(stack);
-}
-
-/* Waits until the function returns */
-inline void readResultVoid(){
-	Stack stack;
-	ctx->readCommands(stack);
-}
 
 /* Reads a handle */
 inline void* __readHandle(HMGR_TYPE type, Stack &stack, void *arg0 = NULL, void *arg1 = NULL, HMGR_EXISTS exists = HMGR_CAN_EXIST){

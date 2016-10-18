@@ -45,7 +45,7 @@ void NPInvalidateFunction(NPObject *npobj){
 
 	ctx->writeHandleObj(npobj);
 	ctx->callFunction(FUNCTION_NP_INVALIDATE);
-	readResultVoid();
+	ctx->readResultVoid();
 
 	DBG_TRACE(" -> void");
 }
@@ -57,7 +57,7 @@ bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name){
 	ctx->writeHandleObj(npobj);
 	ctx->callFunction(FUNCTION_NP_HAS_METHOD);
 
-	bool resultBool = (bool)readResultInt32();
+	bool resultBool = (bool)ctx->readResultInt32();
 	DBG_TRACE(" -> result=%d", resultBool);
 	return resultBool;
 }
@@ -119,7 +119,7 @@ bool NPHasPropertyFunction(NPObject *npobj, NPIdentifier name){
 	ctx->writeHandleObj(npobj);
 	ctx->callFunction(FUNCTION_NP_HAS_PROPERTY);
 
-	bool resultBool = (bool)readResultInt32();
+	bool resultBool = (bool)ctx->readResultInt32();
 	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
 	return resultBool;
 }
@@ -155,7 +155,7 @@ bool NPSetPropertyFunction(NPObject *npobj, NPIdentifier name, const NPVariant *
 	ctx->writeHandleObj(npobj);
 	ctx->callFunction(FUNCTION_NP_SET_PROPERTY);
 
-	bool resultBool = (bool)readResultInt32();
+	bool resultBool = (bool)ctx->readResultInt32();
 	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
 	return resultBool;
 }
@@ -167,7 +167,7 @@ bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name){
 	ctx->writeHandleObj(npobj);
 	ctx->callFunction(FUNCTION_NP_REMOVE_PROPERTY);
 
-	bool resultBool = (bool)readResultInt32();
+	bool resultBool = (bool)ctx->readResultInt32();
 	DBG_TRACE(" -> ( result=%d, ... )", resultBool);
 	return resultBool;
 }
@@ -239,7 +239,7 @@ void NPDeallocateFunction(NPObject *npobj){
 			/* kill the object on the other side */
 			ctx->writeHandleObj(npobj);
 			ctx->callFunction(WIN_HANDLE_MANAGER_FREE_OBJECT);
-			readResultVoid();
+			ctx->readResultVoid();
 
 			/* remove it in the handle manager */
 			handleManager_removeByPtr(HMGR_TYPE_NPObject, npobj);

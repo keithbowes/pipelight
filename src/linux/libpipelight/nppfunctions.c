@@ -221,7 +221,7 @@ NP_EXPORT(NPError) NP_Shutdown(){
 
 	if (initOkay){
 		ctx->callFunction(NP_SHUTDOWN);
-		readResultVoid();
+		ctx->readResultVoid();
 	}
 
 	DBG_TRACE(" -> result=0");
@@ -436,7 +436,7 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 	ctx->writeHandleInstance(instance);
 	ctx->writeString(mimeType);
 	ctx->callFunction(FUNCTION_NPP_NEW);
-	NPError result = readResultInt32();
+	NPError result = ctx->readResultInt32();
 
 	/* The plugin is responsible for freeing *saved. The other side has its own copy of this memory. */
 	if (saved){
@@ -605,7 +605,7 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window){
 		ctx->writeInt32((window->type == NPWindowTypeWindow && window->window) ? 1 : 0);
 		ctx->writeHandleInstance(instance);
 		ctx->callFunction(FUNCTION_NPP_SET_WINDOW);
-		readResultVoid();
+		ctx->readResultVoid();
 	}
 
 	DBG_TRACE(" -> result=0");
@@ -654,7 +654,7 @@ NPError NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason){
 	ctx->writeHandleStream(stream, HMGR_SHOULD_EXIST);
 	ctx->writeHandleInstance(instance);
 	ctx->callFunction(FUNCTION_NPP_DESTROY_STREAM);
-	NPError result = readResultInt32();
+	NPError result = ctx->readResultInt32();
 
 	/* remove the handle by the corresponding stream real object */
 	handleManager_removeByPtr(HMGR_TYPE_NPStream, stream);
@@ -677,7 +677,7 @@ int32_t NPP_WriteReady(NPP instance, NPStream* stream){
 		ctx->writeHandleStream(stream, HMGR_SHOULD_EXIST);
 		ctx->writeHandleInstance(instance);
 		ctx->callFunction(FUNCTION_NPP_WRITE_READY);
-		result = readResultInt32();
+		result = ctx->readResultInt32();
 
 		/* ensure that the program doesn't want too much data at once - this might cause communication errors */
 		if (result > 0xFFFFFF)
@@ -702,7 +702,7 @@ int32_t NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, v
 		ctx->writeHandleInstance(instance);
 		ctx->callFunction(FUNCTION_NPP_WRITE);
 
-		len = readResultInt32();
+		len = ctx->readResultInt32();
 	}
 
 	DBG_TRACE(" -> result=%d", len);
@@ -717,7 +717,7 @@ void NPP_StreamAsFile(NPP instance, NPStream* stream, const char* fname){
 	ctx->writeHandleStream(stream, HMGR_SHOULD_EXIST);
 	ctx->writeHandleInstance(instance);
 	ctx->callFunction(FUNCTION_NPP_STREAM_AS_FILE);
-	readResultVoid();
+	ctx->readResultVoid();
 
 	DBG_TRACE(" -> void");
 }
@@ -748,7 +748,7 @@ int16_t NPP_HandleEvent(NPP instance, void* event){
 				ctx->writeInt32(xevent->xgraphicsexpose.drawable);
 				ctx->writeHandleInstance(instance);
 				ctx->callFunction(WINDOWLESS_EVENT_PAINT);
-				readResultVoid();
+				ctx->readResultVoid();
 				res = kNPEventHandled;
 
 			}else if (xevent->type == MotionNotify){
@@ -756,7 +756,7 @@ int16_t NPP_HandleEvent(NPP instance, void* event){
 				ctx->writeInt32(xevent->xmotion.state);
 				ctx->writeHandleInstance(instance);
 				ctx->callFunction(WINDOWLESS_EVENT_MOUSEMOVE);
-				readResultVoid();
+				ctx->readResultVoid();
 				res = kNPEventHandled;
 
 			}else if (xevent->type == ButtonPress || xevent->type == ButtonRelease){
@@ -766,7 +766,7 @@ int16_t NPP_HandleEvent(NPP instance, void* event){
 				ctx->writeInt32((xevent->type == ButtonPress));
 				ctx->writeHandleInstance(instance);
 				ctx->callFunction(WINDOWLESS_EVENT_MOUSEBUTTON);
-				readResultVoid();
+				ctx->readResultVoid();
 				res = kNPEventHandled;
 
 			}else if (xevent->type == KeyPress || xevent->type == KeyRelease){
@@ -775,7 +775,7 @@ int16_t NPP_HandleEvent(NPP instance, void* event){
 				ctx->writeInt32((xevent->type == KeyPress));
 				ctx->writeHandleInstance(instance);
 				ctx->callFunction(WINDOWLESS_EVENT_KEYBOARD);
-				readResultVoid();
+				ctx->readResultVoid();
 				res = kNPEventHandled;
 
 			}
@@ -798,7 +798,7 @@ void NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyD
 	ctx->writeString(URL);
 	ctx->writeHandleInstance(instance);
 	ctx->callFunction(FUNCTION_NPP_URL_NOTIFY);
-	readResultVoid();
+	ctx->readResultVoid();
 
 	/* free all the notifydata stuff */
 	NotifyDataRefCount* myNotifyData = (NotifyDataRefCount*)notifyData;
@@ -810,7 +810,7 @@ void NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyD
 		#ifdef PIPELIGHT_SYNC
 			ctx->writeHandleNotify(myNotifyData);
 			ctx->callFunction(WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA);
-			readResultVoid();
+			ctx->readResultVoid();
 		#else
 			ctx->writeHandleNotify(myNotifyData);
 			ctx->callFunction(WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA_ASYNC);

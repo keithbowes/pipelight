@@ -146,7 +146,7 @@ static void attach(){
 	if (config.silverlightGraphicDriverCheck)
 	{
 		ctx->callFunction( SILVERLIGHT_IS_GRAPHIC_DRIVER_SUPPORTED );
-		if (!readResultInt32())
+		if (!ctx->readResultInt32())
 			config.overwriteArgs["enableGPUAcceleration"] = "false";
 	}
 

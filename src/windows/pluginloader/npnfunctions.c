@@ -65,7 +65,7 @@ NPError NP_LOADDS NPN_GetURL(NPP instance, const char* url, const char* window){
 	ctx->writeString(url);
 	ctx->writeHandleInstance(instance);
 	ctx->callFunction(FUNCTION_NPN_GET_URL);
-	NPError result = readResultInt32();
+	NPError result = ctx->readResultInt32();
 
 	DBG_TRACE(" -> result=%d", result);
 	return result;
@@ -92,7 +92,7 @@ NPError NP_LOADDS NPN_PostURL(NPP instance, const char* url, const char* window,
 		ctx->writeString(url);
 		ctx->writeHandleInstance(instance);
 		ctx->callFunction(FUNCTION_NPN_POST_URL);
-		result = readResultInt32();
+		result = ctx->readResultInt32();
 	}
 
 	DBG_TRACE(" -> result=%d", result);
@@ -114,7 +114,7 @@ NPError NP_LOADDS NPN_RequestRead(NPStream* stream, NPByteRange* rangeList){
 	ctx->writeInt32(rangeCount);
 	ctx->writeHandleStream(stream, HMGR_SHOULD_EXIST);
 	ctx->callFunction(FUNCTION_NPN_REQUEST_READ);
-	NPError result = readResultInt32();
+	NPError result = ctx->readResultInt32();
 
 	DBG_TRACE(" -> result=%d", result);
 	return result;
@@ -153,7 +153,7 @@ int32_t NP_LOADDS NPN_Write(NPP instance, NPStream* stream, int32_t len, void* b
 	ctx->writeHandleStream(stream, HMGR_SHOULD_EXIST);
 	ctx->writeHandleInstance(instance);
 	ctx->callFunction(FUNCTION_NPN_WRITE);
-	NPError result = readResultInt32();
+	NPError result = ctx->readResultInt32();
 
 	DBG_TRACE(" -> result=%d", result);
 	return result;
@@ -170,7 +170,7 @@ NPError NP_LOADDS NPN_DestroyStream(NPP instance, NPStream* stream, NPReason rea
 	ctx->writeHandleStream(stream, HMGR_SHOULD_EXIST);
 	ctx->writeHandleInstance(instance);
 	ctx->callFunction(FUNCTION_NPN_DESTROY_STREAM);
-	NPError result = readResultInt32();
+	NPError result = ctx->readResultInt32();
 
 	DBG_TRACE(" -> result=%d", result);
 	return result;
@@ -187,7 +187,7 @@ void NP_LOADDS NPN_Status(NPP instance, const char* message){
 	ctx->writeString(message);
 	ctx->writeHandleInstance(instance);
 	ctx->callFunction(FUNCTION_NPN_STATUS);
-	readResultVoid();
+	ctx->readResultVoid();
 #else
 	ctx->writeString(message);
 	ctx->writeHandleInstance(instance);
@@ -211,7 +211,7 @@ const char*  NP_LOADDS NPN_UserAgent(NPP instance){
 		ctx->writeHandleInstance(instance);
 		ctx->callFunction(FUNCTION_NPN_USERAGENT);
 
-		std::string result = readResultString();
+		std::string result = ctx->readResultString();
 	*/
 
 	if (instance && !handleManager_existsByPtr(HMGR_TYPE_NPPInstance, instance)){
@@ -289,7 +289,7 @@ NPError NP_LOADDS NPN_GetURLNotify(NPP instance, const  char* url, const char* t
 	ctx->writeString(url);
 	ctx->writeHandleInstance(instance);
 	ctx->callFunction(FUNCTION_NPN_GET_URL_NOTIFY);
-	NPError result = readResultInt32();
+	NPError result = ctx->readResultInt32();
 
 	DBG_TRACE(" -> result=%d", result);
 	return result;
@@ -317,7 +317,7 @@ NPError NP_LOADDS NPN_PostURLNotify(NPP instance, const char* url, const char* t
 		ctx->writeString(url);
 		ctx->writeHandleInstance(instance);
 		ctx->callFunction(FUNCTION_NPN_POST_URL_NOTIFY);
-		result = readResultInt32();
+		result = ctx->readResultInt32();
 	}
 
 	DBG_TRACE(" -> result=%d", result);
@@ -628,7 +628,7 @@ bool NP_LOADDS NPN_IdentifierIsString(NPIdentifier identifier){
 #ifdef PIPELIGHT_NOCACHE
 	ctx->writeHandleIdentifier(identifier);
 	ctx->callFunction(FUNCTION_NPN_IDENTIFIER_IS_STRING);
-	result = (bool)readResultInt32();
+	result = (bool)ctx->readResultInt32();
 
 #else
 	NPIdentifierDescription *ident = (NPIdentifierDescription *)identifier;
@@ -675,7 +675,7 @@ int32_t NP_LOADDS NPN_IntFromIdentifier(NPIdentifier identifier){
 #ifdef PIPELIGHT_NOCACHE
 	ctx->writeHandleIdentifier(identifier);
 	ctx->callFunction(FUNCTION_NPN_INT_FROM_IDENTIFIER);
-	result = readResultInt32();
+	result = ctx->readResultInt32();
 
 #else
 	NPIdentifierDescription *ident = (NPIdentifierDescription *)identifier;
@@ -718,7 +718,7 @@ NPObject* NP_LOADDS NPN_RetainObject(NPObject *obj){
 		ctx->writeInt32(obj->referenceCount);
 		ctx->writeHandleObj(obj, HMGR_SHOULD_EXIST);
 		ctx->callFunction(FUNCTION_NPN_RETAINOBJECT);
-		readResultVoid();
+		ctx->readResultVoid();
 	#else
 		ctx->writeInt32(obj->referenceCount);
 		ctx->writeHandleObj(obj, HMGR_SHOULD_EXIST);
@@ -740,7 +740,7 @@ void NP_LOADDS NPN_ReleaseObject(NPObject *obj){
 		ctx->writeInt32(obj->referenceCount);
 		ctx->writeHandleObjDecRef(obj, HMGR_SHOULD_EXIST);
 		ctx->callFunction(FUNCTION_NPN_RELEASEOBJECT);
-		readResultVoid();
+		ctx->readResultVoid();
 
 	#else
 		/* even without PIPELIGHT_SYNC we need a synchronized call in some cases (when a callback might happen) */
@@ -748,7 +748,7 @@ void NP_LOADDS NPN_ReleaseObject(NPObject *obj){
 			ctx->writeInt32(obj->referenceCount);
 			ctx->writeHandleObjDecRef(obj, HMGR_SHOULD_EXIST);
 			ctx->callFunction(FUNCTION_NPN_RELEASEOBJECT);
-			readResultVoid();
+			ctx->readResultVoid();
 
 		}else{
 			ctx->writeInt32(obj->referenceCount);
@@ -894,7 +894,7 @@ bool NP_LOADDS NPN_SetProperty(NPP instance, NPObject *obj, NPIdentifier propert
 	ctx->writeHandleObj(obj);
 	ctx->writeHandleInstance(instance);
 	ctx->callFunction(FUNCTION_NPN_SET_PROPERTY);
-	bool result = (bool)readResultInt32();
+	bool result = (bool)ctx->readResultInt32();
 
 	DBG_TRACE(" -> result=%d", result);
 	return result;
@@ -911,7 +911,7 @@ bool NP_LOADDS NPN_RemoveProperty(NPP instance, NPObject *obj, NPIdentifier prop
 	ctx->writeHandleObj(obj);
 	ctx->writeHandleInstance(instance);
 	ctx->callFunction(FUNCTION_NPN_REMOVE_PROPERTY);
-	bool result = (bool)readResultInt32();
+	bool result = (bool)ctx->readResultInt32();
 
 	DBG_TRACE(" -> result=%d", result);
 	return result;
@@ -928,7 +928,7 @@ bool NP_LOADDS NPN_HasProperty(NPP instance, NPObject *obj, NPIdentifier propert
 	ctx->writeHandleObj(obj);
 	ctx->writeHandleInstance(instance);
 	ctx->callFunction(FUNCTION_NPN_HAS_PROPERTY);
-	bool result = (bool)readResultInt32();
+	bool result = (bool)ctx->readResultInt32();
 
 	DBG_TRACE(" -> result=%d", result);
 	return result;
@@ -945,7 +945,7 @@ bool NP_LOADDS NPN_HasMethod(NPP instance, NPObject *obj, NPIdentifier propertyN
 	ctx->writeHandleObj(obj);
 	ctx->writeHandleInstance(instance);
 	ctx->callFunction(FUNCTION_NPN_HAS_METHOD);
-	bool result = (bool)readResultInt32();
+	bool result = (bool)ctx->readResultInt32();
 
 	DBG_TRACE(" -> result=%d", result);
 	return result;
@@ -986,7 +986,7 @@ void NP_LOADDS NPN_SetException(NPObject *obj, const NPUTF8 *message){
 	ctx->writeString(message);
 	ctx->writeHandleObj(obj);
 	ctx->callFunction(FUNCTION_NPN_SET_EXCEPTION);
-	readResultVoid();
+	ctx->readResultVoid();
 #else
 	ctx->writeString(message);
 	ctx->writeHandleObj(obj);
@@ -1007,7 +1007,7 @@ void NP_LOADDS NPN_PushPopupsEnabledState(NPP instance, NPBool enabled){
 	ctx->writeInt32(enabled);
 	ctx->writeHandleInstance(instance);
 	ctx->callFunction(FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE);
-	readResultVoid();
+	ctx->readResultVoid();
 #else
 	ctx->writeInt32(enabled);
 	ctx->writeHandleInstance(instance);
@@ -1027,7 +1027,7 @@ void NP_LOADDS NPN_PopPopupsEnabledState(NPP instance){
 #if 1 /*def PIPELIGHT_SYNC*/
 	ctx->writeHandleInstance(instance);
 	ctx->callFunction(FUNCTION_NPN_POP_POPUPS_ENABLED_STATE);
-	readResultVoid();
+	ctx->readResultVoid();
 #else
 	ctx->writeHandleInstance(instance);
 	ctx->callFunction(FUNCTION_NPN_POP_POPUPS_ENABLED_STATE_ASYNC);
