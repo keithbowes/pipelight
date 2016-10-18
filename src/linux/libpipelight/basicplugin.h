@@ -109,7 +109,9 @@ NPError NPP_SetValue(NPP instance, NPNVariable variable, void *value);
 #define XEMBED_MAPPED					(1 << 0)
 
 /* public */
-struct PluginData{
+struct PluginData
+{
+	Context			*ctx;
 	bool			pipelightError;
 	int				containerType;
 	void*			container;

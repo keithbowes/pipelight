@@ -58,15 +58,18 @@ static std::string pipelightErrorJS =
 	"}";
 
 /* NP_Initialize */
-NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs *bFuncs, NPPluginFuncs* pFuncs){
+NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs *bFuncs, NPPluginFuncs *pFuncs)
+{
 	DBG_TRACE("( bFuncs=%p, pFuncs=%p )", bFuncs, pFuncs);
 
-	if (bFuncs == NULL || pFuncs == NULL){
+	if (bFuncs == NULL || pFuncs == NULL)
+	{
 		DBG_TRACE(" -> result=NPERR_INVALID_PARAM");
 		return NPERR_INVALID_PARAM;
 	}
 
-	if ((bFuncs->version >> 8) > NP_VERSION_MAJOR){
+	if ((bFuncs->version >> 8) > NP_VERSION_MAJOR)
+	{
 		DBG_ERROR("incompatible browser version!");
 		DBG_TRACE(" -> result=%d", NPERR_INCOMPATIBLE_VERSION_ERROR);
 		return NPERR_INCOMPATIBLE_VERSION_ERROR;
@@ -76,7 +79,8 @@ NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs *bFuncs, NPPluginFuncs* pFuncs)
 	if (!sBrowserFuncs)
 		sBrowserFuncs = (NPNetscapeFuncs*)malloc( sizeof(NPNetscapeFuncs) );
 
-	if (!sBrowserFuncs){
+	if (!sBrowserFuncs)
+	{
 		DBG_TRACE(" -> result=%d", NPERR_OUT_OF_MEMORY_ERROR);
 		return NPERR_OUT_OF_MEMORY_ERROR;
 	}
@@ -123,26 +127,31 @@ NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs *bFuncs, NPPluginFuncs* pFuncs)
 			!sBrowserFuncs->uagent ||
 			/* !sBrowserFuncs->unscheduletimer || */
 			!sBrowserFuncs->utf8fromidentifier ||
-			!sBrowserFuncs->write ){
+			!sBrowserFuncs->write )
+	{
 		DBG_ERROR("your browser doesn't support all required functions!");
 		DBG_TRACE(" -> result=%d", NPERR_INCOMPATIBLE_VERSION_ERROR);
 		return NPERR_INCOMPATIBLE_VERSION_ERROR;
 	}
 
-	if (pFuncs->size < (offsetof(NPPluginFuncs, setvalue) + sizeof(void*))){
+	if (pFuncs->size < (offsetof(NPPluginFuncs, setvalue) + sizeof(void*)))
+	{
 		DBG_TRACE(" -> result=%d", NPERR_INVALID_FUNCTABLE_ERROR);
 		return NPERR_INVALID_FUNCTABLE_ERROR;
 	}
 
 	/* select which event handling method should be used */
-	if (!config.eventAsyncCall && sBrowserFuncs->scheduletimer && sBrowserFuncs->unscheduletimer){
+	if (!config.eventAsyncCall && sBrowserFuncs->scheduletimer && sBrowserFuncs->unscheduletimer)
+	{
 		DBG_INFO("using timer based event handling.");
-
-	}else if (sBrowserFuncs->pluginthreadasynccall){
+	}
+	else if (sBrowserFuncs->pluginthreadasynccall)
+	{
 		DBG_INFO("using thread asynccall event handling.");
 		config.eventAsyncCall = true;
-
-	}else{
+	}
+	else
+	{
 		DBG_ERROR("no eventhandling compatible with your browser available.");
 		DBG_TRACE(" -> result=%d", NPERR_INCOMPATIBLE_VERSION_ERROR);
 		return NPERR_INCOMPATIBLE_VERSION_ERROR;
@@ -172,28 +181,31 @@ NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs *bFuncs, NPPluginFuncs* pFuncs)
 }
 
 /* NP_GetPluginVersion */
-NP_EXPORT(/*const*/ char*) NP_GetPluginVersion(){
+NP_EXPORT(/*const*/ char*) NP_GetPluginVersion()
+{
 	DBG_TRACE("()");
 	DBG_TRACE(" -> version='%s'", strPluginVersion);
 	return strPluginVersion;
 }
 
 /* NP_GetMIMEDescription */
-NP_EXPORT(const char*) NP_GetMIMEDescription(){
+NP_EXPORT(const char*) NP_GetMIMEDescription()
+{
 	DBG_TRACE("()");
 	DBG_TRACE(" -> mimeType='%s'", strMimeType);
 	return strMimeType;
 }
 
 /* NP_GetValue */
-NP_EXPORT(NPError) NP_GetValue(void *future, NPPVariable variable, void *value){
+NP_EXPORT(NPError) NP_GetValue(void *future, NPPVariable variable, void *value)
+{
 	NPError result = NPERR_GENERIC_ERROR;
 	std::string resultStr;
 
 	DBG_TRACE("( future=%p, variable=%d, value=%p )", future, variable, value);
 
-	switch (variable) {
-
+	switch (variable)
+	{
 		case NPPVpluginNameString:
 			*((char**)value)	= strPluginName;
 			result				= NPERR_NO_ERROR;
@@ -208,7 +220,6 @@ NP_EXPORT(NPError) NP_GetValue(void *future, NPPVariable variable, void *value){
 			NOTIMPLEMENTED("( variable=%d )", variable);
 			result = NPERR_INVALID_PARAM;
 			break;
-
 	}
 
 	DBG_TRACE(" -> result=%d", result);
@@ -216,10 +227,12 @@ NP_EXPORT(NPError) NP_GetValue(void *future, NPPVariable variable, void *value){
 }
 
 /* NP_Shutdown */
-NP_EXPORT(NPError) NP_Shutdown(){
+NP_EXPORT(NPError) NP_Shutdown()
+{
 	DBG_TRACE("NP_Shutdown()");
 
-	if (initOkay){
+	if (initOkay)
+	{
 		ctx->callFunction(NP_SHUTDOWN);
 		ctx->readResultVoid();
 	}
@@ -228,7 +241,8 @@ NP_EXPORT(NPError) NP_Shutdown(){
 	return NPERR_NO_ERROR;
 }
 
-inline void timerFunc(NPP __instance, uint32_t __timerID){
+inline void timerFunc(NPP __instance, uint32_t __timerID)
+{
 	/* Update the window */
 #if 0
 	ctx->writeInt64( handleManager_count() );
@@ -242,10 +256,12 @@ inline void timerFunc(NPP __instance, uint32_t __timerID){
 		return;
 
 	uint32_t invalidateCount = readInt32(stack);
-	while (invalidateCount--){
+	while (invalidateCount--)
+	{
 		NPP instance   = readHandleInstance(stack);
 
-		switch (readInt32(stack)){
+		switch (readInt32(stack))
+		{
 			case INVALIDATE_RECT:
 				{
 					NPRect rect;
@@ -260,13 +276,12 @@ inline void timerFunc(NPP __instance, uint32_t __timerID){
 
 			default:
 				DBG_ABORT("PROCESS_WINDOW_EVENTS returned unsupported invalidate action.");
-
 		}
 	}
-
 }
 
-static void timerThreadAsyncFunc(void* argument){
+static void timerThreadAsyncFunc(void *argument)
+{
 
 	/* has been cancelled if we cannot acquire this lock */
 	if (sem_trywait(&eventThreadSemScheduledAsyncCall)) return;
@@ -278,15 +293,18 @@ static void timerThreadAsyncFunc(void* argument){
 	sem_post(&eventThreadSemRequestAsyncCall);
 }
 
-static void* timerThread(void *argument){
-	while (true){
+static void* timerThread(void *argument)
+{
+	while (true)
+	{
 		sem_wait(&eventThreadSemRequestAsyncCall);
 
 		/* 10 ms of sleeping before requesting again */
 		usleep(10000);
 
 		/* If no instance is running, just terminate */
-		if (!eventTimerInstance){
+		if (!eventTimerInstance)
+		{
 			sem_wait(&eventThreadSemRequestAsyncCall);
 			if (!eventTimerInstance) break;
 		}
@@ -311,31 +329,35 @@ static void executeJS(NPP instance, std::string code)
 	resultVariant.type				= NPVariantType_Void;
 	resultVariant.value.objectValue = NULL;
 
-	if (sBrowserFuncs->getvalue(instance, NPNVWindowNPObject, &windowObj) == NPERR_NO_ERROR){
-		if (sBrowserFuncs->evaluate(instance, windowObj, &script, &resultVariant)){
+	if (sBrowserFuncs->getvalue(instance, NPNVWindowNPObject, &windowObj) == NPERR_NO_ERROR)
+	{
+		if (sBrowserFuncs->evaluate(instance, windowObj, &script, &resultVariant))
+		{
 			sBrowserFuncs->releasevariantvalue(&resultVariant);
 			DBG_INFO("successfully executed JavaScript.");
-		}else
+		}
+		else
 			DBG_ERROR("failed to execute JavaScript, take a look at the JS console.");
 		sBrowserFuncs->releaseobject(windowObj);
 	}
 }
 
 /* NPP_New */
-NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char *argn[], char *argv[], NPSavedData* saved){
+NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc, char *argn[], char *argv[], NPSavedData *saved)
+{
 	std::string mimeType(pluginType);
+	struct PluginData *pdata;
 
 	DBG_TRACE("( pluginType='%s', instance=%p, mode=%d, argc=%d, argn=%p, argv=%p, saved=%p )", pluginType, instance, mode, argc, argn, argv, saved);
 
-	PluginData *pdata = (PluginData*)malloc(sizeof(PluginData));
-	if (!pdata){
-		DBG_TRACE(" -> result=%d", NPERR_OUT_OF_MEMORY_ERROR);
-		return NPERR_OUT_OF_MEMORY_ERROR;
-	}
+	pdata = (struct PluginData *)malloc(sizeof(struct PluginData));
+	DBG_ASSERT(pdata != NULL, "failed to allocate memory.");
 
-	bool invalidMimeType	= (mimeType == "application/x-pipelight-error" || mimeType == "application/x-pipelight-error-" + config.pluginName);
+	bool invalidMimeType	= (mimeType == "application/x-pipelight-error" ||
+							   mimeType == "application/x-pipelight-error-" + config.pluginName);
 
 	/* setup plugin data structure */
+	pdata->ctx              = ctx; /* FIXME: How can we get this? */
 	pdata->pipelightError	= (!initOkay || invalidMimeType);
 	pdata->containerType    = 0;
 	pdata->container		= NULL;
@@ -461,15 +483,12 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 }
 
 /* NPP_Destroy */
-NPError NPP_Destroy(NPP instance, NPSavedData** save){
-	DBG_TRACE("( instance=%p, save=%p )", instance, save);
+NPError NPP_Destroy(NPP instance, NPSavedData **save)
+{
+	struct PluginData *pdata = (struct PluginData *)instance->pdata;
+	Context *ctx = pdata->ctx;
 
-	/* Initialization failed */
-	PluginData *pdata = (PluginData*)instance->pdata;
-	if (!pdata){
-		DBG_TRACE(" -> result=%d", NPERR_GENERIC_ERROR);
-		return NPERR_GENERIC_ERROR;
-	}
+	DBG_TRACE("( instance=%p, save=%p )", instance, save);
 
 	bool pipelightError = pdata->pipelightError;
 
@@ -570,14 +589,17 @@ NPError NPP_Destroy(NPP instance, NPSavedData** save){
 }
 
 /* NPP_SetWindow */
-NPError NPP_SetWindow(NPP instance, NPWindow* window){
-	DBG_TRACE("( instance=%p, window=%p )", instance, window);
+NPError NPP_SetWindow(NPP instance, NPWindow *window)
+{
+	struct PluginData *pdata = (struct PluginData *)instance->pdata;
+	Context *ctx = pdata->ctx;
 
-	PluginData *pdata = (PluginData*)instance->pdata;
+	DBG_TRACE("( instance=%p, window=%p )", instance, window);
 
 #ifndef __APPLE__
 	NPWindow windowOverride;
-	if (config.x11WindowID){
+	if (config.x11WindowID)
+	{
 		Display *display = XOpenDisplay(NULL);
 		if (display)
 		{
@@ -596,10 +618,8 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window){
 
 	if (window){
 		/* save the embed container */
-		if (pdata){
-			pdata->containerType	= window->type;
-			pdata->container		= window->window;
-		}
+		pdata->containerType	= window->type;
+		pdata->container		= window->window;
 
 		ctx->writeRectXYWH(window->x, window->y, window->width, window->height);
 		ctx->writeInt32((window->type == NPWindowTypeWindow && window->window) ? 1 : 0);
@@ -613,10 +633,17 @@ NPError NPP_SetWindow(NPP instance, NPWindow* window){
 }
 
 /* NPP_NewStream */
-NPError NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool seekable, uint16_t* stype){
+NPError NPP_NewStream(NPP instance, NPMIMEType type, NPStream *stream, NPBool seekable, uint16_t *stype)
+{
+	struct PluginData *pdata = (struct PluginData *)instance->pdata;
+	Context *ctx = pdata->ctx;
+	NPError result;
+	Stack stack;
+
 	DBG_TRACE("( instance=%p, type='%s', stream=%p, seekable=%d, stype=%p )", instance, type, stream, seekable, stype);
 
-	if (handleManager_existsByPtr(HMGR_TYPE_NPStream, stream)){
+	if (handleManager_existsByPtr(HMGR_TYPE_NPStream, stream))
+	{
 		DBG_ERROR("Chrome notification for existing stream bug!");
 		NPP_DestroyStream(instance, stream, NPRES_DONE);
 	}
@@ -626,10 +653,8 @@ NPError NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool se
 	ctx->writeString(type);
 	ctx->writeHandleInstance(instance);
 	ctx->callFunction(FUNCTION_NPP_NEW_STREAM);
-
-	Stack stack;
 	ctx->readCommands(stack);
-	NPError result	= readInt32(stack);
+	result = readInt32(stack);
 
 	if (result == NPERR_NO_ERROR)
 		*stype = (uint16_t)readInt32(stack);
@@ -641,10 +666,16 @@ NPError NPP_NewStream(NPP instance, NPMIMEType type, NPStream* stream, NPBool se
 }
 
 /* NPP_DestroyStream */
-NPError NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason){
+NPError NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason)
+{
+	struct PluginData *pdata = (struct PluginData *)instance->pdata;
+	Context *ctx = pdata->ctx;
+	NPError result;
+
 	DBG_TRACE("( instance=%p, stream=%p, reason=%d )", instance, stream, reason);
 
-	if (!handleManager_existsByPtr(HMGR_TYPE_NPStream, stream)){
+	if (!handleManager_existsByPtr(HMGR_TYPE_NPStream, stream))
+	{
 		DBG_TRACE("Opera use-after-free bug!");
 		DBG_TRACE(" -> result=0");
 		return NPERR_NO_ERROR;
@@ -654,7 +685,7 @@ NPError NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason){
 	ctx->writeHandleStream(stream, HMGR_SHOULD_EXIST);
 	ctx->writeHandleInstance(instance);
 	ctx->callFunction(FUNCTION_NPP_DESTROY_STREAM);
-	NPError result = ctx->readResultInt32();
+	result = ctx->readResultInt32();
 
 	/* remove the handle by the corresponding stream real object */
 	handleManager_removeByPtr(HMGR_TYPE_NPStream, stream);
@@ -664,16 +695,21 @@ NPError NPP_DestroyStream(NPP instance, NPStream* stream, NPReason reason){
 }
 
 /* NPP_WriteReady */
-int32_t NPP_WriteReady(NPP instance, NPStream* stream){
-	DBG_TRACE("( instance=%p, stream=%p )", instance, stream);
-
+int32_t NPP_WriteReady(NPP instance, NPStream *stream)
+{
+	struct PluginData *pdata = (struct PluginData *)instance->pdata;
+	Context *ctx = pdata->ctx;
 	int32_t result;
 
-	if (!handleManager_existsByPtr(HMGR_TYPE_NPStream, stream)){
+	DBG_TRACE("( instance=%p, stream=%p )", instance, stream);
+
+	if (!handleManager_existsByPtr(HMGR_TYPE_NPStream, stream))
+	{
 		DBG_TRACE("Chrome use-after-free bug!");
 		result = 0x7FFFFFFF;
-
-	}else{
+	}
+	else
+	{
 		ctx->writeHandleStream(stream, HMGR_SHOULD_EXIST);
 		ctx->writeHandleInstance(instance);
 		ctx->callFunction(FUNCTION_NPP_WRITE_READY);
@@ -689,19 +725,22 @@ int32_t NPP_WriteReady(NPP instance, NPStream* stream){
 }
 
 /* NPP_Write */
-int32_t NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, void* buffer){
+int32_t NPP_Write(NPP instance, NPStream *stream, int32_t offset, int32_t len, void *buffer)
+{
+	struct PluginData *pdata = (struct PluginData *)instance->pdata;
+	Context *ctx = pdata->ctx;
+
 	DBG_TRACE("( instance=%p, stream=%p, offset=%d, len=%d, buffer=%p )", instance, stream, offset, len, buffer);
 
 	if (!handleManager_existsByPtr(HMGR_TYPE_NPStream, stream))
 		DBG_TRACE("Chrome use-after-free bug!");
-
-	else{
+	else
+	{
 		ctx->writeMemory((char*)buffer, len);
 		ctx->writeInt32(offset);
 		ctx->writeHandleStream(stream, HMGR_SHOULD_EXIST);
 		ctx->writeHandleInstance(instance);
 		ctx->callFunction(FUNCTION_NPP_WRITE);
-
 		len = ctx->readResultInt32();
 	}
 
@@ -710,7 +749,11 @@ int32_t NPP_Write(NPP instance, NPStream* stream, int32_t offset, int32_t len, v
 }
 
 /* NPP_StreamAsFile */
-void NPP_StreamAsFile(NPP instance, NPStream* stream, const char* fname){
+void NPP_StreamAsFile(NPP instance, NPStream *stream, const char *fname)
+{
+	struct PluginData *pdata = (struct PluginData *)instance->pdata;
+	Context *ctx = pdata->ctx;
+
 	DBG_TRACE("( instance=%p, stream=%p, fname=%p )", instance, stream, fname);
 
 	ctx->writeString(fname);
@@ -723,65 +766,69 @@ void NPP_StreamAsFile(NPP instance, NPStream* stream, const char* fname){
 }
 
 /* NPP_Print */
-void NPP_Print(NPP instance, NPPrint* platformPrint){
+void NPP_Print(NPP instance, NPPrint *platformPrint)
+{
 	DBG_TRACE("( instance=%p, platformPrint=%p )", instance, platformPrint);
 	NOTIMPLEMENTED();
 	DBG_TRACE(" -> void");
 }
 
 /* NPP_HandleEvent */
-int16_t NPP_HandleEvent(NPP instance, void* event){
+int16_t NPP_HandleEvent(NPP instance, void* event)
+{
+	struct PluginData *pdata = (struct PluginData *)instance->pdata;
+	Context *ctx = pdata->ctx;
+
 	DBG_TRACE("( instance=%p, event=%p )", instance, event);
 
 	int16_t res = kNPEventNotHandled;
 
 #ifndef __APPLE__
-	if (config.linuxWindowlessMode && event){
+	if (config.linuxWindowlessMode && event)
+	{
 		XEvent *xevent   = (XEvent *)event;
-		/* Display *display = xevent->xany.display; */
-
-		PluginData *pdata = (PluginData*)instance->pdata;
-		if (pdata){
-			if (xevent->type == GraphicsExpose){
-				ctx->writeRectXYWH(xevent->xgraphicsexpose.x, xevent->xgraphicsexpose.y,
-					xevent->xgraphicsexpose.width, xevent->xgraphicsexpose.height);
-				ctx->writeInt32(xevent->xgraphicsexpose.drawable);
-				ctx->writeHandleInstance(instance);
-				ctx->callFunction(WINDOWLESS_EVENT_PAINT);
-				ctx->readResultVoid();
-				res = kNPEventHandled;
-
-			}else if (xevent->type == MotionNotify){
-				ctx->writePointXY(xevent->xmotion.x, xevent->xmotion.y);
-				ctx->writeInt32(xevent->xmotion.state);
-				ctx->writeHandleInstance(instance);
-				ctx->callFunction(WINDOWLESS_EVENT_MOUSEMOVE);
-				ctx->readResultVoid();
-				res = kNPEventHandled;
-
-			}else if (xevent->type == ButtonPress || xevent->type == ButtonRelease){
-				ctx->writePointXY(xevent->xbutton.x, xevent->xbutton.y);
-				ctx->writeInt32(xevent->xbutton.button);
-				ctx->writeInt32(xevent->xbutton.state);
-				ctx->writeInt32((xevent->type == ButtonPress));
-				ctx->writeHandleInstance(instance);
-				ctx->callFunction(WINDOWLESS_EVENT_MOUSEBUTTON);
-				ctx->readResultVoid();
-				res = kNPEventHandled;
-
-			}else if (xevent->type == KeyPress || xevent->type == KeyRelease){
-				ctx->writeInt32(xevent->xkey.keycode);
-				ctx->writeInt32(xevent->xkey.state);
-				ctx->writeInt32((xevent->type == KeyPress));
-				ctx->writeHandleInstance(instance);
-				ctx->callFunction(WINDOWLESS_EVENT_KEYBOARD);
-				ctx->readResultVoid();
-				res = kNPEventHandled;
-
-			}
+		if (xevent->type == GraphicsExpose)
+		{
+			ctx->writeRectXYWH(xevent->xgraphicsexpose.x, xevent->xgraphicsexpose.y,
+				xevent->xgraphicsexpose.width, xevent->xgraphicsexpose.height);
+			ctx->writeInt32(xevent->xgraphicsexpose.drawable);
+			ctx->writeHandleInstance(instance);
+			ctx->callFunction(WINDOWLESS_EVENT_PAINT);
+			ctx->readResultVoid();
+			res = kNPEventHandled;
 		}
-
-	}else
+		else if (xevent->type == MotionNotify)
+		{
+			ctx->writePointXY(xevent->xmotion.x, xevent->xmotion.y);
+			ctx->writeInt32(xevent->xmotion.state);
+			ctx->writeHandleInstance(instance);
+			ctx->callFunction(WINDOWLESS_EVENT_MOUSEMOVE);
+			ctx->readResultVoid();
+			res = kNPEventHandled;
+		}
+		else if (xevent->type == ButtonPress || xevent->type == ButtonRelease)
+		{
+			ctx->writePointXY(xevent->xbutton.x, xevent->xbutton.y);
+			ctx->writeInt32(xevent->xbutton.button);
+			ctx->writeInt32(xevent->xbutton.state);
+			ctx->writeInt32((xevent->type == ButtonPress));
+			ctx->writeHandleInstance(instance);
+			ctx->callFunction(WINDOWLESS_EVENT_MOUSEBUTTON);
+			ctx->readResultVoid();
+			res = kNPEventHandled;
+		}
+		else if (xevent->type == KeyPress || xevent->type == KeyRelease)
+		{
+			ctx->writeInt32(xevent->xkey.keycode);
+			ctx->writeInt32(xevent->xkey.state);
+			ctx->writeInt32((xevent->type == KeyPress));
+			ctx->writeHandleInstance(instance);
+			ctx->callFunction(WINDOWLESS_EVENT_KEYBOARD);
+			ctx->readResultVoid();
+			res = kNPEventHandled;
+		}
+	}
+	else
 		NOTIMPLEMENTED("ignoring unexpected callback.");
 #endif
 
@@ -790,7 +837,11 @@ int16_t NPP_HandleEvent(NPP instance, void* event){
 }
 
 /* NPP_URLNotify */
-void NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyData){
+void NPP_URLNotify(NPP instance, const char *URL, NPReason reason, void *notifyData)
+{
+	struct PluginData *pdata = (struct PluginData *)instance->pdata;
+	Context *ctx = pdata->ctx;
+
 	DBG_TRACE("( instance=%p, URL='%s', reason=%d, notifyData=%p )", instance, URL, reason, notifyData);
 
 	ctx->writeHandleNotify(notifyData, HMGR_SHOULD_EXIST);
@@ -820,7 +871,11 @@ void NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyD
 }
 
 /* NPP_GetValue */
-NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value){
+NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value)
+{
+	struct PluginData *pdata = (struct PluginData *)instance->pdata;
+	Context *ctx = pdata->ctx;
+
 	DBG_TRACE("( instance=%p, variable=%d, value=%p )", instance, variable, value);
 
 	NPError result = NPERR_GENERIC_ERROR;
@@ -872,7 +927,8 @@ NPError NPP_GetValue(NPP instance, NPPVariable variable, void *value){
 }
 
 /* NPP_SetValue */
-NPError NPP_SetValue(NPP instance, NPNVariable variable, void *value){
+NPError NPP_SetValue(NPP instance, NPNVariable variable, void *value)
+{
 	DBG_TRACE("( instance=%p, variable=%d, value=%p )", instance, variable, value);
 	NOTIMPLEMENTED();
 	DBG_TRACE(" -> result=%d", NPERR_GENERIC_ERROR);
