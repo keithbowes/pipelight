@@ -433,15 +433,15 @@ void Context::dispatcher(int functionid, Stack &stack){
 				NPStream* stream = readHandleStream(stack); /* shouldExist not necessary, Linux checks always */
 				DBG_TRACE("LIN_HANDLE_MANAGER_REQUEST_STREAM_INFO( stream=%p )", stream);
 
-				ctx->writeString(stream->headers);
-				ctx->writeHandleNotify(stream->notifyData, HMGR_SHOULD_EXIST);
-				ctx->writeInt32(stream->lastmodified);
-				ctx->writeInt32(stream->end);
-				ctx->writeString(stream->url);
+				writeString(stream->headers);
+				writeHandleNotify(stream->notifyData, HMGR_SHOULD_EXIST);
+				writeInt32(stream->lastmodified);
+				writeInt32(stream->end);
+				writeString(stream->url);
 
 				DBG_TRACE("LIN_HANDLE_MANAGER_REQUEST_STREAM_INFO -> ( headers='%s', notifyData=%p, lastmodified=%d, end=%d, url='%s' )", \
 						stream->headers, stream->notifyData, stream->lastmodified, stream->end, stream->url);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -493,7 +493,7 @@ void Context::dispatcher(int functionid, Stack &stack){
 				}
 
 				DBG_TRACE("CHANGE_EMBEDDED_MODE -> void");
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -505,10 +505,10 @@ void Context::dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPN_CREATE_OBJECT( instance=%p )", instance);
 
 				NPObject* obj = sBrowserFuncs->createobject(instance, &myClass);
-				ctx->writeHandleObj(obj); /* refcounter is hopefully 1 */
+				writeHandleObj(obj); /* refcounter is hopefully 1 */
 
 				DBG_TRACE("FUNCTION_NPN_CREATE_OBJECT -> obj=%p", obj);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -529,11 +529,11 @@ void Context::dispatcher(int functionid, Stack &stack){
 					result = NPERR_GENERIC_ERROR;
 				}
 				if (result == NPERR_NO_ERROR)
-					ctx->writeInt32(resultBool);
-				ctx->writeInt32(result);
+					writeInt32(resultBool);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPN_GETVALUE_BOOL -> ( result=%d, ... )", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -554,11 +554,11 @@ void Context::dispatcher(int functionid, Stack &stack){
 					result = NPERR_GENERIC_ERROR;
 				}
 				if (result == NPERR_NO_ERROR)
-					ctx->writeHandleObj(obj);
-				ctx->writeInt32(result);
+					writeHandleObj(obj);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPN_GETVALUE_OBJECT -> ( result=%d, ... )", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -578,11 +578,11 @@ void Context::dispatcher(int functionid, Stack &stack){
 					result = NPERR_GENERIC_ERROR;
 				}
 				if (result == NPERR_NO_ERROR)
-					ctx->writeString(str);
-				ctx->writeInt32(result);
+					writeString(str);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPN_GETVALUE_STRING -> ( result=%d, ... )", result);
-				ctx->returnCommand();
+				returnCommand();
 
 				/* ASYNC */
 				if (str) sBrowserFuncs->memfree(str);
@@ -602,7 +602,7 @@ void Context::dispatcher(int functionid, Stack &stack){
 				sBrowserFuncs->releaseobject(obj);
 
 				DBG_TRACE("FUNCTION_NPN_RELEASEOBJECT -> void");
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -631,7 +631,7 @@ void Context::dispatcher(int functionid, Stack &stack){
 				DBG_ASSERT( (minReferenceCount & REFCOUNT_MASK) <= obj->referenceCount, "object referenceCount smaller than expected?");
 
 				DBG_TRACE("FUNCTION_NPN_RETAINOBJECT -> void");
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -698,11 +698,11 @@ void Context::dispatcher(int functionid, Stack &stack){
 				}
 
 				if (result)
-					ctx->writeVariantRelease(resultVariant);
-				ctx->writeInt32( result );
+					writeVariantRelease(resultVariant);
+				writeInt32( result );
 
 				DBG_TRACE("FUNCTION_NPN_EVALUATE -> ( result=%d, ... )", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -721,11 +721,11 @@ void Context::dispatcher(int functionid, Stack &stack){
 				bool result = sBrowserFuncs->invoke(instance, obj, identifier, args.data(), argCount, &resultVariant);
 				freeVariantArray(args);
 				if (result)
-					ctx->writeVariantRelease(resultVariant);
-				ctx->writeInt32( result );
+					writeVariantRelease(resultVariant);
+				writeInt32( result );
 
 				DBG_TRACE("FUNCTION_NPN_INVOKE -> ( result=%d, ... )", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -743,11 +743,11 @@ void Context::dispatcher(int functionid, Stack &stack){
 				bool result = sBrowserFuncs->invokeDefault(instance, obj, args.data(), argCount, &resultVariant);
 				freeVariantArray(args); /* free the variant array */
 				if (result)
-					ctx->writeVariantRelease(resultVariant);
-				ctx->writeInt32( result );
+					writeVariantRelease(resultVariant);
+				writeInt32( result );
 
 				DBG_TRACE("FUNCTION_NPN_INVOKE_DEFAULT -> ( result=%d, ... )", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -759,10 +759,10 @@ void Context::dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPN_HAS_PROPERTY( instance=%p, obj=%p, identifier=%p )", instance, obj, identifier);
 
 				bool result = sBrowserFuncs->hasproperty(instance, obj, identifier);
-				ctx->writeInt32(result);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPN_HAS_PROPERTY -> result=%d", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -774,10 +774,10 @@ void Context::dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPN_HAS_METHOD( instance=%p, obj=%p, identifier=%p )", instance, obj, identifier);
 
 				bool result = sBrowserFuncs->hasmethod(instance, obj, identifier);
-				ctx->writeInt32(result);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPN_HAS_METHOD -> result=%d", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -793,11 +793,11 @@ void Context::dispatcher(int functionid, Stack &stack){
 
 				bool result = sBrowserFuncs->getproperty(instance, obj, propertyName, &resultVariant);
 				if (result)
-					ctx->writeVariantRelease(resultVariant);
-				ctx->writeInt32( result );
+					writeVariantRelease(resultVariant);
+				writeInt32( result );
 
 				DBG_TRACE("FUNCTION_NPN_GET_PROPERTY -> ( result=%d, ... )", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -812,10 +812,10 @@ void Context::dispatcher(int functionid, Stack &stack){
 
 				bool result = sBrowserFuncs->setproperty(instance, obj, propertyName, &value);
 				freeVariant(value);
-				ctx->writeInt32(result);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPN_SET_PROPERTY -> result=%d", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -827,10 +827,10 @@ void Context::dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPN_REMOVE_PROPERTY( instance=%p, obj=%p, propertyName=%p )", instance, obj, propertyName);
 
 				bool result = sBrowserFuncs->removeproperty(instance, obj, propertyName);
-				ctx->writeInt32(result);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPN_REMOVE_PROPERTY -> result=%d", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -844,13 +844,13 @@ void Context::dispatcher(int functionid, Stack &stack){
 
 				bool result = sBrowserFuncs->enumerate(instance, obj, &identifierTable, &identifierCount);
 				if (result){
-					ctx->writeIdentifierArray(identifierTable, identifierCount);
-					ctx->writeInt32(identifierCount);
+					writeIdentifierArray(identifierTable, identifierCount);
+					writeInt32(identifierCount);
 				}
-				ctx->writeInt32(result);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPN_ENUMERATE -> ( result=%d, ... )", result);
-				ctx->returnCommand();
+				returnCommand();
 
 				/* ASYNC */
 				if (identifierTable) sBrowserFuncs->memfree(identifierTable);
@@ -866,7 +866,7 @@ void Context::dispatcher(int functionid, Stack &stack){
 				sBrowserFuncs->setexception(obj, message.get());
 
 				DBG_TRACE("FUNCTION_NPN_SET_EXCEPTION -> void");
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -892,10 +892,10 @@ void Context::dispatcher(int functionid, Stack &stack){
 					notifyData->referenceCount++;
 
 				NPError result = sBrowserFuncs->geturlnotify(instance, url.get(), target.get(), notifyData);
-				ctx->writeInt32(result);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPN_GET_URL_NOTIFY -> result=%d", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -915,10 +915,10 @@ void Context::dispatcher(int functionid, Stack &stack){
 					notifyData->referenceCount++;
 
 				NPError result = sBrowserFuncs->posturlnotify(instance, url.get(), target.get(), len, buffer.get(), file, notifyData);
-				ctx->writeInt32(result);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPN_POST_URL_NOTIFY -> result=%d", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -930,10 +930,10 @@ void Context::dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPN_GET_URL( instance=%p, url='%s', target='%s' )", instance, url.get(), target.get());
 
 				NPError result = sBrowserFuncs->geturl(instance, url.get(), target.get());
-				ctx->writeInt32(result);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPN_GET_URL -> result=%d", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -948,10 +948,10 @@ void Context::dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPN_POST_URL( instance=%p, url='%s', target='%s', buffer=%p, len=%zd, file=%d )", instance, url.get(), target.get(), buffer.get(), len, file );
 
 				NPError result = sBrowserFuncs->posturl(instance, url.get(), target.get(), len, buffer.get(), file);
-				ctx->writeInt32(result);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPN_POST_URL -> result=%d", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -975,10 +975,10 @@ void Context::dispatcher(int functionid, Stack &stack){
 				}
 
 				NPError result = sBrowserFuncs->requestread(stream, byteRange);
-				ctx->writeInt32(result);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPN_REQUEST_READ -> result=%d", result);
-				ctx->returnCommand();
+				returnCommand();
 
 				/* ASYNC */
 				if (byteRange) free(byteRange);
@@ -994,10 +994,10 @@ void Context::dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPN_WRITE( instance=%p, stream=%p, buffer=%p, len=%zd )", instance, stream, buffer.get(), len );
 
 				int32_t result = sBrowserFuncs->write(instance, stream, len, buffer.get());
-				ctx->writeInt32(result);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPN_WRITE -> result=%d", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -1011,11 +1011,11 @@ void Context::dispatcher(int functionid, Stack &stack){
 				NPStream* stream = NULL;
 				NPError result = sBrowserFuncs->newstream(instance, type.get(), target.get(), &stream);
 				if (result == NPERR_NO_ERROR)
-					ctx->writeHandleStream(stream);
-				ctx->writeInt32(result);
+					writeHandleStream(stream);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPN_NEW_STREAM -> ( result=%d, ... )", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -1027,10 +1027,10 @@ void Context::dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPN_DESTROY_STREAM( instance=%p, stream=%p, reason=%d )", instance, stream, reason );
 
 				NPError result = sBrowserFuncs->destroystream(instance, stream, reason);
-				ctx->writeInt32(result);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPN_DESTROY_STREAM -> result=%d", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -1043,7 +1043,7 @@ void Context::dispatcher(int functionid, Stack &stack){
 				sBrowserFuncs->status(instance, message.get());
 
 				DBG_TRACE("FUNCTION_NPN_STATUS -> void");
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -1062,10 +1062,10 @@ void Context::dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPN_USERAGENT( instance=%p )", instance );
 
 				const char *uagent = sBrowserFuncs->uagent(instance);
-				ctx->writeString(uagent);
+				writeString(uagent);
 
 				DBG_TRACE("FUNCTION_NPN_USERAGENT -> uagent='%s'", uagent);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -1075,7 +1075,7 @@ void Context::dispatcher(int functionid, Stack &stack){
 				bool enabled					= (bool)readInt32(stack);
 				DBG_TRACE("FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE( instance=%p, enabled=%d )", instance, enabled );
 				DBG_TRACE("FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE -> void");
-				ctx->returnCommand();
+				returnCommand();
 
 				/* ASYNC */
 				sBrowserFuncs->pushpopupsenabledstate(instance, enabled);
@@ -1096,7 +1096,7 @@ void Context::dispatcher(int functionid, Stack &stack){
 				NPP instance					= readHandleInstance(stack);
 				DBG_TRACE("FUNCTION_NPN_POP_POPUPS_ENABLED_STATE( instance=%p )", instance );
 				DBG_TRACE("FUNCTION_NPN_POP_POPUPS_ENABLED_STATE -> void");
-				ctx->returnCommand();
+				returnCommand();
 
 				/* ASYNC */
 				sBrowserFuncs->poppopupsenabledstate(instance);

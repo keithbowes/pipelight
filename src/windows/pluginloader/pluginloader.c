@@ -848,10 +848,10 @@ void Context::dispatcher(int functionid, Stack &stack){
 			{
 				DBG_TRACE("INIT_OKAY()");
 
-				ctx->writeInt32(PIPELIGHT_PROTOCOL_VERSION);
+				writeInt32(PIPELIGHT_PROTOCOL_VERSION);
 
 				DBG_TRACE("INIT_OKAY -> %x", PIPELIGHT_PROTOCOL_VERSION);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -866,10 +866,10 @@ void Context::dispatcher(int functionid, Stack &stack){
 				if(!setStrictDrawing(strictDrawOrdering))
 					DBG_ERROR("failed to set/unset strict draw ordering!");
 
-				ctx->writeInt32(supported);
+				writeInt32(supported);
 
 				DBG_TRACE("SILVERLIGHT_IS_GRAPHIC_DRIVER_SUPPORTED -> %d\n", supported);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -889,7 +889,7 @@ void Context::dispatcher(int functionid, Stack &stack){
 				objectKill(obj);
 
 				DBG_TRACE("WIN_HANDLE_MANAGER_FREE_OBJECT -> void");
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -962,9 +962,9 @@ void Context::dispatcher(int functionid, Stack &stack){
 							if (!ndata || !ndata->invalidate) continue;
 
 							if (ndata->invalidate == INVALIDATE_RECT)
-								ctx->writeNPRect(ndata->invalidateRect);
-							ctx->writeInt32(ndata->invalidate);
-							ctx->writeHandleInstance(instance);
+								writeNPRect(ndata->invalidateRect);
+							writeInt32(ndata->invalidate);
+							writeHandleInstance(instance);
 
 							ndata->invalidate = INVALIDATE_NOTHING;
 							invalidateCount++;
@@ -973,11 +973,11 @@ void Context::dispatcher(int functionid, Stack &stack){
 						pendingInvalidateLinuxWindowless = false;
 					}
 
-					ctx->writeInt32(invalidateCount);
+					writeInt32(invalidateCount);
 				}
 
 				/* DBG_TRACE("PROCESS_WINDOW_EVENTS -> void"); */
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -1030,7 +1030,7 @@ void Context::dispatcher(int functionid, Stack &stack){
 				}
 
 				DBG_TRACE("WINDOWLESS_EVENT_PAINT -> void");
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -1058,7 +1058,7 @@ void Context::dispatcher(int functionid, Stack &stack){
 				}
 
 				DBG_TRACE("WINDOWLESS_EVENT_MOUSEMOVE -> void");
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -1107,7 +1107,7 @@ void Context::dispatcher(int functionid, Stack &stack){
 				}
 
 				DBG_TRACE("WINDOWLESS_EVENT_MOUSEBUTTON -> void");
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -1125,7 +1125,7 @@ void Context::dispatcher(int functionid, Stack &stack){
 					NOTIMPLEMENTED("ignoring keyboard input (pressed=%d, state=%d, keycode=%d)", pressed, state, keycode);
 
 				DBG_TRACE("WINDOWLESS_EVENT_KEYBOARD -> void");
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -1133,17 +1133,17 @@ void Context::dispatcher(int functionid, Stack &stack){
 			{
 				DBG_TRACE("FUNCTION_GET_PLUGIN_INFO()");
 
-				ctx->writeString(np_FileVersion);
-				ctx->writeString(np_FileDescription);
-				ctx->writeString(np_ProductName);
+				writeString(np_FileVersion);
+				writeString(np_FileDescription);
+				writeString(np_ProductName);
 
 				std::string mimeType = createLinuxCompatibleMimeType();
-				ctx->writeString(mimeType);
+				writeString(mimeType);
 
 
 				DBG_TRACE("FUNCTION_GET_PLUGIN_INFO -> mime='%s', name='%s', description='%s', version='%s'",
 					mimeType.c_str(), np_ProductName.c_str(), np_FileDescription.c_str(), np_FileVersion.c_str());
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -1162,11 +1162,11 @@ void Context::dispatcher(int functionid, Stack &stack){
 				freeVariantArrayDecRef(args);
 				objectDecRef(obj);
 				if (result)
-					ctx->writeVariantReleaseDecRef(resultVariant);
-				ctx->writeInt32(result);
+					writeVariantReleaseDecRef(resultVariant);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NP_INVOKE -> ( result=%d, ... )", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -1184,11 +1184,11 @@ void Context::dispatcher(int functionid, Stack &stack){
 				freeVariantArrayDecRef(args);
 				objectDecRef(obj);
 				if (result)
-					ctx->writeVariantReleaseDecRef(resultVariant);
-				ctx->writeInt32(result);
+					writeVariantReleaseDecRef(resultVariant);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NP_INVOKE_DEFAULT -> ( result=%d, ... )", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -1200,10 +1200,10 @@ void Context::dispatcher(int functionid, Stack &stack){
 
 				bool result = obj->_class->hasProperty(obj, name);
 				objectDecRef(obj);
-				ctx->writeInt32(result);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NP_HAS_PROPERTY -> result=%d", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -1215,10 +1215,10 @@ void Context::dispatcher(int functionid, Stack &stack){
 
 				bool result = obj->_class->hasMethod(obj, name);
 				objectDecRef(obj);
-				ctx->writeInt32(result);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NP_HAS_METHOD -> result=%d", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -1234,11 +1234,11 @@ void Context::dispatcher(int functionid, Stack &stack){
 				bool result = obj->_class->getProperty(obj, name, &resultVariant);
 				objectDecRef(obj);
 				if (result)
-					ctx->writeVariantReleaseDecRef(resultVariant);
-				ctx->writeInt32(result);
+					writeVariantReleaseDecRef(resultVariant);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NP_GET_PROPERTY -> ( result=%d, ... )", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -1253,10 +1253,10 @@ void Context::dispatcher(int functionid, Stack &stack){
 				bool result = obj->_class->setProperty(obj, name, &variant);
 				freeVariantDecRef(variant);
 				objectDecRef(obj);
-				ctx->writeInt32(result);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NP_SET_PROPERTY -> result=%d", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -1268,10 +1268,10 @@ void Context::dispatcher(int functionid, Stack &stack){
 
 				bool result = obj->_class->removeProperty(obj, name);
 				objectDecRef(obj);
-				ctx->writeInt32(result);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NP_REMOVE_PROPERTY -> result=%d", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -1286,13 +1286,13 @@ void Context::dispatcher(int functionid, Stack &stack){
 				objectDecRef(obj);
 
 				if (result){
-					ctx->writeIdentifierArray(identifierTable, identifierCount);
-					ctx->writeInt32(identifierCount);
+					writeIdentifierArray(identifierTable, identifierCount);
+					writeInt32(identifierCount);
 				}
-				ctx->writeInt32(result);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NP_ENUMERATE -> ( result=%d, ... )", result);
-				ctx->returnCommand();
+				returnCommand();
 
 				/* ASYNC */
 				if (identifierTable)
@@ -1309,7 +1309,7 @@ void Context::dispatcher(int functionid, Stack &stack){
 				objectDecRef(obj);
 
 				DBG_TRACE("FUNCTION_NP_INVALIDATE -> void");
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -1388,10 +1388,10 @@ void Context::dispatcher(int functionid, Stack &stack){
 					pluginFuncs.setwindow(instance, &ndata->window);
 				}
 
-				ctx->writeInt32(result);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPP_NEW -> result=%d", result);
-				ctx->returnCommand();
+				returnCommand();
 
 				/* ASYNC */
 				freeStringArray(argn);
@@ -1441,14 +1441,14 @@ void Context::dispatcher(int functionid, Stack &stack){
 
 				if (result == NPERR_NO_ERROR){
 					if (saved)
-						ctx->writeMemory((char*)saved->buf, saved->len);
+						writeMemory((char*)saved->buf, saved->len);
 					else
-						ctx->writeMemory(NULL, 0);
+						writeMemory(NULL, 0);
 				}
-				ctx->writeInt32(result);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPP_DESTROY -> ( result=%d, ... )", result);
-				ctx->returnCommand();
+				returnCommand();
 
 				/* ASYNC */
 				if (ndata) free(ndata);
@@ -1481,11 +1481,11 @@ void Context::dispatcher(int functionid, Stack &stack){
 					result = NPERR_GENERIC_ERROR;
 				}
 				if(result == NPERR_NO_ERROR)
-					ctx->writeInt32(boolValue);
-				ctx->writeInt32(result);
+					writeInt32(boolValue);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPP_GETVALUE_BOOL -> ( result=%d, ... )", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -1510,11 +1510,11 @@ void Context::dispatcher(int functionid, Stack &stack){
 					result = NPERR_GENERIC_ERROR;
 				}
 				if (result == NPERR_NO_ERROR)
-					ctx->writeHandleObjDecRef(objectValue);
-				ctx->writeInt32(result);
+					writeHandleObjDecRef(objectValue);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPP_GETVALUE_OBJECT -> ( result=%d, ... )", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -1625,7 +1625,7 @@ void Context::dispatcher(int functionid, Stack &stack){
 					DBG_ERROR("unable to allocate window because of missing ndata.");
 
 				DBG_TRACE("FUNCTION_NPP_SET_WINDOW -> void");
-				ctx->returnCommand();
+				returnCommand();
 
 				/* ASYNC */
 				if (ndata){
@@ -1656,13 +1656,13 @@ void Context::dispatcher(int functionid, Stack &stack){
 				uint16_t stype = NP_NORMAL; /* Fix for silverlight.... */
 				NPError result = pluginFuncs.newstream(instance, type.get(), stream, seekable, &stype);
 				if (result == NPERR_NO_ERROR)
-					ctx->writeInt32(stype);
+					writeInt32(stype);
 				else /* Handle is now invalid because of this error */
 					handleManager_removeByPtr(HMGR_TYPE_NPStream, stream);
-				ctx->writeInt32(result);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPP_NEW_STREAM -> result=%d", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -1674,10 +1674,10 @@ void Context::dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPP_DESTROY_STREAM( instance=%p, stream=%p, reason=%d )", instance, stream, reason);
 
 				NPError result = pluginFuncs.destroystream(instance, stream, reason);
-				ctx->writeInt32(result);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPP_DESTROY_STREAM -> result=%d", result);
-				ctx->returnCommand();
+				returnCommand();
 
 				/* ASYNC */
 				if (stream){
@@ -1698,10 +1698,10 @@ void Context::dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPP_WRITE_READY( instance=%p, stream=%p )", instance, stream);
 
 				int32_t result = pluginFuncs.writeready(instance, stream);
-				ctx->writeInt32(result);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPP_WRITE_READY -> result=%d", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -1715,10 +1715,10 @@ void Context::dispatcher(int functionid, Stack &stack){
 				DBG_TRACE("FUNCTION_NPP_WRITE( instance=%p, stream=%p, offset=%d, length=%Id, data=%p )", instance, stream, offset, length, data.get());
 
 				int32_t result = pluginFuncs.write(instance, stream, offset, length, data.get());
-				ctx->writeInt32(result);
+				writeInt32(result);
 
 				DBG_TRACE("FUNCTION_NPP_WRITE -> result=%d", result);
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -1733,7 +1733,7 @@ void Context::dispatcher(int functionid, Stack &stack){
 				pluginFuncs.urlnotify(instance, url.get(), reason, notifyData);
 
 				DBG_TRACE("FUNCTION_NPP_URL_NOTIFY -> void");
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -1754,7 +1754,7 @@ void Context::dispatcher(int functionid, Stack &stack){
 					DBG_ERROR("unable to access linux stream '%s' as file.", fname_lin.c_str());
 
 				DBG_TRACE("FUNCTION_NPP_STREAM_AS_FILE -> void");
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
@@ -1765,7 +1765,7 @@ void Context::dispatcher(int functionid, Stack &stack){
 				/* TODO: Implement deinitialization! We dont call Shutdown, as otherwise we would have to call Initialize again! */
 
 				DBG_TRACE("NP_SHUTDOWN -> void");
-				ctx->returnCommand();
+				returnCommand();
 			}
 			break;
 
