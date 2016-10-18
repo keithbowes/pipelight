@@ -80,6 +80,7 @@ static bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant
 {
 	struct ProxyObject *proxy = (struct ProxyObject *)npobj;
 	Context *ctx = proxy->ctx;
+	Stack stack;
 
 	DBG_TRACE("( npobj=%p, name=%p, args[]=%p, argCount=%d, result=%p )", npobj, name, args, argCount, result);
 
@@ -89,8 +90,6 @@ static bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant
 	ctx->writeHandleIdentifier(name);
 	ctx->writeHandleObj(npobj);
 	ctx->callFunction(FUNCTION_NP_INVOKE);
-
-	Stack stack;
 	ctx->readCommands(stack);
 
 	bool resultBool = (bool)readInt32(stack);
@@ -111,6 +110,7 @@ static bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint
 {
 	struct ProxyObject *proxy = (struct ProxyObject *)npobj;
 	Context *ctx = proxy->ctx;
+	Stack stack;
 
 	DBG_TRACE("( npobj=%p, args=%p, argCount=%d, result=%p )", npobj, args, argCount, result);
 
@@ -118,8 +118,6 @@ static bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint
 	ctx->writeInt32(argCount);
 	ctx->writeHandleObj(npobj);
 	ctx->callFunction(FUNCTION_NP_INVOKE_DEFAULT);
-
-	Stack stack;
 	ctx->readCommands(stack);
 
 	bool resultBool = (bool)readInt32(stack);
@@ -156,14 +154,13 @@ static bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant 
 {
 	struct ProxyObject *proxy = (struct ProxyObject *)npobj;
 	Context *ctx = proxy->ctx;
+	Stack stack;
 
 	DBG_TRACE("( npobj=%p, name=%p, result=%p )", npobj, name, result);
 
 	ctx->writeHandleIdentifier(name);
 	ctx->writeHandleObj(npobj);
 	ctx->callFunction(FUNCTION_NP_GET_PROPERTY);
-
-	Stack stack;
 	ctx->readCommands(stack);
 
 	bool resultBool = readInt32(stack); /* refcount already incremented by getProperty() */
