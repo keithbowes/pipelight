@@ -939,14 +939,8 @@ void objectDecRef(NPObject *obj, bool deleteFromRemoteHandleManager){
 		DBG_ASSERT(!obj->_class->deallocate, "proxy object has a deallocate method set.");
 
 		if (deleteFromRemoteHandleManager){
-		#ifdef PIPELIGHT_SYNC
-			ctx->writeHandleObj(obj, HMGR_SHOULD_EXIST);
-			ctx->callFunction(LIN_HANDLE_MANAGER_FREE_OBJECT);
-			ctx->readResultVoid();
-		#else
 			ctx->writeHandleObj(obj, HMGR_SHOULD_EXIST);
 			ctx->callFunction(LIN_HANDLE_MANAGER_FREE_OBJECT_ASYNC);
-		#endif
 		}
 
 		handleManager_removeByPtr(HMGR_TYPE_NPObject, (void*)obj);

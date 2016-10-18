@@ -445,18 +445,6 @@ void Context::dispatcher(int functionid, Stack &stack){
 			}
 			break;
 
-		case LIN_HANDLE_MANAGER_FREE_OBJECT:
-			{
-				NPObject* obj		= readHandleObj(stack);
-				DBG_TRACE("LIN_HANDLE_MANAGER_FREE_OBJECT( obj=%p )", obj);
-				DBG_TRACE("LIN_HANDLE_MANAGER_FREE_OBJECT -> void");
-				ctx->returnCommand();
-
-				/* ASYNC */
-				handleManager_removeByPtr(HMGR_TYPE_NPObject, obj);
-			}
-			break;
-
 		case LIN_HANDLE_MANAGER_FREE_OBJECT_ASYNC:
 			{
 				NPObject* obj		= readHandleObj(stack);

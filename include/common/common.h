@@ -209,7 +209,7 @@ class ParameterInfo{
 typedef std::vector<ParameterInfo> Stack;
 
 /* increase this whenever you do changes in the protocol stack */
-#define PIPELIGHT_PROTOCOL_VERSION 0x10000012
+#define PIPELIGHT_PROTOCOL_VERSION 0x10000013
 
 enum{
 	/* ------- Special ------- */
@@ -219,7 +219,6 @@ enum{
 
 	/* Handlemanager on the linux side */
 	LIN_HANDLE_MANAGER_REQUEST_STREAM_INFO,
-	LIN_HANDLE_MANAGER_FREE_OBJECT,
 	LIN_HANDLE_MANAGER_FREE_OBJECT_ASYNC,
 
 	/* Additional commands on the linux side */
@@ -229,7 +228,6 @@ enum{
 	SILVERLIGHT_IS_GRAPHIC_DRIVER_SUPPORTED,
 
 	/* Handlemanager on the windows side */
-	WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA,
 	WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA_ASYNC,
 	WIN_HANDLE_MANAGER_FREE_OBJECT,
 

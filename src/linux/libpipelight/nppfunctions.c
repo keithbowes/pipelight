@@ -807,14 +807,8 @@ void NPP_URLNotify(NPP instance, const char* URL, NPReason reason, void* notifyD
 
 		/* decrement refcount */
 		if (--myNotifyData->referenceCount == 0){
-		#ifdef PIPELIGHT_SYNC
-			ctx->writeHandleNotify(myNotifyData);
-			ctx->callFunction(WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA);
-			ctx->readResultVoid();
-		#else
 			ctx->writeHandleNotify(myNotifyData);
 			ctx->callFunction(WIN_HANDLE_MANAGER_FREE_NOTIFY_DATA_ASYNC);
-		#endif
 
 			handleManager_removeByPtr(HMGR_TYPE_NotifyData, myNotifyData);
 
