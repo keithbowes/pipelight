@@ -40,7 +40,17 @@
 
 #include "common/common.h"
 
-static void NPInvalidateFunction(NPObject *npobj){
+struct ProxyObject
+{
+	NPObject obj;
+	Context *ctx;
+};
+
+static void NPInvalidateFunction(NPObject *npobj)
+{
+	struct ProxyObject *proxy = (struct ProxyObject *)npobj;
+	Context *ctx = proxy->ctx;
+
 	DBG_TRACE("( npobj=%p )", npobj);
 
 	ctx->writeHandleObj(npobj);
@@ -50,7 +60,11 @@ static void NPInvalidateFunction(NPObject *npobj){
 	DBG_TRACE(" -> void");
 }
 
-static bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name){
+static bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name)
+{
+	struct ProxyObject *proxy = (struct ProxyObject *)npobj;
+	Context *ctx = proxy->ctx;
+
 	DBG_TRACE("( npobj=%p, name=%p )", npobj, name);
 
 	ctx->writeHandleIdentifier(name);
@@ -62,7 +76,11 @@ static bool NPHasMethodFunction(NPObject *npobj, NPIdentifier name){
 	return resultBool;
 }
 
-static bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args, uint32_t argCount, NPVariant *result){
+static bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant *args, uint32_t argCount, NPVariant *result)
+{
+	struct ProxyObject *proxy = (struct ProxyObject *)npobj;
+	Context *ctx = proxy->ctx;
+
 	DBG_TRACE("( npobj=%p, name=%p, args[]=%p, argCount=%d, result=%p )", npobj, name, args, argCount, result);
 
 	/* warning: parameter order swapped! */
@@ -77,9 +95,10 @@ static bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant
 
 	bool resultBool = (bool)readInt32(stack);
 
-	if (resultBool){
+	if (resultBool)
 		readVariant(stack, *result); /* refcount already incremented by invoke() */
-	}else{
+	else
+	{
 		result->type				= NPVariantType_Void;
 		result->value.objectValue	= NULL;
 	}
@@ -88,7 +107,11 @@ static bool NPInvokeFunction(NPObject *npobj, NPIdentifier name, const NPVariant
 	return resultBool;
 }
 
-static bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result){
+static bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result)
+{
+	struct ProxyObject *proxy = (struct ProxyObject *)npobj;
+	Context *ctx = proxy->ctx;
+
 	DBG_TRACE("( npobj=%p, args=%p, argCount=%d, result=%p )", npobj, args, argCount, result);
 
 	ctx->writeVariantArrayConst(args, argCount);
@@ -101,9 +124,10 @@ static bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint
 
 	bool resultBool = (bool)readInt32(stack);
 
-	if (resultBool){
+	if (resultBool)
 		readVariant(stack, *result); /* refcount already incremented by invoke() */
-	}else{
+	else
+	{
 		result->type				= NPVariantType_Void;
 		result->value.objectValue	= NULL;
 	}
@@ -112,7 +136,11 @@ static bool NPInvokeDefaultFunction(NPObject *npobj, const NPVariant *args, uint
 	return resultBool;
 }
 
-static bool NPHasPropertyFunction(NPObject *npobj, NPIdentifier name){
+static bool NPHasPropertyFunction(NPObject *npobj, NPIdentifier name)
+{
+	struct ProxyObject *proxy = (struct ProxyObject *)npobj;
+	Context *ctx = proxy->ctx;
+
 	DBG_TRACE("( npobj=%p, name=%p )", npobj, name);
 
 	ctx->writeHandleIdentifier(name);
@@ -124,7 +152,11 @@ static bool NPHasPropertyFunction(NPObject *npobj, NPIdentifier name){
 	return resultBool;
 }
 
-static bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result){
+static bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant *result)
+{
+	struct ProxyObject *proxy = (struct ProxyObject *)npobj;
+	Context *ctx = proxy->ctx;
+
 	DBG_TRACE("( npobj=%p, name=%p, result=%p )", npobj, name, result);
 
 	ctx->writeHandleIdentifier(name);
@@ -136,9 +168,10 @@ static bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant 
 
 	bool resultBool = readInt32(stack); /* refcount already incremented by getProperty() */
 
-	if (resultBool){
+	if (resultBool)
 		readVariant(stack, *result);
-	}else{
+	else
+	{
 		result->type				= NPVariantType_Void;
 		result->value.objectValue	= NULL;
 	}
@@ -147,7 +180,11 @@ static bool NPGetPropertyFunction(NPObject *npobj, NPIdentifier name, NPVariant 
 	return resultBool;
 }
 
-static bool NPSetPropertyFunction(NPObject *npobj, NPIdentifier name, const NPVariant *value){
+static bool NPSetPropertyFunction(NPObject *npobj, NPIdentifier name, const NPVariant *value)
+{
+	struct ProxyObject *proxy = (struct ProxyObject *)npobj;
+	Context *ctx = proxy->ctx;
+
 	DBG_TRACE("( npobj=%p, name=%p, value=%p )", npobj, name, value);
 
 	ctx->writeVariantConst(*value);
@@ -160,7 +197,11 @@ static bool NPSetPropertyFunction(NPObject *npobj, NPIdentifier name, const NPVa
 	return resultBool;
 }
 
-static bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name){
+static bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name)
+{
+	struct ProxyObject *proxy = (struct ProxyObject *)npobj;
+	Context *ctx = proxy->ctx;
+
 	DBG_TRACE("( npobj=%p, name=%p )", npobj, name);
 
 	ctx->writeHandleIdentifier(name);
@@ -172,13 +213,16 @@ static bool NPRemovePropertyFunction(NPObject *npobj, NPIdentifier name){
 	return resultBool;
 }
 
-static bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *count){
+static bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_t *count)
+{
+	struct ProxyObject *proxy = (struct ProxyObject *)npobj;
+	Context *ctx = proxy->ctx;
+	Stack stack;
+
 	DBG_TRACE("( npobj=%p, value=%p, count=%p )", npobj, value, count);
 
 	ctx->writeHandleObj(npobj);
 	ctx->callFunction(FUNCTION_NP_ENUMERATE);
-
-	Stack stack;
 	ctx->readCommands(stack);
 
 	bool result = (bool)readInt32(stack);
@@ -210,45 +254,54 @@ static bool NPEnumerationFunction(NPObject *npobj, NPIdentifier **value, uint32_
 	return result;
 }
 
-static bool NPConstructFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result){
+static bool NPConstructFunction(NPObject *npobj, const NPVariant *args, uint32_t argCount, NPVariant *result)
+{
 	DBG_TRACE("( npobj=%p, args=%p, argCount=%d, result=%p )", npobj, args, argCount, result);
 	NOTIMPLEMENTED();
 	DBG_TRACE(" -> result=0");
 	return false;
 }
 
-static NPObject * NPAllocateFunction(NPP instance, NPClass *aClass){
+static NPObject *NPAllocateFunction(NPP instance, NPClass *aClass)
+{
+	struct ProxyObject *proxy;
+
 	DBG_TRACE("( instance=%p, aClass=%p )", instance, aClass);
 
-	NPObject* obj = (NPObject*)malloc(sizeof(NPObject));
-	if (obj){
-		obj->_class = aClass;
+	proxy = (ProxyObject *)malloc(sizeof(struct ProxyObject));
+	if (proxy)
+	{
+		proxy->obj._class = aClass;
+		proxy->obj.referenceCount = 1;
+		proxy->ctx = ctx; /* FIXME: Obtain from instance->pdata */
 	}
 
-	DBG_TRACE(" -> obj=%p", obj);
-	return obj;
+	DBG_TRACE(" -> npobj=%p", &proxy->obj);
+	return &proxy->obj;
 }
 
-static void NPDeallocateFunction(NPObject *npobj){
+static void NPDeallocateFunction(NPObject *npobj)
+{
+	struct ProxyObject *proxy = (struct ProxyObject *)npobj;
+	Context *ctx = proxy->ctx;
+
 	DBG_TRACE("( npobj=%p )", npobj);
 
-	if (npobj){
-		if (handleManager_existsByPtr(HMGR_TYPE_NPObject, npobj)){
-			DBG_TRACE("seems to be a user created handle, calling WIN_HANDLE_MANAGER_FREE_OBJECT( obj=%p ).", npobj);
+	if (handleManager_existsByPtr(HMGR_TYPE_NPObject, npobj))
+	{
+		DBG_TRACE("seems to be a user created handle, calling WIN_HANDLE_MANAGER_FREE_OBJECT( obj=%p ).", npobj);
 
-			/* kill the object on the other side */
-			ctx->writeHandleObj(npobj);
-			ctx->callFunction(WIN_HANDLE_MANAGER_FREE_OBJECT);
-			ctx->readResultVoid();
+		/* kill the object on the other side */
+		ctx->writeHandleObj(npobj);
+		ctx->callFunction(WIN_HANDLE_MANAGER_FREE_OBJECT);
+		ctx->readResultVoid();
 
-			/* remove it in the handle manager */
-			handleManager_removeByPtr(HMGR_TYPE_NPObject, npobj);
-		}
-
-		/* remove the object locally */
-		free(npobj);
+		/* remove it in the handle manager */
+		handleManager_removeByPtr(HMGR_TYPE_NPObject, npobj);
 	}
 
+	/* remove the object locally */
+	free(proxy);
 	DBG_TRACE(" -> void");
 }
 
