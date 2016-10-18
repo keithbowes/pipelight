@@ -116,7 +116,7 @@ static bool NPConstructFunction(NPObject *npobj, const NPVariant *args, uint32_t
 	return false;
 }
 
-NPClass myClass = {
+NPClass proxy_class = {
 	NP_CLASS_STRUCT_VERSION,
 	NULL, /* NPAllocateFunction, */
 	NULL, /* NPDeallocateFunction, */

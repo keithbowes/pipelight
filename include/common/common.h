@@ -874,7 +874,7 @@ inline bool pluginInitOkay(){
 
 /* external */
 
-extern NPClass myClass;
+extern NPClass proxy_class;
 
 /* misc */
 

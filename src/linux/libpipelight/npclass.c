@@ -252,7 +252,7 @@ static void NPDeallocateFunction(NPObject *npobj){
 	DBG_TRACE(" -> void");
 }
 
-NPClass myClass = {
+NPClass proxy_class = {
 	NP_CLASS_STRUCT_VERSION,
 	NPAllocateFunction,
 	NPDeallocateFunction,

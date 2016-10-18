@@ -633,7 +633,7 @@ NPObject* createNPObject(HMGR_HANDLE id, NPP instance, NPClass *cls){
 
 	/* use proxy class if nothing specified */
 	if (!cls)
-		cls = &myClass;
+		cls = &proxy_class;
 
 	if (cls->allocate){
 		obj = cls->allocate(instance, cls);

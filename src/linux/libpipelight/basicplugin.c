@@ -504,7 +504,7 @@ void Context::dispatcher(int functionid, Stack &stack){
 				NPP instance			= readHandleInstance(stack);
 				DBG_TRACE("FUNCTION_NPN_CREATE_OBJECT( instance=%p )", instance);
 
-				NPObject* obj = sBrowserFuncs->createobject(instance, &myClass);
+				NPObject* obj = sBrowserFuncs->createobject(instance, &proxy_class);
 				writeHandleObj(obj); /* refcounter is hopefully 1 */
 
 				DBG_TRACE("FUNCTION_NPN_CREATE_OBJECT -> obj=%p", obj);
