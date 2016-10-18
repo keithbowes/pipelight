@@ -184,9 +184,6 @@ struct NotifyDataRefCount{
 
 enum HMGR_TYPE{
 	HMGR_TYPE_NPObject		= 0,
-#ifdef PIPELIGHT_NOCACHE
-	HMGR_TYPE_NPIdentifier,
-#endif
 	HMGR_TYPE_NPPInstance	= 2,
 	HMGR_TYPE_NPStream,
 	HMGR_TYPE_NotifyData,
@@ -212,7 +209,7 @@ class ParameterInfo{
 typedef std::vector<ParameterInfo> Stack;
 
 /* increase this whenever you do changes in the protocol stack */
-#define PIPELIGHT_PROTOCOL_VERSION 0x10000011
+#define PIPELIGHT_PROTOCOL_VERSION 0x10000012
 
 enum{
 	/* ------- Special ------- */
@@ -307,12 +304,6 @@ enum{
 	FUNCTION_NPN_STATUS,
 	FUNCTION_NPN_STATUS_ASYNC,
 	FUNCTION_NPN_USERAGENT,
-
-	FUNCTION_NPN_IDENTIFIER_IS_STRING,
-	FUNCTION_NPN_UTF8_FROM_IDENTIFIER,
-	FUNCTION_NPN_INT_FROM_IDENTIFIER,
-	FUNCTION_NPN_GET_STRINGIDENTIFIER,
-	FUNCTION_NPN_GET_INTIDENTIFIER,
 
 	FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE,
 	FUNCTION_NPN_PUSH_POPUPS_ENABLED_STATE_ASYNC,
@@ -421,7 +412,7 @@ extern bool handleManager_existsByPtr(HMGR_TYPE type, void *ptr);
 extern NPP handleManager_findInstance();
 extern size_t handleManager_count();
 extern void handleManager_clear();
-#if defined(PLUGINLOADER) && !defined(PIPELIGHT_NOCACHE)
+#ifdef PLUGINLOADER
 extern NPIdentifier handleManager_lookupIdentifier(IDENT_TYPE type, void *value);
 extern void handleManager_updateIdentifier(NPIdentifier identifier);
 #endif
@@ -604,10 +595,7 @@ class Context
 		}
 
 		inline void writeHandleIdentifier(NPIdentifier name, HMGR_EXISTS exists = HMGR_CAN_EXIST){
-		#ifdef PIPELIGHT_NOCACHE
-			writeHandle(HMGR_TYPE_NPIdentifier, name, exists);
-
-		#elif defined(PLUGINLOADER)
+		#ifdef PLUGINLOADER
 			NPIdentifierDescription *ident = (NPIdentifierDescription *)name;
 			DBG_ASSERT(ident != NULL, "got NULL identifier.");
 
@@ -727,10 +715,6 @@ inline NPObject* readHandleObj(Stack &stack, HMGR_EXISTS exists = HMGR_CAN_EXIST
 #endif
 
 inline NPIdentifier readHandleIdentifier(Stack &stack, HMGR_EXISTS exists = HMGR_CAN_EXIST){
-#ifdef PIPELIGHT_NOCACHE
-	return (NPIdentifier)__readHandle(HMGR_TYPE_NPIdentifier, stack, NULL, NULL, exists);
-
-#else
 	NPIdentifier identifier;
 	int32_t type = readInt32(stack);
 
@@ -760,7 +744,6 @@ inline NPIdentifier readHandleIdentifier(Stack &stack, HMGR_EXISTS exists = HMGR
 	}
 
 	return identifier;
-#endif
 }
 
 #ifdef PLUGINLOADER

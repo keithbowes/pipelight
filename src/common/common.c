@@ -33,7 +33,7 @@ static inline std::map<void*, HMGR_HANDLE>& __ptrToId(int type){
 	return ptrToId[type];
 }
 
-#if defined(PLUGINLOADER) && !defined(PIPELIGHT_NOCACHE)
+#ifdef PLUGINLOADER
 
 static inline std::map<std::string, NPIdentifier>& __stringToNPIdentifier(){
 	static std::map<std::string, NPIdentifier> stringToNPIdentifier;
@@ -751,10 +751,6 @@ void* handleManager_idToPtr(HMGR_TYPE type, HMGR_HANDLE id, void *arg0, void *ar
 	#ifdef PLUGINLOADER
 		if (type == HMGR_TYPE_NPObject){
 			ptr = createNPObject(id, (NPP)arg0, (NPClass *)arg1);
-		#ifdef PIPELIGHT_NOCACHE
-		}else if (type == HMGR_TYPE_NPIdentifier){
-			ptr = (void *)id;
-		#endif
 		}else if (type == HMGR_TYPE_NPPInstance){
 			ptr = createNPPInstance(id);
 		}else if (type == HMGR_TYPE_NPStream){
@@ -888,7 +884,7 @@ void handleManager_clear(){
 	}
 }
 
-#if defined(PLUGINLOADER) && !defined(PIPELIGHT_NOCACHE)
+#ifdef PLUGINLOADER
 
 /*
 	Lookup NPIdentifier
