@@ -7,8 +7,8 @@ DEPENDENCY_INSTALLER_URL="https://bitbucket.org/mmueller2012/pipelight/raw/maste
 ACCEPTALL=0
 
 # Supported plugins (i686)
-STANDARD_PLUGINS=("silverlight5.1" "silverlight5.0" "silverlight4" "flash" "unity3d" "widevine")
-ADDITIONAL_PLUGINS=("shockwave" "foxitpdf" "grandstream" "adobereader" "hikvision" "npactivex" "roblox" "vizzedrgr" "viewright-caiway" "google-earth")
+STANDARD_PLUGINS=("silverlight5.1" "silverlight5.0" "flash" "unity3d" "widevine")
+ADDITIONAL_PLUGINS=("shockwave")
 
 # Supported plugins (amd64)
 if [ -f "$PIPELIGHT_SHARE_PATH/pluginloader64.exe" ] && [ -x "$PIPELIGHT_SHARE_PATH/wine64" ]; then
