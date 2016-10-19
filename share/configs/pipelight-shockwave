@@ -6,5 +6,62 @@
 # # dllPath           = C:\windows\system32\Adobe\Director\
 # # dllName           = np32dsw_1204144.dll
 # regKey              = @adobe.com/ShockwavePlayer
-# dependency          = wine-shockwave-installer
 # ---END CONFIG---
+
+install_shockwave()
+{
+    # http://get.adobe.com/de/shockwave/otherversions/
+    local URL="http://fpdownload.macromedia.com/get/shockwave/default/english/win95nt/latest/sw_lic_full_installer.exe"
+    local SHA="4c50d3f64372a9e242f13d8a12d3f5ef091b4a59ade48f8d878557d62ec74c3f"
+    local VER="1225195"
+
+    if ! download "$URL" "$SHA" "shockwave" ""; then
+        echo "[shockwave] ERROR: Download failed." >&2
+        return 1
+    fi
+
+    # Launch the installer
+    if [ "$QUIETINSTALLATION" -eq 0 ]; then
+        "$WINE" "$DOWNLOADFILE" 2>&1
+    else
+        "$WINE" "$DOWNLOADFILE" /S 2>&1 | progressbar "Please wait, installing ..." "Running Shockwave installer"
+    fi
+
+    local installdir1="$WINEPREFIX/drive_c/windows/system32/Adobe/Director"
+    local installdir2="$WINEPREFIX/drive_c/windows/syswow64/Adobe/Director"
+    if [ ! -f "$installdir1/np32dsw_$VER.dll" ] && [ ! -f "$installdir2/np32dsw_$VER.dll" ]; then
+        echo "[shockwave] ERROR: Installer did not run correctly or was aborted." >&2
+        return 1
+    fi
+
+     # Switch to OpenGL mode and disable fallback mode
+     local tmpfile=$(mktemp)
+     [ -f "$tmpfile" ] || return 1
+
+    (
+        echo "REGEDIT4"
+        echo ""
+        echo "[HKEY_CURRENT_USER\\Software\\Adobe\\Shockwave 12\\allowfallback]"
+        echo "@=\"n\""
+        echo ""
+        echo "[HKEY_CURRENT_USER\\Software\\Adobe\\Shockwave 12\\renderer3dsetting]"
+        echo "@=\"2\""
+        echo ""
+        echo "[HKEY_CURRENT_USER\\Software\\Adobe\\Shockwave 12\\renderer3dsettingPerm]"
+        echo "@=\"2\""
+    ) > "$tmpfile"
+
+    "$WINE" regedit "$tmpfile"
+    local res=$?
+
+    # Cleanup
+    rm "$tmpfile"
+
+    return "$res"
+}
+
+install_plugin()
+{
+    install_shockwave
+    return $?
+}

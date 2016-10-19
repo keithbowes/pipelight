@@ -9,8 +9,65 @@
 # fakeVersion         = 5.1.30214.0
 # overwriteArg        = minRuntimeVersion=5.0.61118.0
 # # overwriteArg      = enableGPUAcceleration=true
-# dependency          = wine-silverlight5.0-installer
-# dependency          = wine-mpg2splt-installer
 # silverlightGraphicDriverCheck  = true
 # experimental-windowClassHook = true
 # ---END CONFIG---
+
+install_silverlight50()
+{
+    local URL="http://silverlight.dlservice.microsoft.com/download/5/5/7/55748E53-D673-4225-8072-4C7A377BB513/runtime/Silverlight.exe"
+    local SHA="dd45a55419026c592f8b6fc848dceface7e1ce98720bf13848a2e8ae366b29e8"
+    local VER="5.0.61118.0"
+
+    if ! download "$URL" "$SHA" "silverlight50" ""; then
+        echo "[silverlight5.0] ERROR: Download failed." >&2
+        return 1
+    fi
+
+    # Remove the registry keys for Silverlight since other versions can prevent this one from installing
+    "$WINE" msiexec /uninstall {89F4137D-6C26-4A84-BDB8-2E5A4BB71E00};
+
+    # Launch the installer
+    if [ "$QUIETINSTALLATION" -eq 0 ]; then
+        "$WINE" "$DOWNLOADFILE" /noupdate 2>&1
+    else
+        "$WINE" "$DOWNLOADFILE" /q /doNotRequireDRMPrompt /noupdate 2>&1 | progressbar "Please wait, installing ..." "Running Silverlight 5.0 installer"
+    fi
+
+    local programfiles="$WINEPREFIX/drive_c/Program Files"
+    if [ ! -d "$programfiles/Microsoft Silverlight/$VER" ]; then
+        echo "[silverligh5.0] ERROR: Installer did not run correctly or was aborted." >&2
+        return 1
+    fi
+
+    # Move the installation to a version-specific folder that nothing will touch
+    mkdir -p "$programfiles/Silverlight"
+    rm -rf "$programfiles/Silverlight/$VER"
+    mv "$programfiles/Microsoft Silverlight/$VER" "$programfiles/Silverlight/$VER"
+
+    # Remove the Silverlight menu shortcut
+    rm -f "$WINEPREFIX/drive_c/users/$USER/Start Menu/Programs/Microsoft Silverlight/Microsoft Silverlight.lnk"
+
+    # Successful
+    return 0
+}
+
+install_mpg2splt()
+{
+    local URL="http://download.microsoft.com/download/8/0/D/80D7E79D-C0E4-415A-BCCA-E229EAFE2679/dshow_nt.cab"
+    local SHA="984ed15e23a00a33113f0012277e1e680c95782ce2c44f414e7af14e28e3f1a2"
+
+    if ! download "$URL" "$SHA" "mpg2splt" ""; then
+        echo "[mpg2splt] ERROR: Download failed." >&2
+        return 1
+    fi
+
+    install_cabextract "$DOWNLOADFILE" mpg2splt.ax --reg
+    return $?
+}
+
+install_plugin()
+{
+    install_mpg2splt && install_silverlight50
+    return $?
+}

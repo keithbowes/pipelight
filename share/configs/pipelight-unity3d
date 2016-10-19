@@ -8,5 +8,36 @@
 # # dllName           = npUnity3D32.dll
 # regKey              = @unity3d.com/UnityPlayer,version=1.0
 # # fakeVersion       = Unity Player 4.2.2f1
-# dependency          = wine-unity3d-installer
 # ---END CONFIG---
+
+install_unity3d()
+{
+    # http://get.adobe.com/de/shockwave/otherversions/
+    local URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayer.exe"
+    local SHA="9a5bcbe13bb74590e97ea4ee4fe76c24a5ac0b9cc99948e1be33ed3394d8c245"
+
+    if ! download "$URL" "$SHA" "unity3d" ""; then
+        echo "[unity3d] ERROR: Download failed." >&2
+        return 1
+    fi
+
+    if [ "$QUIETINSTALLATION" -eq 0 ]; then
+        "$WINE" "$DOWNLOADFILE" /AllUsers 2>&1
+    else
+        "$WINE" "$DOWNLOADFILE" /S /AllUsers 2>&1 | progressbar "Please wait, installing ..." "Running Unity3D plugin installer"
+    fi
+
+    local installdir="$WINEPREFIX/drive_c/Program Files/Unity/WebPlayer/loader"
+    if [ ! -f "$installdir/npUnity3D32.dll" ]; then
+        echo "[unity3d] ERROR: Installer did not run correctly or was aborted." >&2
+        return 1
+    fi
+
+    return 0
+}
+
+install_plugin()
+{
+    install_unity3d
+    return $?
+}

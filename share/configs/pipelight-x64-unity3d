@@ -6,5 +6,36 @@
 # dllPath             = C:\Program Files\Unity\WebPlayer64\loader-x64
 # dllName             = npUnity3D64.dll
 # # regKey            = @unity3d.com/UnityPlayer,version=1.0
-# dependency          = wine-x64-unity3d-installer
 # ---END CONFIG---
+
+install_unity3d_x64()
+{
+    local URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayerFull64.exe"
+    local SHA="38bb0ddb2e833786c5563af72624316759e2f6cfb5a0249c7f76357859d2262c"
+
+    if ! download "$URL" "$SHA" "unity3d-x64" ""; then
+        echo "[unity3d-x64] ERROR: Download failed." >&2
+        return 1
+    fi
+
+    # Launch the installer
+    if [ "$QUIETINSTALLATION" -eq 0 ]; then
+        "$WINE" "$DOWNLOADFILE" /AllUsers 2>&1
+    else
+        "$WINE" "$DOWNLOADFILE" /S /AllUsers 2>&1 | progressbar "Please wait, installing ..." "Running Unity3D x64 installer"
+    fi
+
+    local installdir="$WINEPREFIX/drive_c/Program Files/Unity/WebPlayer64/loader-x64"
+    if [ ! -f "$installdir/npUnity3D64.dll" ]; then
+        echo "[unity3d-x64] ERROR: Installer did not run correctly or was aborted." >&2
+        return 1
+    fi
+
+    return 0
+}
+
+install_plugin()
+{
+    install_unity3d_x64
+    return $?
+}

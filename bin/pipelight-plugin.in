@@ -251,14 +251,9 @@ install_plugin()
 	local WINEARCH=$(get_config_key "$PLUGIN" "wineArch")
 	local WINEDLLOVERRIDES=$(get_config_key "$PLUGIN" "wineDLLOverrides")
 
-	local dependencies=$(get_config_key "$PLUGIN" "dependency" | tr '\n' ' ')
-
 	# Many scripts use predefined variables, replace the most important ones
 	local WINE="${WINE/\$share/$PIPELIGHT_SHARE_PATH}"
 	local WINEPREFIX="${WINEPREFIX/\$HOME/$HOME}"
-
-	# Do we have anything to install?
-	if [ -z "$dependencies" ]; then return 0; fi
 
 	if [ -z "$WINE" ]; then
 		echo "ERROR: Failed to read wine path from plugin config for $PLUGIN." >&2
@@ -273,7 +268,7 @@ install_plugin()
 	fi
 
 	WINE="$WINE" WINEPREFIX="$WINEPREFIX" WINEARCH="$WINEARCH" WINEDLLOVERRIDES="$WINEDLLOVERRIDES" \
-	QUIETINSTALLATION=1 "$PIPELIGHT_SHARE_PATH/install-plugin" "$PIPELIGHT_SHARE_PATH/configs/pipelight-$PLUGIN" $dependencies
+	QUIETINSTALLATION=1 "$PIPELIGHT_SHARE_PATH/install-plugin" "$PIPELIGHT_SHARE_PATH/configs/pipelight-$PLUGIN" "$PLUGIN"
 	return $?
 }
 

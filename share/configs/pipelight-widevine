@@ -5,6 +5,32 @@
 # pluginLoaderPath    = $share/pluginloader.exe
 # dllPath             = C:\windows\system32
 # dllName             = npwidevinemediaoptimizer.dll
-# dependency          = wine-widevine-installer
 # experimental-forceSetWindow = true
 # ---END CONFIG---
+
+install_widevine()
+{
+    # http://www.widevine.com/download/videooptimizer/index.html
+    local URL="https://dl.google.com/widevine/6.0.0.12442/WidevineMediaOptimizer_Win.xpi"
+    local SHA="84cde1b83d8f5e4b287303a25e61227ce9a253268af6bd88b9a2f98c85129bc8"
+    local EXT="zip"
+
+    if ! download "$URL" "$SHA" "widevine" "$EXT"; then
+        echo "[widevine] ERROR: Download failed." >&2
+        return 1
+    fi
+
+    local system32="$WINEPREFIX/drive_c/windows/system32"
+    if ! unzip -p "$DOWNLOADFILE" "plugins/npwidevinemediaoptimizer.dll" > "$system32/npwidevinemediaoptimizer.dll"; then
+        echo "[widevine] ERROR: Unable to extract plugin from xip file." >&2
+        return 1
+    fi
+
+    return 0
+}
+
+install_plugin()
+{
+    install_widevine
+    return $?
+}
