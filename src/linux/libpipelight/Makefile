@@ -1,5 +1,5 @@
 CXXFLAGS		:= -fvisibility=hidden -DPIPELIGHT_SHARE_PATH='"$(datadir)/pipelight"' $(CXXFLAGS)
-LDFLAGS			:= -lpthread $(LDFLAGS)
+LDFLAGS			:= -lpthread -Wl,--unresolved-symbols=report-all $(LDFLAGS)
 UNAME_S			:= $(shell uname -s)
 ifeq ($(UNAME_S), FreeBSD)
 	CXXFLAGS	:= -I/usr/local/include $(CXXFLAGS)
