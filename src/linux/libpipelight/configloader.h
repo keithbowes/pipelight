@@ -85,9 +85,6 @@ struct PluginConfig{
 	std::map<std::string, std::string, stringInsensitiveCompare> overwriteArgs;
 	std::map<std::string, std::string, stringInsensitiveCompare> windowlessOverwriteArgs;
 
-	std::vector<std::string> dependencies;
-	bool			quietInstallation;
-
 	bool			eventAsyncCall;
 	bool			operaDetection;
 	std::string		executeJavascript;

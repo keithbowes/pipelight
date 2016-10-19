@@ -33,13 +33,12 @@ mktemp_with_ext()
 
 # > Checks if a dependency is already installed
 # arguments:
-# $1	- SHA256
-# $DEP
+# $1	- Date of last change
 is_installed()
 {
-	local SHA="$1"
-	local ckfile="$WINEPREFIX/$DEP.installed"
-	[ -f "$ckfile" ] && [ "$SHA" == "$(cat "$ckfile")" ]
+	local LASTCHANGE="$1"
+	local ckfile="$WINEPREFIX/$PLUGIN.installed"
+	[ -f "$ckfile" ] && [ "$LASTCHANGE" == "$(cat "$ckfile")" ]
 	return $?
 }
 
@@ -47,29 +46,30 @@ is_installed()
 # arguments: same as is_installed
 mark_installed()
 {
-	local SHA="$1"
-	local ckfile="$WINEPREFIX/$DEP.installed"
-	echo "$SHA" > "$ckfile"
+	local LASTCHANGE="$1"
+	local ckfile="$WINEPREFIX/$PLUGIN.installed"
+	echo "$LASTCHANGE" > "$ckfile"
 }
 
 # > Download a given dependency file
 # arguments:
 # $1	- URL
 # $2	- SHA256
-# $3	- Overwrite file extension
+# $3	- Name
+# $4	- Overwrite file extension
 # returns:
 # $DOWNLOADFILE
 DOWNLOADFILE=""
 download()
 {
-	local URL="$1";	local SHA="$2";	local EXT="$3"
+	local URL="$1";	local SHA="$2"; local NAME="$3"; local EXT="$4"
 
 	if [ -z "$EXT" ]; then
 		EXT=$(echo "$URL" | sed 's/.*\.//')
 	fi
 
 	# Reuse existing download
-	local dlfile="/tmp/pipelight-$DEP.$EXT"
+	local dlfile="/tmp/pipelight-$NAME.$EXT"
 	if [ -f "$dlfile" ] && [ "$SHA" == "$(sha256sum "$dlfile" | cut -d' ' -f1)" ]; then
 		DOWNLOADFILE="$dlfile"
 		return 0
@@ -84,7 +84,7 @@ download()
 	while true; do
 		if [ "$trycount" -le 0 ]; then
 			rm "$tmpfile"
-			echo "[$PRG] ERROR: Downloading of $DEP failed multiple times. Please check:" >&2
+			echo "[$PRG] ERROR: Downloading of $NAME failed multiple times. Please check:" >&2
 			echo "[$PRG]" >&2
 			echo "[$PRG]        * that your internet connection is working properly" >&2
 			echo "[$PRG]" >&2
@@ -96,7 +96,7 @@ download()
 			return 1
 		fi
 
-		download_file "$tmpfile" "$URL" 2>&1 | progressbar "Please wait, downloading ..." "Downloading $DEP ($filesize MiB)"
+		download_file "$tmpfile" "$URL" 2>&1 | progressbar "Please wait, downloading ..." "Downloading $NAME ($filesize MiB)"
 		if [ -f "$tmpfile" ] && [ "$SHA" == "$(sha256sum "$tmpfile" | cut -d' ' -f1)" ]; then
 			break
 		fi
@@ -118,68 +118,21 @@ download()
 	return 0
 }
 
-# > Installer for Silverlight
-# arguments:
-# $1	- version
-# $2	- short version
-# $DOWNLOADFILE
-install_silverlight()
-{
-	local VER="$1"
-	local SHORTVER="$2"
-
-	# Remove the registry keys for Silverlight since other versions can prevent this one from installing
-	"$WINE" msiexec /uninstall {89F4137D-6C26-4A84-BDB8-2E5A4BB71E00};
-
-	# Launch the installer
-	if [ "$QUIETINSTALLATION" -eq 0 ]; then
-		"$WINE" "$DOWNLOADFILE" /noupdate 2>&1
-	else
-		"$WINE" "$DOWNLOADFILE" /q /doNotRequireDRMPrompt /noupdate 2>&1 | progressbar "Please wait, installing ..." "Running $DEP"
-	fi
-
-	local programfiles="$WINEPREFIX/drive_c/Program Files"
-	if [ ! -d "$programfiles/Microsoft Silverlight/$VER" ]; then
-		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
-		return 1
-	fi
-
-	# Move the installation to a version-specific folder that nothing will touch
-	mkdir -p "$programfiles/Silverlight"
-	mv "$programfiles/Microsoft Silverlight/$VER" "$programfiles/Silverlight/$VER"
-
-	# Create a short symlink if SHORTVER is provided.
-	if [ ! -z "$SHORTVER" ]; then
-		local shortsymlink="$programfiles/Silverlight/$SHORTVER"
-		if [ -L "$shortsymlink" ]; then
-			rm "$shortsymlink"
-		elif [ -e "$shortsymlink" ]; then
-			echo "[$PRG] ERROR: Unable to overwrite $shortsymlink, please delete this file manually." >&2
-			return 1
-		fi
-		ln -s "$VER" "$shortsymlink"
-	fi
-
-	# Remove the Silverlight menu shortcut
-	rm -f "$WINEPREFIX/drive_c/users/$USER/Start Menu/Programs/Microsoft Silverlight/Microsoft Silverlight.lnk"
-
-	# Successful
-	return 0
-}
 
 # > Extract cab library
 # arguments:
-# $1	- file to extract
-# $DOWNLOADFILE
+# $1	- cab file
+# $2	- file to extract
 #
 # optional arguments:
 # --reg - run regsvr32.dll to register the dll
 install_cabextract()
 {
+	local CABFILE="$1"; shift
 	local FILE="$1"; shift
 
 	local system32="$WINEPREFIX/drive_c/windows/system32"
-	cabextract -d "$system32" "$DOWNLOADFILE" -F "$FILE"
+	cabextract -d "$system32" "$CABFILE" -F "$FILE"
 	if [ ! -f "$system32/$FILE" ]; then
 		echo "[$PRG] ERROR: Failed to extract $FILE from cab file." >&2
 		return 1
@@ -205,448 +158,6 @@ install_cabextract()
 				;;
 		esac
 	done
-
-	# Successful
-	return 0
-}
-
-# > Install wininet.dll
-# arguments:
-# $DOWNLOADFILE
-install_wininet()
-{
-	if ! install_cabextract wininet.x86.5.0.3700.6713.dll --rename "wininet.dll"; then return 1; fi
-
-	# Setup wine dlloverride and adjust some wininet.dll related settings
-	local tmpfile=$(mktemp)
-	[ -f "$tmpfile" ] || return 1
-
-	(
-		echo "REGEDIT4"
-		echo ""
-		echo "[HKEY_CURRENT_USER\\Software\\Wine\\DllOverrides]"
-		echo "\"*wininet\"=\"native,builtin\""
-		echo ""
-		echo "[HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings]"
-		echo "\"MaxConnectionsPerServer\"=dword:7fffffff"
-		echo "\"MaxConnectionsPer1_0Server\"=dword:7fffffff"
-	) > "$tmpfile"
-
-	"$WINE" regedit "$tmpfile"
-	local res=$?
-
-	# Cleanup
-	rm "$tmpfile"
-
-	# Successful
-	return "$res"
-
-}
-
-# > Install flash
-# arguments:
-# $1	- version path component
-# $DOWNLOADFILE
-install_flash()
-{
-	VER="$1"
-
-	# Launch the installer
-	if [ "$QUIETINSTALLATION" -eq 0 ]; then
-		"$WINE" "$DOWNLOADFILE" 2>&1
-	else
-		"$WINE" "$DOWNLOADFILE" -install 2>&1 | progressbar "Please wait, installing ..." "Running $DEP"
-	fi
-
-	local installdir="$WINEPREFIX/drive_c/windows/system32/Macromed/Flash"
-
-	local result=1
-	case "$WINEARCH" in
-		win32)
-			[ -f "$installdir/NPSWF32_$VER.dll" ]; result=$?
-			;;
-		win64)
-			[ -f "$installdir/NPSWF64_$VER.dll" ]; result=$?
-			;;
-		*)
-			[ -f "$installdir/NPSWF32_$VER.dll" ] || [ -f "$installdir/NPSWF64_$VER.dll" ]; result=$?
-			;;
-	esac
-
-	if [ "$result" -ne 0 ]; then
-		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
-		return 1
-	fi
-
-
-	local flashconfig="$installdir/mms.cfg"
-	if ! grep -q "^OverrideGPUValidation=" "$flashconfig" 2>/dev/null; then
-		(
-			grep -v "^OverrideGPUValidation=" "$flashconfig" 2>/dev/null
-			echo "OverrideGPUValidation=true"
-		) > "$flashconfig.bak"
-
-		if ! mv "$flashconfig.bak" "$flashconfig"; then
-			echo "[$PRG] ERROR: Unable to change $DEP plugin settings." >&2
-		fi
-	fi
-
-	# Successful
-	return 0
-}
-
-# > Install shockwave
-# arguments:
-# $1	- version path component
-# $DOWNLOADFILE
-install_shockwave()
-{
-	VER="$1"
-
-	# Launch the installer
-	if [ "$QUIETINSTALLATION" -eq 0 ]; then
-		"$WINE" "$DOWNLOADFILE" 2>&1
-	else
-		"$WINE" "$DOWNLOADFILE" /S 2>&1 | progressbar "Please wait, installing ..." "Running $DEP"
-	fi
-
-	local installdir1="$WINEPREFIX/drive_c/windows/system32/Adobe/Director"
-	local installdir2="$WINEPREFIX/drive_c/windows/syswow64/Adobe/Director"
-	if [ ! -f "$installdir1/np32dsw_$VER.dll" ] && [ ! -f "$installdir2/np32dsw_$VER.dll" ]; then
-		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
-		return 1
-	fi
-
-	 # Switch to OpenGL mode and disable fallback mode
-	 local tmpfile=$(mktemp)
-	 [ -f "$tmpfile" ] || return 1
-
-	(
-		echo "REGEDIT4"
-		echo ""
-		echo "[HKEY_CURRENT_USER\\Software\\Adobe\\Shockwave 12\\allowfallback]"
-		echo "@=\"n\""
-		echo ""
-		echo "[HKEY_CURRENT_USER\\Software\\Adobe\\Shockwave 12\\renderer3dsetting]"
-		echo "@=\"2\""
-		echo ""
-		echo "[HKEY_CURRENT_USER\\Software\\Adobe\\Shockwave 12\\renderer3dsettingPerm]"
-		echo "@=\"2\""
-	) > "$tmpfile"
-
-	"$WINE" regedit "$tmpfile"
-	local res=$?
-
-	# Cleanup
-	rm "$tmpfile"
-
-	# Successful
-	return "$res"
-}
-
-# > Install Unity3D 32 bit
-# arguments: None
-# $DOWNLOADFILE
-install_unity3d()
-{
-	# Launch the installer
-	if [ "$QUIETINSTALLATION" -eq 0 ]; then
-		"$WINE" "$DOWNLOADFILE" /AllUsers 2>&1
-	else
-		"$WINE" "$DOWNLOADFILE" /S /AllUsers 2>&1 | progressbar "Please wait, installing ..." "Running $DEP"
-	fi
-
-	local installdir="$WINEPREFIX/drive_c/Program Files/Unity/WebPlayer/loader"
-	if [ ! -f "$installdir/npUnity3D32.dll" ]; then
-		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
-		return 1
-	fi
-
-	# Successful
-	return 0
-}
-
-# > Install Unity3D 64 bit
-# arguments: None
-# $DOWNLOADFILE
-install_x64_unity3d()
-{
-	# Launch the installer
-	if [ "$QUIETINSTALLATION" -eq 0 ]; then
-		"$WINE" "$DOWNLOADFILE" /AllUsers 2>&1
-	else
-		"$WINE" "$DOWNLOADFILE" /S /AllUsers 2>&1 | progressbar "Please wait, installing ..." "Running $DEP"
-	fi
-
-	local installdir="$WINEPREFIX/drive_c/Program Files/Unity/WebPlayer64/loader-x64"
-	if [ ! -f "$installdir/npUnity3D64.dll" ]; then
-		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
-		return 1
-	fi
-
-	# Successful
-	return 0
-}
-
-# > Install Foxit PDF
-# arguments: None
-# $DOWNLOADFILE
-install_foxitpdf()
-{
-	# Launch the installer
-	#if [ "$QUIETINSTALLATION" -eq 0 ]; then
-	#	"$WINE" "$DOWNLOADFILE" /AllUsers 2>&1
-	#else
-		"$WINE" msiexec.exe /i "$DOWNLOADFILE" ALLUSERS=1 /q /norestart MAKEDEFAULT=0 VIEW_IN_BROWSER=1 DESKTOP_SHORTCUT=0 AUTO_UPDATE=0 ADDLOCAL="FX_PDFVIEWER,FX_FIREFOXPLUGIN" REMOVE="ALL" 2>&1 | progressbar "Please wait, installing ..." "Running $DEP"
-	#fi
-
-	local installdir="$WINEPREFIX/drive_c/Program Files/Foxit Software/Foxit Reader/plugins"
-	if [ ! -f "$installdir/npFoxitReaderPlugin.dll" ]; then
-		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
-		return 1
-	fi
-
-	# Successful
-	return 0
-}
-
-# > Install Grandstream
-# arguments: None
-# $DOWNLOADFILE
-install_grandstream()
-{
-	local tmpfile=$(mktemp_with_ext "exe")
-	[ -f "$tmpfile" ] || return 1
-
-	if ! unzip -p "$DOWNLOADFILE" "chrome_firefox_plugine_1.0.0.7.exe" > "$tmpfile"; then
-		echo "[$PRG] ERROR: Unable to extract installer from zip file." >&2
-		rm "$tmpfile"
-		return 1
-	fi
-
-	# Launch the installer and delete the program afterwards
-	"$WINE" "$tmpfile" 2>&1
-	rm "$tmpfile"
-
-	local installdir="$WINEPREFIX/drive_c/Program Files/WebControl"
-	if [ ! -f "$installdir/npGS_Plugins.dll" ]; then
-		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
-		return 1
-	fi
-
-	# Successful
-	return 0
-}
-
-# > Install mspatcha.dll
-# arguments: None
-# $DOWNLOADFILE
-install_mspatcha()
-{
-	if ! install_cabextract mspatcha.dll; then return 1; fi
-
-	# Setup wine dlloverride
-	local tmpfile=$(mktemp)
-	[ -f "$tmpfile" ] || return 1
-
-	(
-		echo "REGEDIT4"
-		echo ""
-		echo "[HKEY_CURRENT_USER\\Software\\Wine\\DllOverrides]"
-		echo "\"*mspatcha\"=\"native,builtin\""
-	) > "$tmpfile"
-
-	"$WINE" regedit "$tmpfile"
-	local res=$?
-
-	# Cleanup
-	rm "$tmpfile"
-
-	# Successful
-	return "$res"
-
-}
-
-# > Install Adobe Reader
-# arguments: None
-# $DOWNLOADFILE
-install_adobereader()
-{
-	# Launch the installer
-	if [ "$QUIETINSTALLATION" -eq 0 ]; then
-		"$WINE" "$DOWNLOADFILE" 2>&1
-	else
-		"$WINE" "$DOWNLOADFILE" /msi EULA_ACCEPT=YES /qn 2>&1 | progressbar "Please wait, installing ..." "Running $DEP"
-	fi
-
-	local installdir="$WINEPREFIX/drive_c/Program Files/Adobe/Reader 11.0/Reader/AIR"
-	if [ ! -f "$installdir/nppdf32.dll" ]; then
-		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
-		return 1
-	fi
-
-	# Disable sandbox as it does not work with Wine
-	local tmpfile=$(mktemp)
-	[ -f "$tmpfile" ] || return 1
-
-	(
-		echo "REGEDIT4"
-		echo ""
-		echo "[HKEY_CURRENT_USER\\Software\\Adobe\\Acrobat Reader\\11.0\\Privileged]"
-		echo "\"bProtectedMode\"=dword:00000000"
-	) > "$tmpfile"
-
-	"$WINE" regedit "$tmpfile"
-	local res=$?
-
-	# Cleanup
-	rm "$tmpfile"
-
-	# Successful
-	return "$res"
-}
-
-# > Install Widevine
-# arguments: None
-# $DOWNLOADFILE
-install_widevine()
-{
-	local system32="$WINEPREFIX/drive_c/windows/system32"
-	if ! unzip -p "$DOWNLOADFILE" "plugins/npwidevinemediaoptimizer.dll" > "$system32/npwidevinemediaoptimizer.dll"; then
-		echo "[$PRG] ERROR: Unable to extract plugin from xip file." >&2
-		return 1
-	fi
-
-	# Successful
-	return 0
-}
-
-# > Install Hikvision
-# arguments: None
-# $DOWNLOADFILE
-install_hikvision()
-{
-	if [ "$QUIETINSTALLATION" -eq 0 ]; then
-		"$WINE" "$DOWNLOADFILE" 2>&1
-	else
-		"$WINE" "$DOWNLOADFILE" /silent 2>&1 | progressbar "Please wait, installing ..." "Running $DEP"
-	fi
-
-	local installdir="$WINEPREFIX/drive_c/Program Files/Web Components"
-	if [ ! -f "$installdir/npWebVideoPlugin.dll" ]; then
-		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
-		return 1
-	fi
-
-	# Successful
-	return 0
-}
-
-# > Install NP-ActiveX
-# arguments:
-# $1	- checksum of npactivex.dll
-# $DOWNLOADFILE
-install_npactivex()
-{
-	DLLSHA="$1"
-
-	local system32="$WINEPREFIX/drive_c/windows/system32"
-
-	# The exit code is 1, but the output is still valid
-	unzip -p "$DOWNLOADFILE" "npactivex.dll" > "$system32/npactivex.dll"
-
-	local installfile="$system32/npactivex.dll"
-	if [ ! -f "$installfile" ] || [ "$DLLSHA" != "$(sha256sum "$installfile" | cut -d' ' -f1)" ]; then
-		echo "[$PRG] ERROR: Unable to extract plugin from crx file." >&2
-		return 1
-	fi
-
-	# Successful
-	return 0
-}
-
-# > Install Roblox
-# arguments:
-# $1	- version "number"
-# $DOWNLOADFILE
-install_roblox()
-{
-	VER="$1"
-
-	"$WINE" "$DOWNLOADFILE" 2>&1
-
-	local installdir="$WINEPREFIX/drive_c/users/$USER/Local Settings/Application Data/RobloxVersions/version-$VER"
-	if [ ! -f "$installdir/NPRobloxProxy.dll" ]; then
-		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
-		return 1
-	fi
-
-	if ! "$WINE" regsvr32 "$installdir/RobloxProxy.dll"; then
-		echo "[$PRG] ERROR: Unable to register Roblox Launcher class." >&2
-		return 1
-	fi
-
-	# Successful
-	return 0
-}
-
-# > Install Vizeed RGR
-# arguments: None
-# $DOWNLOADFILE
-install_vizzedrgr()
-{
-	# Launch the installer
-	if [ "$QUIETINSTALLATION" -eq 0 ]; then
-		"$WINE" msiexec.exe /i "$DOWNLOADFILE" 2>&1
-	else
-		"$WINE" msiexec.exe /quiet /i "$DOWNLOADFILE" 2>&1 | progressbar "Please wait, installing ..." "Running $DEP"
-	fi
-
-	local installdir="$WINEPREFIX/drive_c/Program Files/Vizzed/Vizzed Retro Game Room"
-	if [ ! -f "$installdir/NpVizzedRgr.dll" ]; then
-		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
-		return 1
-	fi
-
-	# Successful
-	return 0
-}
-
-# > Install ViewRight Plugin for Caiway
-# arguments: None
-# $DOWNLOADFILE
-install_viewright_caiway()
-{
-	# Launch the installer
-	if [ "$QUIETINSTALLATION" -eq 0 ]; then
-		"$WINE" msiexec.exe /i "$DOWNLOADFILE" 2>&1
-	else
-		"$WINE" msiexec.exe /quiet /i "$DOWNLOADFILE" 2>&1 | progressbar "Please wait, installing ..." "Running $DEP"
-	fi
-
-	local installdir="$WINEPREFIX/drive_c/Program Files/Verimatrix/ViewRight Web"
-	if [ ! -f "$installdir/npViewRight.dll" ]; then
-		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
-		return 1
-	fi
-
-	# Successful
-	return 0
-}
-
-# > Install Google Earth plugin
-# arguments: None
-# $DOWNLOADFILE
-install_google_earth()
-{
-	# Launch the installer
-	"$WINE" "$DOWNLOADFILE" 2>&1
-
-	local installdir="$WINEPREFIX/drive_c/Program Files/Google/Google Earth/plugin"
-	if [ ! -f "$installdir/npgeplugin.dll" ]; then
-		echo "[$PRG] ERROR: Installer for $DEP did not run correctly or was aborted." >&2
-		return 1
-	fi
 
 	# Successful
 	return 0
@@ -756,8 +267,8 @@ else
 fi
 
 # Abort if no arguments were given
-if [ $# -eq 0 ]; then
-	echo "[$PRG] ERROR: Please provide a path to a plugin config." >&1
+if [ $# -ne 2 ]; then
+	echo "[$PRG] ERROR: Please provide a path to a plugin config and a plugin name." >&2
 	exit 1
 fi
 
@@ -775,6 +286,14 @@ if [ ! -w "$WINEPREFIX" ]; then
 	fi
 fi
 
+PLUGIN_SCRIPT="$1"
+PLUGIN="$2"
+
+if [ ! -f "$PLUGIN_SCRIPT" ]; then
+	echo "[$PRG] ERROR: Plugin script $PLUGIN_SCRIPT does not exist" >&2
+	exit 1
+fi
+
 # Silent installation
 if [ -z "$QUIETINSTALLATION" ]; then
 	QUIETINSTALLATION=0
@@ -787,7 +306,7 @@ LOCKFILE="/tmp/wine-$LOCKFILE.tmp"
 LOCKFD=9; eval "exec $LOCKFD> \"\$LOCKFILE\""
 if ! flock -x -w 360 "$LOCKFD"; then
 	echo "[$PRG] ERROR: Failed to obtain an installation lock in 6 minutes." >&2
-	exit 1;
+	exit 1
 fi
 
 # Close file descriptor (ensure that the lock is released when the installation is ready)
@@ -807,155 +326,23 @@ if [ ! -f "$WINEPREFIX/system.reg" ]; then
 	DISPLAY="" "$WINE" wineboot.exe 2>&1 | progressbar "Please wait..." "Creating wine prefix"
 fi
 
-# Set default return value
-RET=0
+file_date=$(date -u -Ins -r "$PLUGIN_SCRIPT")
 
-echo "[$PRG] FIXME: Load config file from $1" >&2
-shift
+# Is already installed?
+if is_installed "$file_date"; then
+	echo "[$PRG] $PLUGIN is already installed in '$WINEPREFIX'."
+	exit 0
+fi
 
-while [ $# -gt 0 ] ; do
-	DEP="$1"; INS=(); URL=""; SHA=""; EXT=""; DOWNLOADFILE=""; shift
-	case "$DEP" in
-		wine-prefix)
-			continue # The wine-prefix is created automatically for all packages
-			;;
-		wine-silverlight4-installer)
-			INS=(install_silverlight "4.1.10329.0")
-			URL="http://silverlight.dlservice.microsoft.com/download/6/A/1/6A13C54D-3F35-4082-977A-27F30ECE0F34/10329.00/runtime/Silverlight.exe"
-			SHA="b0e476090206b2e61ba897de9151a31e0182c0e62e8abd528c35d3857ad6131c"
-			;;
-		wine-silverlight5.0-installer)
-			INS=(install_silverlight "5.0.61118.0")
-			URL="http://silverlight.dlservice.microsoft.com/download/5/5/7/55748E53-D673-4225-8072-4C7A377BB513/runtime/Silverlight.exe"
-			SHA="dd45a55419026c592f8b6fc848dceface7e1ce98720bf13848a2e8ae366b29e8"
-			;;
-		wine-silverlight5.1-installer) # http://www.microsoft.com/getsilverlight/locale/en-us/html/Microsoft%20Silverlight%20Release%20History.htm
-			INS=(install_silverlight "5.1.41212.0" "latest")
-			URL="http://download.microsoft.com/download/5/3/D/53D3880B-25F8-4714-A4AC-E463A492F96E/41212.00/Silverlight.exe"
-			SHA="af2d435a034e03c2940a648291013ebd9de20d855447dbdb93416e7e03c3e91b"
-			;;
-		wine-flash-installer) # http://www.adobe.com/de/software/flash/about/
-			INS=(install_flash "23_0_0_185")
-			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/23.0.0.185/install_flash_player.exe"
-			SHA="9d6407d54127a84c55f23662d9eb02a293f2956b05c3fad3cc29e7ec6b1b22f2"
-			;;
-		wine-flash-debug-installer)
-			INS=(install_flash "22_0_0_209")
-			URL="http://download.macromedia.com/pub/flashplayer/updaters/22/flashplayer_22_plugin_debug.exe"
-			SHA="1581c9389be3572abeed04a7153e71c5e4daf8c72f15de7f93290eb7f32a1063"
-			;;
-		wine-widevine-installer) # http://www.widevine.com/download/videooptimizer/index.html
-			INS=(install_widevine)
-			URL="https://dl.google.com/widevine/6.0.0.12442/WidevineMediaOptimizer_Win.xpi"
-			SHA="84cde1b83d8f5e4b287303a25e61227ce9a253268af6bd88b9a2f98c85129bc8"
-			EXT="zip"
-			;;
-		wine-unity3d-installer)
-			INS=(install_unity3d)
-			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayer.exe"
-			SHA="9a5bcbe13bb74590e97ea4ee4fe76c24a5ac0b9cc99948e1be33ed3394d8c245"
-			;;
-		wine-x64-unity3d-installer)
-			INS=(install_x64_unity3d)
-			URL="http://webplayer.unity3d.com/download_webplayer-3.x/UnityWebPlayerFull64.exe"
-			SHA="f612da4f81aa2a0e8e693332e51ca424ff0b5948478df6e17515a0a9b3387811"
-			;;
-		wine-adobereader-installer) # http://get.adobe.com/de/reader/otherversions/
-			INS=(install_adobereader)
-			URL="http://ardownload.adobe.com/pub/adobe/reader/win/11.x/11.0.08/en_US/AdbeRdr11008_en_US.exe"
-			SHA="00dbd10f80e9451938d5a10e60b8c8dca2dac81c118618652bb49a62ca04c3b3"
-			;;
-		wine-foxitpdf-installer) # http://www.foxitsoftware.com/Secure_PDF_Reader/version_history.php
-			INS=(install_foxitpdf)
-			URL="http://cdn04.foxitsoftware.com/pub/foxit/reader/desktop/win/7.x/7.0/enu/EnterpriseFoxitReader706.1126_enu.msi"
-			SHA="4be8aadcc4fea96277b4d879bb0320a9bd027ebfb2de1306399b4c29abe94206"
-			;;
-		wine-shockwave-installer) # http://get.adobe.com/de/shockwave/otherversions/
-			INS=(install_shockwave "1224194")
-			URL="http://fpdownload.macromedia.com/get/shockwave/default/english/win95nt/latest/sw_lic_full_installer.exe"
-			SHA="add6e1e1b5ac6f28eadb06a6b0220423a48c554ca4cbd212727dc79bc365ca7e"
-			;;
-		wine-grandstream-installer)
-			INS=(install_grandstream)
-			URL="http://www.grandstream.com/products/tools/surveillance/webcontrl_plugin.zip"
-			SHA="1162798378997373701967f3f0f291ae4c858e8cae29e55a5249e24f47f70df2"
-			;;
-		wine-mpg2splt-installer)
-			INS=(install_cabextract mpg2splt.ax --reg)
-			URL="http://download.microsoft.com/download/8/0/D/80D7E79D-C0E4-415A-BCCA-E229EAFE2679/dshow_nt.cab"
-			SHA="984ed15e23a00a33113f0012277e1e680c95782ce2c44f414e7af14e28e3f1a2"
-			;;
-		wine-wininet-installer)
-			echo "[$PRG] Ignoring deprecated $DEP."
-			continue
-			;;
-		wine-mspatcha-installer)
-			INS=(install_mspatcha)
-			URL="http://download.microsoft.com/download/WindowsInstaller/Install/2.0/NT45/EN-US/InstMsiW.exe"
-			SHA="4c3516c0b5c2b76b88209b22e3bf1cb82d8e2de7116125e97e128952372eed6b"
-			;;
-		wine-hikvision-installer)
-			INS=(install_hikvision)
-			URL="http://cctvone.com/fillib/IP%20Camera/Hikvision-2DC-Series/CD/IE%20Client/WebComponents.exe"
-			SHA="04fec22ca61c657f6f46160e55334e3defeea0e193bc8ec6d7bb45c87e773361"
-			;;
-		wine-npactivex-installer) # https://code.google.com/p/np-activex/downloads/list
-			INS=(install_npactivex "6a31dac35cfda77ef4be724f226c5b54404aec61a81e663e47d39c7c9dd1580e")
-			URL="https://np-activex.googlecode.com/files/extension_1_5_0_7.crx"
-			SHA="12ba6c79079f53172ca897f717911c2613219236dca5ae58662d41636490e7a9"
-			EXT="zip"
-			;;
-		wine-roblox-installer)
-			INS=(install_roblox "632471a80776450d")
-			URL="http://setup.roblox.com/version-632471a80776450d-Roblox.exe"
-			SHA="901505c1311cb592521ea6bec09ec793194d1ecb0630686e72a948850e55d632"
-			;;
-		wine-vizzedrgr-installer)
-			INS=(install_vizzedrgr)
-			URL="http://www.vizzed.co/VizzedRgrPlugin-v2.0.msi"
-			SHA="ddc99b1a6902e30f355533620637a2d1b7d1ff3b1bd76a65cb1fbd78b2b396cb"
-			;;
-		wine-viewright-caiway-installer) # https://www.caiway.nl/site/nl/applicatie/multiscreentvplugins
-			INS=(install_viewright_caiway)
-			URL="https://www.caiway.nl/downloads/ViewRightWebInstaller-3.5.0.0_CaiW.msi"
-			SHA="9436dea83e42204d0a9bc4d128c2f2693dd9c5f9636d5fa57441ef5886f3ab43"
-			;;
-		wine-google-earth-installer)
-			INS=(install_google_earth)
-			URL="http://dl.google.com/dl/edgedl/earth/plugin/7.1.5.1557/GoogleEarth-Win-Plugin-7.1.5.1557.exe"
-			SHA="852f7ba6b748157ad3659d447c5e064a3f6ce198634023048eb680d5141fe720"
-			;;
-		*)
-			echo "[$PRG] ERROR: No installer script found for $DEP." >&2
-			RET=1
-			break
-			;;
-	esac
+echo "[$PRG] Running $PLUGIN installation script."
 
-	# Is already installed?
-	if is_installed "$SHA"; then
-		echo "[$PRG] $DEP is already installed in '$WINEPREFIX'."
-		continue
-	fi
+source "$PLUGIN_SCRIPT"
+if ! install_plugin; then
+	echo "[$PRG] ERROR: Installation script for $PLUGIN failed." >&2
+	exit 1
+fi
 
-	echo "[$PRG] Downloading and running $DEP."
+# Mark the package as installed
+mark_installed "$file_date"
 
-	# Fetch the download
-	if ! download "$URL" "$SHA" "$EXT"; then
-		echo "[$PRG] ERROR: Download of $DEP failed." >&2
-		RET=1
-		break
-	fi
-
-	# Do the installation
-	if ! eval "${INS[@]}"; then
-		echo "[$PRG] ERROR: Execution of $DEP failed." >&2
-		RET=1
-		break
-	fi
-
-	# Mark the package as installed
-	mark_installed "$SHA"
-done
-
-exit "$RET"
+exit 0

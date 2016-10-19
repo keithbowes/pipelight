@@ -8,6 +8,51 @@
 # regKey              = @adobe.com/FlashPlayer
 # windowlessMode      = false
 # windowlessOverwriteArg = wmode=opaque
-# dependency          = wine-flash-installer
 # experimental-windowClassHook = true
 # ---END CONFIG---
+
+install_flash()
+{
+    # http://www.adobe.com/de/software/flash/about/
+    local URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/23.0.0.185/install_flash_player.exe"
+    local SHA="9d6407d54127a84c55f23662d9eb02a293f2956b05c3fad3cc29e7ec6b1b22f2"
+    local VER="23_0_0_185"
+
+    if ! download "$URL" "$SHA" "flash" ""; then
+        echo "[flash] ERROR: Download failed." >&2
+        return 1
+    fi
+
+    # Launch the installer
+    if [ "$QUIETINSTALLATION" -eq 0 ]; then
+        "$WINE" "$DOWNLOADFILE" 2>&1
+    else
+        "$WINE" "$DOWNLOADFILE" -install 2>&1 | progressbar "Please wait, installing ..." "Running Flash installer"
+    fi
+
+    local installdir="$WINEPREFIX/drive_c/windows/system32/Macromed/Flash"
+    if [ -f "$installdir/NPSWF32_$VER.dll" ]; then
+        echo "[flash] ERROR: Installer did not run correctly or was aborted." >&2
+        return 1
+    fi
+
+    local flashconfig="$installdir/mms.cfg"
+    if ! grep -q "^OverrideGPUValidation=" "$flashconfig" 2>/dev/null; then
+        (
+            grep -v "^OverrideGPUValidation=" "$flashconfig" 2>/dev/null
+            echo "OverrideGPUValidation=true"
+        ) > "$flashconfig.bak"
+
+        if ! mv "$flashconfig.bak" "$flashconfig"; then
+            echo "[flash] ERROR: Unable to change plugin settings." >&2
+        fi
+    fi
+
+    return 0
+}
+
+install_plugin()
+{
+    install_flash
+    return $?
+}

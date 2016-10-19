@@ -53,7 +53,6 @@
 
 #include "basicplugin.h"
 
-static bool checkPluginInstallation();
 static bool startWineProcess();
 
 /* BEGIN GLOBAL VARIABLES
@@ -108,12 +107,6 @@ static void attach(){
 	/* load config file */
 	if (!loadConfig(config)){
 		DBG_ERROR("unable to load configuration - aborting.");
-		return;
-	}
-
-	/* check for correct installation */
-	if (!checkPluginInstallation()){
-		DBG_ERROR("plugin not correctly installed - aborting.");
 		return;
 	}
 
@@ -226,74 +219,6 @@ static void checkPermissions(){
 		DBG_ERROR("failed to set permissions to uid=%d, gid=%d.", uid, gid);
 		DBG_ERROR("running with uid=%d, gid=%d.", geteuid(), getegid());
 	}
-}
-
-/* checkPluginInstallation */
-static bool checkPluginInstallation(){
-	std::string dependencyInstaller = PIPELIGHT_SHARE_PATH "/install-plugin";
-
-	/* Output wine prefix */
-	DBG_INFO("using wine prefix directory %s.", config.winePrefix.c_str());
-
-	/* If there is no installer provided we cannot check the installation */
-	if (config.dependencies.empty() || !checkIfExists(dependencyInstaller))
-		return checkIfExists(config.winePrefix);
-
-	/* Run the installer ... */
-	DBG_INFO("checking plugin installation - this might take some time.");
-
-	pid_t pidInstall = fork();
-	if (pidInstall == 0){
-
-		close(0);
-
-		checkPermissions();
-
-		/* Setup environment variables */
-		setenv("WINEPREFIX",			config.winePrefix.c_str(),			true);
-		setenv("WINE",					config.winePath.c_str(),			true);
-
-		if (config.wineArch != "")
-			setenv("WINEARCH",			config.wineArch.c_str(),			true);
-
-		if (config.wineDLLOverrides != "")
-			setenv("WINEDLLOVERRIDES",	config.wineDLLOverrides.c_str(),	true);
-
-		if (config.quietInstallation)
-			setenv("QUIETINSTALLATION",	"1",								true);
-
-		/* Generate argv array */
-		std::vector<const char*> argv;
-
-		argv.push_back(dependencyInstaller.c_str());
-		argv.push_back(config.configPath.c_str());
-
-		for (std::vector<std::string>::iterator it = config.dependencies.begin(); it != config.dependencies.end(); it++)
-			argv.push_back( it->c_str());
-
-		argv.push_back(NULL);
-
-		execvp(argv[0], (char**)argv.data());
-		DBG_ABORT("error in execvp command - probably dependencyInstaller not found or missing execute permission.");
-
-	}else if (pidInstall != -1){
-
-		int status;
-		if (waitpid(pidInstall, &status, 0) == -1 || !WIFEXITED(status) ){
-			DBG_ERROR("Plugin installer did not run correctly (error occured).");
-			return false;
-
-		}else if (WEXITSTATUS(status) != 0){
-			DBG_ERROR("Plugin installer did not run correctly (exitcode = %d).", WEXITSTATUS(status));
-			return false;
-		}
-
-	}else{
-		DBG_ERROR("unable to fork() - probably out of memory?");
-		return false;
-	}
-
-	return true;
 }
 
 /* startWineProcess */

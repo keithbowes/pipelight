@@ -292,9 +292,6 @@ bool loadConfig(PluginConfig &config){
 	config.overwriteArgs.clear();
 	config.windowlessOverwriteArgs.clear();
 
-	config.dependencies.clear();
-	config.quietInstallation	= true;
-
 	config.eventAsyncCall		= false;
 	config.operaDetection		= true;
 	config.executeJavascript	= "";
@@ -431,17 +428,6 @@ bool loadConfig(PluginConfig &config){
 			if (!splitConfigValue(value, argKey, argValue))
 				continue;
 			config.windowlessOverwriteArgs[argKey] = argValue;
-
-		}else if (key == "silverlightversion"){
-			DBG_WARN("the configuration parameter silverlightVersion is deprecated.");
-			config.dependencies.insert(config.dependencies.begin(), "wine-" + value + "-installer");
-
-		}else if (key == "dependency"){
-			if (value != "") config.dependencies.push_back(value);
-
-		}else if (key == "quietinstallation"){
-			std::transform(value.begin(), value.end(), value.begin(), c_tolower);
-			config.quietInstallation = (value == "true" || value == "yes");
 
 		}else if (key == "eventasynccall"){
 			std::transform(value.begin(), value.end(), value.begin(), c_tolower);

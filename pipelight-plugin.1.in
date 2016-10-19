@@ -105,19 +105,12 @@ Pipelight currently supports the following browser plugins:
 \fBStandard plugins\fR
 silverlight5.1,
 silverlight5.0,
-silverlight4,
 flash,
 unity3d,
 widevine
 .TP
 \fBAdditional plugins (experimental or not often used):\fR
-shockwave,
-foxitpdf,
-grandstream,
-adobereader,
-hikvision,
-npactivex,
-roblox
+shockwave
 .SH EXAMPLES
 .PP
 Here are some typical examples how to use \fBpipelight-plugin\fR.
