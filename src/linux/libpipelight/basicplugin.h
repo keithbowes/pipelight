@@ -47,11 +47,6 @@
 #include "common/common.h"
 #include "configloader.h"
 
-extern char strMimeType[2048];
-extern char strPluginVersion[100];
-extern char strPluginName[256];
-extern char strPluginDescription[1024];
-
 extern uint32_t		eventTimerID;
 extern NPP			eventTimerInstance;
 extern pthread_t	eventThread;

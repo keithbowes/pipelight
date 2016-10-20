@@ -62,11 +62,6 @@ static bool startWineProcess();
 
 */
 
-char strMimeType[2048]				= {0};
-char strPluginVersion[100]			= {0};
-char strPluginName[256]				= {0};
-char strPluginDescription[1024]		= {0};
-
 uint32_t	eventTimerID			= 0;
 NPP			eventTimerInstance		= NULL;
 pthread_t	eventThread				= 0;
@@ -120,16 +115,16 @@ static void attach(){
 	if (!pluginInitOkay()){
 		DBG_ERROR("error during the initialization of the wine process - aborting.");
 
-		if (!loadPluginInformation()){
+		if (!ctx->loadPluginInformation()){
 			if(config.pluginName == ""){
-				pokeString(strMimeType, "application/x-pipelight-error:pipelighterror:Error during initialization");
-				pokeString(strPluginName, "Pipelight Error!");
+				pokeString(ctx->strMimeType, "application/x-pipelight-error:pipelighterror:Error during initialization");
+				pokeString(ctx->strPluginName, "Pipelight Error!");
 			}else{
-				pokeString(strMimeType, "application/x-pipelight-error-"+config.pluginName+":pipelighterror-"+config.pluginName+":Error during initialization");
-				pokeString(strPluginName, "Pipelight Error (" + config.pluginName +")!");
+				pokeString(ctx->strMimeType, "application/x-pipelight-error-"+config.pluginName+":pipelighterror-"+config.pluginName+":Error during initialization");
+				pokeString(ctx->strPluginName, "Pipelight Error (" + config.pluginName +")!");
 			}
-			pokeString(strPluginDescription, "Something went wrong, check the terminal output");
-			pokeString(strPluginVersion, "0.0");
+			pokeString(ctx->strPluginDescription, "Something went wrong, check the terminal output");
+			pokeString(ctx->strPluginVersion, "0.0");
 		}
 
 		return;
@@ -150,25 +145,25 @@ static void attach(){
 	result = readString(stack);
 	for (std::vector<MimeInfo>::iterator it = config.fakeMIMEtypes.begin(); it != config.fakeMIMEtypes.end(); it++)
 		result += ";" + it->mimeType + ":" + it->extension + ":" + it->description;
-	pokeString(strMimeType, result);
+	pokeString(ctx->strMimeType, result);
 
 	/* plugin name */
 	result = readString(stack);
-	pokeString(strPluginName, result);
+	pokeString(ctx->strPluginName, result);
 
 	/* plugin description */
 	result = readString(stack);
 	if (config.fakeVersion != "")
 		result = config.fakeVersion;
-	pokeString(strPluginDescription, result);
+	pokeString(ctx->strPluginDescription, result);
 
 	/* plugin version */
 	result = readString(stack);
 	if (config.fakeVersion != "")
 		result = config.fakeVersion;
-	pokeString(strPluginVersion, result);
+	pokeString(ctx->strPluginVersion, result);
 
-	savePluginInformation();
+	ctx->savePluginInformation();
 
 	/* initialisation successful */
 	initOkay = true;

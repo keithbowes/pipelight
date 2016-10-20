@@ -184,16 +184,16 @@ NP_EXPORT(NPError) NP_Initialize(NPNetscapeFuncs *bFuncs, NPPluginFuncs *pFuncs)
 NP_EXPORT(/*const*/ char*) NP_GetPluginVersion()
 {
 	DBG_TRACE("()");
-	DBG_TRACE(" -> version='%s'", strPluginVersion);
-	return strPluginVersion;
+	DBG_TRACE(" -> version='%s'", ctx->strPluginVersion);
+	return ctx->strPluginVersion;
 }
 
 /* NP_GetMIMEDescription */
 NP_EXPORT(const char*) NP_GetMIMEDescription()
 {
 	DBG_TRACE("()");
-	DBG_TRACE(" -> mimeType='%s'", strMimeType);
-	return strMimeType;
+	DBG_TRACE(" -> mimeType='%s'", ctx->strMimeType);
+	return ctx->strMimeType;
 }
 
 /* NP_GetValue */
@@ -207,12 +207,12 @@ NP_EXPORT(NPError) NP_GetValue(void *future, NPPVariable variable, void *value)
 	switch (variable)
 	{
 		case NPPVpluginNameString:
-			*((char**)value)	= strPluginName;
+			*((char**)value)	= ctx->strPluginName;
 			result				= NPERR_NO_ERROR;
 			break;
 
 		case NPPVpluginDescriptionString:
-			*((char**)value)	= strPluginDescription;
+			*((char**)value)	= ctx->strPluginDescription;
 			result				= NPERR_NO_ERROR;
 			break;
 

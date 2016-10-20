@@ -543,7 +543,8 @@ bool loadConfig(PluginConfig &config){
 	return true;
 }
 
-void savePluginInformation(){
+void Context::savePluginInformation()
+{
 	std::string home, path;
 	uint32_t len;
 	FILE *file;
@@ -594,7 +595,8 @@ void savePluginInformation(){
 			goto err;											\
 	} while (0)
 
-bool loadPluginInformation(){
+bool Context::loadPluginInformation()
+{
 	std::string home, path;
 	uint32_t len;
 	FILE *file;

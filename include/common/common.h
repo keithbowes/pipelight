@@ -43,7 +43,11 @@
 #endif
 
 /* init */
-#ifndef PLUGINLOADER
+#ifdef PLUGINLOADER
+
+#define INIT_EARLY  /* nothing */
+
+#else
 
 #define INIT_EARLY	__attribute__((init_priority(101)))
 #define CONSTRUCTOR __attribute__((constructor(102)))
@@ -433,6 +437,16 @@ class Context
 	public:
 		FILE *commPipeOut = NULL;
 		FILE *commPipeIn  = NULL;
+
+	#ifndef PLUGINLOADER
+		char strMimeType[2048]				= {0};
+		char strPluginVersion[100]			= {0};
+		char strPluginName[256]				= {0};
+		char strPluginDescription[1024]		= {0};
+
+		void savePluginInformation();
+		bool loadPluginInformation();
+	#endif
 
 		bool initCommPipes(int out, int in);
 		bool initCommIO();

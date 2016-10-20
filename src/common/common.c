@@ -11,7 +11,7 @@
 	#include <sys/types.h>
 #endif
 
-Context _ctx;
+Context _ctx INIT_EARLY;
 Context *ctx = &_ctx;
 
 char strMultiPluginName[64] = "unknown";
