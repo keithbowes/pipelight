@@ -86,10 +86,6 @@ static void attach(){
 
 	DBG_INFO("attached to process.");
 
-	/* Initialize semaphores */
-	sem_init(&ctx->eventThreadSemRequestAsyncCall, 0, 0);
-	sem_init(&ctx->eventThreadSemScheduledAsyncCall, 0, 0);
-
 	initOkay = false;
 
 	/* load config file */

@@ -437,22 +437,44 @@ extern void freeVariant(NPVariant &variant);
 class Context
 {
 	public:
-		FILE *commPipeOut = NULL;
-		FILE *commPipeIn  = NULL;
+		FILE *commPipeOut;
+		FILE *commPipeIn;
 
 	#ifndef PLUGINLOADER
-		char strMimeType[2048]				= {0};
-		char strPluginVersion[100]			= {0};
-		char strPluginName[256]				= {0};
-		char strPluginDescription[1024]		= {0};
+		char strMimeType[2048];
+		char strPluginVersion[100];
+		char strPluginName[256];
+		char strPluginDescription[1024];
 
-		uint32_t	eventTimerID			= 0;
-		NPP			eventTimerInstance		= NULL;
-		pthread_t	eventThread				= 0;
+		uint32_t	eventTimerID;
+		NPP			eventTimerInstance;
+		pthread_t	eventThread;
 
 		sem_t		eventThreadSemRequestAsyncCall;
 		sem_t		eventThreadSemScheduledAsyncCall;
+	#endif
 
+		inline Context()
+		{
+			commPipeOut = NULL;
+			commPipeIn  = NULL;
+
+		#ifndef PLUGINLOADER
+			strcpy(strMimeType, "");
+			strcpy(strPluginVersion, "");
+			strcpy(strPluginName, "");
+			strcpy(strPluginDescription, "");
+
+			eventTimerID = 0;
+			eventTimerInstance = NULL;
+			eventThread = 0;
+
+			sem_init(&ctx->eventThreadSemRequestAsyncCall, 0, 0);
+			sem_init(&ctx->eventThreadSemScheduledAsyncCall, 0, 0);
+		#endif
+		}
+
+	#ifndef PLUGINLOADER
 		void savePluginInformation();
 		bool loadPluginInformation();
 	#endif
