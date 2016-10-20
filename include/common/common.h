@@ -436,10 +436,11 @@ extern void freeVariant(NPVariant &variant);
 
 class Context
 {
-	public:
+	private:
 		FILE *commPipeOut;
 		FILE *commPipeIn;
 
+	public:
 	#ifndef PLUGINLOADER
 		char strMimeType[2048];
 		char strPluginVersion[100];
