@@ -62,13 +62,6 @@ static bool startWineProcess();
 
 */
 
-uint32_t	eventTimerID			= 0;
-NPP			eventTimerInstance		= NULL;
-pthread_t	eventThread				= 0;
-
-sem_t		eventThreadSemRequestAsyncCall;
-sem_t		eventThreadSemScheduledAsyncCall;
-
 pid_t		pidPluginloader			= -1;
 bool		initOkay				= false;
 
@@ -94,8 +87,8 @@ static void attach(){
 	DBG_INFO("attached to process.");
 
 	/* Initialize semaphores */
-	sem_init(&eventThreadSemRequestAsyncCall, 0, 0);
-	sem_init(&eventThreadSemScheduledAsyncCall, 0, 0);
+	sem_init(&ctx->eventThreadSemRequestAsyncCall, 0, 0);
+	sem_init(&ctx->eventThreadSemScheduledAsyncCall, 0, 0);
 
 	initOkay = false;
 

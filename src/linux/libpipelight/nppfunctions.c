@@ -241,8 +241,11 @@ NP_EXPORT(NPError) NP_Shutdown()
 	return NPERR_NO_ERROR;
 }
 
-inline void timerFunc(NPP __instance, uint32_t __timerID)
+inline void timerFunc(NPP instance, uint32_t timerID)
 {
+	struct PluginData *pdata = (struct PluginData *)instance->pdata;
+	Context *ctx = pdata->ctx;
+
 	/* Update the window */
 #if 0
 	ctx->writeInt64( handleManager_count() );
@@ -282,36 +285,43 @@ inline void timerFunc(NPP __instance, uint32_t __timerID)
 
 static void timerThreadAsyncFunc(void *argument)
 {
+	NPP instance = (NPP)argument;
+	struct PluginData *pdata = (struct PluginData *)instance->pdata;
+	Context *ctx = pdata->ctx;
 
 	/* has been cancelled if we cannot acquire this lock */
-	if (sem_trywait(&eventThreadSemScheduledAsyncCall)) return;
+	if (sem_trywait(&ctx->eventThreadSemScheduledAsyncCall)) return;
 
 	/* Update the window */
-	timerFunc(NULL, 0);
+	timerFunc(instance, 0);
 
 	/* request event handling again */
-	sem_post(&eventThreadSemRequestAsyncCall);
+	sem_post(&ctx->eventThreadSemRequestAsyncCall);
 }
 
 static void* timerThread(void *argument)
 {
+	NPP instance = (NPP)argument;
+	struct PluginData *pdata = (struct PluginData *)instance->pdata;
+	Context *ctx = pdata->ctx;
+
 	while (true)
 	{
-		sem_wait(&eventThreadSemRequestAsyncCall);
+		sem_wait(&ctx->eventThreadSemRequestAsyncCall);
 
 		/* 10 ms of sleeping before requesting again */
 		usleep(10000);
 
 		/* If no instance is running, just terminate */
-		if (!eventTimerInstance)
+		if (!ctx->eventTimerInstance)
 		{
-			sem_wait(&eventThreadSemRequestAsyncCall);
-			if (!eventTimerInstance) break;
+			sem_wait(&ctx->eventThreadSemRequestAsyncCall);
+			if (!ctx->eventTimerInstance) break;
 		}
 
 		/* Request an asynccall */
-		sem_post(&eventThreadSemScheduledAsyncCall);
-		sBrowserFuncs->pluginthreadasynccall(eventTimerInstance, timerThreadAsyncFunc, 0);
+		sem_post(&ctx->eventThreadSemScheduledAsyncCall);
+		sBrowserFuncs->pluginthreadasynccall(ctx->eventTimerInstance, timerThreadAsyncFunc, instance);
 	}
 
 	return NULL;
@@ -402,12 +412,12 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 
 	/* Setup eventhandling */
 	if (config.eventAsyncCall){
-		if (!eventThread){
-			eventTimerInstance = instance;
-			if (pthread_create(&eventThread, NULL, timerThread, NULL) == 0)
+		if (!ctx->eventThread){
+			ctx->eventTimerInstance = instance;
+			if (pthread_create(&ctx->eventThread, NULL, timerThread, instance) == 0)
 				startAsyncCall = true;
 			else{
-				eventThread = 0;
+				ctx->eventThread = 0;
 				DBG_ERROR("unable to start timer thread.");
 			}
 		}else
@@ -415,9 +425,9 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 
 	}else{
 		/* TODO: For Chrome this should be ~0, for Firefox a value of 5-10 is better. */
-		if (eventTimerInstance == NULL){
-			eventTimerInstance	= instance;
-			eventTimerID		= sBrowserFuncs->scheduletimer(instance, 5, true, timerFunc);
+		if (ctx->eventTimerInstance == NULL){
+			ctx->eventTimerInstance	= instance;
+			ctx->eventTimerID		= sBrowserFuncs->scheduletimer(instance, 5, true, timerFunc);
 		}else
 			DBG_INFO("already one timer running.");
 	}
@@ -476,7 +486,7 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 #endif
 
 	/* Begin scheduling events */
-	if (startAsyncCall) sem_post(&eventThreadSemRequestAsyncCall);
+	if (startAsyncCall) sem_post(&ctx->eventThreadSemRequestAsyncCall);
 
 	DBG_TRACE(" -> result=%d", result);
 	return result;
@@ -501,21 +511,21 @@ NPError NPP_Destroy(NPP instance, NPSavedData **save)
 		return NPERR_GENERIC_ERROR;
 	}
 
-	bool unscheduleCurrentTimer = (eventTimerInstance && eventTimerInstance == instance);
+	bool unscheduleCurrentTimer = (ctx->eventTimerInstance && ctx->eventTimerInstance == instance);
 	if (unscheduleCurrentTimer){
 		if (config.eventAsyncCall){
-			if (eventThread){
+			if (ctx->eventThread){
 				/* Do synchronization with the main thread */
-				sem_wait(&eventThreadSemScheduledAsyncCall);
-				eventTimerInstance = NULL;
-				sem_post(&eventThreadSemRequestAsyncCall);
+				sem_wait(&ctx->eventThreadSemScheduledAsyncCall);
+				ctx->eventTimerInstance = NULL;
+				sem_post(&ctx->eventThreadSemRequestAsyncCall);
 				DBG_INFO("unscheduled event timer thread.");
 			}
 
 		}else{
-			sBrowserFuncs->unscheduletimer(instance, eventTimerID);
-			eventTimerInstance	= NULL;
-			eventTimerID		= 0;
+			sBrowserFuncs->unscheduletimer(instance, ctx->eventTimerID);
+			ctx->eventTimerInstance	= NULL;
+			ctx->eventTimerID		= 0;
 			DBG_INFO("unscheduled event timer.");
 		}
 	}
@@ -562,13 +572,13 @@ NPError NPP_Destroy(NPP instance, NPSavedData **save)
 	if (unscheduleCurrentTimer){
 		NPP nextInstance = handleManager_findInstance();
 		if (config.eventAsyncCall){
-			if (eventThread){
+			if (ctx->eventThread){
 				/* start again requesting async calls */
-				eventTimerInstance = nextInstance;
-				sem_post(&eventThreadSemRequestAsyncCall);
+				ctx->eventTimerInstance = nextInstance;
+				sem_post(&ctx->eventThreadSemRequestAsyncCall);
 				/* if nextInstance == 0 then the thread will terminate itself as soon as it recognizes that eventTimerInstace == NULL */
 				if (nextInstance == 0)
-					eventThread = 0;
+					ctx->eventThread = 0;
 				else
 					DBG_INFO("started timer thread for instance %p.", nextInstance);
 			}
@@ -576,8 +586,8 @@ NPError NPP_Destroy(NPP instance, NPSavedData **save)
 		}else{
 			/* In this event handling model we explicitly schedule a new timer */
 			if (nextInstance){
-				eventTimerID		= sBrowserFuncs->scheduletimer(nextInstance, 5, true, timerFunc);
-				eventTimerInstance	= nextInstance;
+				ctx->eventTimerID		= sBrowserFuncs->scheduletimer(nextInstance, 5, true, timerFunc);
+				ctx->eventTimerInstance	= nextInstance;
 				DBG_INFO("started timer for instance %p.", nextInstance);
 			}
 

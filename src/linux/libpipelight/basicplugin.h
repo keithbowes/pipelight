@@ -41,18 +41,9 @@
 #define BasicPlugin_h_
 
 #include <sys/types.h>
-#include <pthread.h>							// alternative to ScheduleTimer etc.
-#include <semaphore.h>
 
 #include "common/common.h"
 #include "configloader.h"
-
-extern uint32_t		eventTimerID;
-extern NPP			eventTimerInstance;
-extern pthread_t	eventThread;
-
-extern sem_t		eventThreadSemRequestAsyncCall;
-extern sem_t		eventThreadSemScheduledAsyncCall;
 
 extern pid_t		pidPluginloader;
 extern bool			initOkay;

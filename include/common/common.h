@@ -38,6 +38,8 @@
 
 #else
 	#include <sys/stat.h>						/* for stat */
+	#include <pthread.h>
+	#include <semaphore.h>
 
 	extern NPNetscapeFuncs *sBrowserFuncs;
 #endif
@@ -443,6 +445,13 @@ class Context
 		char strPluginVersion[100]			= {0};
 		char strPluginName[256]				= {0};
 		char strPluginDescription[1024]		= {0};
+
+		uint32_t	eventTimerID			= 0;
+		NPP			eventTimerInstance		= NULL;
+		pthread_t	eventThread				= 0;
+
+		sem_t		eventThreadSemRequestAsyncCall;
+		sem_t		eventThreadSemScheduledAsyncCall;
 
 		void savePluginInformation();
 		bool loadPluginInformation();
