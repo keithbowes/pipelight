@@ -231,7 +231,7 @@ NP_EXPORT(NPError) NP_Shutdown()
 {
 	DBG_TRACE("NP_Shutdown()");
 
-	if (initOkay)
+	if (ctx->initOkay)
 	{
 		ctx->callFunction(NP_SHUTDOWN);
 		ctx->readResultVoid();
@@ -368,7 +368,7 @@ NPError NPP_New(NPMIMEType pluginType, NPP instance, uint16_t mode, int16_t argc
 
 	/* setup plugin data structure */
 	pdata->ctx              = ctx; /* FIXME: How can we get this? */
-	pdata->pipelightError	= (!initOkay || invalidMimeType);
+	pdata->pipelightError	= (!ctx->initOkay || invalidMimeType);
 	pdata->containerType    = 0;
 	pdata->container		= NULL;
 #ifndef __APPLE__
@@ -537,8 +537,8 @@ NPError NPP_Destroy(NPP instance, NPSavedData **save)
 	if (!ctx->readCommands(stack, true, 5000)){ /* wait maximum 5sec for result */
 		int status;
 		DBG_ERROR("plugin did not deinitialize properly, killing it!");
-		if (pidPluginloader > 0 && !waitpid(pidPluginloader, &status, WNOHANG))
-			kill(pidPluginloader, SIGTERM);
+		if (ctx->pidPluginloader > 0 && !waitpid(ctx->pidPluginloader, &status, WNOHANG))
+			kill(ctx->pidPluginloader, SIGTERM);
 		DBG_ABORT("terminating.");
 	}
 

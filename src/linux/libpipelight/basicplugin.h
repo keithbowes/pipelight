@@ -45,9 +45,6 @@
 #include "common/common.h"
 #include "configloader.h"
 
-extern pid_t		pidPluginloader;
-extern bool			initOkay;
-
 extern PluginConfig config;
 
 /*

@@ -62,9 +62,6 @@ static bool startWineProcess();
 
 */
 
-pid_t		pidPluginloader			= -1;
-bool		initOkay				= false;
-
 // Browser functions
 NPNetscapeFuncs* sBrowserFuncs		= NULL;
 
@@ -85,8 +82,6 @@ static void attach(){
 	setbuf(stderr, NULL);						/* Disable stderr buffering */
 
 	DBG_INFO("attached to process.");
-
-	initOkay = false;
 
 	/* load config file */
 	if (!loadConfig(config)){
@@ -155,7 +150,7 @@ static void attach(){
 	ctx->savePluginInformation();
 
 	/* initialisation successful */
-	initOkay = true;
+	ctx->initOkay = true;
 }
 
 static void detach(){
@@ -214,8 +209,8 @@ static bool startWineProcess(){
 		return false;
 	}
 
-	pidPluginloader = fork();
-	if (pidPluginloader == 0){
+	ctx->pidPluginloader = fork();
+	if (ctx->pidPluginloader == 0){
 		/* The child process will be replaced with wine */
 
 		close(tempPipeIn[0]);
@@ -292,7 +287,7 @@ static bool startWineProcess(){
 		execvp(argv[0], (char**)argv.data());
 		DBG_ABORT("error in execvp command - probably wine not found or missing execute permission.");
 
-	}else if (pidPluginloader != -1){
+	}else if (ctx->pidPluginloader != -1){
 		/* The parent process will return normally and use the pipes to communicate with the child process */
 
 		close(tempPipeOut[0]);

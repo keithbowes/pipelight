@@ -453,6 +453,9 @@ class Context
 
 		sem_t		eventThreadSemRequestAsyncCall;
 		sem_t		eventThreadSemScheduledAsyncCall;
+
+		pid_t		pidPluginloader;
+		bool		initOkay;
 	#endif
 
 		inline Context()
@@ -472,6 +475,9 @@ class Context
 
 			sem_init(&ctx->eventThreadSemRequestAsyncCall, 0, 0);
 			sem_init(&ctx->eventThreadSemScheduledAsyncCall, 0, 0);
+
+			pidPluginloader = -1;
+			initOkay = false;
 		#endif
 		}
 
