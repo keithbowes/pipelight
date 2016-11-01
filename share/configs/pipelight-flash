@@ -14,9 +14,9 @@
 install_flash()
 {
     # http://www.adobe.com/de/software/flash/about/
-    local URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/23.0.0.185/install_flash_player.exe"
-    local SHA="9d6407d54127a84c55f23662d9eb02a293f2956b05c3fad3cc29e7ec6b1b22f2"
-    local VER="23_0_0_185"
+    local URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/23.0.0.205/install_flash_player.exe"
+    local SHA="c4d38ca72b0e818d3418c020753132a3c95fccab4dd361b5486a151608689f5c"
+    local VER="23_0_0_205"
 
     if ! download "$URL" "$SHA" "flash" ""; then
         echo "[flash] ERROR: Download failed." >&2
