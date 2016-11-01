@@ -31,7 +31,7 @@ install_flash()
     fi
 
     local installdir="$WINEPREFIX/drive_c/windows/system32/Macromed/Flash"
-    if [ -f "$installdir/NPSWF32_$VER.dll" ]; then
+    if [ ! -f "$installdir/NPSWF32_$VER.dll" ]; then
         echo "[flash] ERROR: Installer did not run correctly or was aborted." >&2
         return 1
     fi
