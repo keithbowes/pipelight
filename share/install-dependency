@@ -915,9 +915,9 @@ while [ $# -gt 0 ] ; do
 			SHA="af2d435a034e03c2940a648291013ebd9de20d855447dbdb93416e7e03c3e91b"
 			;;
 		wine-flash-installer) # http://www.adobe.com/de/software/flash/about/
-			INS=(install_flash "23_0_0_205")
-			URL="http://fpdownload.macromedia.com/get/flashplayer/pdc/23.0.0.205/install_flash_player.exe"
-			SHA="c4d38ca72b0e818d3418c020753132a3c95fccab4dd361b5486a151608689f5c"
+			INS=(install_flash "24_0_0_194")
+			URL="http://fpdownload.adobe.com/get/flashplayer/pdc/24.0.0.194/install_flash_player.exe"
+			SHA="f2622b7578fd38263369bc28ee2f4e8dd58e225d303434ecada9e5be8d564ef4"
 			;;
 		wine-flash-debug-installer)
 			INS=(install_flash "22_0_0_209")
