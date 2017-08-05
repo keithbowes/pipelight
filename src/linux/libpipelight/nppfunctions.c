@@ -52,7 +52,7 @@ static std::string pipelightErrorJS =
 			"There was an error during the plugin initialization!\\n\\n"
 			"Press OK to open a page with additional information."
 		"\")){\n"
-	"		window.open(\"http://pipelight.net/cms/faqs/faq-pipelight-error-in-aboutplugins.html\",'_blank');\n"
+	"		window.open(\"http://web.archive.org/web/20160815170857/http://pipelight.net:80/cms/faqs/faq-pipelight-error-in-aboutplugins.html\",'_blank');\n"
 	"	}\n"
 	"	window.__pipelight_error = true;\n"
 	"}";
