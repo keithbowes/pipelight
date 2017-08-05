@@ -1,17 +1,42 @@
 # Pipelight
 
-Pipelight is a suite of tools that allows you to run various Windows plugins under Linux via WINE.  Its main objective is to allow you to watch streaming videos on services using Microsoft's Silverlight, but some other plugins also work.
+Pipelight allows you to run various Windows plugins under Linux via WINE.  Its main objective is to allow you to watch streaming videos on services using Microsoft's Silverlight, but some other plugins also work.
+
+## Requirements
+
+### Platform
+Pipelight requires a \*nix operating system (such as Linux or FreeBSD) running on an x86 (e.g. AMD or Intel) processor.  Most non-mobile computers use an x86 processor.
+
+### Browser
+Pipelight Requires a browser that supports NPAPI plugins.
+
+#### Gecko
+##### Firefox
+Firefox versions under 52 work (as does the Firefox 52 ESR).  After that, [NPAPI plugins are disabled](https://blog.mozilla.org/futurereleases/2015/10/08/npapi-plugins-in-firefox/) for everything but Flash.
+
+#### SeaMonkey
+[SeaMonkey](https://www.seamonkey-project.org/) versions under 2.50 support NPAPI plugins.  SeaMonkey 2.50 nightlies still support both Flash and Silverlight plugins.
+
+#### Palemoon
+[Palemoon](http://www.palemoon.org/) pledges to support NPAPI plugins indefinitely.
+
+### WebKit
+Webkit still supports NPAPI plugins, so you can use browsers such as [Midori](http://midori-browser.org/) and [Uzbl](https://www.uzbl.org/) without a problem.  However, these browsers may need to run the plugins in external windows (put <samp>embed = no</samp> in your configuration file or set the <var>PIPELIGHT_EMBED</var> environment variable to 0).
+
+### Blink
+Chrome/Chromium versions under 34 work.  You'll have to apply [a couple patches](https://bugs.launchpad.net/pipelight/+bug/1307989) to get Chromium versions 34 or higher to work.  Similarly, other browsers based on Chromium 34+, like Opera 15+ and Vivaldi, won't work.
+
+### Presto
+Older versions of Opera use Presto rather than Blink, so you can use Opera versions under 15 without a problem.
 
 ## Installation
-To install, you must [compile WINE with the WINE staging patches](http://web.archive.org/web/20160815170857/http://pipelight.net:80/cms/page-wine.html), [compile Pipelight](http://web.archive.org/web/20160815170857/http://pipelight.net:80/cms/install/compile-pipelight.html), and [enable the required plugins](http://web.archive.org/web/20160815170857/http://pipelight.net:80/cms/installation.html#section_2).
+To install, you must [compile WINE with the WINE Staging patches](http://web.archive.org/web/20160815170857/http://pipelight.net:80/cms/page-wine.html), [compile Pipelight](http://web.archive.org/web/20160815170857/http://pipelight.net:80/cms/install/compile-pipelight.html), and [enable the required plugins](http://web.archive.org/web/20160815170857/http://pipelight.net:80/cms/installation.html#section_2).
 
 ### Pre-compiled binaries
 Unfortunately, Michael Müller, the initiator of the project, has given up on the project and has removed the repositories for supported distributions.  One must now compile from source, which isn't difficult.
 
 ### Browser spoofing
-Unfortunately, services like Netflix detect one's browsers instead of whether it supports EME with Widivene or has the Silverlight plugin installed, so you may need to install a [user-agent switcher](https://github.com/keithbowes/user-agent-switcher).
+Unfortunately, services like Netflix detect one's browser instead of the browser's capabilities, so you may need to install a [user-agent switcher](https://github.com/keithbowes/user-agent-switcher).
 
 ## Alternatives
-Microsoft has deprecated Silverlight and now streaming services are increasingly using HTML5 with EME.  For this to work, you must use a browser that supports EME with the proper DRM plugin (usually Widivine).  Such browsers include [Google Chrome](https://www.google.com/chrome/index.html) and official builds of [Mozilla Firefox](https://mozilla.com/).  Unfortunately, other browsers based on Chromium (Vivaldi, Opera, Chromium itself, etc.) won't work, as they lack Google's proprietary DRM code.  It's the same with Firefox; only the prebuilt versions from the Mozilla website will function, but those built by yourself or by your distribution won't.  Note that starting in Chromium 34, Pipelight won't work either, at least not without applying a patch to [restore support for NPAPI plugins](http://web.archive.org/web/20160815170857/http://pipelight.net:80/cms/chrome-chromium.html).
-
-Support for NPAPI plugins will be removed from Firefox after version 52, but [some other Gecko-based browsers](https://seamonkey-project.org/) will continue to support them to at least some degree.  Webkit-based browsers (such as [Midori](http://midori-browser.org/) and [Uzbl](https://www.uzbl.org/)) also work fine.
+Microsoft has deprecated Silverlight and now streaming services are increasingly using HTML5 with EME.  For such streaming services to work, you must use a browser that supports EME with the proper DRM plugin (usually Widivine).  Such browsers include [Google Chrome](https://www.google.com/chrome/index.html) (37 or higher) and official builds of [Firefox](https://mozilla.com/) (52 or higher).  Unfortunately, Chromium and other browsers based on it (Vivaldi, Opera, etc.) don't support EME, as they lack Google's proprietary DRM code.  Similarly, only the prebuilt versions of Firefox from the Mozilla website support EME, but those built by yourself or by your distribution don't.
