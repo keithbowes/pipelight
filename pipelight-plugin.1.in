@@ -185,8 +185,8 @@ related bugs at the official Wine bug tracker. Instead report them also at the
 Pipelight project page (unless you can reproduce them with an unpatched
 version of Wine).
 .SH "SEE ALSO"
-.UR https://launchpad.net/pipelight
-.B Pipelight Launchpad project page
+.UR @@REPO@@
+.B Pipelight project page
 .UE ,
 .br
 .UR http://web.archive.org/web/20160815170857/http://pipelight.net:80/cms/installation.html

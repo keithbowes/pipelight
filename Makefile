@@ -26,6 +26,9 @@ ifeq ($(debug),true)
 	win64_flags := $(win64_flags) -DPIPELIGHT_DEBUG
 endif
 
+repo = $(shell git remote get-url origin)
+REPO = $(if $(filter https://%,$(repo)),$(repo),https://launchpad.net/pipelight)
+
 SED_OPTS :=	-e 's|@@BASH@@|$(bash_interp)|g' \
 			-e '1s|/usr/bin/env bash|$(bash_interp)|' \
 			-e 's|@@BINDIR@@|$(bindir)|g' \
@@ -37,6 +40,7 @@ SED_OPTS :=	-e 's|@@BASH@@|$(bash_interp)|g' \
 			-e 's|@@PIPELIGHT_LIBRARY_PATH@@|$(libdir)/pipelight|g' \
 			-e 's|@@PIPELIGHT_SHARE_PATH@@|$(datadir)/pipelight|g' \
 			-e 's|@@PREFIX@@|$(prefix)|g' \
+			-e 's|@@REPO@@|$(REPO)|g' \
 			-e 's|@@VERSION@@|$(version)|g'
 
 export
