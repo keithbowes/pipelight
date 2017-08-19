@@ -38,5 +38,7 @@ Unfortunately, Michael Müller, the initiator of the project, has given up on th
 ### Browser spoofing
 Unfortunately, services like Netflix detect one's browser instead of the browser's capabilities, so you may need to install a [user-agent switcher](https://github.com/keithbowes/user-agent-switcher).
 
+If your interest is merely to watch Netflix (the original purpose of Pipelight), you can try an app like [Netflix Penguin](https://github.com/ergoithz/netflix-penguin), so that you won't have to install such an extension in your browser.
+
 ## Alternatives
 Microsoft has deprecated Silverlight and now streaming services are increasingly using HTML5 with EME.  For such streaming services to work, you must use a browser that supports EME with the proper DRM plugin (usually Widevine).  Such browsers include [Google Chrome](https://www.google.com/chrome/index.html) (37 or higher) and official builds of [Firefox](https://mozilla.com/) (52 or higher).  Unfortunately, Chromium and other browsers based on it (Vivaldi, Opera, etc.) don't support EME, as they lack Google's proprietary DRM code.  Similarly, only the prebuilt versions of Firefox from the Mozilla website support EME, but those built by yourself or by your distribution don't.
