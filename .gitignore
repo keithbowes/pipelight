@@ -3,4 +3,5 @@
 *.exe
 *.so
 *.d
+apihook.h
 config.make

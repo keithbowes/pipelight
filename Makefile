@@ -26,7 +26,7 @@ ifeq ($(debug),true)
 	win64_flags := $(win64_flags) -DPIPELIGHT_DEBUG
 endif
 
-repo = $(shell git remote get-url origin)
+repo = $(patsubst %.git,%,$(subst git@,https://,$(subst :,/,$(shell git remote get-url origin))))
 REPO = $(if $(filter https://%,$(repo)),$(repo),https://launchpad.net/pipelight)
 
 SED_OPTS :=	-e 's|@@BASH@@|$(bash_interp)|g' \

@@ -177,8 +177,8 @@ agreement. Take a look there or ask the developers if you want to redistribute
 Pipelight with third-party plugins included.
 .SH BUGS
 Bugs can be reported on the
-.UR https://launchpad.net/pipelight
-.B Pipelight Launchpad project page
+.UR @@REPO@@
+.B Pipelight project page
 .UE .
 Please note that Pipelight uses a patched wine version, so don't report Wine
 related bugs at the official Wine bug tracker. Instead report them also at the

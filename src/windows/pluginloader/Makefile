@@ -12,7 +12,7 @@ OBJECTS			= $(SOURCE:.c=$(suffix).o) ../../common/common_win$(suffix).o
 .PHONY: all
 all: pluginloader$(suffix).exe
 
-pluginloader$(suffix).exe: $(OBJECTS)
+pluginloader$(suffix).exe: apihook.h $(OBJECTS)
 	rm -f "pluginloader$(suffix).exe.so"
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(OBJECTS) $(LDFLAGS) -o pluginloader$(suffix).exe
 
@@ -20,6 +20,9 @@ pluginloader$(suffix).exe: $(OBJECTS)
 		rm -f "pluginloader$(suffix).exe"; \
 		mv "pluginloader$(suffix).exe.so" "pluginloader$(suffix).exe"; \
 	fi
+
+apihook.h: apihook.h.in
+	sed $(SED_OPTS) $< > $@
 
 %$(suffix).o: %.c
 	$(CXX) $(CXXFLAGS) -MMD -MP -o $@ -c $<
@@ -31,7 +34,7 @@ pluginloader$(suffix).exe: $(OBJECTS)
 
 .PHONY: clean dummy
 clean:
-	rm -f *.exe *.exe.so *.o *.d
+	rm -f apihook.h *.exe *.exe.so *.o *.d
 	for dir in $(SUBDIRS); do \
 		$(MAKE) -C $$dir $@; \
 	done

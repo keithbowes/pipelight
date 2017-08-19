@@ -40,6 +40,7 @@
 
 #include <vector>								// for std::vector
 #include "common/common.h"
+#include "apihook.h"
 #include "pluginloader.h"
 
 #include <windows.h>							// for PVOID and other types
@@ -211,7 +212,7 @@ bool menuHandler(NPP instance, UINT identifier, const std::vector<MenuEntry> &en
 
 			case MENU_ACTION_ABOUT_PIPELIGHT:
 				NPN_PushPopupsEnabledState(instance, PR_TRUE);
-				NPN_GetURL(instance, "https://launchpad.net/pipelight", "_blank");
+				NPN_GetURL(instance, PIPELIGHT_REPO, "_blank");
 				NPN_PopPopupsEnabledState(instance);
 				break;
 
