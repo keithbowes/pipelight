@@ -1,6 +1,6 @@
 # Pipelight
 
-Pipelight allows you to run various Windows plugins under Linux via WINE.  Its main objective is to allow you to watch streaming videos on services using Microsoft's Silverlight, but some other plugins also work.
+Pipelight is a special browser plugin which allows one to use Windows-only plugins inside NPAPI plugin-compatible \*nix browsers.  We are currently focusing on Silverlight, Flash, Shockwave and the Unity Webplayer.  The project needs a patched version of WINE to execute the plugins. 
 
 ## Requirements
 
