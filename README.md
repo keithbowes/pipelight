@@ -32,11 +32,21 @@ Older versions of Opera use Presto rather than Blink, so you can use Opera versi
 ## Installation
 To install, you must [compile WINE with the WINE Staging patches](http://web.archive.org/web/20160815170857/http://pipelight.net:80/cms/page-wine.html), [compile Pipelight](http://web.archive.org/web/20160815170857/http://pipelight.net:80/cms/install/compile-pipelight.html), and [enable the required plugins](http://web.archive.org/web/20160815170857/http://pipelight.net:80/cms/installation.html#section_2).
 
+See also [Gentoo's Netflix/Pipelight Wiki page](https://wiki.gentoo.org/wiki/Netflix/Pipelight) for some tips and troubleshooting advice.
+
 ### Pre-compiled binaries
 Unfortunately, Michael Müller, the initiator of the project, has given up on the project and has removed the repositories for supported distributions.  One must now compile from source, which isn't difficult.
 
 ### Browser spoofing
 Unfortunately, services like Netflix detect one's browser instead of the browser's capabilities, so you may need to install a [user-agent switcher](https://github.com/keithbowes/user-agent-switcher).
+
+#### Uzbl
+If you use Uzbl and have the per-site settings script loaded, you can add this to <var>$XDG\_DATA\_HOME</var>/uzbl/per-site-settings:
+<pre>.netflix.com
+    .*
+        set useragent Mozilla/5.0 (Windows NT 5.1; rv:31.0) Gecko/20100101 Firefox/31.0 @(+sh -c "pipelight-plugin --version | sed -e 's/\\s\\+/\\//g'")@</pre>
+
+#### Standalone programs
 
 If your interest is merely to watch Netflix (the original purpose of Pipelight), you can try an app like [Netflix Penguin](https://github.com/ergoithz/netflix-penguin), so that you won't have to install such an extension in your browser.
 
