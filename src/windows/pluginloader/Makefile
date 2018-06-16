@@ -1,6 +1,6 @@
 include ../../../config.make
 winelibdir = $(dir $(wine_path))../lib
-CXXFLAGS		:= -DPLUGINLOADER -DPIPELIGHT_VERSION='"$(version)"' $(CXXFLAGS) -m32
+CXXFLAGS		:= -DPLUGINLOADER -DPIPELIGHT_VERSION='"$(version)"' $(CXXFLAGS)
 LDFLAGS			:= -lversion -lgdi32 -lole32 -lopengl32 -L$(winelibdir) -L$(winelibdir)/wine
 common_suffix 	:= win$(suffix)
 export

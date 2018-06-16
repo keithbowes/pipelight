@@ -1,7 +1,6 @@
 include ../../../config.make
 winelibdir = $(dir $(wine_path))../lib
 LDFLAGS		:= -lgdi32 -lopengl32 -L$(winelibdir) -L$(winelibdir)/wine
-CXXFLAGS = -m32
 export
 
 SOURCE		= $(wildcard *.c)
