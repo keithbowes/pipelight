@@ -1,4 +1,4 @@
-CXXFLAGS	:= -I../../../include -Wall -std=gnu++0x -D_WIN32_WINNT=0x0502 $(CXXFLAGS)
+CXXFLAGS	:= -I../../../include -Wall -I$(dir $(wine_path))../include/wine/windows -std=gnu++0x -D_WIN32_WINNT=0x0502 $(CXXFLAGS)
 export
 
 SUBDIRS		= $(dir $(wildcard */Makefile))
